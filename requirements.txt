@@ -1,0 +1,65 @@
+# Web 框架
+Flask>=3.0.0
+Werkzeug>=3.0.0
+gunicorn>=21.0.0
+
+# 文档处理
+PyMuPDF>=1.23.0
+Pillow>=10.0.0
+python-docx>=1.2.0
+openpyxl>=3.1.0
+
+# 测试框架
+pytest>=7.4.0
+pytest-html>=3.2.0
+
+# 数据处理
+pandas>=2.0.0
+numpy>=1.24.0
+
+# LLM 相关
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0
+openai>=1.0.0
+
+# AI Agent 与多智能体编排（Stage 0~3）
+# LangGraph：Supervisor 模式多智能体协作图（StateGraph + 条件边 + checkpoint）
+langgraph>=0.2.0
+# LangGraph 消息追加 reducer 依赖
+langgraph-checkpoint>=0.2.0
+
+# RAG 向量检索（Stage 1）
+# Chroma 向量数据库：竞赛规则/政策知识库持久化
+chromadb>=0.5.0
+langchain-chroma>=0.1.0
+# 文本切分：竞赛条目 / 政策文档递归切分
+langchain-text-splitters>=0.3.0
+
+# 云服务 SDK
+bce-python-sdk>=0.9.0  # 百度云
+aistudio-sdk>=0.3.0    # 百度千帆
+
+# 本地模型支持（可选）
+ollama>=0.1.0          # Ollama 本地 LLM 支持
+rapidocr-onnxruntime  # RapidOCR 本地 OCR（快速筛选）
+
+# PaddleOCR GPU 支持
+# 安装说明：
+# 1. 先升级 pip 和 setuptools
+#    python -m pip install -U pip setuptools
+# 2. 安装 PaddlePaddle GPU (CUDA 12.6)
+#    python -m pip install paddlepaddle-gpu==3.2.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu126/
+# 3. 安装 PaddleOCR 及所有依赖
+#    python -m pip install "paddleocr[all]"
+paddlepaddle-gpu==3.2.0  # PaddlePaddle GPU 版本 (CUDA 12.6)
+paddleocr               # 从官方源安装完整版
+
+# 工具库
+requests>=2.32.0
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+pydantic>=2.0.0
+
+# PaddleOCR 额外依赖（通过 paddleocr[all] 自动安装）
+# 包括：shapely, scikit-image, imgaug, lmdb, natsort

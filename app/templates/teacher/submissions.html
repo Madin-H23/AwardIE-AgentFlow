@@ -1,0 +1,641 @@
+{% extends "user_base.html" %}
+
+{% block title %}成果提交 - 成果管理系统{% endblock %}
+
+{% block nav_submissions %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap 5 CSS (用于手动导入表单) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- jQuery (Select2依赖) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://unpkg.com/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+    .submission-card {
+        transition: all 0.3s ease;
+    }
+    .submission-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+    }
+    .status-pending {
+        background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        color: white;
+    }
+    .status-approved {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        color: white;
+    }
+    .status-rejected {
+        background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+        color: white;
+    }
+    .type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+    .type-award {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .type-patent {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .type-software {
+        background: #fce7f3;
+        color: #9f1239;
+    }
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+    }
+    /* 手动导入表单的卡片样式 */
+    #manualFormSection .card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    #manualFormSection .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 500;
+    }
+    #manualFormSection .form-label {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    #manualFormSection .form-control,
+    #manualFormSection .form-select {
+        border-color: #ced4da;
+    }
+    #manualFormSection .form-control:focus,
+    #manualFormSection .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    /* 上传进度条（与管理员 file_import 一致） */
+    .upload-progress {
+        margin-top: 20px;
+        display: none;
+    }
+    .upload-progress .progress {
+        height: 24px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+    .upload-progress .progress-bar {
+        background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+        font-weight: 600;
+        line-height: 24px;
+        transition: width 0.3s ease;
+    }
+    .upload-status {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #495057;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<section class="relative py-8 overflow-hidden">
+    <div class="floating-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="hero-title text-3xl font-bold gradient-text mb-2">
+                    成果提交
+                </h1>
+                <p class="text-gray-600">提交您的成果文件并查看提交记录</p>
+            </div>
+            <div>
+                <a href="{{ url_for('teacher.achievement_review_list') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    成果审核
+                </a>
+            </div>
+        </div>
+
+        <!-- 文件导入卡片 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">文件导入</h2>
+            <p class="text-sm text-gray-600 mb-4">支持自动导入和手动导入两种方式</p>
+            
+            <!-- 模式切换选项卡 -->
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="flex space-x-8">
+                    <button id="autoModeTab" class="py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                        自动导入
+                    </button>
+                    <button id="manualModeTab" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                        手动导入
+                    </button>
+                </nav>
+            </div>
+
+            <!-- 自动导入内容 -->
+            <div id="autoImportContent" class="import-mode-content">
+                <div class="mb-4">
+                    <div class="flex space-x-4 mb-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="importMode" value="file" checked class="mr-2">
+                            <span>文件上传</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="importMode" value="directory" class="mr-2">
+                            <span>目录扫描</span>
+                        </label>
+                    </div>
+
+                    <!-- 文件上传区域 -->
+                    <div id="fileUploadMode">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="uploadZone">
+                            <div class="text-4xl mb-4">📁</div>
+                            <p class="text-gray-700 mb-2">点击或拖拽文件到此处上传</p>
+                            <p class="text-sm text-gray-500">支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）</p>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" class="hidden">
+                        </div>
+                    </div>
+
+                    <!-- 目录扫描模式 -->
+                    <div id="directoryScanMode" class="hidden">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="directoryZone">
+                            <div class="text-4xl mb-4">📂</div>
+                            <p class="text-gray-700 mb-2">点击选择要扫描的目录</p>
+                            <p class="text-sm text-gray-500">系统会自动扫描该目录及其所有子目录中的文件</p>
+                            <input type="file" id="directoryInput" webkitdirectory directory multiple class="hidden">
+                        </div>
+                    </div>
+
+                    <!-- 文件列表 -->
+                    <div id="fileList" class="hidden mt-4">
+                        <h6 class="font-medium mb-2">已选择的文件：</h6>
+                        <div id="fileItems" class="space-y-2"></div>
+                    </div>
+
+                    <!-- 缓存选项 -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <h6 class="font-medium mb-3">缓存设置</h6>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="useOcrCache" checked class="mr-2">
+                                <span class="text-sm">使用OCR缓存</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="useLlmCache" checked class="mr-2">
+                                <span class="text-sm">使用LLM缓存</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 实验室关联设置 -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h6 class="font-medium mb-3">实验室关联设置</h6>
+                        <div class="space-y-3">
+                            <label class="flex items-start">
+                                <input type="radio" name="labAssociationMode" id="labModeAuto" value="auto" checked class="mt-1 mr-2">
+                                <div>
+                                    <span class="text-sm font-medium">自动关联（按第一导师）</span>
+                                    <p class="text-xs text-gray-500 mt-0.5">根据奖状中的第一指导教师自动关联到其所属实验室</p>
+                                </div>
+                            </label>
+                            <label class="flex items-start">
+                                <input type="radio" name="labAssociationMode" id="labModeSpecific" value="specific" class="mt-1 mr-2">
+                                <div>
+                                    <span class="text-sm font-medium">指定实验室</span>
+                                    <p class="text-xs text-gray-500 mt-0.5">为本批次所有成果指定同一个实验室</p>
+                                </div>
+                            </label>
+                            <div id="specificLaboratorySelect" class="ml-6 mt-2 hidden">
+                                <select id="specificLaboratory" class="w-full rounded-lg border-gray-300 text-sm">
+                                    <option value="">请选择实验室...</option>
+                                </select>
+                            </div>
+                            <label class="flex items-start">
+                                <input type="radio" name="labAssociationMode" id="labModeNone" value="none" class="mt-1 mr-2">
+                                <div>
+                                    <span class="text-sm font-medium">不关联</span>
+                                    <p class="text-xs text-gray-500 mt-0.5">不关联实验室，保持为空</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 上传按钮 -->
+                    <button id="uploadBtn" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        开始上传
+                    </button>
+
+                    <!-- 上传进度条（与管理员 file_import 一致） -->
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <div class="upload-status" id="uploadStatus">准备上传...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手动导入内容（选类型 → 上传 → 解析 → 内联编辑 → 提交归档） -->
+            <div id="manualImportContent" class="hidden import-mode-content">
+                {% set manual_upload_url = url_for('teacher.achievement_submit_manual_upload') %}
+                {% set manual_parse_url = url_for('teacher.achievement_submit_manual_parse') %}
+                {% set manual_submit_url = url_for('teacher.achievement_submit_manual_submit') %}
+                {% set api_base_url = url_for('teacher.achievement_submit_results') %}
+                {% set api_competitions_url = url_for('teacher.api_competitions') %}
+                {% set api_teachers_url = url_for('teacher.api_teachers') %}
+                {% set api_laboratories_url = url_for('teacher.api_laboratories') %}
+                {% set api_students_search_base = url_for('teacher.api_students_search', query='') %}
+                {% set file_preview_base = url_for('teacher.file_preview', file_path='') %}
+                {% set submitter_type = 'teacher' %}
+                {% include 'shared/manual_import_block.html' %}
+            </div>
+        </div>
+
+        <!-- 统计卡片：基于全部提交记录（all_submissions），列表仅展示最近 10 条（submissions） -->
+        {% set _all = all_submissions|default([]) %}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-gray-800">{{ _all|length }}</h4>
+                <p class="text-sm text-gray-600">全部提交</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-yellow-600">{{ _all|selectattr('status', 'equalto', 'pending')|list|length }}</h4>
+                <p class="text-sm text-gray-600">待审核</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-green-600">{{ _all|selectattr('status', 'equalto', 'approved')|list|length }}</h4>
+                <p class="text-sm text-gray-600">已通过</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-red-600">{{ _all|selectattr('status', 'equalto', 'rejected')|list|length }}</h4>
+                <p class="text-sm text-gray-600">已拒绝</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// 文件上传相关 JavaScript，与管理员 file_import/upload 行为对齐
+(function() {
+    'use strict';
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadZone = document.getElementById('uploadZone');
+        const directoryZone = document.getElementById('directoryZone');
+        const fileInput = document.getElementById('fileInput');
+        const directoryInput = document.getElementById('directoryInput');
+        const fileList = document.getElementById('fileList');
+        const fileItems = document.getElementById('fileItems');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const autoModeTab = document.getElementById('autoModeTab');
+        const manualModeTab = document.getElementById('manualModeTab');
+        const autoImportContent = document.getElementById('autoImportContent');
+        const manualImportContent = document.getElementById('manualImportContent');
+        const fileUploadMode = document.getElementById('fileUploadMode');
+        const directoryScanMode = document.getElementById('directoryScanMode');
+
+        if (!uploadZone || !fileInput || !fileList || !fileItems || !uploadBtn) {
+            console.error('[成果提交] 上传相关 DOM 元素未找到');
+            return;
+        }
+
+        let selectedFiles = [];
+        let currentMode = 'file';
+
+        // 实验室关联
+        const labModeAuto = document.getElementById('labModeAuto');
+        const labModeSpecific = document.getElementById('labModeSpecific');
+        const labModeNone = document.getElementById('labModeNone');
+        const specificLaboratorySelect = document.getElementById('specificLaboratorySelect');
+        const specificLaboratory = document.getElementById('specificLaboratory');
+
+        function updateLabModeDisplay() {
+            if (specificLaboratorySelect) {
+                specificLaboratorySelect.classList.toggle('hidden', !(labModeSpecific && labModeSpecific.checked));
+            }
+        }
+
+        function getLabAssociationMode() {
+            if (labModeNone && labModeNone.checked) return 'none';
+            if (labModeSpecific && labModeSpecific.checked && specificLaboratory && specificLaboratory.value) {
+                const v = specificLaboratory.value.trim();
+                if (/^\d+$/.test(v)) return 'specific:' + v;
+                return 'none';
+            }
+            return 'auto';
+        }
+
+        if (labModeAuto) labModeAuto.addEventListener('change', updateLabModeDisplay);
+        if (labModeSpecific) labModeSpecific.addEventListener('change', updateLabModeDisplay);
+        if (labModeNone) labModeNone.addEventListener('change', updateLabModeDisplay);
+        updateLabModeDisplay();
+
+        fetch('{{ url_for("teacher.api_laboratories") }}')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success && data.laboratories && specificLaboratory) {
+                    data.laboratories.forEach(function(lab) {
+                        const opt = document.createElement('option');
+                        opt.value = lab.id;
+                        opt.textContent = lab.name;
+                        specificLaboratory.appendChild(opt);
+                    });
+                }
+            })
+            .catch(function() {});
+
+        function updateFileList() {
+            if (!fileList || !fileItems || !uploadBtn) return;
+            if (selectedFiles.length === 0) {
+                fileList.classList.add('hidden');
+                fileList.style.display = 'none';
+                uploadBtn.disabled = true;
+                return;
+            }
+            fileList.classList.remove('hidden');
+            fileList.style.display = 'block';
+            uploadBtn.disabled = false;
+            const displayName = (f) => (currentMode === 'directory' && f.webkitRelativePath) ? f.webkitRelativePath : f.name;
+            fileItems.innerHTML = selectedFiles.map((f, i) =>
+                '<div class="flex items-center justify-between p-2 bg-gray-50 rounded"><span class="text-sm text-gray-700 truncate">' +
+                escapeHtml(displayName(f)) + '</span><button type="button" onclick="window.removeFileAchievement(' + i + ')" class="text-red-600 hover:text-red-700">×</button></div>'
+            ).join('');
+        }
+
+        window.removeFileAchievement = function(index) {
+            if (index >= 0 && index < selectedFiles.length) {
+                selectedFiles.splice(index, 1);
+                updateFileList();
+            }
+        };
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function handleFiles(files) {
+            if (!files || !files.length) return;
+            const list = Array.from(files);
+            const supported = ['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'xls'];
+            for (const f of list) {
+                const ext = (f.name.split('.').pop() || '').toLowerCase();
+                if (!supported.includes(ext)) continue;
+                const exists = selectedFiles.some(x => x.name === f.name && x.size === f.size);
+                if (!exists) selectedFiles.push(f);
+            }
+            updateFileList();
+        }
+
+        // 模式切换
+        if (autoModeTab) {
+            autoModeTab.addEventListener('click', function() {
+                autoModeTab.classList.add('border-blue-500', 'text-blue-600');
+                autoModeTab.classList.remove('border-transparent', 'text-gray-500');
+                if (manualModeTab) { manualModeTab.classList.remove('border-blue-500', 'text-blue-600'); manualModeTab.classList.add('border-transparent', 'text-gray-500'); }
+                if (autoImportContent) autoImportContent.classList.remove('hidden');
+                if (manualImportContent) manualImportContent.classList.add('hidden');
+            });
+        }
+        if (manualModeTab) {
+            manualModeTab.addEventListener('click', function() {
+                manualModeTab.classList.add('border-blue-500', 'text-blue-600');
+                manualModeTab.classList.remove('border-transparent', 'text-gray-500');
+                if (autoModeTab) { autoModeTab.classList.remove('border-blue-500', 'text-blue-600'); autoModeTab.classList.add('border-transparent', 'text-gray-500'); }
+                if (manualImportContent) manualImportContent.classList.remove('hidden');
+                if (autoImportContent) autoImportContent.classList.add('hidden');
+            });
+        }
+
+        document.querySelectorAll('input[name="importMode"]').forEach(function(radio) {
+            radio.addEventListener('change', function(e) {
+                if (e.target.value === 'file') {
+                    currentMode = 'file';
+                    if (fileUploadMode) fileUploadMode.classList.remove('hidden');
+                    if (directoryScanMode) directoryScanMode.classList.add('hidden');
+                } else {
+                    currentMode = 'directory';
+                    if (fileUploadMode) fileUploadMode.classList.add('hidden');
+                    if (directoryScanMode) directoryScanMode.classList.remove('hidden');
+                }
+                selectedFiles = [];
+                updateFileList();
+            });
+        });
+
+        uploadZone.addEventListener('click', function(e) {
+            e.stopImmediatePropagation();
+            if (currentMode === 'file') fileInput.click();
+        });
+        fileInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+            e.target.value = '';
+        });
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        uploadZone.addEventListener('dragleave', function() {
+            uploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+            if (currentMode === 'file') handleFiles(e.dataTransfer.files);
+        });
+
+        if (directoryZone && directoryInput) {
+            directoryZone.addEventListener('click', function(e) {
+                e.stopImmediatePropagation();
+                if (currentMode === 'directory') directoryInput.click();
+            });
+            directoryInput.addEventListener('change', function(e) {
+                handleFiles(e.target.files);
+                e.target.value = '';
+            });
+        }
+
+        updateFileList();
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        uploadBtn.addEventListener('click', function() {
+            if (selectedFiles.length === 0) {
+                alert('请先选择文件');
+                return;
+            }
+            if (uploadBtn.disabled) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(function(f) { formData.append('files', f); });
+            formData.append('use_ocr_cache', document.getElementById('useOcrCache').checked ? '1' : '0');
+            formData.append('use_llm_cache', document.getElementById('useLlmCache').checked ? '1' : '0');
+            formData.append('lab_association_mode', getLabAssociationMode());
+
+            const taskId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+            formData.append('task_id', taskId);
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '上传中...';
+            if (uploadProgress) {
+                uploadProgress.style.display = 'block';
+                uploadProgress.classList.remove('hidden');
+            }
+            if (progressBar) {
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                progressBar.style.background = '';
+            }
+            if (uploadStatus) uploadStatus.textContent = '上传中...';
+
+            let progressPollTimer = null;
+            function stopProgressPoll() {
+                if (progressPollTimer) {
+                    clearInterval(progressPollTimer);
+                    progressPollTimer = null;
+                }
+            }
+            function startProgressPoll() {
+                progressPollTimer = setInterval(function() {
+                    fetch('{{ url_for("teacher.achievement_submit_progress") }}?task_id=' + encodeURIComponent(taskId))
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.status === 'processing' || data.status === 'completed') {
+                                const total = data.total || 1;
+                                const current = data.current || 0;
+                                const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                                if (progressBar) {
+                                    progressBar.style.width = pct + '%';
+                                    progressBar.textContent = pct + '%';
+                                }
+                                if (uploadStatus) {
+                                    uploadStatus.textContent = data.current_step || ('正在解析 ' + current + '/' + total);
+                                }
+                            }
+                        })
+                        .catch(function() {});
+                }, 1000);
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    if (progressBar) {
+                        progressBar.style.width = percentComplete + '%';
+                        progressBar.textContent = percentComplete + '%';
+                    }
+                    if (uploadStatus) {
+                        uploadStatus.textContent = percentComplete >= 100
+                            ? '上传完成，正在解析...'
+                            : '上传中 ' + percentComplete + '% (' + formatFileSize(e.loaded) + ' / ' + formatFileSize(e.total) + ')';
+                    }
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                stopProgressPoll();
+                if (xhr.status === 200) {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            uploadBtn.textContent = '处理完成';
+                            if (progressBar) {
+                                progressBar.style.width = '100%';
+                                progressBar.textContent = '100%';
+                                progressBar.classList.remove('progress-bar-animated');
+                                progressBar.style.background = 'linear-gradient(90deg, #52c41a 0%, #73d13d 100%)';
+                            }
+                            if (uploadStatus) uploadStatus.textContent = '处理完成，即将跳转...';
+                            setTimeout(function() {
+                                if (result.redirect_url) window.location.href = result.redirect_url;
+                                else window.location.reload();
+                            }, 1500);
+                        } else {
+                            alert('上传失败: ' + (result.message || '未知错误'));
+                            uploadBtn.disabled = false;
+                            uploadBtn.textContent = '开始上传';
+                            if (uploadProgress) uploadProgress.style.display = 'none';
+                        }
+                    } catch (err) {
+                        console.error('解析响应失败:', err);
+                        alert('服务器响应格式错误');
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = '开始上传';
+                        if (uploadProgress) uploadProgress.style.display = 'none';
+                    }
+                } else {
+                    alert('上传失败: HTTP ' + xhr.status);
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = '开始上传';
+                    if (uploadProgress) uploadProgress.style.display = 'none';
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                stopProgressPoll();
+                alert('上传失败: 网络错误');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '开始上传';
+                if (uploadProgress) uploadProgress.style.display = 'none';
+            });
+
+            xhr.addEventListener('abort', function() {
+                stopProgressPoll();
+                alert('上传已取消');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '开始上传';
+                if (uploadProgress) uploadProgress.style.display = 'none';
+            });
+
+            xhr.open('POST', '{{ url_for("teacher.achievement_submit_upload") }}');
+            xhr.send(formData);
+            startProgressPoll();
+        });
+    });
+})();
+</script>
+{% endblock %}

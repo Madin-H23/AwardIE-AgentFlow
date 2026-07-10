@@ -1,0 +1,524 @@
+<!-- 创建模板：与详细视图布局一致（基本信息、角色、样本图片、字段管理、生成提示词、提示词测试），底部为「创建」按钮 -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">创建模板</h5>
+        <p class="text-muted">选择竞赛与角色，上传一张奖状图片，使用通用模板抽取后编辑并创建（不可覆盖已有模板）</p>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label for="create_competition_id" class="form-label">竞赛</label>
+                <input type="text" class="form-control" id="create_competition_id" name="competition_id"
+                       list="competition_datalist" placeholder="输入竞赛名称搜索..." autocomplete="off"
+                       {% if competition_id_name %}value="{{ competition_id_name }}"{% endif %}>
+                <datalist id="competition_datalist">
+                    {% for comp in competitions %}
+                    <option value="{{ comp.id }}" data-name="{{ comp.name }}">{{ comp.name }} (ID: {{ comp.id }})</option>
+                    {% endfor %}
+                </datalist>
+                <input type="hidden" id="create_competition_id_real" {% if competition_id %}value="{{ competition_id }}"{% endif %}>
+            </div>
+            <div class="col-md-4">
+                <label for="create_granted_role" class="form-label">授予角色</label>
+                <select class="form-select" id="create_granted_role" name="granted_role">
+                    <option value="学生" {% if granted_role == '学生' %}selected{% endif %}>学生</option>
+                    <option value="教师" {% if granted_role == '教师' %}selected{% endif %}>教师</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="create_image_file" class="form-label">上传奖状图片</label>
+                <input type="file" class="form-control" id="create_image_file" name="file" accept="image/*,.pdf">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <button type="button" class="btn btn-primary" id="createExtractBtn">抽取</button>
+            <span id="createExtractStatus" class="ms-2 text-muted small"></span>
+        </div>
+
+        <div id="createResultArea" style="display: none;">
+            <hr>
+
+            <!-- 第一行：三栏（与详细视图一致） -->
+            <div class="row mb-3 g-2">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-2">基本信息</h6>
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <small class="text-muted">类型</small>
+                                    <div><span class="badge bg-info">奖状</span></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">状态</small>
+                                    <div><span class="badge bg-success">新建</span></div>
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <small class="text-muted">竞赛名称</small>
+                                    <input type="text" class="form-control form-control-sm" id="create_competition_name_input" placeholder="可输入或由抽取/选择竞赛自动填充">
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <small class="text-muted">语言</small>
+                                    <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="createLanguageGroup">
+                                        <input type="radio" class="btn-check" name="create_language" id="create_lang_zh" value="zh" checked>
+                                        <label class="btn btn-outline-secondary" for="create_lang_zh">中文</label>
+                                        <input type="radio" class="btn-check" name="create_language" id="create_lang_en" value="en">
+                                        <label class="btn btn-outline-secondary" for="create_lang_en">英文</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-1" id="createTranslateOption" style="display: none;">
+                                    <small class="text-muted">翻译</small>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="createNeedTranslateCheck">
+                                        <label class="form-check-label small" for="createNeedTranslateCheck">翻译成中文</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <small class="text-muted">字符数范围</small>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="createMinLengthInput" value="0" min="0" placeholder="最小">
+                                        <span class="input-group-text">-</span>
+                                        <input type="number" class="form-control" id="createMaxLengthInput" value="0" min="0" placeholder="无限制">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-1">角色 & 关键词 <small class="text-muted">(多个关键词用换行分隔)</small></h6>
+                            <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="createGrantedRoleGroup">
+                                <input type="radio" class="btn-check" name="create_granted_role" id="create_role_student" value="学生">
+                                <label class="btn btn-outline-primary" for="create_role_student">学生</label>
+                                <input type="radio" class="btn-check" name="create_granted_role" id="create_role_teacher" value="教师">
+                                <label class="btn btn-outline-primary" for="create_role_teacher">教师</label>
+                            </div>
+                            <textarea class="form-control form-control-sm mb-1" id="createKeywordsInput" rows="2" placeholder="关键词（每行一个）"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-2">
+                            <h6 class="card-title mb-1">样本图片</h6>
+                            <div id="createSampleImageContainer" style="min-height: 240px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
+                                <img id="createSampleImagePreview" alt="样本图片" class="img-fluid" style="max-height: 240px; cursor: pointer; border: 1px solid #dee2e6; border-radius: 4px; display: none;">
+                                <span id="createSampleImagePlaceholder" class="text-muted">抽取后显示</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OCR 识别结果（可折叠） -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <a class="text-decoration-none text-reset" data-bs-toggle="collapse" href="#createOcrResult" role="button">OCR 识别结果</a>
+                            </h6>
+                        </div>
+                        <div class="collapse" id="createOcrResult">
+                            <div class="card-body">
+                                <textarea class="form-control form-control-sm" id="createOcrText" rows="5" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- 字段管理（与详细视图一致） -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-2">
+                                字段管理
+                                <small class="text-muted fw-normal">|</small>
+                                验证规则
+                                <small class="text-muted fw-normal" title="规则：证书上有=必须有此字段但不必填，必有=必须有且必须填写，不检测=不进行验证">ℹ️</small>
+                            </h6>
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered mb-2">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th width="20%">字段名</th>
+                                            <th width="32%">描述</th>
+                                            <th width="8%">类型</th>
+                                            <th width="20%">默认值</th>
+                                            <th width="20%">样本值</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="createFieldsTable">
+                                        {% for key, base_desc in base_fields.items() %}
+                                        {% if key not in ['competition_name', 'granted_role'] %}
+                                        <tr data-field="{{ key }}">
+                                            <td><code>{{ key }}</code></td>
+                                            <td>
+                                                <textarea class="form-control form-control-sm llm-field-input" rows="1" data-field="{{ key }}" style="resize: none;" placeholder="{{ base_desc }}">{{ base_desc }}</textarea>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm field-type-select" data-field="{{ key }}">
+                                                    <option value="empty">空</option>
+                                                    <option value="default">默认</option>
+                                                    <option value="extract" selected>抽取</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm default-value-input" data-field="{{ key }}" placeholder="选择'默认'时填写" disabled>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm sample-value-input" data-field="{{ key }}" placeholder="样本抽取值">
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 生成提示词 + 提示词测试（与详细视图一致） -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><h5 class="mb-0">生成的提示词模板</h5></div>
+                        <div class="card-body">
+                            <button type="button" class="btn btn-primary mb-3" id="createGeneratePromptBtn">生成专用模板提示词</button>
+                            <pre id="createGeneratedPrompt" class="bg-light p-3" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><h5 class="mb-0">提示词模板测试</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="createTestImageUpload" class="form-label">上传图片进行测试</label>
+                                <input type="file" class="form-control" id="createTestImageUpload" accept="image/*,.pdf">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="createTestTemplateBtn">开始测试</button>
+                            <div id="createTestResults" class="mt-3" style="display: none;">
+                                <hr>
+                                <h6>测试结果</h6>
+                                <div class="row">
+                                    <div class="col-12 mb-2">
+                                        <strong>OCR提取文本:</strong>
+                                        <textarea class="form-control mt-1" id="createTestOcrText" rows="5" readonly></textarea>
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <strong>LLM原始返回值:</strong>
+                                        <pre class="bg-light p-2" id="createTestLlmResult" style="max-height: 200px; overflow-y: auto;"></pre>
+                                    </div>
+                                    <div class="col-12">
+                                        <strong>补齐后的完整结果:</strong>
+                                        <pre class="bg-light p-2" id="createTestCompletedResult" style="max-height: 200px; overflow-y: auto;"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 创建按钮（仅创建，不覆盖） -->
+            <div class="text-center">
+                <button type="button" class="btn btn-success btn-lg" id="createSubmitBtn">创建</button>
+                <p class="text-muted small mt-2 mb-0">若该竞赛已有相同角色的模板，将提示失败，不允许覆盖</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const competitionInput = document.getElementById('create_competition_id');
+    const competitionIdReal = document.getElementById('create_competition_id_real');
+    const competitionNameInput = document.getElementById('create_competition_name_input');
+    const roleSelect = document.getElementById('create_granted_role');
+    const roleStudent = document.getElementById('create_role_student');
+    const roleTeacher = document.getElementById('create_role_teacher');
+    if (competitionInput && competitionIdReal) {
+        competitionInput.addEventListener('input', function() {
+            const value = this.value;
+            const datalist = document.getElementById('competition_datalist');
+            if (!datalist) return;
+            const options = datalist.querySelectorAll('option');
+            for (const option of options) {
+                if (option.value === value) {
+                    const name = option.getAttribute('data-name');
+                    if (name) this.value = name;
+                    competitionIdReal.value = value;
+                    if (competitionNameInput) competitionNameInput.value = name || value || '';
+                    break;
+                }
+            }
+        });
+    }
+
+    // 授予角色下拉与卡片内单选同步
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            if (roleStudent) roleStudent.checked = this.value === '学生';
+            if (roleTeacher) roleTeacher.checked = this.value === '教师';
+        });
+    }
+    if (roleStudent) roleStudent.addEventListener('change', function() { if (roleSelect && this.checked) roleSelect.value = '学生'; });
+    if (roleTeacher) roleTeacher.addEventListener('change', function() { if (roleSelect && this.checked) roleSelect.value = '教师'; });
+
+    // 语言切换显示翻译选项
+    const langZh = document.getElementById('create_lang_zh');
+    const langEn = document.getElementById('create_lang_en');
+    const translateOption = document.getElementById('createTranslateOption');
+    if (langEn && translateOption) {
+        langEn.addEventListener('change', function() { translateOption.style.display = this.checked ? 'block' : 'none'; });
+    }
+
+    // 类型选择联动默认值
+    document.querySelectorAll('#createFieldsTable .field-type-select').forEach(function(sel) {
+        sel.addEventListener('change', function() {
+            const field = this.getAttribute('data-field');
+            const row = this.closest('tr');
+            const defaultInput = row ? row.querySelector('.default-value-input') : null;
+            if (defaultInput) {
+                defaultInput.disabled = this.value !== 'default';
+                if (this.value !== 'default') defaultInput.value = '';
+            }
+        });
+    });
+
+    const extractBtn = document.getElementById('createExtractBtn');
+    const fileInput = document.getElementById('create_image_file');
+    const statusEl = document.getElementById('createExtractStatus');
+    const resultArea = document.getElementById('createResultArea');
+    const ocrTextEl = document.getElementById('createOcrText');
+    const samplePreview = document.getElementById('createSampleImagePreview');
+    const samplePlaceholder = document.getElementById('createSampleImagePlaceholder');
+    var lastExtractOcrText = '';
+
+    if (extractBtn && fileInput) {
+        extractBtn.addEventListener('click', function() {
+            if (!fileInput.files || !fileInput.files.length) {
+                alert('请先选择一张图片');
+                return;
+            }
+            statusEl.textContent = '抽取中...';
+            extractBtn.disabled = true;
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            fetch('/admin/templates/extract-for-create', { method: 'POST', body: formData })
+                .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+                .then(function(r) {
+                    if (r.ok && r.data.success) {
+                        statusEl.textContent = '抽取成功';
+                        var ocrText = (r.data && (r.data.ocr_text !== undefined)) ? r.data.ocr_text : '';
+                        if (ocrText == null) ocrText = '';
+                        ocrText = String(ocrText);
+                        lastExtractOcrText = ocrText;
+                        if (ocrTextEl) ocrTextEl.value = ocrText;
+                        var rawDict = (r.data && r.data.extracted_dict) ? r.data.extracted_dict : {};
+                        var extracted = {};
+                        if (typeof rawDict === 'string') {
+                            try { extracted = JSON.parse(rawDict); } catch (e) { extracted = {}; }
+                        } else if (rawDict && typeof rawDict === 'object') {
+                            extracted = rawDict;
+                        }
+                        function formatFieldValue(val) {
+                            if (val == null) return '';
+                            if (Array.isArray(val)) return val.map(function(v) { return v != null ? String(v) : ''; }).join(',');
+                            if (typeof val === 'object') return JSON.stringify(val);
+                            return String(val);
+                        }
+                        document.querySelectorAll('#createFieldsTable .sample-value-input').forEach(function(inp) {
+                            var key = inp.getAttribute('data-field');
+                            if (key && extracted.hasOwnProperty(key)) inp.value = formatFieldValue(extracted[key]);
+                        });
+                        var compName = (extracted.competition_name != null && String(extracted.competition_name).trim()) ? String(extracted.competition_name).trim() : (competitionNameInput ? competitionNameInput.value.trim() : '') || (competitionInput ? competitionInput.value : '');
+                        if (competitionNameInput) competitionNameInput.value = compName;
+                        if (competitionInput && compName && !competitionInput.value) competitionInput.value = compName;
+                        var kwEl = document.getElementById('createKeywordsInput');
+                        if (kwEl && compName && !kwEl.value.trim()) kwEl.value = compName;
+                        var roleVal = (extracted.granted_role != null && String(extracted.granted_role).trim()) ? String(extracted.granted_role).trim() : (roleSelect ? roleSelect.value : '学生');
+                        if (roleVal === '教师' || roleVal === '学生') {
+                            if (roleSelect) roleSelect.value = roleVal;
+                            if (roleStudent) roleStudent.checked = roleVal === '学生';
+                            if (roleTeacher) roleTeacher.checked = roleVal === '教师';
+                        }
+                        resultArea.style.display = 'block';
+                        if (samplePreview && samplePlaceholder && fileInput.files[0]) {
+                            samplePreview.src = URL.createObjectURL(fileInput.files[0]);
+                            samplePreview.style.display = 'block';
+                            samplePlaceholder.style.display = 'none';
+                        }
+                        if (!compName && competitionInput && competitionInput.value && competitionNameInput) competitionNameInput.value = competitionInput.value;
+                        if ((!roleVal || roleVal === '学生') && roleSelect && roleSelect.value) {
+                            if (roleStudent) roleStudent.checked = roleSelect.value === '学生';
+                            if (roleTeacher) roleTeacher.checked = roleSelect.value === '教师';
+                        }
+                    } else {
+                        statusEl.textContent = '抽取失败';
+                        alert(r.data.message || '抽取失败');
+                    }
+                })
+                .catch(function(err) {
+                    statusEl.textContent = '抽取失败';
+                    alert('抽取失败: ' + (err.message || '网络错误'));
+                })
+                .finally(function() { extractBtn.disabled = false; });
+        });
+    }
+
+    // 生成提示词（创建页专用接口）
+    const genPromptBtn = document.getElementById('createGeneratePromptBtn');
+    const genPromptPre = document.getElementById('createGeneratedPrompt');
+    if (genPromptBtn) {
+        genPromptBtn.addEventListener('click', function() {
+            const sample_text = ocrTextEl ? ocrTextEl.value : '';
+            const default_fields = { competition_name: (competitionNameInput && competitionNameInput.value) ? competitionNameInput.value.trim() : (competitionInput ? competitionInput.value : ''), granted_role: (roleSelect && roleSelect.value) ? roleSelect.value : ((roleStudent && roleStudent.checked) ? '学生' : '教师') };
+            document.querySelectorAll('#createFieldsTable tr[data-field]').forEach(function(tr) {
+                const key = tr.getAttribute('data-field');
+                const typeSel = tr.querySelector('.field-type-select');
+                const defaultInp = tr.querySelector('.default-value-input');
+                const descInp = tr.querySelector('.llm-field-input');
+                if (typeSel && typeSel.value === 'default' && defaultInp) default_fields[key] = defaultInp.value;
+            });
+            const llm_fields = {};
+            document.querySelectorAll('#createFieldsTable .llm-field-input').forEach(function(inp) {
+                const key = inp.getAttribute('data-field');
+                const row = inp.closest('tr');
+                const typeSel = row ? row.querySelector('.field-type-select') : null;
+                if (key && typeSel && typeSel.value === 'extract') llm_fields[key] = inp.value || '';
+            });
+            const sample_extracted = {};
+            document.querySelectorAll('#createFieldsTable .sample-value-input').forEach(function(inp) {
+                const key = inp.getAttribute('data-field');
+                if (key) sample_extracted[key] = inp.value.trim() || null;
+            });
+            const keywordsEl = document.getElementById('createKeywordsInput');
+            const keywords = keywordsEl ? keywordsEl.value.trim().split(/\n/).filter(Boolean) : [];
+            const language = (document.getElementById('create_lang_en') && document.getElementById('create_lang_en').checked) ? 'en' : 'zh';
+            const need_translate = document.getElementById('createNeedTranslateCheck') ? document.getElementById('createNeedTranslateCheck').checked : false;
+            genPromptBtn.disabled = true;
+            genPromptBtn.textContent = '生成中...';
+            fetch('/admin/templates/generate-prompt-for-create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sample_text: sample_text, sample_extracted: sample_extracted, default_fields: default_fields, llm_fields: llm_fields, keywords: keywords, language: language, need_translate: need_translate })
+            })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && genPromptPre) genPromptPre.textContent = data.prompt || '';
+                    else alert(data.message || '生成失败');
+                })
+                .catch(function(err) { alert('生成失败: ' + (err.message || '网络错误')); })
+                .finally(function() { genPromptBtn.disabled = false; genPromptBtn.textContent = '生成专用模板提示词'; });
+        });
+    }
+
+    // 提示词测试（创建页使用 extract-for-create）
+    const testBtn = document.getElementById('createTestTemplateBtn');
+    const testFileInput = document.getElementById('createTestImageUpload');
+    if (testBtn && testFileInput) {
+        testBtn.addEventListener('click', function() {
+            if (!testFileInput.files || !testFileInput.files.length) {
+                alert('请先选择图片文件');
+                return;
+            }
+            testBtn.disabled = true;
+            testBtn.textContent = '测试中...';
+            const fd = new FormData();
+            fd.append('file', testFileInput.files[0]);
+            fetch('/admin/templates/extract-for-create', { method: 'POST', body: fd })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        var rDiv = document.getElementById('createTestResults');
+                        var rOcr = document.getElementById('createTestOcrText');
+                        var rLlm = document.getElementById('createTestLlmResult');
+                        var rComp = document.getElementById('createTestCompletedResult');
+                        if (rDiv) rDiv.style.display = 'block';
+                        if (rOcr) rOcr.value = data.ocr_text || '';
+                        if (rLlm) rLlm.textContent = typeof data.extracted_dict === 'object' ? JSON.stringify(data.extracted_dict, null, 2) : (data.extracted_dict || '');
+                        if (rComp) rComp.textContent = typeof data.extracted_dict === 'object' ? JSON.stringify(data.extracted_dict, null, 2) : (data.extracted_dict || '');
+                    } else alert('测试失败: ' + (data.message || ''));
+                })
+                .catch(function(err) { alert('测试失败: ' + (err.message || '')); })
+                .finally(function() { testBtn.disabled = false; testBtn.textContent = '开始测试'; });
+        });
+    }
+
+    // 创建提交（收集与详细视图一致的数据，不允许覆盖）
+    const submitBtn = document.getElementById('createSubmitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const compId = document.getElementById('create_competition_id_real');
+            const roleSel = document.getElementById('create_granted_role');
+            if (!compId || !compId.value) { alert('请选择竞赛'); return; }
+            if (!roleSel || !roleSel.value) { alert('请选择授予角色'); return; }
+            if (!fileInput.files || !fileInput.files.length) { alert('请上传样本图片'); return; }
+            const sample_extracted = {};
+            document.querySelectorAll('#createFieldsTable .sample-value-input').forEach(function(inp) {
+                const key = inp.getAttribute('data-field');
+                if (key) sample_extracted[key] = inp.value.trim() || null;
+            });
+            const default_fields = { competition_name: (competitionNameInput && competitionNameInput.value) ? competitionNameInput.value.trim() : (competitionInput ? competitionInput.value : ''), granted_role: roleSel.value };
+            document.querySelectorAll('#createFieldsTable tr[data-field]').forEach(function(tr) {
+                const key = tr.getAttribute('data-field');
+                const typeSel = tr.querySelector('.field-type-select');
+                const defaultInp = tr.querySelector('.default-value-input');
+                if (typeSel && typeSel.value === 'default' && defaultInp) default_fields[key] = defaultInp.value;
+            });
+            const llm_fields = {};
+            document.querySelectorAll('#createFieldsTable .llm-field-input').forEach(function(inp) {
+                const key = inp.getAttribute('data-field');
+                const row = inp.closest('tr');
+                const typeSel = row ? row.querySelector('.field-type-select') : null;
+                if (key && typeSel && typeSel.value === 'extract') llm_fields[key] = inp.value || '';
+            });
+            const keywordsEl = document.getElementById('createKeywordsInput');
+            const keywords = keywordsEl ? keywordsEl.value.trim() : '';
+            const language = (document.getElementById('create_lang_en') && document.getElementById('create_lang_en').checked) ? 'en' : 'zh';
+            const need_translate = document.getElementById('createNeedTranslateCheck') ? document.getElementById('createNeedTranslateCheck').checked : false;
+            const min_length = document.getElementById('createMinLengthInput') ? parseInt(document.getElementById('createMinLengthInput').value, 10) || 0 : 0;
+            const max_length = document.getElementById('createMaxLengthInput') ? parseInt(document.getElementById('createMaxLengthInput').value, 10) || 0 : 0;
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('competition_id', compId.value);
+            formData.append('granted_role', roleSel.value);
+            formData.append('sample_extracted', JSON.stringify(sample_extracted));
+            formData.append('sample_text', (ocrTextEl && ocrTextEl.value) ? ocrTextEl.value : (lastExtractOcrText || ''));
+            formData.append('keywords', keywords);
+            formData.append('language', language);
+            formData.append('need_translate', need_translate ? '1' : '0');
+            formData.append('min_length', String(min_length));
+            formData.append('max_length', String(max_length));
+            formData.append('default_fields', JSON.stringify(default_fields));
+            formData.append('llm_fields', JSON.stringify(llm_fields));
+            submitBtn.disabled = true;
+            fetch('/admin/templates/create', { method: 'POST', body: formData })
+                .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })
+                .then(function(r) {
+                    if (r.data.success) {
+                        alert('创建成功');
+                        window.location.href = '/admin/templates?tab=list';
+                    } else {
+                        alert(r.data.message || '创建失败');
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(function(err) {
+                    alert('创建失败: ' + (err.message || '网络错误'));
+                    submitBtn.disabled = false;
+                });
+        });
+    }
+})();
+</script>

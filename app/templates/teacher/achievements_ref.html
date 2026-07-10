@@ -1,0 +1,768 @@
+{% extends "user_base.html" %}
+
+{% block title %}成果展示 - 成果管理系统{% endblock %}
+
+{% block nav_achievements %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .achievement-type-academic {
+            background: linear-gradient(135deg, #3182ce 0%, #4299e1 100%);
+        }
+        .achievement-type-competition {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        }
+        .achievement-type-project {
+            background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        }
+        .achievement-type-certification {
+            background: linear-gradient(135deg, #805ad5 0%, #9f7aea 100%);
+        }
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(246, 173, 85, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        .floating-add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 40;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+        <!-- 页面标题区域 -->
+        <section class="relative py-12 overflow-hidden">
+            <div class="floating-particles">
+                <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+                <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-8">
+                    <h1 class="hero-title text-4xl md:text-5xl font-bold gradient-text mb-4">
+                        成果展示
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                        展示学术成就，分享学习成果，激励彼此进步
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 统计卡片 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                        </div>
+                        <h4 class="text-2xl font-bold text-yellow-600">{{ total_national or 0 }}</h4>
+                        <p class="text-sm text-gray-600">国赛</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-2xl font-bold text-blue-600">{{ total_provincial or 0 }}</h4>
+                        <p class="text-sm text-gray-600">省赛</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-2xl font-bold text-green-600">{{ total_awards or 0 }}</h4>
+                        <p class="text-sm text-gray-600">获奖数量</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果统计图表 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">年度竞赛成果统计</h3>
+                    <div id="achievement-yearly-chart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 奖状：仅当有关联数据时显示 -->
+        {% if (total_awards or 0) > 0 %}
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="hero-title text-xl font-bold text-gray-800">奖状</h3>
+                        <div class="flex items-center gap-2">
+                            <button id="exportFilteredBtn" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all">
+                                导出当前筛选数据
+                            </button>
+                            <span id="exportSuccessMsg" class="text-green-600 text-sm whitespace-nowrap" style="display: none;"></span>
+                        </div>
+                    </div>
+
+                    <!-- 搜索和筛选表单 -->
+                    <form method="GET" action="{{ url_for('teacher.achievements') }}" id="filterForm" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">竞赛</label>
+                                <select name="competition_id" id="competition_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                    <option value="">全部</option>
+                                    {% for comp in competitions %}
+                                    <option value="{{ comp.id }}" {% if competition_id == comp.id %}selected{% endif %}>{{ comp.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                                <input type="number" name="year" id="year" value="{{ year or '' }}" placeholder="年份" min="2000" max="2099" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">竞赛等级</label>
+                                <select name="competition_level" id="competition_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                    <option value="">全部</option>
+                                    <option value="校赛" {% if competition_level == '校赛' %}selected{% endif %}>校赛</option>
+                                    <option value="区域赛" {% if competition_level == '区域赛' %}selected{% endif %}>区域赛</option>
+                                    <option value="省赛" {% if competition_level == '省赛' %}selected{% endif %}>省赛</option>
+                                    <option value="国赛" {% if competition_level == '国赛' %}selected{% endif %}>国赛</option>
+                                    <option value="国际赛" {% if competition_level == '国际赛' %}selected{% endif %}>国际赛</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">获奖等级</label>
+                                <select name="award_level" id="award_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                    <option value="">全部</option>
+                                    <option value="特等奖" {% if award_level == '特等奖' %}selected{% endif %}>特等奖</option>
+                                    <option value="一等奖" {% if award_level == '一等奖' %}selected{% endif %}>一等奖</option>
+                                    <option value="二等奖" {% if award_level == '二等奖' %}selected{% endif %}>二等奖</option>
+                                    <option value="三等奖" {% if award_level == '三等奖' %}selected{% endif %}>三等奖</option>
+                                    <option value="优秀奖" {% if award_level == '优秀奖' %}selected{% endif %}>优秀奖</option>
+                                    <option value="金奖" {% if award_level == '金奖' %}selected{% endif %}>金奖</option>
+                                    <option value="银奖" {% if award_level == '银奖' %}selected{% endif %}>银奖</option>
+                                    <option value="铜奖" {% if award_level == '铜奖' %}selected{% endif %}>铜奖</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">每页</label>
+                                <select name="per_page" id="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                    <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="include_teacher_certificates" id="include_teacher_certificates" value="1" 
+                                           {% if include_teacher_certificates %}checked{% endif %}
+                                           class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
+                                    <span class="ml-2 text-sm font-medium text-gray-700">包含教师证书</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="{{ url_for('teacher.achievements') }}" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:border-orange-500 hover:text-orange-500 transition-all inline-block">
+                                重置
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <!-- 奖状列表 -->
+                    <div class="mt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-gray-600">共找到 {{ total_count }} 条记录</span>
+                    </div>
+
+                        {% if awards %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">竞赛名称</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">竞赛等级</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">获奖等级</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">首位获奖者</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">首位指导教师</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年份</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for award in awards %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ award.id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {% if award.competition_id %}
+                                                {% set comp = competitions|selectattr('id', 'equalto', award.competition_id)|first %}
+                                                {{ comp.name if comp else '未知竞赛' }}
+                                            {% else %}
+                                                <span class="text-gray-400">未关联</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            {% if award.competition_level %}
+                                                {% set level = award.competition_level %}
+                                                {% if level == '国际赛' %}
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">{{ award.competition_level }}</span>
+                                                {% elif level == '国赛' %}
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ award.competition_level }}</span>
+                                                {% elif level == '省赛' %}
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ award.competition_level }}</span>
+                                                {% elif level == '校赛' %}
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{{ award.competition_level }}</span>
+                                                {% else %}
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ award.competition_level }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-gray-400">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            {% if award.award_level %}
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ award.award_level }}</span>
+                                            {% else %}
+                                                <span class="text-gray-400">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            {% set winner_info = award.get_first_winner_info() %}
+                                            {% if winner_info and winner_info.name %}
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ winner_info.name }}</span>
+                                            {% else %}
+                                                <span class="text-gray-400">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            {% set supervisor_info = award.get_first_supervisor_info() %}
+                                            {% if supervisor_info and supervisor_info.name %}
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ supervisor_info.name }}</span>
+                                            {% else %}
+                                                <span class="text-gray-400">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ award.year if award.year else '-' }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="text-orange-600 hover:text-orange-900">查看/编辑</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                    </div>
+
+                        <!-- 分页 -->
+                        {% if total_pages > 1 %}
+                        <div class="mt-6 flex justify-center">
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                {% if page > 1 %}
+                                <a href="?page={{ page - 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    上一页
+                                </a>
+                                {% endif %}
+                                {% for p in range(1, total_pages + 1) %}
+                                    {% if p == page %}
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-orange-50 text-sm font-medium text-orange-600">
+                                        {{ p }}
+                                    </span>
+                                    {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                                    <a href="?page={{ p }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                        {{ p }}
+                                    </a>
+                                    {% elif p == 4 or p == total_pages - 3 %}
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                        ...
+                                    </span>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if page < total_pages %}
+                                <a href="?page={{ page + 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    下一页
+                                </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="text-center py-12">
+                            <p class="text-gray-500 mb-4">暂无奖状数据</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 专利：仅当有关联数据时显示 -->
+        {% if patents %}
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">专利</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">专利名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">申请日期</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for patent in patents %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ patent.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ patent.patent_type or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ (patent.application_date or '-')[:10] }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-orange-600 hover:text-orange-900">查看</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 软著：仅当有关联数据时显示 -->
+        {% if software_list %}
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">软著</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">软件名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">登记号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">登记日期</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for software in software_list %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ software.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ software.registration_number or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ (software.registration_date or '-')[:10] }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="text-orange-600 hover:text-orange-900">查看</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 大创：仅当有关联数据时显示 -->
+        {% if innovation_projects %}
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">大创项目</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目名称</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">级别</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">负责人</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for project in innovation_projects %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ project.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ project.project_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ project.project_type or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ project.student_leader_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <a href="{{ url_for('teacher.innovation_view', project_id=project.id) }}" class="text-orange-600 hover:text-orange-900">查看</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- 成果详情模态框 -->
+    <div id="achievement-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="hero-title text-2xl font-bold text-gray-800" id="achievement-modal-title">成果详情</h3>
+                    <button onclick="closeAchievementModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="achievement-modal-content">
+                    <!-- 动态内容 -->
+                </div>
+            </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // 年度竞赛成果统计图表
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if chart_data %}
+        var chartData = {{ chart_data | tojson }};
+        
+        var chartDom = document.getElementById('achievement-yearly-chart');
+        if (chartDom && typeof echarts !== 'undefined') {
+            var myChart = echarts.init(chartDom);
+            
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['国赛', '省赛'],
+                    top: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: chartData.years.map(function(year) { return year + '年'; }),
+                    axisLabel: {
+                        rotate: 0
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '数量'
+                },
+                series: [
+                    {
+                        name: '国赛',
+                        type: 'bar',
+                        data: chartData.national,
+                        itemStyle: {
+                            color: '#3182ce'
+                        }
+                    },
+                    {
+                        name: '省赛',
+                        type: 'bar',
+                        data: chartData.provincial,
+                        itemStyle: {
+                            color: '#38a169'
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // 响应式调整
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        } else if (chartDom) {
+            console.error('ECharts未加载');
+        }
+        {% else %}
+        console.log('没有图表数据');
+        {% endif %}
+        
+        // 自动过滤功能：当筛选条件改变时自动提交表单
+        var filterForm = document.getElementById('filterForm');
+        if (filterForm) {
+            var filterTimeout;
+            
+            // 监听所有筛选条件的变化
+            var filterSelects = filterForm.querySelectorAll('.filter-select');
+            var filterInputs = filterForm.querySelectorAll('.filter-input');
+            
+            // 获取教师证书复选框
+            var includeTeacherCert = document.getElementById('include_teacher_certificates');
+            
+            function autoFilter() {
+                // 防抖：延迟300ms执行，避免频繁提交
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(function() {
+                    // 构建URL参数
+                    const formData = new FormData(filterForm);
+                    const params = new URLSearchParams();
+                    
+                    // 收集所有表单字段
+                    formData.forEach((value, key) => {
+                        if (value && value.trim() !== '') {
+                            params.append(key, value);
+                        }
+                    });
+                    
+                    // 特殊处理复选框
+                    if (includeTeacherCert && includeTeacherCert.checked) {
+                        params.append('include_teacher_certificates', '1');
+                    }
+                    
+                    // 跳转到新的URL（重置到第一页，因为过滤后应该从第一页开始）
+                    params.set('page', '1');
+                    window.location.href = '{{ url_for("teacher.achievements") }}?' + params.toString();
+                }, 300);
+            }
+            
+            // 为所有select添加change事件
+            filterSelects.forEach(function(select) {
+                select.addEventListener('change', autoFilter);
+            });
+            
+            // 为所有input添加change和input事件（input事件用于实时输入）
+            filterInputs.forEach(function(input) {
+                input.addEventListener('change', autoFilter);
+                // 对于年份输入框，也监听input事件，但延迟更长
+                if (input.id === 'year') {
+                    input.addEventListener('input', function() {
+                        clearTimeout(filterTimeout);
+                        filterTimeout = setTimeout(function() {
+                            autoFilter();
+                        }, 800); // 年份输入延迟800ms，给用户输入时间
+                    });
+                }
+            });
+            
+            // 为复选框添加change事件
+            if (includeTeacherCert) {
+                includeTeacherCert.addEventListener('change', autoFilter);
+            }
+        }
+        
+        // 导出当前筛选数据按钮
+        var exportFilteredBtn = document.getElementById('exportFilteredBtn');
+        if (exportFilteredBtn) {
+            exportFilteredBtn.addEventListener('click', function() {
+                exportFilteredData();
+            });
+        }
+    });
+    
+    /**
+     * 导出当前筛选的数据
+     */
+    function exportFilteredData() {
+        var exportBtn = document.getElementById('exportFilteredBtn');
+        if (!exportBtn) {
+            return;
+        }
+        
+        // 禁用按钮，显示加载状态
+        var originalText = exportBtn.textContent;
+        exportBtn.disabled = true;
+        exportBtn.textContent = '正在导出...';
+        
+        // 收集筛选条件
+        var filterForm = document.getElementById('filterForm');
+        var filterData = {
+            competition_id: null,
+            year: null,
+            competition_level: '',
+            award_level: '',
+            include_teacher_certificates: false,
+            include_images: true
+        };
+        
+        if (filterForm) {
+            var competitionSelect = document.getElementById('competition_id');
+            if (competitionSelect && competitionSelect.value) {
+                filterData.competition_id = parseInt(competitionSelect.value);
+            }
+            
+            var yearInput = document.getElementById('year');
+            if (yearInput && yearInput.value) {
+                filterData.year = parseInt(yearInput.value);
+            }
+            
+            var competitionLevelSelect = document.getElementById('competition_level');
+            if (competitionLevelSelect && competitionLevelSelect.value) {
+                filterData.competition_level = competitionLevelSelect.value;
+            }
+            
+            var awardLevelSelect = document.getElementById('award_level');
+            if (awardLevelSelect && awardLevelSelect.value) {
+                filterData.award_level = awardLevelSelect.value;
+            }
+            
+            var includeTeacherCert = document.getElementById('include_teacher_certificates');
+            if (includeTeacherCert && includeTeacherCert.checked) {
+                filterData.include_teacher_certificates = true;
+            }
+        }
+        
+        // 发送导出请求
+        fetch('{{ url_for("teacher.achievements_export_filtered") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(filterData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                const contentType = response.headers.get('Content-Type', '');
+                if (contentType.includes('application/json')) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || `导出失败 (HTTP ${response.status})`);
+                    });
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(`导出失败 (HTTP ${response.status}): ${text.substring(0, 200)}`);
+                    });
+                }
+            }
+            
+            // 获取文件名
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = '筛选数据导出';
+            
+            if (contentDisposition) {
+                const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
+                if (utf8Match) {
+                    try {
+                        filename = decodeURIComponent(utf8Match[1]);
+                    } catch (e) {
+                        const asciiMatch = contentDisposition.match(/filename="([^"]+)"/);
+                        if (asciiMatch) {
+                            filename = asciiMatch[1];
+                        }
+                    }
+                } else {
+                    const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1];
+                    }
+                }
+            } else {
+                const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                filename = `筛选数据导出_${timestamp}.zip`;
+            }
+            
+            // 下载文件
+            return response.blob().then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                // 恢复按钮状态
+                exportBtn.disabled = false;
+                exportBtn.textContent = originalText;
+                
+                // 在按钮右侧固定位置显示成功消息
+                var successMsgEl = document.getElementById('exportSuccessMsg');
+                if (successMsgEl) {
+                    successMsgEl.textContent = '导出成功';
+                    successMsgEl.style.display = 'inline';
+                    setTimeout(function() {
+                        successMsgEl.textContent = '';
+                        successMsgEl.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        })
+        .catch(error => {
+            console.error('导出错误:', error);
+            
+            // 恢复按钮状态
+            exportBtn.disabled = false;
+            exportBtn.textContent = originalText;
+            
+            // 显示错误消息
+            alert('导出失败: ' + error.message);
+        });
+    }
+</script>
+{% endblock %}

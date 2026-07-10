@@ -1,0 +1,364 @@
+{% if current_template %}
+{% set template = current_template %}
+{% set template_index = index or 0 %}
+{% set total_templates = templates|length %}
+
+<!-- 详细视图 -->
+<div class="card">
+    <div class="card-body">
+        <!-- 导航栏 -->
+        <div class="row mb-4">
+            <div class="col-md-4 text-start">
+                {% if template_index > 0 %}
+                <a href="{{ url_for('admin_templates.templates_list', tab='detail', template_id=templates[template_index - 1].id, competition_id=competition_id, granted_role=granted_role) }}" 
+                   class="btn btn-outline-primary">
+                    ◀ 上一个
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                <h3>模板 {{ template_index + 1 }}/{{ total_templates }}: {{ template.get_competition_name() or '未知竞赛' }}</h3>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if template_index < total_templates - 1 %}
+                <a href="{{ url_for('admin_templates.templates_list', tab='detail', template_id=templates[template_index + 1].id, competition_id=competition_id, granted_role=granted_role) }}" 
+                   class="btn btn-outline-primary">
+                    下一个 ▶
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <hr>
+        
+        <!-- 第一行：三栏紧凑布局 -->
+        <div class="row mb-3 g-2">
+            <!-- 基本信息 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-2">基本信息</h6>
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <small class="text-muted">类型</small>
+                                <div><span class="badge bg-info">{{ template._template.get_type_display_name() if template._template else '奖状' }}</span></div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">状态</small>
+                                <div>
+                                    {% if template.is_manual_edited %}
+                                    <span class="badge bg-success">已编辑</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">自动</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12 mt-1">
+                                <small class="text-muted">竞赛名称</small>
+                                <div>
+                                    {% if template.competition_id %}
+                                    <a href="{{ url_for('admin.competition_detail', competition_id=template.competition_id) }}" class="text-decoration-none" target="_blank">
+                                        {{ template.get_competition_name() or '未知' }}
+                                    </a>
+                                    {% else %}
+                                    {{ template.get_competition_name() or '未知' }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12 mt-1">
+                                <small class="text-muted">语言</small>
+                                <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="languageGroup">
+                                    <input type="radio" class="btn-check" name="language" id="lang_zh"
+                                           value="zh" {% if template._template.language == 'zh' or not template._template.language %}checked{% endif %}>
+                                    <label class="btn btn-outline-secondary" for="lang_zh">🇨🇳 中文</label>
+
+                                    <input type="radio" class="btn-check" name="language" id="lang_en"
+                                           value="en" {% if template._template.language == 'en' %}checked{% endif %}>
+                                    <label class="btn btn-outline-secondary" for="lang_en">🇺🇸 英文</label>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-1" id="translateOption" style="{% if template._template.language != 'en' %}display: none;{% endif %}">
+                                <small class="text-muted">翻译</small>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="needTranslateCheck"
+                                           {% if template._template.need_translate %}checked{% endif %}>
+                                    <label class="form-check-label small" for="needTranslateCheck">
+                                        翻译成中文
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-1">
+                                <small class="text-muted">字符数范围</small>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="minLengthInput"
+                                           value="{{ template._template.min_length if template._template else 0 }}" min="0" placeholder="最小">
+                                    <span class="input-group-text">-</span>
+                                    <input type="number" class="form-control" id="maxLengthInput"
+                                           value="{{ template._template.max_length if template._template else 0 }}" min="0" placeholder="无限制">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 授予角色 + 关键词 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-1">角色 & 关键词 <small class="text-muted">(多个关键词用换行分隔)</small></h6>
+                        {% set current_role = template.granted_role or '学生' %}
+                        <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="grantedRoleGroup">
+                            <input type="radio" class="btn-check" name="granted_role" id="role_student"
+                                   value="学生" {% if current_role == '学生' %}checked{% endif %}>
+                            <label class="btn btn-outline-primary" for="role_student">🎓 学生</label>
+
+                            <input type="radio" class="btn-check" name="granted_role" id="role_teacher"
+                                   value="教师" {% if current_role == '教师' %}checked{% endif %}>
+                            <label class="btn btn-outline-primary" for="role_teacher">👨‍🏫 教师</label>
+                        </div>
+                        <textarea class="form-control form-control-sm mb-1" id="keywordsInput" rows="2"
+                                  placeholder="关键词（每行一个，多个关键词用换行分隔）">{% for kw in template.competition_keywords %}{{ kw }}
+{% endfor %}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 样本图片 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center p-2">
+                        <h6 class="card-title mb-1">样本图片</h6>
+                        <div id="sampleImageContainer">
+                            {% if template.get_sample_image_bytes() %}
+                            <img src="{{ url_for('admin_templates.template_image', template_id=template.id) }}"
+                                 alt="模板样本图片"
+                                 class="img-fluid"
+                                 style="max-height: 240px; cursor: pointer; border: 1px solid #dee2e6; border-radius: 4px;"
+                                 onclick="window.open(this.src, '_blank')">
+                            {% else %}
+                            <div class="text-muted p-5" style="background: #f8f9fa; border-radius: 4px; min-height: 240px; display: flex; align-items: center; justify-content: center;">暂无图片</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- OCR识别结果（可折叠） -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <a class="text-decoration-none text-reset" data-bs-toggle="collapse" href="#ocrResult" role="button">
+                                📄 OCR识别结果
+                            </a>
+                        </h6>
+                    </div>
+                    <div class="collapse" id="ocrResult">
+                        <div class="card-body">
+                            {% if template.sample_text %}
+                            <textarea class="form-control form-control-sm" rows="5" readonly>{{ template.sample_text }}</textarea>
+                            {% else %}
+                            <p class="text-muted">该模板没有OCR识别结果</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <!-- 字段管理 + 验证规则 -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-2">
+                            字段管理
+                            <small class="text-muted fw-normal">|</small>
+                            验证规则
+                            <small class="text-muted fw-normal" title="规则：证书上有=必须有此字段但不必填，必有=必须有且必须填写，不检测=不进行验证">ℹ️</small>
+                        </h6>
+
+                        <!-- 表格：字段名 | 描述 | 类型 | 默认值 | 样本值 -->
+                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-2">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th width="20%">字段名</th>
+                                        <th width="32%">描述</th>
+                                        <th width="8%">类型</th>
+                                        <th width="20%">默认值</th>
+                                        <th width="20%">样本值</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fieldsManagementTable">
+                                    {% for key, base_desc in base_fields.items() %}
+                                    {% if key not in ['competition_name', 'granted_role'] %}
+                                    {% set value = template.llm_fields.get(key, '') %}
+                                    {% set field_type = template._template.get_field_type(key) if template._template else 'empty' %}
+                                    {% set default_value = template.default_fields.get(key, '') %}
+                                    {% set sample_extracted = sample_extracted_dict.get(key, '') %}
+                                    <tr data-field="{{ key }}">
+                                        <td><code>{{ key }}</code></td>
+                                        <td>
+                                            <textarea class="form-control form-control-sm llm-field-input" rows="1"
+                                                      data-field="{{ key }}" style="resize: none;" placeholder="{{ base_desc }}">{% if field_type == 'extract' %}{{ value }}{% endif %}</textarea>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm field-type-select" data-field="{{ key }}">
+                                                <option value="empty" {% if field_type == 'empty' %}selected{% endif %}>空</option>
+                                                <option value="default" {% if field_type == 'default' %}selected{% endif %}>默认</option>
+                                                <option value="extract" {% if field_type == 'extract' %}selected{% endif %}>抽取</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm default-value-input"
+                                                   data-field="{{ key }}" value="{{ default_value }}"
+                                                   placeholder="选择'默认'时填写" {% if field_type != 'default' %}disabled{% endif %}>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm sample-value-input"
+                                                   data-field="{{ key }}" value="{{ sample_extracted }}"
+                                                   placeholder="样本抽取值">
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 提示词生成和测试 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">生成的提示词模板</h5>
+                    </div>
+                    <div class="card-body">
+                        <button type="button" class="btn btn-primary mb-3" id="generatePromptBtn" data-template-id="{{ template.id }}">
+                            🔧 生成专用模板提示词
+                        </button>
+                        <pre id="generatedPrompt" class="bg-light p-3" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">提示词模板测试</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="testImageUpload" class="form-label">上传图片进行测试</label>
+                            <input type="file" class="form-control" id="testImageUpload" accept="image/*,.pdf">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="testTemplateBtn" data-template-id="{{ template.id }}">
+                            🧪 开始测试
+                        </button>
+                        
+                        <div id="testResults" class="mt-3" style="display: none;">
+                            <hr>
+                            <h6>测试结果</h6>
+                            <div class="row">
+                                <div class="col-12 mb-2">
+                                    <strong>OCR提取文本:</strong>
+                                    <textarea class="form-control mt-1" id="testOcrText" rows="5" readonly></textarea>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <strong>LLM原始返回值:</strong>
+                                    <pre class="bg-light p-2" id="testLlmResult" style="max-height: 200px; overflow-y: auto;"></pre>
+                                </div>
+                                <div class="col-12">
+                                    <strong>补齐后的完整结果:</strong>
+                                    <pre class="bg-light p-2" id="testCompletedResult" style="max-height: 200px; overflow-y: auto;"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 提交按钮 -->
+        <div class="text-center">
+            <button type="button" class="btn btn-success btn-lg" id="submitTemplateBtn"
+                    data-template-id="{{ template.id }}"
+                    data-original-competition-name="{{ template.default_fields.get('competition_name', '') }}"
+                    data-original-issuer="{{ template.default_fields.get('issuer', '') }}">
+                💾 提交修改
+            </button>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    {% if template_id %}
+        <h5>未找到模板 ID: {{ template_id }}</h5>
+        <p class="mb-2">可能原因：</p>
+        <ul>
+            <li>模板已被删除</li>
+            <li>模板不符合当前的筛选条件（竞赛ID: {{ competition_id or '全部' }}, 角色: {{ granted_role or '全部' }}）</li>
+        </ul>
+    {% else %}
+        <h5>请选择一个模板查看详情</h5>
+        <p class="mb-2">当前筛选条件下没有可用的模板。</p>
+    {% endif %}
+    <div class="mt-3">
+        <a href="{{ url_for('admin_templates.templates_list', tab='list', competition_id=competition_id, granted_role=granted_role) }}" 
+           class="btn btn-primary me-2">
+            📋 查看列表视图
+        </a>
+        <a href="{{ url_for('admin_templates.templates_list', tab='create', competition_id=competition_id, granted_role=granted_role) }}" 
+           class="btn btn-success me-2">
+            ➕ 创建新模板
+        </a>
+        <a href="{{ url_for('admin_templates.templates_list', tab='detail') }}" 
+           class="btn btn-outline-secondary">
+            🔄 清除筛选条件
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% if current_template %}
+<script>
+// 删除模板按钮
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
+    if (deleteTemplateBtn) {
+        deleteTemplateBtn.addEventListener('click', function() {
+            const templateId = this.getAttribute('data-template-id');
+            if (confirm('确定要删除这个模板吗？此操作不可撤销。')) {
+                fetch('/admin/templates/' + templateId + '/delete', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('模板已删除');
+                        window.location.href = '/admin/templates?tab=list';
+                    } else {
+                        alert('删除失败: ' + (data.message || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败: ' + error.message);
+                });
+            }
+        });
+    }
+});
+</script>
+{% endif %}

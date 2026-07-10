@@ -1,0 +1,247 @@
+{% extends "user_base.html" %}
+
+{% block title %}个人设置 - 成果管理系统{% endblock %}
+
+{% block nav_profile %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<style>
+    .hero-title {
+        font-family: 'Noto Serif SC', serif;
+    }
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .gradient-text {
+        background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .floating-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 0;
+    }
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(246, 173, 85, 0.3);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    .tab-active {
+        background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 页面标题区域 -->
+<section class="relative py-12 overflow-hidden">
+    <div class="floating-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-8">
+            <h1 class="hero-title text-4xl md:text-5xl font-bold gradient-text mb-4">
+                个人资料
+            </h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                管理个人信息，查看参与历史
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 标签页导航 -->
+<section class="py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex flex-wrap gap-2">
+                <button class="tab-btn tab-active px-6 py-3 rounded-lg font-medium transition-all" data-tab="personal">
+                    个人信息
+                </button>
+                <button class="tab-btn px-6 py-3 rounded-lg font-medium transition-all bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="password">
+                    修改密码
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 个人信息标签页 -->
+<section id="personal-tab" class="tab-content py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 个人信息卡片 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="text-center mb-6">
+                        <div class="relative inline-block">
+                            <div class="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <span class="text-white text-3xl font-bold">{{ (current_user.name or '教')[0] }}</span>
+                            </div>
+                            <button onclick="editAvatar()" class="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border-2 border-orange-500 flex items-center justify-center hover:bg-orange-50 transition-colors">
+                                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <h3 class="hero-title text-2xl font-bold text-gray-800 mb-2" id="profile-name">{{ current_user.name or '教师' }}</h3>
+                        <p class="text-gray-600 mb-2" id="profile-department">计算机科学系</p>
+                        <p class="text-sm text-gray-500" id="profile-teacher-id">工号：-</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-600">QQ</span>
+                                <button class="text-orange-500 hover:text-orange-600 text-sm" onclick="editField('qq')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-gray-800" id="profile-qq">-</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-600">手机号</span>
+                                <button class="text-orange-500 hover:text-orange-600 text-sm" onclick="editField('phone')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-gray-800" id="profile-phone">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细信息表单 -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-6">详细信息</h3>
+                    <form id="profile-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                                <input type="text" id="form-name" value="{{ current_user.name or '教师' }}" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">工号</label>
+                                <input type="text" id="form-teacher-id" value="" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">部门</label>
+                            <input type="text" id="form-department" value="" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">QQ</label>
+                            <input type="text" id="form-qq" placeholder="请输入QQ号" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                            <input type="text" id="form-phone" placeholder="请输入手机号" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">技能标签</label>
+                            <div class="flex flex-wrap gap-2 mb-3" id="skills-container">
+                                <!-- 技能标签将在这里动态生成 -->
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="skill-input" placeholder="添加新技能标签..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                <select id="skill-select" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                    <option value="">选择常用技能</option>
+                                    <option value="Python">Python</option>
+                                    <option value="JavaScript">JavaScript</option>
+                                    <option value="Java">Java</option>
+                                    <option value="C++">C++</option>
+                                    <option value="机器学习">机器学习</option>
+                                    <option value="深度学习">深度学习</option>
+                                    <option value="数据分析">数据分析</option>
+                                    <option value="Web开发">Web开发</option>
+                                    <option value="前端开发">前端开发</option>
+                                    <option value="后端开发">后端开发</option>
+                                    <option value="数据库">数据库</option>
+                                    <option value="算法">算法</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                取消
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all">
+                                保存修改
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 修改密码标签页 -->
+<section id="password-tab" class="tab-content py-8 hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
+                <h3 class="hero-title text-2xl font-bold text-gray-800 mb-6 text-center">修改登录密码</h3>
+                
+                <form id="password-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">当前密码</label>
+                        <input type="password" id="old-password" required placeholder="请输入当前密码" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">新密码</label>
+                        <input type="password" id="new-password" required placeholder="请输入新密码" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                        <p class="mt-2 text-xs text-gray-500">建议使用字母、数字和符号的组合</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">确认新密码</label>
+                        <input type="password" id="confirm-password" required placeholder="请再次输入新密码" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-bold hover:from-orange-600 hover:to-orange-700 shadow-lg transform hover:-translate-y-0.5 transition-all">
+                            立即修改密码
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}管理员首页 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <h1 class="mb-4">管理员首页</h1>
+    
+    <div class="row">
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">奖状管理</h3>
+                    <p class="card-text text-muted mb-3">管理所有奖状数据</p>
+                    <a href="{{ url_for('admin_awards.awards_list') }}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">竞赛管理</h3>
+                    <p class="card-text text-muted mb-3">管理竞赛信息</p>
+                    <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">人员管理</h3>
+                    <p class="card-text text-muted mb-3">管理学生和教师</p>
+                    <a href="{{ url_for('admin.students_list') }}" class="btn btn-primary">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

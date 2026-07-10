@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}竞赛详情 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>竞赛详情</h1>
+        <div>
+            <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-outline-secondary">返回列表</a>
+            <a href="{{ url_for('admin.competition_edit', competition_id=competition.id) }}" class="btn btn-primary">编辑</a>
+            <button type="button" class="btn btn-outline-danger" onclick="deleteCompetition({{ competition.id }})">删除</button>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 基本信息 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="140">ID</th>
+                            <td>{{ competition.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>竞赛名称</th>
+                            <td><strong>{{ competition.name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>竞赛等级</th>
+                            <td>
+                                {% if competition.grade_category %}
+                                    <span class="badge bg-primary">{{ competition.grade_category }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>主办单位</th>
+                            <td>{{ competition.organizer or '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>举办时间</th>
+                            <td>{{ competition.competition_time or '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>官方网站</th>
+                            <td>
+                                {% if competition.official_website %}
+                                    <a href="{{ competition.official_website }}" target="_blank" rel="noopener noreferrer">
+                                        {{ competition.official_website }}
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-left: 4px; vertical-align: middle;">
+                                            <path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                            <path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>白名单</th>
+                            <td>
+                                {% if competition.is_white_list %}
+                                    <span class="badge bg-success">是</span>
+                                {% else %}
+                                    <span class="text-muted">否</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>观察名单</th>
+                            <td>
+                                {% if competition.is_watch_list %}
+                                    <span class="badge bg-warning text-dark">是</span>
+                                {% else %}
+                                    <span class="text-muted">否</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 竞赛简介 -->
+            {% if competition.description %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">竞赛简介</h5>
+                </div>
+                <div class="card-body">
+                    <p style="white-space: pre-wrap; word-wrap: break-word;">{{ competition.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- 别名 -->
+            {% if competition.aliases %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">别名</h5>
+                </div>
+                <div class="card-body">
+                    {% for alias in competition.aliases %}
+                        <span class="badge bg-secondary me-2 mb-2">{{ alias }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 右侧信息卡片 -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">状态标识</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>白名单赛事：</strong>
+                        {% if competition.white_list %}
+                            <span class="badge bg-success">是</span>
+                        {% else %}
+                            <span class="badge bg-secondary">否</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <strong>观察名单赛事：</strong>
+                        {% if competition.watch_list %}
+                            <span class="badge bg-warning text-dark">是</span>
+                        {% else %}
+                            <span class="badge bg-secondary">否</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if competition.official_website %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">快速链接</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ competition.official_website }}" target="_blank" rel="noopener noreferrer" 
+                       class="btn btn-outline-primary w-100">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 6px;">
+                            <path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                            <path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                        </svg>
+                        访问官方网站
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteCompetition(id) {
+    if (confirm('确定要删除这个竞赛吗？此操作不可恢复！')) {
+        fetch(`/admin/competitions/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{{ url_for("admin.competitions_list") }}';
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+</script>
+{% endblock %}
+

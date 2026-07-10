@@ -1,0 +1,175 @@
+<!-- 奖状筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="awardFilterForm" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">竞赛</label>
+                <select name="competition_id" class="form-select">
+                    <option value="">全部</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">年份</label>
+                <input type="number" name="year" class="form-control" placeholder="2024">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">获奖等级</label>
+                <select name="award_level" class="form-select">
+                    <option value="">全部</option>
+                    <option value="特等奖">特等奖</option>
+                    <option value="一等奖">一等奖</option>
+                    <option value="二等奖">二等奖</option>
+                    <option value="三等奖">三等奖</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">获奖人</label>
+                <input type="text" name="winner_name" class="form-control" placeholder="姓名">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetAwardFilter()">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 奖状列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if awards %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">共 {{ awards|length }} 条记录</span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                    批量删除
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40">
+                            <input type="checkbox" id="selectAllAwards">
+                        </th>
+                        <th>ID</th>
+                        <th>竞赛名称</th>
+                        <th>获奖等级</th>
+                        <th>获奖人</th>
+                        <th>指导老师</th>
+                        <th>获奖日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                    <tr class="{% if award.is_abnormal %}table-warning{% endif %}">
+                        <td>
+                            <input type="checkbox" class="award-checkbox" value="{{ award.id }}">
+                        </td>
+                        <td>
+                            <span class="d-inline-flex align-items-center gap-1">
+                                {{ award.id }}
+                                {% if award.is_abnormal %}
+                                    <span class="badge bg-danger" style="font-size: 0.7rem;" title="此奖状存在异常，请查看异常原因">异常</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ award.competition_name or '-' }}</td>
+                        <td>
+                            {% if award.award_level %}
+                            <span class="badge bg-info">{{ award.award_level }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set has_winners = (award.student_winners and award.student_winners|length > 0) or (award.teacher_winners and award.teacher_winners|length > 0) %}
+                            {% if has_winners %}
+                                {% if award.student_winners %}
+                                    {% for winner in award.student_winners %}
+                                        <span class="badge bg-primary" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-html="true"
+                                              title="<strong>{{ winner.name }}</strong><br/>专业：{{ winner.major or '未知' }}<br/>年级：{{ winner.grade or '未知' }}">
+                                            {{ winner.name }}
+                                        </span>
+                                        {% if not loop.last or (award.teacher_winners and award.teacher_winners|length > 0) %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if award.teacher_winners %}
+                                    {% for winner in award.teacher_winners %}
+                                        <span class="badge bg-success" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-html="true"
+                                              title="<strong>{{ winner.name }}</strong><br/>职称：{{ winner.title or '未知' }}">
+                                            {{ winner.name }}
+                                        </span>
+                                        {% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.supervisors and award.supervisors|length > 0 %}
+                                {% for supervisor in award.supervisors %}
+                                    <span class="badge bg-secondary" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ supervisor.name }}</strong><br/>职称：{{ supervisor.title or '未知' }}">
+                                        {{ supervisor.name }}
+                                    </span>
+                                    {% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ award.date or '-' }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="/admin/awards/{{ award.id }}/edit" class="btn btn-sm btn-outline-primary">编辑</a>
+                                <a href="/admin/awards/{{ award.id }}/image" class="btn btn-sm btn-outline-success">图片</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAward({{ award.id }})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadAwardsPage({{ page - 1 }})">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if awards|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadAwardsPage({{ page + 1 }})">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">暂无奖状数据</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+

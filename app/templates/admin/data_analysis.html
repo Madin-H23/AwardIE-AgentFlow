@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}数据分析与导出 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1890ff;
+        border-bottom-color: #1890ff;
+    }
+    .nav-tabs .nav-link.active {
+        color: #1890ff;
+        background-color: transparent;
+        border-bottom-color: #1890ff;
+    }
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    /* 年份多选框高度 */
+    select[multiple] {
+        min-height: 120px;
+    }
+    /* 年份标签样式 */
+    .year-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .year-tag {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+        border: 1px solid transparent;
+    }
+    .year-tag.unselected {
+        background-color: #e9ecef;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+    .year-tag.unselected:hover {
+        background-color: #dee2e6;
+    }
+    .year-tag.selected {
+        background-color: #1890ff;
+        color: #fff;
+    }
+    .year-tag.selected:hover {
+        background-color: #40a9ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 页面头部 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="h4 mb-3">数据分析与导出</h2>
+        </div>
+    </div>
+
+    <!-- Tab导航 -->
+    <ul class="nav nav-tabs mb-4" id="analysisTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">
+                竞赛信息
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">
+                竞赛分析
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab">
+                获奖数据分析
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab内容区 -->
+    <div class="tab-content" id="analysisTabsContent">
+        <!-- Tab 1: 竞赛信息 -->
+        <div class="tab-pane fade show active" id="tab1" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div id="timelineChart" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="competitionsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>竞赛名称</th>
+                                            <th>时间范围</th>
+                                            <th>官网</th>
+                                            <th>白名单</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 竞赛分析 -->
+        <div class="tab-pane fade" id="tab2" role="tabpanel">
+            <!-- 筛选条件 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-2 me-2">年份筛选</label>
+                                </div>
+                                <div class="col">
+                                    <div class="year-tags" id="yearTags">
+                                        <!-- 动态生成年份标签 -->
+                                    </div>
+                                    <small class="text-muted">至少选择一个年份</small>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="tab2WhitelistFilter">
+                                        <label class="form-check-label" for="tab2WhitelistFilter">仅白名单赛事</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="tab2TeacherCertFilter">
+                                        <label class="form-check-label" for="tab2TeacherCertFilter">包含教师证书</label>
+                                    </div>
+                                    <small class="text-muted d-block">默认只显示学生奖状</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 竞赛贡献度 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title">竞赛贡献度</h6>
+                            <div id="contributionChart" style="height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 竞赛×实验室 获奖数量热力图：占满页面剩余空间 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title">竞赛×实验室 获奖数量热力图</h6>
+                            <div id="labCompetitionHeatmap" style="height: calc(100vh - 520px); min-height: 650px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 获奖数据分析 -->
+        <div class="tab-pane fade" id="tab3" role="tabpanel">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">图表设置</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">X轴</label>
+                                <select class="form-select" id="xAxisSelect">
+                                    <option value="year" selected>年份</option>
+                                    <option value="laboratory">实验室</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">颜色分组</label>
+                                <select class="form-select" id="colorBySelect">
+                                    <option value="laboratory">实验室</option>
+                                    <option value="year">年份</option>
+                                    <option value="competition_level">竞赛等级</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">图表类型</label>
+                                <select class="form-select" id="chartTypeSelect">
+                                    <option value="grouped_bar" selected>分组柱状图</option>
+                                    <option value="line">折线图</option>
+                                    <option value="donut">甜甜圈图</option>
+                                </select>
+                            </div>
+
+                            <hr>
+
+                            <div id="dynamicFilters">
+                                <!-- 动态筛选条件 -->
+                            </div>
+
+                            <button class="btn btn-primary w-100" id="updateChartBtn">
+                                更新图表
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="card shadow-sm" id="dynamicChartCard">
+                        <div class="card-body">
+                            <div id="dynamicChart" style="height: 960px; min-height: 960px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ECharts - 多个备用 CDN -->
+<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
+        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='http://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'"></script>
+
+<!-- 自定义脚本 -->
+<script src="{{ url_for('static', filename='js/data-analysis.js') }}"></script>
+{% endblock %}

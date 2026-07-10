@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>文件流转API测试 - BUG报告（修复后）</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #f5f5f5;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4a90e2;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: #555;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      border-left: 4px solid #4a90e2;
+      padding-left: 12px;
+    }
+    h3 {
+      color: #666;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    .meta-info {
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+      border-left: 4px solid #4a90e2;
+    }
+    .meta-item {
+      margin: 8px 0;
+    }
+    .meta-label {
+      font-weight: bold;
+      color: #666;
+      display: inline-block;
+      min-width: 120px;
+    }
+    .bug-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .bug-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #eee;
+    }
+    .bug-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      flex: 1;
+    }
+    .severity {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .severity-critical {
+      background: #fee;
+      color: #c00;
+      border: 1px solid #fcc;
+    }
+    .severity-high {
+      background: #ffe;
+      color: #c60;
+      border: 1px solid #fcc;
+    }
+    .severity-medium {
+      background: #ffd;
+      color: #960;
+      border: 1px solid #fc9;
+    }
+    .severity-low {
+      background: #eef;
+      color: #369;
+      border: 1px solid #9cf;
+    }
+    .severity-fixed {
+      background: #efe;
+      color: #060;
+      border: 1px solid #9c9;
+    }
+    .bug-section {
+      margin: 16px 0;
+    }
+    .bug-section-title {
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .bug-content {
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 3px solid #4a90e2;
+      white-space: pre-wrap;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+    .bug-content code {
+      background: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 2px;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+    .summary {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .summary-title {
+      font-weight: bold;
+      color: #856404;
+      margin-bottom: 12px;
+    }
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .stat-item {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f5f5f5;
+      font-weight: bold;
+      color: #555;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .recommendation {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 16px;
+      margin-top: 16px;
+      border-radius: 4px;
+    }
+    .recommendation-title {
+      font-weight: bold;
+      color: #1976D2;
+      margin-bottom: 8px;
+    }
+    .fixed-item {
+      background: #f0f9ff;
+      border-left: 4px solid #10b981;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>文件流转API测试 - BUG报告（修复后）</h1>
+    
+    <div class="meta-info">
+      <div class="meta-item">
+        <span class="meta-label">测试时间:</span>
+        <span>2026-01-25 09:44:04</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">测试环境:</span>
+        <span>Windows 10, Python 3.x, Flask Test Client</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">测试文件:</span>
+        <span>tests/test_files.py</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">数据库:</span>
+        <span>database/competitions.db</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">测试文件目录:</span>
+        <span>images/测试图片/</span>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-title">测试结果概览（修复后）</div>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <div class="stat-value" style="color: #060;">4</div>
+          <div class="stat-label">通过类别</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: #c00;">1</div>
+          <div class="stat-label">失败类别</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">15</div>
+          <div class="stat-label">总测试步骤</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: #060;">14</div>
+          <div class="stat-label">通过步骤</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: #c00;">1</div>
+          <div class="stat-label">失败步骤</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color: #c00;">1</div>
+          <div class="stat-label">剩余BUG数</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>已修复的问题</h2>
+
+    <!-- 修复 #1 -->
+    <div class="bug-item fixed-item">
+      <div class="bug-header">
+        <div class="bug-title">修复 #1: submit_for_review方法在pending状态时错误移动文件</div>
+        <span class="severity severity-fixed">已修复</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">`submit_for_review`方法在创建pending记录时，如果`ext_info`中有`session_id`，会立即将文件从`temp_upload`移动到`review`目录，但此时状态是`pending`，不应该移动文件。文件应该只在状态变为`submit`时才移动。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复方案:</div>
+        <div class="bug-content">修改`backend/models/pending_achievement.py`的`submit_for_review`方法：
+- 添加状态检查：只有当`initial_status == 'submit'`时才移动文件
+- 确保`pending`状态时文件保持在`temp_upload`目录</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复位置:</div>
+        <div class="bug-content">backend/models/pending_achievement.py:267-279</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">验证结果:</div>
+        <div class="bug-content">✅ 奖状测试通过：文件在pending状态时保持在temp_upload，提交审核后正确移动到review目录</div>
+      </div>
+    </div>
+
+    <!-- 修复 #2 -->
+    <div class="bug-item fixed-item">
+      <div class="bug-header">
+        <div class="bug-title">修复 #2: update方法未处理状态变更时的文件移动</div>
+        <span class="severity severity-fixed">已修复</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">`update`方法在将状态从`pending`更新为`submit`时，没有移动文件从`temp_upload`到`review`目录。这导致提交审核后文件仍在`temp_upload`目录。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复方案:</div>
+        <div class="bug-content">在`backend/models/pending_achievement.py`的`update`方法中添加逻辑：
+- 检测状态从`pending`变为`submit`
+- 如果状态变更，且`ext_info`中有`session_id`，调用`move_to_review`移动文件
+- 更新数据库中的`file_path`字段</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复位置:</div>
+        <div class="bug-content">backend/models/pending_achievement.py:589-600</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">验证结果:</div>
+        <div class="bug-content">✅ 所有类型测试通过：提交审核后文件正确移动到review目录</div>
+      </div>
+    </div>
+
+    <!-- 修复 #3 -->
+    <div class="bug-item fixed-item">
+      <div class="bug-header">
+        <div class="bug-title">修复 #3: 测试代码使用错误的查询方法参数</div>
+        <span class="severity severity-fixed">已修复</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">测试代码中调用`query_patents(limit=1000)`，但`query_patents`方法只接受`filter_obj`参数，不接受`limit`参数，导致`TypeError`。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复方案:</div>
+        <div class="bug-content">修改`tests/test_files.py`：
+- 将`query_patents(limit=1000)`改为`query_patents(filter_obj=None)`
+- 确保所有查询方法调用使用正确的参数格式</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复位置:</div>
+        <div class="bug-content">tests/test_files.py:589</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">验证结果:</div>
+        <div class="bug-content">✅ 专利测试通过：查询方法调用正确</div>
+      </div>
+    </div>
+
+    <!-- 修复 #4 -->
+    <div class="bug-item fixed-item">
+      <div class="bug-header">
+        <div class="bug-title">修复 #4: 大创项目project_name字段可能为None</div>
+        <span class="severity severity-fixed">已修复</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">大创项目审核通过时，如果数据中没有`project_name`或`项目名称`字段，会导致数据库插入失败（NOT NULL约束）。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复方案:</div>
+        <div class="bug-content">修改`backend/services/review_service.py`的`_submit_innovation`方法：
+- 为`project_name`提供默认值：`'未命名项目'`
+- 为`student_leader_name`提供默认值：`'未知'`
+- 改进项目级别到status的映射逻辑</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复位置:</div>
+        <div class="bug-content">backend/services/review_service.py:1228-1246</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">验证结果:</div>
+        <div class="bug-content">✅ 大创测试通过：项目成功入库，文件正确删除</div>
+      </div>
+    </div>
+
+    <!-- 修复 #5 -->
+    <div class="bug-item fixed-item">
+      <div class="bug-header">
+        <div class="bug-title">修复 #5: 测试代码AppContext实例不一致</div>
+        <span class="severity severity-fixed">已修复</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">测试代码直接使用`init_app_context`，而Flask路由使用`get_app_context_instance()`，可能导致使用不同的AppContext实例，查询不到新创建的pending记录。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复方案:</div>
+        <div class="bug-content">修改`tests/test_files.py`：
+- 在Flask应用上下文中初始化AppContext
+- 确保测试代码和Flask路由使用相同的AppContext实例
+- 所有数据库查询都在Flask应用上下文中进行</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复位置:</div>
+        <div class="bug-content">tests/test_files.py:66-81, 221-243</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">验证结果:</div>
+        <div class="bug-content">✅ 所有类型测试通过：pending记录查询正常</div>
+      </div>
+    </div>
+
+    <h2>剩余问题</h2>
+
+    <!-- BUG #1 -->
+    <div class="bug-item">
+      <div class="bug-header">
+        <div class="bug-title">BUG #1: 其他类型提交到实验室时文件占用错误</div>
+        <span class="severity severity-high">高</span>
+      </div>
+      
+      <div class="bug-section">
+        <div class="bug-section-title">问题描述:</div>
+        <div class="bug-content">其他类型文件提交到实验室下载专区时，出现`PermissionError: [WinError 32] 另一个程序正在使用此文件，进程无法访问`。错误发生在`save_lab_file`方法尝试删除临时文件时。</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">错误信息:</div>
+        <div class="bug-content">PermissionError: [WinError 32] 另一个程序正在使用此文件，进程无法访问: 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\tmpeuj7nwjp.jpg'
+
+Traceback:
+  File "backend\models\laboratory.py", line 1272, in move_file_to_downloads
+    abs_path, relative_path = file_manager.save_lab_file(...)
+  File "backend\services\unified_file_manager.py", line 417, in save_lab_file
+    Path(tmp.name).unlink(missing_ok=True)</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">可能原因分析:</div>
+        <div class="bug-content">1. 临时文件对象未正确关闭，导致文件句柄仍被占用
+2. Windows文件系统延迟，文件刚创建就被尝试删除
+3. `save_lab_file`方法中的临时文件处理逻辑有问题
+4. 文件路径处理不正确，导致使用了错误的文件路径</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">相关代码位置:</div>
+        <div class="bug-content">- backend/services/unified_file_manager.py:410-418 (save_lab_file方法)
+- backend/models/laboratory.py:1272 (move_file_to_downloads方法)
+- backend/services/review_service.py:1474 (handle_other_type方法)</div>
+      </div>
+
+      <div class="recommendation">
+        <div class="recommendation-title">建议修复方案:</div>
+        <div>
+          <ol>
+            <li>检查`save_lab_file`方法中的临时文件处理：
+              <ul>
+                <li>确保临时文件在使用后立即关闭</li>
+                <li>使用`with`语句管理临时文件生命周期</li>
+                <li>在删除前添加延迟或重试机制</li>
+              </ul>
+            </li>
+            <li>改进文件移动逻辑：
+              <ul>
+                <li>直接使用源文件路径，避免创建临时文件</li>
+                <li>使用`shutil.copy2` + `unlink`替代`shutil.move`</li>
+                <li>添加文件锁检查</li>
+              </ul>
+            </li>
+            <li>添加错误处理和重试机制：
+              <ul>
+                <li>捕获`PermissionError`并重试</li>
+                <li>添加文件关闭确认</li>
+                <li>使用`time.sleep`延迟删除</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <h2>测试结果详情</h2>
+    <table>
+      <tr>
+        <th>类别</th>
+        <th>测试文件</th>
+        <th>测试步骤数</th>
+        <th>通过步骤</th>
+        <th>失败步骤</th>
+        <th>整体结果</th>
+      </tr>
+      <tr>
+        <td>奖状</td>
+        <td>2024支付宝小程序国家二等奖.jpg</td>
+        <td>6</td>
+        <td>6</td>
+        <td>0</td>
+        <td style="color: green; font-weight: bold;">✅ 通过</td>
+      </tr>
+      <tr>
+        <td>专利</td>
+        <td>1721722613444187.jpg</td>
+        <td>3</td>
+        <td>3</td>
+        <td>0</td>
+        <td style="color: green; font-weight: bold;">✅ 通过</td>
+      </tr>
+      <tr>
+        <td>软著</td>
+        <td>1.jpg</td>
+        <td>2</td>
+        <td>2</td>
+        <td>0</td>
+        <td style="color: green; font-weight: bold;">✅ 通过</td>
+      </tr>
+      <tr>
+        <td>其他</td>
+        <td>2025.jpg</td>
+        <td>1</td>
+        <td>0</td>
+        <td>1</td>
+        <td style="color: red; font-weight: bold;">❌ 失败</td>
+      </tr>
+      <tr>
+        <td>大创</td>
+        <td>附件1：2025年学院推荐申报国家级、省级大学生创新创业训练计划项目汇总表.xlsx.xlsx</td>
+        <td>2</td>
+        <td>2</td>
+        <td>0</td>
+        <td style="color: green; font-weight: bold;">✅ 通过</td>
+      </tr>
+    </table>
+
+    <h2>修复总结</h2>
+    <div class="bug-item fixed-item">
+      <div class="bug-section">
+        <div class="bug-section-title">已修复的问题（5个）:</div>
+        <div class="bug-content">1. ✅ submit_for_review方法在pending状态时错误移动文件
+2. ✅ update方法未处理状态变更时的文件移动
+3. ✅ 测试代码使用错误的查询方法参数
+4. ✅ 大创项目project_name字段可能为None
+5. ✅ 测试代码AppContext实例不一致</div>
+      </div>
+
+      <div class="bug-section">
+        <div class="bug-section-title">修复效果:</div>
+        <div class="bug-content">- 测试通过率从 0/5 (0%) 提升到 4/5 (80%)
+- 测试步骤通过率从 1/6 (17%) 提升到 14/15 (93%)
+- 奖状、专利、软著、大创四种类型的完整流转测试全部通过
+- 文件移动逻辑正确：temp_upload → review → 业务目录
+- 文件删除逻辑正确：大创文件在审核通过后正确删除</div>
+      </div>
+    </div>
+
+    <h2>下一步行动建议</h2>
+    <div class="recommendation">
+      <div class="recommendation-title">优先级修复建议:</div>
+      <div>
+        <ol>
+          <li><strong>高优先级:</strong> 修复BUG #1（其他类型提交到实验室的文件占用问题）
+            <ul>
+              <li>检查`save_lab_file`方法的临时文件处理逻辑</li>
+              <li>确保文件在使用后正确关闭</li>
+              <li>添加文件锁检查和重试机制</li>
+              <li>考虑直接使用源文件路径，避免临时文件</li>
+            </ul>
+          </li>
+          <li><strong>中优先级:</strong> 完善错误处理和日志记录
+            <ul>
+              <li>在文件操作失败时提供更详细的错误信息</li>
+              <li>添加文件占用检测和等待机制</li>
+              <li>改进异常处理，避免测试中断</li>
+            </ul>
+          </li>
+          <li><strong>低优先级:</strong> 优化测试代码
+            <ul>
+              <li>统一所有测试方法中的AppContext使用方式</li>
+              <li>添加更详细的调试信息输出</li>
+              <li>改进测试报告的错误信息展示</li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #ddd; color: #666; font-size: 12px; text-align: center;">
+      报告生成时间: 2026-01-25 09:44:04 | 测试工具: tests/test_files.py | 修复版本: v2
+    </div>
+  </div>
+</body>
+</html>

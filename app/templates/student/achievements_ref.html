@@ -1,0 +1,853 @@
+{% extends "user_base.html" %}
+
+{% block title %}成果展示 - 成果管理系统{% endblock %}
+
+{% block nav_achievements %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .achievement-type-academic {
+            background: linear-gradient(135deg, #3182ce 0%, #4299e1 100%);
+        }
+        .achievement-type-competition {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        }
+        .achievement-type-project {
+            background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        }
+        .achievement-type-certification {
+            background: linear-gradient(135deg, #805ad5 0%, #9f7aea 100%);
+        }
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(246, 173, 85, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        .floating-add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 40;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+        <!-- 有真实数据时：仅显示有关联的类型（奖状/专利/软著/大创） -->
+        {% if error %}
+        <section class="py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center text-gray-600">{{ error }}</div>
+            </div>
+        </section>
+        {% elif (total_awards or 0) > 0 or (patents or []) or (software_list or []) or (innovation_projects or []) %}
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="hero-title text-3xl font-bold text-gray-800 mb-6">成果展示</h1>
+            </div>
+        </section>
+        {% if (total_awards or 0) > 0 %}
+        <section class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">获奖</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">竞赛名称</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">竞赛级别</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">获奖等级</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">年份</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for award in (awards or []) %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm text-gray-900">{% if award.competition_id %}{% set comp = (competitions or [])|selectattr('id', 'equalto', award.competition_id)|first %}{{ comp.name if comp else award.competition_name_in_file or '未知竞赛' }}{% else %}{{ award.competition_name_in_file or '-' }}{% endif %}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {% if award.competition_id %}
+                                            {% set comp = (competitions or [])|selectattr('id', 'equalto', award.competition_id)|first %}
+                                            {% if comp and comp.grade %}
+                                                <span class="px-2 py-1 rounded-full text-xs {{ {
+                                                    'A类': 'bg-red-100 text-red-700',
+                                                    'B类': 'bg-orange-100 text-orange-700',
+                                                    'C类': 'bg-yellow-100 text-yellow-700',
+                                                    '其他': 'bg-gray-100 text-gray-700'
+                                                }.get(comp.grade, 'bg-gray-100 text-gray-700') }}">
+                                                    {{ comp.grade }}
+                                                </span>
+                                            {% else %}
+                                                {{ award.competition_level or '-' }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ award.competition_level or '-' }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ award.award_level or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ award.year if award.year else '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        {% if patents %}
+        <section class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">专利</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">专利名称</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for patent in patents %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ patent.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ patent.patent_type or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        {% if software_list %}
+        <section class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">软著</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">软件名称</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">登记号</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for software in software_list %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ software.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ software.registration_number or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        {% if innovation_projects %}
+        <section class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">大创项目</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目编号</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目名称</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">级别</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">负责人</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">指导教师</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for project in innovation_projects %}
+                                {% set year = project.start_date.split('-')[0] if project.start_date else '' %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.project_no or '-' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">
+                                        {% if year %}<span class="text-gray-500 mr-2">[{{ year }}]</span>{% endif %}
+                                        {{ project.project_name or '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.project_type or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.student_leader_name or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.supervisors or '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.status or '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        {% else %}
+        <!-- 无数据时：原有占位内容 -->
+        <!-- 页面标题区域 -->
+        <section class="relative py-12 overflow-hidden">
+            <div class="floating-particles">
+                <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+                <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-8">
+                    <h1 class="hero-title text-4xl md:text-5xl font-bold gradient-text mb-4">
+                        成果展示
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                        展示学术成就，分享学习成果，激励彼此进步
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果分类导航 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-wrap gap-4 items-center justify-between">
+                        <div class="flex flex-wrap gap-3">
+                            <button class="achievement-filter-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-all" data-filter="my">
+                                我的成果
+                            </button>
+                            <button class="achievement-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-all" data-filter="others">
+                                他人成果
+                            </button>
+                            <button class="achievement-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-all" data-filter="all">
+                                全部成果
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <select class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                <option>按时间排序</option>
+                                <option>按类型排序</option>
+                                <option>按重要程度排序</option>
+                            </select>
+                            <div class="relative">
+                                <input type="text" placeholder="搜索成果..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果统计图表 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- 成果类型分布 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">成果类型分布</h3>
+                        <div id="achievement-type-chart" style="height: 300px;"></div>
+                    </div>
+                    
+                    <!-- 月度成果统计 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">月度成果统计</h3>
+                        <div id="achievement-monthly-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果展示网格 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="achievements-grid">
+                    <!-- 成果卡片1 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-green-500 to-teal-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/igniteworldwide.org/558dd3ecfc3e53fc6d93f53a910f7db3de570c36.png" alt="编程竞赛获奖" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">1</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">编程马拉松一等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">2024年度校园编程竞赛中获得一等奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.12.20</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('programming-marathon-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片2 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="certification">
+                        <div class="h-48 bg-gradient-to-br from-purple-500 to-pink-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/sbsmschooledu.in/780d6aeb76461dfc5f822613844322ae5ecea942.jpeg" alt="Web开发证书" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-certification text-white text-xs px-3 py-1 rounded-full">技能认证</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">Web开发技能证书</h3>
+                            <p class="text-sm text-gray-600 mb-3">完成Web开发工作坊培训获得认证</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.11.15</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">认证</span>
+                                <button onclick="showAchievementDetail('web-certification')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片3 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="academic">
+                        <div class="h-48 bg-gradient-to-br from-blue-500 to-indigo-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/www-walsallcollege-ac-uk.exactdn.com/cdf7b970e8d18c94ec8244994fe60d38817f81cd.jpg" alt="学术论文" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-academic text-white text-xs px-3 py-1 rounded-full">学术成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">机器学习算法研究</h3>
+                            <p class="text-sm text-gray-600 mb-3">发表关于深度学习的学术论文</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.10.15</span>
+                                <span>李华</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">学术</span>
+                                <button onclick="showAchievementDetail('ml-research')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片4 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="project">
+                        <div class="h-48 bg-gradient-to-br from-orange-500 to-red-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/img.freepik.com/f27bb2238845ec4879418d2114e2835879fe5c96.jpg" alt="项目成果" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-project text-white text-xs px-3 py-1 rounded-full">项目成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">校园APP开发项目</h3>
+                            <p class="text-sm text-gray-600 mb-3">开发校园服务移动应用，获得优秀项目奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.09.20</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">项目</span>
+                                <button onclick="showAchievementDetail('campus-app')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片5 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-cyan-500 to-blue-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/eduseed.in/7680a8dd01332b60661036c54e54c13c29d8c057.jpeg" alt="数据竞赛" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">2</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">数据科学竞赛二等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">大数据分析竞赛中获得优异成绩</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.11.30</span>
+                                <span>王强</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('data-science-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片6 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="academic">
+                        <div class="h-48 bg-gradient-to-br from-emerald-500 to-teal-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/www.pace.edu/c9e26f4572ad253a239827f6003ced12d683b89e.jpg" alt="学术研究" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-academic text-white text-xs px-3 py-1 rounded-full">学术成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">网络安全研究论文</h3>
+                            <p class="text-sm text-gray-600 mb-3">关于网络安全的学术研究成果</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.08.15</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">学术</span>
+                                <button onclick="showAchievementDetail('security-research')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片7 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="project">
+                        <div class="h-48 bg-gradient-to-br from-rose-500 to-pink-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/media.timeout.com/2c639b0a8440586b3be9c6155b73d4500e1592ec.jpg" alt="开源项目" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-project text-white text-xs px-3 py-1 rounded-full">项目成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">开源项目贡献</h3>
+                            <p class="text-sm text-gray-600 mb-3">为知名开源项目贡献代码</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.07.20</span>
+                                <span>赵敏</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">项目</span>
+                                <button onclick="showAchievementDetail('opensource-contribution')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片8 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-violet-500 to-purple-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/img.freepik.com/2f1e6a5d793cee57f7cc4c9130b25f0788a1854e.jpg" alt="创新竞赛" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">3</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">创新创业大赛三等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">校园创新创业大赛中获得三等奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.06.10</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('innovation-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    
+<!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-orange-400 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">CS</span>
+                        </div>
+                        
+                    </div>
+                    <div class="hidden md:flex space-x-6">
+                        <a href="index.html" class="text-gray-600 hover:text-orange-500 transition-colors">仪表板</a>
+                        <a href="activities.html" class="text-gray-600 hover:text-orange-500 transition-colors">活动</a>
+                        <a href="achievements.html" class="text-orange-500 font-medium border-b-2 border-orange-500 pb-1">成果</a>
+                        <a href="profile.html" class="text-gray-600 hover:text-orange-500 transition-colors">个人资料</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="p-2 text-gray-600 hover:text-orange-500 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6a2 2 0 012 2v9a2 2 0 01-2 2H9l-3-3V9a2 2 0 012-2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="pt-16">
+        <!-- 页面标题区域 -->
+        <section class="relative py-12 overflow-hidden">
+            <div class="floating-particles">
+                <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+                <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-8">
+                    <h1 class="hero-title text-4xl md:text-5xl font-bold gradient-text mb-4">
+                        成果展示
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                        展示学术成就，分享学习成果，激励彼此进步
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果分类导航 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-wrap gap-4 items-center justify-between">
+                        <div class="flex flex-wrap gap-3">
+                            <button class="achievement-filter-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-all" data-filter="my">
+                                我的成果
+                            </button>
+                            <button class="achievement-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-all" data-filter="others">
+                                他人成果
+                            </button>
+                            <button class="achievement-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg font-medium transition-all" data-filter="all">
+                                全部成果
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <select class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                <option>按时间排序</option>
+                                <option>按类型排序</option>
+                                <option>按重要程度排序</option>
+                            </select>
+                            <div class="relative">
+                                <input type="text" placeholder="搜索成果..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果统计图表 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- 成果类型分布 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">成果类型分布</h3>
+                        <div id="achievement-type-chart" style="height: 300px;"></div>
+                    </div>
+                    
+                    <!-- 月度成果统计 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">月度成果统计</h3>
+                        <div id="achievement-monthly-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成果展示网格 -->
+        <section class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="achievements-grid">
+                    <!-- 成果卡片1 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-green-500 to-teal-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/igniteworldwide.org/558dd3ecfc3e53fc6d93f53a910f7db3de570c36.png" alt="编程竞赛获奖" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">1</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">编程马拉松一等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">2024年度校园编程竞赛中获得一等奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.12.20</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('programming-marathon-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片2 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="certification">
+                        <div class="h-48 bg-gradient-to-br from-purple-500 to-pink-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/sbsmschooledu.in/780d6aeb76461dfc5f822613844322ae5ecea942.jpeg" alt="Web开发证书" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-certification text-white text-xs px-3 py-1 rounded-full">技能认证</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">Web开发技能证书</h3>
+                            <p class="text-sm text-gray-600 mb-3">完成Web开发工作坊培训获得认证</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.11.15</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">认证</span>
+                                <button onclick="showAchievementDetail('web-certification')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片3 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="academic">
+                        <div class="h-48 bg-gradient-to-br from-blue-500 to-indigo-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/www-walsallcollege-ac-uk.exactdn.com/cdf7b970e8d18c94ec8244994fe60d38817f81cd.jpg" alt="学术论文" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-academic text-white text-xs px-3 py-1 rounded-full">学术成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">机器学习算法研究</h3>
+                            <p class="text-sm text-gray-600 mb-3">发表关于深度学习的学术论文</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.10.15</span>
+                                <span>李华</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">学术</span>
+                                <button onclick="showAchievementDetail('ml-research')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片4 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="project">
+                        <div class="h-48 bg-gradient-to-br from-orange-500 to-red-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/img.freepik.com/f27bb2238845ec4879418d2114e2835879fe5c96.jpg" alt="项目成果" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-project text-white text-xs px-3 py-1 rounded-full">项目成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">校园APP开发项目</h3>
+                            <p class="text-sm text-gray-600 mb-3">开发校园服务移动应用，获得优秀项目奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.09.20</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">项目</span>
+                                <button onclick="showAchievementDetail('campus-app')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片5 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-cyan-500 to-blue-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/eduseed.in/7680a8dd01332b60661036c54e54c13c29d8c057.jpeg" alt="数据竞赛" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">2</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">数据科学竞赛二等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">大数据分析竞赛中获得优异成绩</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.11.30</span>
+                                <span>王强</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('data-science-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片6 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="academic">
+                        <div class="h-48 bg-gradient-to-br from-emerald-500 to-teal-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/www.pace.edu/c9e26f4572ad253a239827f6003ced12d683b89e.jpg" alt="学术研究" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-academic text-white text-xs px-3 py-1 rounded-full">学术成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">网络安全研究论文</h3>
+                            <p class="text-sm text-gray-600 mb-3">关于网络安全的学术研究成果</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.08.15</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">学术</span>
+                                <button onclick="showAchievementDetail('security-research')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片7 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="others" data-type="project">
+                        <div class="h-48 bg-gradient-to-br from-rose-500 to-pink-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/media.timeout.com/2c639b0a8440586b3be9c6155b73d4500e1592ec.jpg" alt="开源项目" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-project text-white text-xs px-3 py-1 rounded-full">项目成果</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">开源项目贡献</h3>
+                            <p class="text-sm text-gray-600 mb-3">为知名开源项目贡献代码</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.07.20</span>
+                                <span>赵敏</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">项目</span>
+                                <button onclick="showAchievementDetail('opensource-contribution')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 成果卡片8 -->
+                    <div class="achievement-card bg-white rounded-xl shadow-lg overflow-hidden card-hover" data-owner="me" data-type="competition">
+                        <div class="h-48 bg-gradient-to-br from-violet-500 to-purple-600 relative">
+                            <img src="https://kimi-web-img.moonshot.cn/img/img.freepik.com/2f1e6a5d793cee57f7cc4c9130b25f0788a1854e.jpg" alt="创新竞赛" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute top-4 right-4">
+                                <span class="achievement-type-competition text-white text-xs px-3 py-1 rounded-full">竞赛获奖</span>
+                            </div>
+                            <div class="absolute top-4 left-4">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">3</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 mb-2">创新创业大赛三等奖</h3>
+                            <p class="text-sm text-gray-600 mb-3">校园创新创业大赛中获得三等奖</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>2024.06.10</span>
+                                <span>张明</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">竞赛</span>
+                                <button onclick="showAchievementDetail('innovation-award')" class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                    查看详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- 浮动添加按钮 -->
+    <button onclick="showAddAchievementModal()" class="floating-add-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white w-14 h-14 rounded-full flex items-center justify-center hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-110">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+    </button>
+
+    <!-- 成果详情模态框 -->
+    <div id="achievement-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="hero-title text-2xl font-bold text-gray-800" id="achievement-modal-title">成果详情</h3>
+                    <button onclick="closeAchievementModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="achievement-modal-content">
+                    <!-- 动态内容 -->
+                </div>
+            </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+{% endblock %}

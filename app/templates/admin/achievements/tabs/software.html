@@ -1,0 +1,146 @@
+<!-- 软著筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="softwareFilterForm" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">软件名称</label>
+                <input type="text" name="software_name" class="form-control" placeholder="输入软件名称">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">登记号</label>
+                <input type="text" name="registration_number" class="form-control" placeholder="登记号">
+            </div>
+            {% if not hide_laboratory_filter %}
+            <div class="col-md-3">
+                <label class="form-label">实验室</label>
+                <select name="laboratory_id" class="form-select">
+                    {% if laboratory_id and laboratory_name %}
+                        <option value="{{ laboratory_id }}" selected>{{ laboratory_name }}</option>
+                        <option value="none">无</option>
+                    {% else %}
+                        <option value="">全部</option>
+                        {% for lab in laboratories %}
+                        <option value="{{ lab.id }}">{{ lab.name }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetSoftwareFilter()">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 软著列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if software_list %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>软件名称</th>
+                        <th>版本号</th>
+                        <th>登记号</th>
+                        <th>著作权人</th>
+                        <th>登记日期</th>
+                        {% if not hide_laboratory_filter %}
+                        <th>实验室</th>
+                        {% endif %}
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for software in software_list %}
+                    <tr>
+                        <td>{{ software.id }}</td>
+                        <td>
+                            <a href="/admin/software/{{ software.id }}" class="text-decoration-none">
+                                {{ software.software_name }}
+                            </a>
+                        </td>
+                        <td>{{ software.software_version or '-' }}</td>
+                        <td>{{ software.registration_number or '-' }}</td>
+                        <td>{{ software.copyright_owner or '-' }}</td>
+                        <td>{{ software.registration_date or '-' }}</td>
+                        {% if not hide_laboratory_filter %}
+                        <td>{{ software.laboratory_id or '-' }}</td>
+                        {% endif %}
+                        <td>
+                            {% if is_readonly %}
+                            <div class="action-buttons">
+                                <a href="/admin/software/{{ software.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+                            </div>
+                            {% else %}
+                            <div class="action-buttons">
+                                <a href="/admin/software/{{ software.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                <a href="/admin/software/{{ software.id }}/edit" class="btn btn-sm btn-outline-secondary">编辑</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSoftware({{ software.id }})">删除</button>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadSoftwarePage({{ page - 1 }})">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if software_list|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadSoftwarePage({{ page + 1 }})">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">暂无软著数据</p>
+            <a href="/admin/software/create" class="btn btn-primary">添加第一个软著</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function loadSoftwarePage(page) {
+    const form = document.getElementById('softwareFilterForm');
+    const formData = new FormData(form);
+    formData.append('page', page);
+
+    fetch('/admin/api/achievements/software?' + new URLSearchParams(formData))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('software-content').innerHTML = data.html;
+            }
+        });
+}
+
+function resetSoftwareFilter() {
+    document.getElementById('softwareFilterForm').reset();
+    loadSoftwarePage(1);
+}
+
+document.getElementById('softwareFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    loadSoftwarePage(1);
+});
+</script>

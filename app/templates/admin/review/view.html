@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}审核详情 - #{{ pending.id }} - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">审核详情 #{{ pending.id }}</h1>
+    <a href="{{ url_for('admin_review.review_list') }}" class="btn btn-outline-secondary">返回列表</a>
+</div>
+
+<!-- 审核状态提示 -->
+{% if pending.status == 'pending' %}
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle"></i> 该成果待审核
+</div>
+{% elif pending.status == 'approved' %}
+<div class="alert alert-success" role="alert">
+    <i class="bi bi-check-circle"></i> 该成果已通过审核
+</div>
+{% elif pending.status == 'rejected' %}
+<div class="alert alert-danger" role="alert">
+    <i class="bi bi-x-circle"></i> 该成果已被拒绝
+    {% if pending.review_comment %}
+    <br><strong>拒绝原因:</strong> {{ pending.review_comment }}
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 提交信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">提交信息</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">成果类型</dt>
+                    <dd class="col-sm-9">
+                        {% if pending.achievement_type == 'award' %}
+                        <span class="badge bg-primary">奖状</span>
+                        {% elif pending.achievement_type == 'patent' %}
+                        <span class="badge bg-info">专利</span>
+                        {% elif pending.achievement_type == 'software' %}
+                        <span class="badge bg-success">软著</span>
+                        {% elif pending.achievement_type == 'innovation' %}
+                        <span class="badge bg-warning">大创</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">提交人</dt>
+                    <dd class="col-sm-9">
+                        {% if submitter %}
+                        {{ submitter.name }} ({{ pending.submitter_type }} #{{ pending.submitter_id }})
+                        {% else %}
+                        {{ pending.submitter_type }} #{{ pending.submitter_id }}
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">提交时间</dt>
+                    <dd class="col-sm-9">{{ pending.submit_time or '-' }}</dd>
+
+                    <dt class="col-sm-3">当前状态</dt>
+                    <dd class="col-sm-9">
+                        {% if pending.status == 'pending' %}
+                        <span class="badge bg-warning">待审核</span>
+                        {% elif pending.status == 'approved' %}
+                        <span class="badge bg-success">已通过</span>
+                        {% elif pending.status == 'rejected' %}
+                        <span class="badge bg-danger">已拒绝</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 成果数据 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">成果数据</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ achievement_data|tojson(indent=2) }}</code></pre>
+            </div>
+        </div>
+
+        <!-- 验证结果 -->
+        {% if validation_result %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">验证结果</h5>
+            </div>
+            <div class="card-body">
+                {% if validation_result.is_valid %}
+                <p class="text-success"><i class="bi bi-check-circle"></i> 数据验证通过</p>
+                {% else %}
+                <p class="text-danger"><i class="bi bi-x-circle"></i> 数据验证失败</p>
+                {% endif %}
+
+                {% if validation_result.content_issues %}
+                <div class="mt-3">
+                    <h6>内容问题:</h6>
+                    <ul class="text-danger">
+                        {% for issue in validation_result.content_issues %}
+                        <li>{{ issue }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if validation_result.completeness_issues %}
+                <div class="mt-3">
+                    <h6>完整性问题:</h6>
+                    <ul class="text-warning">
+                        {% for issue in validation_result.completeness_issues %}
+                        <li>{{ issue }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 审核操作 -->
+        {% if pending.status == 'pending' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">审核操作</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin_review.review_approve', pending_id=pending.id) }}" class="mb-3">
+                    <div class="mb-3">
+                        <label for="approve_comment" class="form-label">审核意见（可选）</label>
+                        <textarea class="form-control" id="approve_comment" name="comment" rows="3" placeholder="填写审核意见..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> 审核通过
+                    </button>
+                </form>
+
+                <hr>
+
+                <form method="post" action="{{ url_for('admin_review.review_reject', pending_id=pending.id) }}">
+                    <div class="mb-3">
+                        <label for="reject_comment" class="form-label">拒绝原因 <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="reject_comment" name="comment" rows="3" required placeholder="请填写拒绝原因..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-x-circle"></i> 拒绝
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 审核历史 -->
+        {% if pending.status != 'pending' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">审核历史</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">审核人ID</dt>
+                    <dd class="col-7">{{ pending.reviewer_id or '-' }}</dd>
+
+                    <dt class="col-5">审核时间</dt>
+                    <dd class="col-7">{{ pending.review_time or '-' }}</dd>
+
+                    <dt class="col-5">审核意见</dt>
+                    <dd class="col-7">{{ pending.review_comment or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 系统信息 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">系统信息</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">ID</dt>
+                    <dd class="col-7">{{ pending.id }}</dd>
+
+                    <dt class="col-5">创建时间</dt>
+                    <dd class="col-7">{{ pending.created_at or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    pre {
+        font-size: 0.875rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

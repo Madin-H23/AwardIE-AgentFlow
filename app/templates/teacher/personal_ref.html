@@ -1,0 +1,346 @@
+{% extends "user_base.html" %}
+
+{% block title %}个人主页 - 成果管理系统{% endblock %}
+
+{% block nav_personal %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status-active {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        }
+        .status-pending {
+            background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        }
+        .status-completed {
+            background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+        }
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(246, 173, 85, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .skill-tag {
+            transition: all 0.3s ease;
+        }
+        .skill-tag:hover {
+            transform: scale(1.05);
+        }
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        .avatar-upload {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .avatar-upload:hover {
+            transform: scale(1.05);
+        }
+        .avatar-upload-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .avatar-upload:hover .avatar-upload-overlay {
+            opacity: 1;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+        {% if error %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-800">{{ error }}</p>
+            </div>
+        </div>
+        {% else %}
+        <!-- Hero区域 -->
+        <section class="relative py-12 overflow-hidden">
+            <div class="floating-particles">
+                <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+                <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+                <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+                <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+                <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="bg-white rounded-2xl shadow-xl p-8 card-hover">
+                    <div class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                        <!-- 头像区域 -->
+                        <div class="relative">
+                            <div class="avatar-upload w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+                                <span class="text-white text-4xl font-bold">{{ teacher.name[0] if teacher and teacher.name else '教' }}</span>
+                                <div class="avatar-upload-overlay">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <button onclick="editAvatar()" class="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-full border-2 border-orange-500 flex items-center justify-center hover:bg-orange-50 transition-colors">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- 个人信息 -->
+                        <div class="flex-1 text-center md:text-left">
+                            <h1 class="hero-title text-4xl font-bold gradient-text mb-4">{{ teacher.name if teacher and teacher.name else '教师' }}</h1>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-center md:justify-start">
+                                        <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                                        </svg>
+                                        <span class="text-gray-700">工号：{{ teacher.teacher_id if teacher and teacher.teacher_id else '未设置' }}</span>
+                                    </div>
+                                    {% if teacher and teacher.qq %}
+                                    <div class="flex items-center justify-center md:justify-start">
+                                        <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        <span class="text-gray-700">QQ：{{ teacher.qq }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2">
+                                    {% if teacher and teacher.phone %}
+                                    <div class="flex items-center justify-center md:justify-start">
+                                        <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                        </svg>
+                                        <span class="text-gray-700">手机号：{{ teacher.phone }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-4">
+                                <button onclick="editProfile()" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all">
+                                    编辑主页
+                                </button>
+                                <div class="flex items-center space-x-2">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer" id="privacy-toggle">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                    </label>
+                                    <span class="text-sm text-gray-600">公开主页</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主要内容区域 -->
+        <section class="py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- 左侧：参与活动 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-6">参与的活动</h3>
+                        <div class="space-y-4">
+                            <!-- 活动1 -->
+                            <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 mb-1">编程马拉松大赛</h4>
+                                    <p class="text-sm text-gray-600 mb-2">2024年度校园编程竞赛</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="status-active text-white text-xs px-2 py-1 rounded-full">进行中</span>
+                                        <span class="text-xs text-gray-500">2024.12.15-20</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 活动2 -->
+                            <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 mb-1">AI技术讲座</h4>
+                                    <p class="text-sm text-gray-600 mb-2">深度学习前沿技术分享</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="status-pending text-white text-xs px-2 py-1 rounded-full">报名中</span>
+                                        <span class="text-xs text-gray-500">2024.12.25</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 活动3 -->
+                            <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+                                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 mb-1">Web开发工作坊</h4>
+                                    <p class="text-sm text-gray-600 mb-2">前后端开发技能培训</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="status-completed text-white text-xs px-2 py-1 rounded-full">已完成</span>
+                                        <span class="text-xs text-gray-500">2024.11.10-15</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 text-center">
+                            <a href="{{ user_route('activities') }}" class="text-orange-500 hover:text-orange-600 font-medium text-sm">
+                                查看全部活动 →
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 中间：取得的成果 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-6">取得的成果</h3>
+                        <div class="space-y-4">
+                            {% if teacher and teacher.awards %}
+                                {% for award in teacher.awards %}
+                                <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="block flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all cursor-pointer">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-gray-800 mb-1">{{ award.title }}</h4>
+                                        <p class="text-sm text-gray-600 mb-2">{{ award.subtitle }}</p>
+                                        <div class="flex items-center justify-between">
+                                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">竞赛获奖</span>
+                                            {% if award.date %}
+                                            <span class="text-xs text-gray-500">{{ award.date }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-8 text-gray-500 text-sm">
+                                    暂无成果记录
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-6 text-center">
+                            <button onclick="window.location.href='{{ user_route('achievements') }}'" class="text-orange-500 hover:text-orange-600 font-medium text-sm">
+                                查看全部成果 →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：技术标签 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 class="hero-title text-xl font-bold text-gray-800 mb-6">技术标签</h3>
+                        <div class="space-y-4">
+                            <div class="flex flex-wrap gap-2">
+                                {% if teacher and teacher.skills %}
+                                    {% for skill in teacher.skills %}
+                                    <span class="skill-tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm cursor-pointer">{{ skill }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-gray-500 text-sm">暂无技术标签</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="pt-4 border-t border-gray-200">
+                                <button onclick="editSkills()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                                    编辑技术标签
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 个人图片库 -->
+                        <div class="mt-8">
+                            <h4 class="font-semibold text-gray-800 mb-3">个人图片库</h4>
+                            <div class="text-gray-500 text-sm">
+                                暂无图片
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {% endif %}
+    <!-- 编辑个人资料模态框 -->
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="hero-title text-2xl font-bold text-gray-800">编辑个人主页</h3>
+                    <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <form id="edit-profile-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                            <input type="text" value="张明" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">学号</label>
+                            <input type="text" value="2021001" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                        </div>
+                    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+{% endblock %}

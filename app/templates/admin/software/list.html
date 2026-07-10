@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}软著管理 - 竞赛管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">软著管理</h1>
+    <div>
+        <a href="{{ url_for('admin_software.software_create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> 添加软著
+        </a>
+    </div>
+</div>
+
+<!-- 筛选卡片 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">登记号</label>
+                <input type="text" name="registration_number" class="form-control" value="{{ filter_obj.registration_number or '' }}" placeholder="输入登记号">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">著作权人</label>
+                <input type="text" name="copyright_owner" class="form-control" value="{{ filter_obj.copyright_owner or '' }}" placeholder="输入著作权人">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <a href="{{ url_for('admin_software.software_list') }}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 软著列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if copyrights %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">共 {{ copyrights|length }} 条记录</span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                    批量删除
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40">
+                            <input type="checkbox" id="selectAllCopyrights">
+                        </th>
+                        <th>ID</th>
+                        <th>软件名称</th>
+                        <th>版本号</th>
+                        <th>登记号</th>
+                        <th>著作权人</th>
+                        <th>登记日期</th>
+                        <th>提交时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for copyright in copyrights %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="copyright-checkbox" value="{{ copyright.id }}">
+                        </td>
+                        <td>{{ copyright.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}" class="text-decoration-none">
+                                {{ copyright.software_name }}
+                            </a>
+                        </td>
+                        <td>{{ copyright.software_version or '-' }}</td>
+                        <td>{{ copyright.registration_number or '-' }}</td>
+                        <td>{{ copyright.copyright_owner or '-' }}</td>
+                        <td>{{ copyright.registration_date or '-' }}</td>
+                        <td>{{ copyright.submit_time or '-' }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}" class="btn btn-outline-primary">查看</a>
+                                <a href="{{ url_for('admin_software.software_edit', copyright_id=copyright.id) }}" class="btn btn-outline-secondary">编辑</a>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteCopyright({{ copyright.id }})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if copyrights|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无软著数据</p>
+            <a href="{{ url_for('admin_software.software_create') }}" class="btn btn-primary">添加第一个软著</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+</style>
+
+<script>
+// 单个删除
+function deleteCopyright(id) {
+    if (confirm('确定要删除这个软著吗？此操作不可撤销。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('admin_software.software_delete', copyright_id=0) }}".replace('0', id);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// 批量删除
+function batchDeleteCopyrights() {
+    const checkboxes = document.querySelectorAll('.copyright-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('请选择要删除的软著');
+        return;
+    }
+
+    if (!confirm(`确定要删除选中的 ${checkboxes.length} 条软著吗？此操作不可撤销。`)) {
+        return;
+    }
+
+    const copyrightIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+    fetch('/admin/software/batch-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ copyright_ids: copyrightIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || '批量删除成功');
+            location.reload();
+        } else {
+            alert(data.message || '批量删除失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('批量删除失败');
+    });
+}
+
+// 更新批量删除按钮状态
+function updateBatchDeleteBtn() {
+    const checkboxes = document.querySelectorAll('.copyright-checkbox');
+    const checked = document.querySelectorAll('.copyright-checkbox:checked');
+    const btn = document.getElementById('batchDeleteBtn');
+
+    if (checked.length > 0) {
+        btn.disabled = false;
+        btn.textContent = `批量删除 (${checked.length})`;
+    } else {
+        btn.disabled = true;
+        btn.textContent = '批量删除';
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 全选/取消全选
+    const selectAll = document.getElementById('selectAllCopyrights');
+    const checkboxes = document.querySelectorAll('.copyright-checkbox');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateBatchDeleteBtn();
+        });
+    }
+
+    // 单个复选框变化
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateBatchDeleteBtn);
+    });
+
+    // 批量删除按钮
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', batchDeleteCopyrights);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}成果管理系统{% endblock %}</title>
+    
+    <!-- Tailwind CSS - 使用编译后的生产版本（运行 npm run build:css 生成） -->
+    <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
+    
+    <!-- Anime.js for animations -->
+    <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js"></script>
+
+    <!-- ECharts for charts -->
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <!-- Splide.js for carousels -->
+    <script src="https://unpkg.com/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status-active {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        }
+        .status-pending {
+            background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        }
+        .status-completed {
+            background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+        }
+        .status-closed {
+            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+        }
+        .filter-active {
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            color: white;
+        }
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(246, 173, 85, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .dynamic-card {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .dynamic-card:hover {
+            border-left-color: #f6ad55;
+            background-color: #fffaf0;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .achievement-type-academic {
+            background: linear-gradient(135deg, #3182ce 0%, #4299e1 100%);
+        }
+        .achievement-type-competition {
+            background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        }
+        .achievement-type-project {
+            background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        }
+        .achievement-type-certification {
+            background: linear-gradient(135deg, #805ad5 0%, #9f7aea 100%);
+        }
+        .floating-add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 40;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .skill-tag {
+            transition: all 0.3s ease;
+        }
+        .skill-tag:hover {
+            transform: scale(1.05);
+        }
+        .avatar-upload {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .avatar-upload:hover {
+            transform: scale(1.05);
+        }
+        .avatar-upload-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .avatar-upload:hover .avatar-upload-overlay {
+            opacity: 1;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-orange-400 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">CS</span>
+                        </div>
+                        
+                    </div>
+                    <div class="hidden md:flex space-x-6">
+                        <a href="{{ user_route('dashboard') }}" class="{% block nav_dashboard %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">仪表板</a>
+                        {% if current_user and current_user.type == 'teacher' %}
+                        <a href="{{ url_for('teacher.achievements') }}" class="{% block nav_achievements %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果展示</a>
+                        {% endif %}
+                        <a href="{{ user_route('submissions') }}" class="{% block nav_submissions %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果提交</a>
+                        {% if current_user and current_user.type == 'teacher' %}
+                        <a href="{{ url_for('teacher.achievement_review_list') }}" class="{% block nav_review %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果审核</a>
+                        {% endif %}
+                        <a href="{{ user_route('profile') }}" class="{% block nav_profile %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">个人资料</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="p-2 text-gray-600 hover:text-orange-500 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6a2 2 0 012 2v9a2 2 0 01-2 2H9l-3-3V9a2 2 0 012-2z"></path>
+                            </svg>
+                        </button>
+                        <span class="notification-badge absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {% if current_user and current_user.name %}{{ current_user.name[0] }}{% else %}用{% endif %}
+                        </div>
+                        {% if current_user and current_user.name %}
+                        <span class="text-sm font-medium text-gray-800 hidden sm:inline">{{ current_user.name }}</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="text-sm text-gray-600 hover:text-orange-500">退出</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash消息 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-20 right-4 z-50 space-y-2">
+                {% for category, message in messages %}
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if category == 'error' %}
+                                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% elif category == 'success' %}
+                                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-800">{{ message }}</p>
+                            </div>
+                            <div class="ml-auto pl-3">
+                                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- 主要内容 -->
+    <main class="pt-16">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">© 计算机系学生成果管理系统.</p>
+        </div>
+    </footer>
+
+    <!-- 通用JavaScript -->
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

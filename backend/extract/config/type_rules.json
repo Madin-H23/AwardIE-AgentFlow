@@ -1,0 +1,134 @@
+{
+  "award": {
+    "min_length": 30,
+    "similarity_threshold": 0.3,
+    "conditions": [
+      {
+        "type": "and",
+        "keywords": [
+          "奖",
+          "赛"
+        ]
+      },
+      {
+        "type": "contains",
+        "keyword": "CERTIFICATE",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "AWARD",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "WINNER",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "COMPETITION",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "PRIZE",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "MEDAL",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "CHAMPIONSHIP",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "CONTEST",
+        "case_insensitive": true
+      },
+      {
+        "type": "contains",
+        "keyword": "挑战赛"
+      },
+      {
+        "type": "contains",
+        "keyword": "奖状"
+      },
+      {
+        "type": "contains",
+        "keyword": "获奖"
+      },
+      {
+        "type": "contains",
+        "keyword": "证书"
+      },
+      {
+        "type": "contains",
+        "keyword": "竞赛"
+      },
+      {
+        "type": "contains",
+        "keyword": "比赛"
+      },
+      {
+        "type": "contains",
+        "keyword": "荣誉证书"
+      },
+      {
+        "type": "contains",
+        "keyword": "一等奖"
+      },
+      {
+        "type": "contains",
+        "keyword": "二等奖"
+      },
+      {
+        "type": "contains",
+        "keyword": "三等奖"
+      },
+      {
+        "type": "contains",
+        "keyword": "特等奖"
+      }
+    ],
+    "exclude_keywords": [
+      "认证",
+      "资质证书",
+      "考级证书",
+      "等级考试",
+      "等级证书",
+      "考试证书",
+      "水平测试",
+      "能力测试",
+      "查询结果",
+      "成绩查询",
+      "通知",
+      "专利",
+      "软件著作权"
+    ]
+  },
+  "patent": {
+    "min_length": 200,
+    "similarity_threshold": 0.3,
+    "conditions": [
+      {
+        "type": "contains",
+        "keyword": "专利证书"
+      }
+    ]
+  },
+  "software": {
+    "min_length": 150,
+    "similarity_threshold": 0.3,
+    "conditions": [
+      {
+        "type": "contains",
+        "keyword": "软件著作权"
+      }
+    ]
+  }
+}

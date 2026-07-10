@@ -1,0 +1,1452 @@
+{% extends "base.html" %}
+
+{% block title %}{% if laboratory_id %}{{ laboratory_name }} - 成果展示{% else %}成果管理{% endif %} - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1890ff;
+        border-bottom-color: #1890ff;
+    }
+    .nav-tabs .nav-link.active {
+        color: #1890ff;
+        background-color: transparent;
+        border-bottom-color: #1890ff;
+    }
+    .tab-content {
+        padding: 1.5rem 0;
+    }
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    /* 表格行操作按钮：统一大小与间距，避免换行 */
+    .action-buttons {
+        display: inline-flex;
+        flex-wrap: nowrap;
+        gap: 0.35rem;
+        align-items: center;
+    }
+    .action-buttons .btn {
+        margin: 0;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8125rem;
+        min-height: 28px;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 面包屑导航（仅实验室视图显示） -->
+{% if laboratory_id %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=laboratory_id) }}">{{ laboratory_name }}</a></li>
+        <li class="breadcrumb-item active">成果展示</li>
+    </ol>
+</nav>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">{% if laboratory_id %}{{ laboratory_name }} - 成果展示{% else %}成果管理{% endif %}</h1>
+    <div id="actionButtons">
+        <!-- 动态加载操作按钮 -->
+    </div>
+</div>
+
+<!-- Tab 导航 -->
+<ul class="nav nav-tabs" id="achievementTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab == 'award' %}active{% endif %}"
+                id="award-tab"
+                type="button"
+                role="tab"
+                data-tab="award">
+            奖状管理<span class="tab-count ms-2" id="award-tab-count"></span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab == 'patent' %}active{% endif %}"
+                id="patent-tab"
+                type="button"
+                role="tab"
+                data-tab="patent">
+            专利管理<span class="tab-count ms-2" id="patent-tab-count"></span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab == 'software' %}active{% endif %}"
+                id="software-tab"
+                type="button"
+                role="tab"
+                data-tab="software">
+            软著管理<span class="tab-count ms-2" id="software-tab-count"></span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab == 'innovation' %}active{% endif %}"
+                id="innovation-tab"
+                type="button"
+                role="tab"
+                data-tab="innovation">
+            大创管理<span class="tab-count ms-2" id="innovation-tab-count"></span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab == 'other' %}active{% endif %}"
+                id="other-tab"
+                type="button"
+                role="tab"
+                data-tab="other">
+            其他文件管理<span class="tab-count ms-2" id="other-tab-count"></span>
+        </button>
+    </li>
+</ul>
+
+<!-- Tab 内容 -->
+<div class="tab-content" id="achievementTabContent">
+    <!-- 奖状管理 -->
+    <div class="tab-pane fade {% if tab == 'award' %}show active{% endif %}"
+         id="award-panel"
+         role="tabpanel">
+        <div id="award-content">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 专利管理 -->
+    <div class="tab-pane fade {% if tab == 'patent' %}show active{% endif %}"
+         id="patent-panel"
+         role="tabpanel">
+        <div id="patent-content">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 软著管理 -->
+    <div class="tab-pane fade {% if tab == 'software' %}show active{% endif %}"
+         id="software-panel"
+         role="tabpanel">
+        <div id="software-content">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 大创管理 -->
+    <div class="tab-pane fade {% if tab == 'innovation' %}show active{% endif %}"
+         id="innovation-panel"
+         role="tabpanel">
+        <div id="innovation-content">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 其他文件管理 -->
+    <div class="tab-pane fade {% if tab == 'other' %}show active{% endif %}"
+         id="other-panel"
+         role="tabpanel">
+        <div id="other-content">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTab = '{{ tab }}';
+// 实验室视图模式（如果设置则只显示该实验室的数据）
+const LABORATORY_ID = {% if laboratory_id %}{{ laboratory_id }}{% else %}null{% endif %};
+const LABORATORY_NAME = {% if laboratory_name %}'{{ laboratory_name }}'{% else %}null{% endif %};
+// 是否只读模式（根据用户权限决定）
+const IS_READONLY = {% if is_readonly %}true{% else %}false{% endif %};
+
+// 添加操作按钮配置
+const tabActions = {
+    award: [
+    ],
+    patent: [
+        { text: '添加专利', url: '{{ url_for("admin_patents.patent_create") }}', class: 'btn-primary' },
+        { text: '批量导入', url: '{{ url_for('admin_achievement.file_import') }}', class: 'btn-success' }
+    ],
+    software: [
+        { text: '添加软著', url: 'javascript:alert("功能开发中")', class: 'btn-primary' },
+        { text: '批量导入', url: '{{ url_for('admin_achievement.file_import') }}', class: 'btn-success' }
+    ],
+    innovation: [
+        { text: '批量导入', url: '{{ url_for('admin_achievement.file_import') }}', class: 'btn-success' }
+    ],
+    other: []  // 实验室下载文件通过成果审核流程添加
+};
+
+// 切换成果管理Tab（使用独特的函数名避免与 common.js 中的 switchTab 冲突）
+function switchAchievementTab(tab) {
+    currentTab = tab;
+
+    // 手动管理Tab按钮的active状态
+    document.querySelectorAll('#achievementTabs .nav-link').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const tabBtn = document.getElementById(`${tab}-tab`);
+    if (tabBtn) {
+        tabBtn.classList.add('active');
+    }
+
+    // 手动管理Tab面板的显示/隐藏
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('show', 'active');
+    });
+    const tabPanel = document.getElementById(`${tab}-panel`);
+    if (tabPanel) {
+        tabPanel.classList.add('show', 'active');
+    }
+
+    // 加载Tab内容
+    loadTabContent(tab);
+}
+
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果是只读模式，隐藏"添加"按钮和批量删除按钮
+    if (IS_READONLY) {
+        const actionButtonsContainer = document.getElementById('actionButtons');
+        if (actionButtonsContainer) {
+            actionButtonsContainer.style.display = 'none';
+        }
+    }
+    // 如果是实验室视图（不管是否只读），都隐藏实验室筛选选项
+    if (LABORATORY_ID !== null) {
+        // 在各 tab 内容加载后会通过 init 函数隐藏实验室筛选
+    }
+
+    // 使用事件委托处理 Tab 切换
+    document.getElementById('achievementTabs').addEventListener('click', function(e) {
+        const btn = e.target.closest('button[data-tab]');
+        if (btn) {
+            const tab = btn.getAttribute('data-tab');
+            switchAchievementTab(tab);
+        }
+    });
+
+    loadTabContent(currentTab);
+
+    // 实验室成果展示页：预拉取各 tab 总数，使每个 tab 名称旁都显示数量（和奖状一样）
+    if (LABORATORY_ID !== null) {
+        fetch('/admin/api/achievements/counts?laboratory_id=' + LABORATORY_ID)
+            .then(function(response) { return response.ok ? response.json() : Promise.reject(new Error('counts 请求失败')); })
+            .then(function(data) {
+                if (data.success) {
+                    ['award', 'patent', 'software', 'innovation', 'other'].forEach(function(tab) {
+                        if (data[tab] !== undefined) {
+                            updateTabCount(tab, data[tab]);
+                        }
+                    });
+                }
+            })
+            .catch(function(err) { console.warn('预拉取 tab 数量失败:', err); });
+    }
+});
+
+// 加载Tab内容
+function loadTabContent(tab) {
+    const contentMap = {
+        award: { url: '/admin/api/achievements/awards', container: 'award-content', initFn: initAwardEvents },
+        patent: { url: '/admin/api/achievements/patents', container: 'patent-content', initFn: initPatentEvents },
+        software: { url: '/admin/api/achievements/software', container: 'software-content', initFn: initSoftwareEvents },
+        innovation: { url: '/admin/api/achievements/innovation', container: 'innovation-content', initFn: initInnovationEvents },
+        other: { url: '/admin/api/achievements/other', container: 'other-content', initFn: initOtherEvents }
+    };
+
+    const config = contentMap[tab];
+    if (!config) {
+        console.error('Unknown tab:', tab);
+        return;
+    }
+
+    // 更新操作按钮
+    updateActionButtons(tab);
+
+    // 加载内容
+    const container = document.getElementById(config.container);
+    if (container) {
+        // 奖状 tab：翻页通过 href 整页跳转，URL 带 page/per_page/is_abnormal 等，须原样传给 API
+        let fetchUrl = config.url;
+        if (tab === 'award' && window.location.search) {
+            fetchUrl = config.url + (config.url.includes('?') ? '&' + window.location.search.slice(1) : window.location.search);
+        }
+
+        // 如果是实验室视图，添加 laboratory_id 与 lab_view=1（后端据此隐藏学生实验室筛选）
+        if (LABORATORY_ID !== null) {
+            const separator = fetchUrl.includes('?') ? '&' : '?';
+            fetchUrl += `${separator}laboratory_id=${LABORATORY_ID}&lab_view=1`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => {
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                // 检查 Content-Type 是否为 JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return response.text().then(text => {
+                        throw new Error(`服务器返回了非JSON响应: ${text.substring(0, 200)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    container.innerHTML = data.html;
+                    // 更新tab标签上的数量显示
+                    if (data.total_count !== undefined) {
+                        updateTabCount(tab, data.total_count);
+                    }
+                    // 初始化事件绑定
+                    if (config.initFn) {
+                        config.initFn();
+                    }
+                } else {
+                    container.innerHTML = `<div class="alert alert-danger">加载失败: ${data.message || '未知错误'}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('加载Tab内容失败:', error);
+                container.innerHTML = `<div class="alert alert-danger">加载失败: ${error.message}</div>`;
+            });
+    } else {
+        console.error('Container not found:', config.container);
+    }
+}
+
+// 更新操作按钮
+function updateActionButtons(tab) {
+    const container = document.getElementById('actionButtons');
+    const actions = tabActions[tab] || [];
+
+    if (actions.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<div class="btn-group">';
+    actions.forEach(action => {
+        html += `<a href="${action.url}" class="btn ${action.class}">${action.text}</a>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// 更新tab标签上的数量显示
+function updateTabCount(tab, count) {
+    const tabCountElement = document.getElementById(`${tab}-tab-count`);
+    if (tabCountElement) {
+        if (count !== undefined && count !== null) {
+            tabCountElement.textContent = `(${count})`;
+            tabCountElement.style.display = 'inline';
+        } else {
+            tabCountElement.style.display = 'none';
+        }
+    }
+}
+
+// ========== 奖状管理相关函数 ==========
+
+// 加载奖状分页/刷新奖状列表
+function loadAwardsPage(page) {
+    // 尝试获取筛选表单（management.html 中的表单）
+    const form = document.querySelector('#award-content form');
+    let url = '/admin/api/achievements/awards';
+
+    if (form) {
+        const formData = new FormData(form);
+        formData.set('page', page || 1);
+
+        // 如果是实验室视图，确保添加 laboratory_id 与 lab_view=1
+        if (LABORATORY_ID !== null) {
+            formData.set('laboratory_id', LABORATORY_ID);
+            formData.set('lab_view', '1');
+        }
+
+        // 移除 tab 参数（这个参数是为独立的奖状列表页面准备的，在成果管理页面中不需要）
+        formData.delete('tab');
+
+        url += '?' + new URLSearchParams(formData);
+    } else {
+        // 没有表单时，也要添加 laboratory_id 与 lab_view（实验室视图）
+        const params = new URLSearchParams();
+        if (page) {
+            params.set('page', page);
+        }
+        if (LABORATORY_ID !== null) {
+            params.set('laboratory_id', LABORATORY_ID);
+            params.set('lab_view', '1');
+        }
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+    }
+
+    fetch(url)
+        .then(response => response.json())
+            .then(data => {
+            if (data.success) {
+                document.getElementById('award-content').innerHTML = data.html;
+                // 更新tab标签上的数量显示
+                if (data.total_count !== undefined) {
+                    updateTabCount('award', data.total_count);
+                }
+                // 更新浏览器地址栏的URL（保持筛选参数）
+                const urlParams = url.split('?')[1];
+                if (urlParams) {
+                    // 清理URL参数：移除空值参数
+                    const params = new URLSearchParams(urlParams);
+                    const cleanParams = new URLSearchParams();
+                    for (const [key, value] of params.entries()) {
+                        if (value && value.trim() !== '') {
+                            cleanParams.append(key, value);
+                        }
+                    }
+                    const cleanParamsStr = cleanParams.toString();
+                    if (cleanParamsStr) {
+                        const newUrl = window.location.pathname + '?' + cleanParamsStr;
+                        window.history.pushState({}, '', newUrl);
+                    } else {
+                        // 如果没有参数，清除URL中的查询字符串
+                        window.history.pushState({}, '', window.location.pathname);
+                    }
+                }
+                // 重新绑定事件
+                initAwardEvents();
+            }
+        })
+        .catch(error => {
+            console.error('加载奖状列表失败:', error);
+        });
+}
+
+// 重置奖状筛选
+function resetAwardFilter() {
+    const form = document.querySelector('#award-content form');
+    if (form) {
+        form.reset();
+    }
+    loadAwardsPage(1);
+}
+
+// 删除单个奖状
+function deleteAward(id) {
+    if (confirm('确定要删除这条奖状吗？此操作不可恢复！')) {
+        fetch(`/admin/awards/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || '删除成功');
+                loadAwardsPage(1);
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+
+// 批量删除奖状
+function batchDeleteAwards() {
+    const checked = document.querySelectorAll('.award-checkbox:checked');
+    if (checked.length === 0) {
+        alert('请选择要删除的奖状');
+        return;
+    }
+    
+    if (!confirm(`确定要删除选中的 ${checked.length} 条奖状吗？此操作不可恢复！`)) {
+        return;
+    }
+    
+    const awardIds = Array.from(checked).map(cb => parseInt(cb.value));
+    
+    fetch('/admin/awards/batch-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ award_ids: awardIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadAwardsPage(1);
+        } else {
+            alert(data.message || '批量删除失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('批量删除失败');
+    });
+}
+
+// 关联师生奖状 - 从教师奖状中补充学生奖状的导师信息
+function linkTeacherStudentAwards() {
+    fetch('/admin/api/awards/link-teacher-student', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ dry_run: false })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert('操作失败: ' + data.message);
+            return;
+        }
+
+        if (data.matched === 0) {
+            alert(data.message || '没有找到匹配的师生奖状');
+            return;
+        }
+
+        // 显示成功提示
+        alert(`关联师生奖状完成！匹配到 ${data.matched} 对，成功更新 ${data.updated} 个学生奖状`);
+
+        // 如果有更新的奖状，从页面中移除异常标志
+        if (data.updated_award_ids && data.updated_award_ids.length > 0) {
+            data.updated_award_ids.forEach(awardId => {
+                // 查找页面上的奖状行
+                const row = document.querySelector(`tr[data-award-id="${awardId}"]`);
+                if (row) {
+                    // 移除异常标志
+                    const warningBadge = row.querySelector('.badge-warning');
+                    if (warningBadge) {
+                        warningBadge.remove();
+                    }
+
+                    // 更新指导教师列（如果有）
+                    const supervisorCell = row.querySelector('td[data-supervisor-name]');
+                    if (supervisorCell && data.details) {
+                        // 从 details 中找到这个奖状的指导教师名称
+                        const detail = data.details.find(d => d.student_award_id === awardId);
+                        if (detail && detail.supervisor_names) {
+                            supervisorCell.textContent = detail.supervisor_names;
+                            supervisorCell.setAttribute('data-supervisor-name', detail.supervisor_names);
+                        }
+                    }
+
+                    // 移除行的高亮样式（如果有）
+                    row.classList.remove('table-warning', 'bg-warning');
+                }
+            });
+
+            // 更新异常数量显示
+            const abnormalCountElement = document.getElementById('abnormal-count');
+            if (abnormalCountElement) {
+                const currentCount = parseInt(abnormalCountElement.textContent) || 0;
+                const newCount = Math.max(0, currentCount - data.updated);
+                abnormalCountElement.textContent = newCount;
+                if (newCount === 0) {
+                    abnormalCountElement.classList.remove('badge-warning');
+                    abnormalCountElement.classList.add('badge-success');
+                }
+            }
+        }
+
+        // 刷新页面以确保数据一致
+        loadAwardsPage(1);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败');
+    });
+}
+
+// 自动关联实验室 - 将有指导教师但未关联实验室的奖状自动关联到第一指导教师所属实验室
+function autoLinkLaboratory() {
+    console.log('[DEBUG] autoLinkLaboratory function called');
+    if (!confirm('确定要自动关联实验室吗？\n\n将把所有有关指导教师但未关联实验室的奖状自动关联到第一指导教师所属实验室。')) {
+        return;
+    }
+    console.log('[DEBUG] User confirmed, proceeding with auto-link');
+
+    // 获取按钮引用（用于显示加载状态）
+    const btn = document.getElementById('autoLinkLaboratoryBtn');
+    if (!btn) {
+        alert('找不到按钮');
+        return;
+    }
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+
+    fetch('/admin/api/awards/auto-link-laboratory', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const message = `自动关联完成！\n\n总数: ${data.total}\n成功: ${data.success_count}\n跳过: ${data.skipped_count}\n失败: ${data.failed_count}`;
+            alert(message);
+            loadAwardsPage(1);
+        } else {
+            alert(data.message || '自动关联失败');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('自动关联失败: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+// 更新批量删除按钮状态
+function updateBatchDeleteBtn() {
+    const checked = document.querySelectorAll('.award-checkbox:checked');
+    const btn = document.getElementById('batchDeleteBtn');
+    if (btn) {
+        btn.disabled = checked.length === 0;
+        btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+    }
+}
+
+// 初始化奖状事件绑定
+function initAwardEvents() {
+    try {
+        // 如果是只读模式，隐藏所有编辑/删除按钮
+        if (IS_READONLY) {
+            // 隐藏批量删除按钮
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+            if (batchDeleteBtn) {
+                batchDeleteBtn.style.display = 'none';
+            }
+            // 隐藏关联师生按钮
+            const linkTeacherStudentBtn = document.getElementById('linkTeacherStudentBtn');
+            if (linkTeacherStudentBtn) {
+                linkTeacherStudentBtn.style.display = 'none';
+            }
+            // 隐藏全选复选框
+            const selectAll = document.getElementById('selectAllAwards');
+            if (selectAll) {
+                selectAll.style.display = 'none';
+            }
+            // 隐藏所有单个复选框
+            document.querySelectorAll('.award-checkbox').forEach(cb => {
+                cb.style.display = 'none';
+            });
+            // 隐藏所有删除按钮
+            document.querySelectorAll('#award-content button[onclick*="deleteAward"]').forEach(btn => {
+                btn.style.display = 'none';
+            });
+        }
+
+        // 先移除旧的事件监听器（通过克隆节点）
+        const filterForm = document.getElementById('awardFilterForm');
+        if (filterForm && filterForm.parentNode) {
+            const newForm = filterForm.cloneNode(true);
+            filterForm.parentNode.replaceChild(newForm, filterForm);
+        }
+
+        // 全选/取消全选
+        const selectAll = document.getElementById('selectAllAwards');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.award-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateBatchDeleteBtn();
+            });
+        }
+
+        // 单个复选框变化
+        document.querySelectorAll('.award-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBatchDeleteBtn);
+        });
+
+        // 批量删除按钮
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+        if (batchDeleteBtn) {
+            // 克隆节点以移除旧的事件监听器
+            const newBtn = batchDeleteBtn.cloneNode(true);
+            batchDeleteBtn.parentNode.replaceChild(newBtn, batchDeleteBtn);
+            newBtn.addEventListener('click', batchDeleteAwards);
+        }
+
+        // 关联师生奖状按钮
+        const linkTeacherStudentBtn = document.getElementById('linkTeacherStudentBtn');
+        if (linkTeacherStudentBtn) {
+            // 克隆节点以移除旧的事件监听器
+            const newBtn = linkTeacherStudentBtn.cloneNode(true);
+            linkTeacherStudentBtn.parentNode.replaceChild(newBtn, linkTeacherStudentBtn);
+            newBtn.addEventListener('click', linkTeacherStudentAwards);
+        }
+
+        // 自动关联实验室按钮
+        const autoLinkLaboratoryBtn = document.getElementById('autoLinkLaboratoryBtn');
+        if (autoLinkLaboratoryBtn) {
+            // 克隆节点以移除旧的事件监听器
+            const newBtn = autoLinkLaboratoryBtn.cloneNode(true);
+            autoLinkLaboratoryBtn.parentNode.replaceChild(newBtn, autoLinkLaboratoryBtn);
+            newBtn.addEventListener('click', autoLinkLaboratory);
+        }
+
+        // 重新绑定所有删除按钮（避免 onclick 调用被覆盖）
+        document.querySelectorAll('#award-content button[onclick^="deleteAward"]').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+            const match = onclickAttr.match(/deleteAward\((\d+)\)/);
+            if (match) {
+                const awardId = parseInt(match[1]);
+                // 移除 onclick 属性
+                btn.removeAttribute('onclick');
+                // 添加点击事件监听器
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteAward(awardId);
+                });
+            }
+        });
+
+        // 筛选表单：仅点击「筛选」按钮时提交并刷新列表，各筛选项变更不自动刷新
+        const newFilterForm = document.getElementById('awardFilterForm');
+        if (newFilterForm) {
+            newFilterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadAwardsPage(1);
+            });
+
+            const resetBtn = document.getElementById('awardFilterResetBtn');
+            if (resetBtn) {
+                const newResetBtn = resetBtn.cloneNode(true);
+                resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+                newResetBtn.addEventListener('click', function() {
+                    const form = document.getElementById('awardFilterForm');
+                    if (form) form.reset();
+                    loadAwardsPage(1);
+                });
+            }
+        }
+
+        // 初始化所有tooltip（在 #award-content 内）
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('#award-content [data-bs-toggle="tooltip"]'));
+        // 先销毁旧的 tooltip 实例（如果存在）
+        tooltipTriggerList.forEach(function(el) {
+            var existingTooltip = bootstrap.Tooltip.getInstance(el);
+            if (existingTooltip) {
+                existingTooltip.dispose();
+            }
+        });
+        // 创建新的 tooltip 实例
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // 为编辑链接添加return_url参数
+        document.querySelectorAll('#award-content .award-edit-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var baseUrl = this.href;
+                var currentUrl = window.location.href;
+                var separator = baseUrl.includes('?') ? '&' : '?';
+                var newUrl = baseUrl + separator + 'return_url=' + encodeURIComponent(currentUrl);
+                window.location.href = newUrl;
+            });
+        });
+    } catch (error) {
+        console.error('initAwardEvents error:', error);
+    }
+}
+
+// 初始化操作按钮
+updateActionButtons(currentTab);
+
+// ========== 专利管理相关函数 ==========
+
+// 加载专利分页/刷新专利列表
+function loadPatentsPage(page) {
+    const form = document.querySelector('#patent-content form');
+    let url = '/admin/api/achievements/patents';
+
+    if (form) {
+        const formData = new FormData(form);
+        formData.set('page', page || 1);
+        // 如果是实验室视图，确保添加 laboratory_id 参数
+        if (LABORATORY_ID !== null) {
+            formData.set('laboratory_id', LABORATORY_ID);
+        }
+        url += '?' + new URLSearchParams(formData);
+    } else {
+        const params = new URLSearchParams();
+        if (page) {
+            params.set('page', page);
+        }
+        if (LABORATORY_ID !== null) {
+            params.set('laboratory_id', LABORATORY_ID);
+        }
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('patent-content').innerHTML = data.html;
+                initPatentEvents();
+            }
+        })
+        .catch(error => {
+            console.error('加载专利列表失败:', error);
+        });
+}
+
+function resetPatentFilter() {
+    const form = document.querySelector('#patent-content form');
+    if (form) {
+        form.reset();
+    }
+    loadPatentsPage(1);
+}
+
+function deletePatent(id) {
+    if (confirm('确定要删除这条专利吗？此操作不可恢复！')) {
+        fetch(`/admin/patents/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || '删除成功');
+                loadPatentsPage(1);
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+
+function batchDeletePatents() {
+    const checked = document.querySelectorAll('.patent-checkbox:checked');
+    if (checked.length === 0) {
+        alert('请选择要删除的专利');
+        return;
+    }
+    if (!confirm(`确定要删除选中的 ${checked.length} 条专利吗？此操作不可恢复！`)) {
+        return;
+    }
+    const patentIds = Array.from(checked).map(cb => parseInt(cb.value));
+    fetch('/admin/patents/batch-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patent_ids: patentIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadPatentsPage(1);
+        } else {
+            alert(data.message || '批量删除失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('批量删除失败');
+    });
+}
+
+function updateBatchDeletePatentsBtn() {
+    const checked = document.querySelectorAll('.patent-checkbox:checked');
+    const btn = document.getElementById('batchDeletePatentsBtn');
+    if (btn) {
+        btn.disabled = checked.length === 0;
+        btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+    }
+}
+
+function initPatentEvents() {
+    try {
+        // 先移除旧的事件监听器（通过克隆节点）
+        const filterForm = document.getElementById('patentFilterForm');
+        if (filterForm && filterForm.parentNode) {
+            const newForm = filterForm.cloneNode(true);
+            filterForm.parentNode.replaceChild(newForm, filterForm);
+        }
+
+        const selectAll = document.getElementById('selectAllPatents');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.patent-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateBatchDeletePatentsBtn();
+            });
+        }
+        document.querySelectorAll('.patent-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBatchDeletePatentsBtn);
+        });
+        const batchDeleteBtn = document.getElementById('batchDeletePatentsBtn');
+        if (batchDeleteBtn) {
+            batchDeleteBtn.addEventListener('click', batchDeletePatents);
+        }
+        // 筛选表单提交（重新获取，因为可能被克隆替换了）
+        const newFilterForm = document.getElementById('patentFilterForm');
+        if (newFilterForm) {
+            newFilterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadPatentsPage(1);
+            });
+        }
+    } catch (error) {
+        console.error('initPatentEvents error:', error);
+    }
+}
+
+// ========== 软著管理相关函数 ==========
+
+function loadSoftwarePage(page) {
+    const form = document.querySelector('#software-content form');
+    let url = '/admin/api/achievements/software';
+    if (form) {
+        const formData = new FormData(form);
+        formData.set('page', page || 1);
+        // 如果是实验室视图，确保添加 laboratory_id 参数
+        if (LABORATORY_ID !== null) {
+            formData.set('laboratory_id', LABORATORY_ID);
+        }
+        url += '?' + new URLSearchParams(formData);
+    } else {
+        const params = new URLSearchParams();
+        if (page) {
+            params.set('page', page);
+        }
+        if (LABORATORY_ID !== null) {
+            params.set('laboratory_id', LABORATORY_ID);
+        }
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+    }
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('software-content').innerHTML = data.html;
+                initSoftwareEvents();
+            }
+        })
+        .catch(error => console.error('加载软著列表失败:', error));
+}
+
+function resetSoftwareFilter() {
+    const form = document.querySelector('#software-content form');
+    if (form) form.reset();
+    loadSoftwarePage(1);
+}
+
+function deleteSoftware(id) {
+    if (confirm('确定要删除这条软著吗？此操作不可恢复！')) {
+        fetch(`/admin/software/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || '删除成功');
+                loadSoftwarePage(1);
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+
+function initSoftwareEvents() {
+    try {
+        // 先移除旧的事件监听器（通过克隆节点）
+        const filterForm = document.getElementById('softwareFilterForm');
+        if (filterForm) {
+            const newForm = filterForm.cloneNode(true);
+            filterForm.parentNode.replaceChild(newForm, filterForm);
+            // 重新获取表单并绑定事件
+            const newFilterForm = document.getElementById('softwareFilterForm');
+            if (newFilterForm) {
+                newFilterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    loadSoftwarePage(1);
+                });
+
+                // 为所有筛选字段添加 change 事件
+                const filterFields = newFilterForm.querySelectorAll('select, input:not([type=checkbox]):not([type=radio])');
+                filterFields.forEach(function(field) {
+                    field.addEventListener('change', function() {
+                        loadSoftwarePage(1);
+                    });
+                });
+            }
+        }
+    } catch (error) {
+        console.error('initSoftwareEvents error:', error);
+    }
+}
+
+// ========== 大创管理相关函数 ==========
+
+function loadInnovationPage(page) {
+    const form = document.querySelector('#innovation-content form');
+    let url = '/admin/api/achievements/innovation';
+    if (form) {
+        const formData = new FormData(form);
+        formData.set('page', page || 1);
+        // 如果是实验室视图，确保添加 laboratory_id 参数
+        if (LABORATORY_ID !== null) {
+            formData.set('laboratory_id', LABORATORY_ID);
+        }
+        url += '?' + new URLSearchParams(formData);
+    } else {
+        const params = new URLSearchParams();
+        if (page) {
+            params.set('page', page);
+        }
+        if (LABORATORY_ID !== null) {
+            params.set('laboratory_id', LABORATORY_ID);
+        }
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+    }
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('innovation-content').innerHTML = data.html;
+                initInnovationEvents();
+            }
+        })
+        .catch(error => console.error('加载大创列表失败:', error));
+}
+
+function resetInnovationFilter() {
+    const form = document.querySelector('#innovation-content form');
+    if (form) form.reset();
+    loadInnovationPage(1);
+}
+
+// 删除单个大创项目
+function deleteInnovation(projectId) {
+    if (!confirm('确定要删除该大创项目？此操作不可恢复。')) return;
+    fetch('/admin/innovation/' + projectId + '/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || '删除成功');
+            loadInnovationPage(1);
+        } else {
+            alert(data.message || '删除失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('删除失败');
+    });
+}
+
+// 批量删除大创项目
+function batchDeleteInnovation() {
+    const checked = document.querySelectorAll('.innovation-checkbox:checked');
+    if (checked.length === 0) {
+        alert('请选择要删除的项目');
+        return;
+    }
+    if (!confirm(`确定要删除选中的 ${checked.length} 个大创项目？此操作不可恢复！`)) {
+        return;
+    }
+    const projectIds = Array.from(checked).map(cb => parseInt(cb.value));
+    const btn = document.getElementById('innovationBatchDeleteBtn');
+    if (btn) btn.disabled = true;
+
+    fetch('/admin/innovation/batch-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_ids: projectIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || '删除成功');
+            loadInnovationPage(1);
+        } else {
+            alert(data.message || '删除失败');
+            if (btn) btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('删除失败');
+        if (btn) btn.disabled = false;
+    });
+}
+
+// 更新批量删除按钮状态
+function updateInnovationBatchBtn() {
+    const checked = document.querySelectorAll('.innovation-checkbox:checked');
+    const btn = document.getElementById('innovationBatchDeleteBtn');
+    if (btn) {
+        btn.disabled = checked.length === 0;
+    }
+}
+
+function initInnovationEvents() {
+    try {
+        // 先移除旧的事件监听器（通过克隆节点）
+        const filterForm = document.getElementById('innovationFilterForm');
+        if (filterForm) {
+            const newForm = filterForm.cloneNode(true);
+            filterForm.parentNode.replaceChild(newForm, filterForm);
+            // 重新获取表单并绑定事件
+            const newFilterForm = document.getElementById('innovationFilterForm');
+            if (newFilterForm) {
+                newFilterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    loadInnovationPage(1);
+                });
+
+                // 为所有筛选字段添加 change 事件
+                const filterFields = newFilterForm.querySelectorAll('select, input:not([type=checkbox]):not([type=radio])');
+                filterFields.forEach(function(field) {
+                    field.addEventListener('change', function() {
+                        loadInnovationPage(1);
+                    });
+                });
+            }
+        }
+
+        // 全选功能
+        const selectAll = document.getElementById('selectAllInnovation');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.innovation-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateInnovationBatchBtn();
+            });
+        }
+
+        // 单个复选框变化
+        document.querySelectorAll('.innovation-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateInnovationBatchBtn);
+        });
+
+        // 批量删除按钮
+        const batchDeleteBtn = document.getElementById('innovationBatchDeleteBtn');
+        if (batchDeleteBtn) {
+            const newBtn = batchDeleteBtn.cloneNode(true);
+            batchDeleteBtn.parentNode.replaceChild(newBtn, batchDeleteBtn);
+            newBtn.addEventListener('click', batchDeleteInnovation);
+        }
+
+        // 重新绑定所有删除按钮
+        document.querySelectorAll('#innovation-content button[onclick^="deleteInnovationRow"]').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+            const match = onclickAttr.match(/deleteInnovationRow\((\d+)\)/);
+            if (match) {
+                const projectId = parseInt(match[1]);
+                btn.removeAttribute('onclick');
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteInnovation(projectId);
+                });
+            }
+        });
+
+        // 初始化批量删除按钮状态
+        updateInnovationBatchBtn();
+    } catch (error) {
+        console.error('initInnovationEvents error:', error);
+    }
+}
+
+// ========== 其他文件管理相关函数 ==========
+
+// 加载其他文件分页/刷新列表
+function loadOtherPage(page) {
+    const form = document.getElementById('otherFilterForm');
+    let url = '/admin/api/achievements/other';
+
+    if (form) {
+        const formData = new FormData(form);
+        formData.set('page', page || 1);
+        url += '?' + new URLSearchParams(formData);
+    } else if (page) {
+        url += '?page=' + page;
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('other-content').innerHTML = data.html;
+                initOtherEvents();
+            } else {
+                alert('加载失败: ' + (data.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('加载失败');
+        });
+}
+
+function resetOtherFilter() {
+    const form = document.getElementById('otherFilterForm');
+    if (form) {
+        form.reset();
+    }
+    loadOtherPage(1);
+}
+
+function deleteOtherFile(fileId) {
+    if (!confirm('确定要删除这个文件吗？此操作不可恢复！')) {
+        return;
+    }
+
+    fetch('/admin/laboratory-downloads/' + fileId + '/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('删除成功');
+            loadOtherPage(1);
+        } else {
+            alert('删除失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('删除失败');
+    });
+}
+
+// 全选/取消全选
+function toggleSelectAll(checkbox) {
+    const checkboxes = document.querySelectorAll('.file-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    updateSelectedCount();
+}
+
+// 更新选中数量
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+    const count = checkboxes.length;
+    const countElement = document.getElementById('selectedCount');
+    if (countElement) {
+        countElement.textContent = `已选择 ${count} 项`;
+    }
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    if (batchDeleteBtn) {
+        batchDeleteBtn.disabled = count === 0;
+    }
+}
+
+// 批量删除
+function batchDeleteFiles() {
+    const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+    const fileIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+    if (fileIds.length === 0) {
+        alert('请先选择要删除的文件');
+        return;
+    }
+
+    if (!confirm(`确定要删除选中的 ${fileIds.length} 个文件吗？此操作不可恢复！`)) {
+        return;
+    }
+
+    fetch('/admin/api/laboratory-downloads/batch-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ file_ids: fileIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadOtherPage(1);
+        } else {
+            alert('批量删除失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('批量删除失败');
+    });
+}
+
+// 清空所有文件
+function clearAllFiles() {
+    if (!confirm('确定要清空所有文件吗？此操作不可恢复！')) {
+        return;
+    }
+
+    if (!confirm('再次确认：这将删除所有实验室下载文件，此操作不可恢复！')) {
+        return;
+    }
+
+    fetch('/admin/api/laboratory-downloads/clear-all', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadOtherPage(1);
+        } else {
+            alert('清空失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('清空失败');
+    });
+}
+
+function initOtherEvents() {
+    try {
+        // 先移除旧的事件监听器（通过克隆节点）
+        const filterForm = document.getElementById('otherFilterForm');
+        if (filterForm && filterForm.parentNode) {
+            const newForm = filterForm.cloneNode(true);
+            filterForm.parentNode.replaceChild(newForm, filterForm);
+        }
+
+        // 全选/取消全选
+        const selectAllCheckboxes = document.querySelectorAll('#selectAllFiles, #selectAllHeader');
+        selectAllCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                toggleSelectAll(this);
+            });
+        });
+
+        // 单个复选框变化
+        document.querySelectorAll('.file-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+
+        // 批量删除按钮
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+        if (batchDeleteBtn) {
+            batchDeleteBtn.addEventListener('click', batchDeleteFiles);
+        }
+
+        // 重新绑定所有删除按钮（避免 onclick 调用被覆盖）
+        document.querySelectorAll('#other-content button[onclick^="deleteOtherFile"]').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+            const match = onclickAttr.match(/deleteOtherFile\((\d+)\)/);
+            if (match) {
+                const fileId = parseInt(match[1]);
+                // 移除 onclick 属性
+                btn.removeAttribute('onclick');
+                // 添加点击事件监听器
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteOtherFile(fileId);
+                });
+            }
+        });
+
+        // 筛选表单提交（重新获取，因为可能被克隆替换了）
+        const newFilterForm = document.getElementById('otherFilterForm');
+        if (newFilterForm) {
+            newFilterForm.addEventListener('change', function() {
+                loadOtherPage(1);
+            });
+        }
+
+        // 初始化批量删除按钮状态
+        updateSelectedCount();
+    } catch (error) {
+        console.error('initOtherEvents error:', error);
+    }
+}
+</script>
+{% endblock %}

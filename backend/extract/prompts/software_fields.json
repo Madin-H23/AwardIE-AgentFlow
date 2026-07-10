@@ -1,0 +1,8 @@
+{
+  "software_name": "软件名称，即软件著作权登记的软件全称",
+  "software_version": "软件版本号，格式通常为VX.X或VX.X.X。例如：V1.0、V2.1.3",
+  "registration_number": "软件著作权登记号，格式通常为：2023SR123456",
+  "certificate_no": "证书号，例如：软著登字第14406738号",
+  "registration_date": "登记日期，请提取并转换为YYYY-MM-DD格式。例如：2023-06-15",
+  "copyright_owner": "著作权人，即拥有软件著作权的个人或公司/组织名称。如有多个著作权人，请用逗号分隔"
+}

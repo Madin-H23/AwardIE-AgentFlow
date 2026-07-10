@@ -1,0 +1,631 @@
+# 测试用例配置
+# 定义测试场景、API调用序列和验证点
+
+test_scenarios:
+  # ========== 场景1: 管理员批量导入奖状（完整流程）==========
+  - id: "TC_001"
+    name: "管理员批量导入奖状-完整流程"
+    description: "测试管理员登录→批量导入→学生查看的完整业务流程"
+    priority: "P0"
+    samples: ["sample_001"]
+    category: "award_import"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+        params:
+          username: "admin"
+          password: "Mayy123"
+        assertions:
+          - status_code == 302  # 重定向
+          - "session['user_type'] == 'admin'"
+
+      # 步骤2: 访问批量导入页面
+      - action: "get_page"
+        api: "GET /admin/awards/import"
+        assertions:
+          - status_code == 200
+          - "contains('批量导入')"
+
+      # 步骤3: 上传文件
+      - action: "upload_files"
+        api: "POST /admin/awards/import"
+        files: ["sample_001"]
+        params:
+          action: "upload"
+        assertions:
+          - status_code == 200
+          - "response['success'] == True"
+          - "response['uploaded_count'] >= 1"
+        capture:
+          pending_ids: "response['pending_ids']"
+
+      # 步骤4: 等待抽取完成（轮询）
+      - action: "wait_extraction"
+        api: "GET /admin/awards/import/progress"
+        timeout: 60
+        assertions:
+          - "response['status'] in ['completed', 'partial']"
+
+      # 步骤5: 预览抽取结果
+      - action: "preview_results"
+        api: "GET /admin/awards/single-import"
+        params:
+          pending_id: "${pending_ids[0]}"
+        assertions:
+          - status_code == 200
+          - "has_extract_result == True"
+
+      # 步骤6: 批量提交
+      - action: "batch_submit"
+        api: "POST /admin/awards/import"
+        params:
+          action: "submit"
+          pending_ids: "${pending_ids}"
+        assertions:
+          - status_code == 200
+          - "response['success_count'] > 0"
+        capture:
+          award_ids: "response['award_ids']"
+
+      # 步骤7: 学生登录查看
+      - action: "login"
+        user: "student_1"
+        api: "POST /login"
+        params:
+          username: "2021001"
+          password: "123456"
+
+      # 步骤8: 学生查看仪表板
+      - action: "check_visibility"
+        api: "GET /student/dashboard"
+        assertions:
+          - status_code == 200
+          - "award_count > 0"
+          - "f'{award_ids[0]}' in visible_award_ids"
+
+    post_cleanup:
+      - delete_awards: "${award_ids}"
+
+  # ========== 场景2: 学生上传-审核-查看流程 ==========
+  - id: "TC_002"
+    name: "学生上传奖状-审核流程"
+    description: "测试学生上传→提交审核→管理员审核→学生查看的流程"
+    priority: "P0"
+    samples: ["sample_003"]
+    category: "review_flow"
+
+    steps:
+      # 步骤1: 学生登录
+      - action: "login"
+        user: "student_1"
+        api: "POST /login"
+
+      # 步骤2: 学生上传文件
+      - action: "upload_file"
+        api: "POST /student/submissions/upload"  # 假设有这个API
+        files: ["sample_003"]
+        assertions:
+          - status_code == 200
+          - "response['success'] == True"
+        capture:
+          pending_id: "response['pending_id']"
+
+      # 步骤3: 学生提交审核
+      - action: "submit_for_review"
+        api: "POST /student/submissions/${pending_id}/submit"
+        assertions:
+          - status_code == 200
+          - "response['status'] == 'submit'"
+
+      # 步骤4: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+
+      # 步骤5: 管理员查看待审核列表
+      - action: "get_pending_list"
+        api: "GET /admin/achievement-review"
+        assertions:
+          - status_code == 200
+          - "pending_count > 0"
+
+      # 步骤6: 管理员审核通过
+      - action: "approve"
+        api: "POST /admin/achievement-review/${pending_id}/approve"
+        assertions:
+          - status_code == 200
+          - "response['success'] == True"
+        capture:
+          award_id: "response['award_id']"
+
+      # 步骤7: 学生登录验证可见性
+      - action: "login"
+        user: "student_1"
+        api: "POST /login"
+
+      - action: "check_visibility"
+        api: "GET /student/achievements"
+        assertions:
+          - "f'{award_id}' in visible_award_ids"
+
+    post_cleanup:
+      - delete_awards: "${award_id}"
+
+  # ========== 场景3: 无模板奖状处理流程 ==========
+  - id: "TC_003"
+    name: "无模板奖状-LLM抽取-人工修正-审核"
+    description: "测试无匹配模板时LLM抽取和人工修正流程"
+    priority: "P1"
+    samples: ["sample_004"]
+    category: "no_template"
+
+    steps:
+      # 1. 管理员登录
+      - action: "login"
+        user: "admin_1"
+
+      # 2. 单张导入
+      - action: "single_import"
+        api: "POST /admin/awards/single-import"
+        files: ["sample_004"]
+        assertions:
+          - status_code == 200
+        capture:
+          pending_id: "response['pending_id']"
+          extract_result: "response['extract_result']"
+
+      # 3. 检查无模板匹配
+      - action: "verify_no_template"
+        assertions:
+          - "extract_result['template_id'] is None"
+          - "extract_result['template_type'] == 'no_template'"
+
+      # 4. 预览并修改
+      - action: "modify_fields"
+        api: "POST /admin/awards/single-import"
+        params:
+          pending_id: "${pending_id}"
+          field: "competition_name"
+          value: "睿抗机器人大赛"
+        assertions:
+          - status_code == 200
+
+      # 5. 重新验证
+      - action: "revalidate"
+        api: "POST /admin/achievement-review/${pending_id}/validation"
+        assertions:
+          - status_code == 200
+          - "response['is_valid'] == True"
+
+      # 6. 提交到主数据库
+      - action: "submit_to_main"
+        api: "POST /admin/achievement-review/${pending_id}/approve"
+        assertions:
+          - "response['success'] == True"
+
+    post_cleanup:
+      - delete_awards: "${award_id}"
+
+  # ========== 场景4: 专利导入流程 ==========
+  - id: "TC_004"
+    name: "专利导入-完整流程"
+    priority: "P1"
+    samples: ["sample_005", "sample_006"]
+    category: "patent_import"
+
+    steps:
+      - action: "login"
+        user: "admin_1"
+
+      - action: "navigate"
+        api: "GET /admin/patents"
+
+      - action: "create_patent"
+        api: "POST /admin/patents/create"
+        files: ["sample_005"]
+        assertions:
+          - status_code == 200
+        capture:
+          patent_id: "response['patent_id']"
+
+      # 验证专利详情
+      - action: "verify_detail"
+        api: "GET /admin/patents/${patent_id}"
+        assertions:
+          - status_code == 200
+          - "response['patent_type'] == '发明'"
+
+    post_cleanup:
+      - delete_patents: "${patent_id}"
+
+  # ========== 场景5: 软著导入流程 ==========
+  - id: "TC_005"
+    name: "软著导入-完整流程"
+    priority: "P1"
+    samples: ["sample_007"]
+    category: "software_import"
+
+    steps:
+      - action: "login"
+        user: "admin_1"
+
+      - action: "create_software"
+        api: "POST /admin/software/create"
+        files: ["sample_007"]
+        assertions:
+          - status_code == 200
+        capture:
+          software_id: "response['software_id']"
+
+    post_cleanup:
+      - delete_software: "${software_id}"
+
+  # ========== 场景6: 其他文件处理流程 ==========
+  - id: "TC_006"
+    name: "其他文件导入-区分图片和文档"
+    priority: "P1"
+    samples: ["sample_008", "sample_009"]
+    category: "other_import"
+
+    steps:
+      - action: "login"
+        user: "teacher_1"
+
+      # 导入图片 → laboratory_images
+      - action: "upload_other_image"
+        api: "POST /admin/other-files/upload"
+        files: ["sample_008"]
+        params:
+          laboratory_id: 1
+        assertions:
+          - status_code == 200
+        capture:
+          image_id: "response['file_id']"
+
+      # 验证图片在实验室图片中
+      - action: "verify_lab_image"
+        api: "GET /admin/laboratories/1/achievements"
+        assertions:
+          - "f'{image_id}' in visible_image_ids"
+
+      # 导入文档 → laboratory_downloads
+      - action: "upload_other_document"
+        api: "POST /admin/other-files/upload"
+        files: ["sample_009"]
+        params:
+          laboratory_id: 1
+        assertions:
+          - status_code == 200
+        capture:
+          download_id: "response['file_id']"
+
+      # 验证文档在下载区
+      - action: "verify_lab_download"
+        api: "GET /admin/laboratories/1"
+        assertions:
+          - "f'{download_id}' in visible_download_ids"
+
+    post_cleanup:
+      - delete_other_files: "${image_id},${download_id}"
+
+  # ========== 场景7: 用户可见性测试 ==========
+  - id: "TC_007"
+    name: "成果可见性-不同角色验证"
+    priority: "P0"
+    samples: ["sample_001", "sample_002"]
+    category: "visibility"
+
+    pre_setup:
+      - "create_award_from_sample('sample_001', winner='student_1')"
+      - "create_award_from_sample('sample_002', winner='teacher_1', supervisor='teacher_1')"
+
+    steps:
+      # 学生登录 - 只能看到自己的
+      - action: "login"
+        user: "student_1"
+
+      - action: "check_student_visibility"
+        api: "GET /student/achievements"
+        assertions:
+          - "can_see('award_from_sample_001')"
+          - "cannot_see('award_from_sample_002')"
+
+      # 教师登录 - 能看到自己指导的
+      - action: "login"
+        user: "teacher_1"
+
+      - action: "check_teacher_visibility"
+        api: "GET /teacher/achievements"
+        assertions:
+          - "can_see('award_from_sample_002')"
+          - "cannot_see('award_from_sample_001')"
+
+    post_cleanup:
+      - delete_test_awards
+
+  # ========== 场景8: 删除pending流程 ==========
+  - id: "TC_008"
+    name: "用户删除pending记录"
+    priority: "P2"
+    samples: ["sample_001"]
+    category: "delete_flow"
+
+    steps:
+      - action: "login"
+        user: "student_1"
+
+      - action: "upload_and_cancel"
+        api: "POST /student/submissions/upload"
+        files: ["sample_001"]
+        assertions:
+          - status_code == 200
+        capture:
+          pending_id: "response['pending_id']"
+
+      - action: "delete_pending"
+        api: "DELETE /student/submissions/${pending_id}"
+        assertions:
+          - status_code == 200
+
+      - action: "verify_deleted"
+        api: "GET /student/submissions"
+        assertions:
+          - "f'{pending_id}' not in visible_pending_ids"
+
+  # ========== 场景9: 自动归档配置页面访问测试 ==========
+  - id: "TC_009"
+    name: "自动归档配置页面访问测试"
+    description: "测试管理员可访问自动归档配置页面"
+    priority: "P0"
+    samples: []
+    category: "auto_archive_config"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+        params:
+          username: "admin"
+          password: "Mayy123"
+        assertions:
+          - status_code == 302
+
+      # 步骤2: 访问自动归档配置页面
+      - action: "get_page"
+        api: "GET /admin/settings/auto-archive"
+        assertions:
+          - status_code == 200
+          - "contains('自动归档设置')"
+          - "contains('奖状')"
+          - "contains('专利')"
+          - "contains('软著')"
+
+  # ========== 场景10: 自动归档配置读取和更新测试 ==========
+  - id: "TC_010"
+    name: "自动归档配置读取和更新测试"
+    description: "测试读取和更新自动归档配置的API"
+    priority: "P0"
+    samples: []
+    category: "auto_archive_config"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+
+      # 步骤2: 读取当前配置
+      - action: "get_config"
+        api: "GET /admin/settings/auto-archive"
+        assertions:
+          - status_code == 200
+          - "'configs' in response"
+
+      # 步骤3: 更新配置
+      - action: "update_config"
+        api: "POST /admin/settings/auto-archive/update"
+        params:
+          award_valid: true
+          award_invalid: false
+          patent_valid: false
+          patent_invalid: false
+          software_valid: true
+          software_invalid: false
+          innovation: false
+          other: false
+        assertions:
+          - status_code == 200
+          - "response['success'] == True"
+
+      # 步骤4: 验证配置已更新
+      - action: "verify_config"
+        api: "GET /admin/settings/auto-archive"
+        assertions:
+          - "response['configs']['award_valid'] == True"
+          - "response['configs']['award_invalid'] == False"
+
+      # 步骤5: 重置配置
+      - action: "reset_config"
+        api: "POST /admin/settings/auto-archive/reset"
+        assertions:
+          - status_code == 200
+          - "response['success'] == True"
+
+      # 步骤6: 验证配置已重置
+      - action: "verify_reset"
+        api: "GET /admin/settings/auto-archive"
+        assertions:
+          - "response['configs']['award_valid'] == False"
+          - "response['configs']['patent_valid'] == False"
+
+  # ========== 场景11: 自动归档判断逻辑测试 ==========
+  - id: "TC_011"
+    name: "自动归档判断逻辑测试"
+    description: "验证不同成果类型和验证状态的自动归档判断逻辑"
+    priority: "P0"
+    samples: ["sample_001"]
+    category: "auto_archive_logic"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+
+      # 步骤2: 启用奖状-验证通过的自动归档
+      - action: "update_config"
+        api: "POST /admin/settings/auto-archive/update"
+        params:
+          award_valid: true
+          award_invalid: false
+
+      # 步骤3: 上传并抽取奖状（验证通过）
+      - action: "upload_award"
+        api: "POST /admin/awards/import"
+        files: ["sample_001"]
+        params:
+          action: "upload"
+        assertions:
+          - status_code == 200
+        capture:
+          pending_id: "response['pending_ids'][0]"
+
+      # 步骤4: 等待抽取完成
+      - action: "wait_extraction"
+        api: "GET /admin/awards/import/progress"
+        timeout: 60
+
+      # 步骤5: 检查是否满足自动归档条件
+      - action: "check_auto_archive"
+        api: "GET /admin/api/pending/${pending_id}/auto-archive-check"
+        assertions:
+          - status_code == 200
+          - "response['will_auto_archive'] == True"
+
+      # 步骤6: 提交审核（应触发自动归档）
+      - action: "submit_for_review"
+        api: "POST /admin/awards/import"
+        params:
+          action: "submit"
+          pending_ids: ["${pending_id}"]
+        assertions:
+          - status_code == 200
+
+      # 步骤7: 验证记录已自动归档（pending 已删除）
+      - action: "verify_auto_archived"
+        api: "GET /admin/awards"
+        assertions:
+          - "award_count_after > award_count_before"
+
+  # ========== 场景12: 自动归档不触发测试 ==========
+  - id: "TC_012"
+    name: "配置未启用时不触发自动归档"
+    description: "验证配置未启用时不会自动归档"
+    priority: "P1"
+    samples: ["sample_001"]
+    category: "auto_archive_logic"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+
+      # 步骤2: 确保配置未启用（重置为默认）
+      - action: "reset_config"
+        api: "POST /admin/settings/auto-archive/reset"
+
+      # 步骤3: 上传并抽取奖状
+      - action: "upload_award"
+        api: "POST /admin/awards/import"
+        files: ["sample_001"]
+        params:
+          action: "upload"
+        assertions:
+          - status_code == 200
+        capture:
+          pending_id: "response['pending_ids'][0]"
+
+      # 步骤4: 等待抽取完成
+      - action: "wait_extraction"
+        api: "GET /admin/awards/import/progress"
+        timeout: 60
+
+      # 步骤5: 检查不会自动归档
+      - action: "check_auto_archive"
+        api: "GET /admin/api/pending/${pending_id}/auto-archive-check"
+        assertions:
+          - status_code == 200
+          - "response['will_auto_archive'] == False"
+
+      # 步骤6: 提交审核（不应触发自动归档）
+      - action: "submit_for_review"
+        api: "POST /admin/awards/import"
+        params:
+          action: "submit"
+          pending_ids: ["${pending_id}"]
+        assertions:
+          - status_code == 200
+
+      # 步骤7: 验证记录仍在待审核队列中
+      - action: "verify_pending_exists"
+        api: "GET /admin/achievement-review"
+        assertions:
+          - "pending_count > 0"
+
+    post_cleanup:
+      - delete_pending: "${pending_id}"
+
+  # ========== 场景13: 配置隔离测试 ==========
+  - id: "TC_013"
+    name: "不同类型配置隔离测试"
+    description: "验证不同成果类型的配置互不影响"
+    priority: "P1"
+    samples: []
+    category: "auto_archive_config"
+
+    steps:
+      # 步骤1: 管理员登录
+      - action: "login"
+        user: "admin_1"
+        api: "POST /login"
+
+      # 步骤2: 只启用奖状-验证通过的自动归档
+      - action: "update_config"
+        api: "POST /admin/settings/auto-archive/update"
+        params:
+          award_valid: true
+          patent_valid: false
+          software_valid: false
+
+      # 步骤3: 验证奖状配置已启用，专利和软著未启用
+      - action: "verify_isolation"
+        api: "GET /admin/settings/auto-archive"
+        assertions:
+          - "response['configs']['award_valid'] == True"
+          - "response['configs']['patent_valid'] == False"
+          - "response['configs']['software_valid'] == False"
+
+      # 步骤4: 重置配置
+      - action: "reset_config"
+        api: "POST /admin/settings/auto-archive/reset"
+
+# 测试执行配置
+execution_config:
+  parallel: false  # 是否并行执行
+  database_backup: true  # 是否备份数据库
+  cleanup_on_pass: true  # 测试通过后清理
+  cleanup_on_fail: false  # 测试失败后保留现场
+  screenshot_on_fail: true  # 失败时截图
+
+# 报告配置
+report_config:
+  output_dir: "tests/flask_api/reports"
+  bug_list_file: "tests/flask_api/reports/bug_list.md"
+  include_logs: true
+  include_screenshots: true
+  format: ["markdown", "html"]

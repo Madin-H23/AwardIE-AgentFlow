@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}奖状管理 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>奖状管理</h1>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" id="refreshAssociationsBtn" title="重新匹配所有人名关联关系">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                刷新关联关系
+            </button>
+            <button type="button" class="btn btn-outline-success" id="refreshSupervisorsBtn" title="从教师奖状补充学生奖状的指导教师信息">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                补充指导教师
+            </button>
+        </div>
+    </div>
+    
+    <!-- 搜索和筛选表单 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin_awards.awards_list') }}" class="row g-3">
+                <!-- 第一行 -->
+                <div class="col-md-2">
+                    <label for="competition_id" class="form-label">竞赛</label>
+                    <select class="form-select" id="competition_id" name="competition_id">
+                        <option value="">全部</option>
+                        {% for comp in competitions %}
+                        <option value="{{ comp.id }}" {% if competition_id == comp.id %}selected{% endif %}>
+                            {{ comp.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="year" class="form-label">年份</label>
+                    <input type="number" class="form-control" id="year" name="year" 
+                           value="{{ year }}" placeholder="年份" min="2000" max="2099">
+                </div>
+                <div class="col-md-2">
+                    <label for="competition_level" class="form-label">竞赛等级</label>
+                    <select class="form-select" id="competition_level" name="competition_level">
+                        <option value="">全部</option>
+                        <option value="校赛" {% if competition_level == '校赛' %}selected{% endif %}>校赛</option>
+                        <option value="区域赛" {% if competition_level == '区域赛' %}selected{% endif %}>区域赛</option>
+                        <option value="省赛" {% if competition_level == '省赛' %}selected{% endif %}>省赛</option>
+                        <option value="国赛" {% if competition_level == '国赛' %}selected{% endif %}>国赛</option>
+                        <option value="国际赛" {% if competition_level == '国际赛' %}selected{% endif %}>国际赛</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="award_level" class="form-label">获奖等级</label>
+                    <select class="form-select" id="award_level" name="award_level">
+                        <option value="">全部</option>
+                        <option value="特等奖" {% if award_level == '特等奖' %}selected{% endif %}>特等奖</option>
+                        <option value="一等奖" {% if award_level == '一等奖' %}selected{% endif %}>一等奖</option>
+                        <option value="二等奖" {% if award_level == '二等奖' %}selected{% endif %}>二等奖</option>
+                        <option value="三等奖" {% if award_level == '三等奖' %}selected{% endif %}>三等奖</option>
+                        <option value="优秀奖" {% if award_level == '优秀奖' %}selected{% endif %}>优秀奖</option>
+                        <option value="金奖" {% if award_level == '金奖' %}selected{% endif %}>金奖</option>
+                        <option value="银奖" {% if award_level == '银奖' %}selected{% endif %}>银奖</option>
+                        <option value="铜奖" {% if award_level == '铜奖' %}selected{% endif %}>铜奖</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="supervisor_name" class="form-label">第一指导教师</label>
+                    <input type="text" class="form-control" id="supervisor_name" name="supervisor_name" 
+                           value="{{ supervisor_name }}" placeholder="输入教师姓名">
+                </div>
+                <div class="col-md-2">
+                    <label for="winner_name" class="form-label">获奖者</label>
+                    <input type="text" class="form-control" id="winner_name" name="winner_name" 
+                           value="{{ winner_name }}" placeholder="输入姓名">
+                </div>
+                
+                <!-- 第二行 -->
+                <div class="col-md-2">
+                    <label for="per_page" class="form-label">每页</label>
+                    <select class="form-select" id="per_page" name="per_page">
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="certificate_type" class="form-label">证书类型</label>
+                    <select class="form-select" id="certificate_type" name="certificate_type">
+                        <option value="student" {% if certificate_type == 'student' or not certificate_type %}selected{% endif %}>学生</option>
+                        <option value="all" {% if certificate_type == 'all' %}selected{% endif %}>全部</option>
+                        <option value="teacher" {% if certificate_type == 'teacher' %}selected{% endif %}>教师</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 奖状列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="text-muted">共找到 {{ total_count }} 条记录</span>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                        批量删除
+                    </button>
+                </div>
+            </div>
+            
+            {% if awards %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="40">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th>ID</th>
+                            <th>竞赛名称</th>
+                            <th>竞赛等级</th>
+                            <th>赛道</th>
+                            <th>获奖等级</th>
+                            <th>首位获奖者</th>
+                            <th>首位指导教师</th>
+                            <th>年份</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for award in awards %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="award-checkbox" value="{{ award.id }}">
+                            </td>
+                            <td>{{ award.id }}</td>
+                            <td>
+                                {% if award.competition_id %}
+                                    {% set comp = competitions|selectattr('id', 'equalto', award.competition_id)|first %}
+                                    {{ comp.name if comp else '未知竞赛' }}
+                                {% else %}
+                                    <span class="text-muted">未关联</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if award.competition_level %}
+                                    {% if get_competition_level_badge_class %}
+                                        {% set badge_class = get_competition_level_badge_class(award.competition_level) %}
+                                        <span class="badge {{ badge_class }}{% if badge_class == 'bg-warning' %} text-dark{% endif %}">{{ award.competition_level }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ award.competition_level }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if award.track and award.track != 'None' %}
+                                    {{ award.track }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if award.award_level %}
+                                    <span class="badge bg-warning text-dark">{{ award.award_level }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set winner_info = award.get_first_winner_info() %}
+                                {% if winner_info and winner_info.name %}
+                                    {% if winner_info.obj and winner_info.obj_type == 'student' %}
+                                        {# 学生获奖者 #}
+                                        <span class="badge bg-primary" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-html="true"
+                                              title="<strong>{{ winner_info.name }}</strong><br/>专业：{{ winner_info.obj.major or '未知' }}<br/>年级：{{ winner_info.obj.grade or '未知' }}">
+                                            {{ winner_info.name }}
+                                        </span>
+                                    {% elif winner_info.obj and winner_info.obj_type == 'teacher' %}
+                                        {# 教师获奖者 #}
+                                        <span class="badge bg-success" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-html="true"
+                                              title="<strong>{{ winner_info.name }}</strong><br/>职称：{{ winner_info.obj.title or '未知' }}">
+                                            {{ winner_info.name }}
+                                        </span>
+                                    {% else %}
+                                        {# 不在数据库中的学生，显示为红色，tooltip显示空或提示信息 #}
+                                        <span class="badge bg-danger" 
+                                              data-bs-toggle="tooltip" 
+                                              title="该学生不在数据库中">
+                                            {{ winner_info.name }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set supervisor_info = award.get_first_supervisor_info() %}
+                                {% if supervisor_info and supervisor_info.name %}
+                                    {% if supervisor_info.obj and supervisor_info.obj_type == 'teacher' %}
+                                        {# 有关联对象，可以显示详细信息 #}
+                                        <span class="badge bg-secondary" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-html="true"
+                                              title="<strong>{{ supervisor_info.name }}</strong><br/>职称：{{ supervisor_info.obj.title or '未知' }}">
+                                            {{ supervisor_info.name }}
+                                        </span>
+                                    {% else %}
+                                        {# 没有关联对象，只显示姓名 #}
+                                        <span class="badge bg-secondary">{{ supervisor_info.name }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if award.year %}
+                                    {{ award.year }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">查看/编辑</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteAward({{ award.id }})">删除</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            {% if total_pages > 1 %}
+            <nav aria-label="分页导航">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">上一页</a>
+                    </li>
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ p }}</span>
+                        </li>
+                        {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ p }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">{{ p }}</a>
+                        </li>
+                        {% elif p == 4 or p == total_pages - 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">下一页</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">暂无奖状数据</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// 自动过滤功能（debounce）
+let filterTimeout;
+function autoFilter() {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(function() {
+        const form = document.querySelector('form[action="{{ url_for('admin_awards.awards_list') }}"]');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        // 收集所有表单字段
+        formData.forEach((value, key) => {
+            if (value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        });
+        
+        // 证书类型下拉框处理
+        const certificateType = document.getElementById('certificate_type');
+        if (certificateType && certificateType.value) {
+            params.append('certificate_type', certificateType.value);
+        }
+        
+        // 跳转到新的URL（保留page=1，因为过滤后应该从第一页开始）
+        params.set('page', '1');
+        window.location.href = '{{ url_for('admin_awards.awards_list') }}?' + params.toString();
+    }, 500); // 500ms debounce
+}
+
+// 初始化Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // 为所有过滤条件添加自动过滤事件
+    const filterInputs = [
+        'competition_id',
+        'year',
+        'competition_level',
+        'award_level',
+        'supervisor_name',
+        'winner_name',
+        'per_page',
+        'certificate_type'
+    ];
+    
+    filterInputs.forEach(function(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            if (input.type === 'checkbox') {
+                input.addEventListener('change', autoFilter);
+            } else if (input.tagName === 'SELECT') {
+                input.addEventListener('change', autoFilter);
+            } else {
+                input.addEventListener('input', autoFilter);
+            }
+        }
+    });
+    // 初始化所有tooltip
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // 刷新关联关系按钮
+    document.getElementById('refreshAssociationsBtn').addEventListener('click', function() {
+        if (!confirm('确定要刷新所有奖状的人名关联关系吗？这可能会更新数据库中的关联表。')) {
+            return;
+        }
+        
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 刷新中...';
+        
+        fetch('{{ url_for('admin_awards.awards_refresh_associations') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || '刷新失败');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('刷新失败: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+    
+    // 补充指导教师按钮
+    document.getElementById('refreshSupervisorsBtn').addEventListener('click', function() {
+        if (!confirm('确定要从教师奖状补充学生奖状的指导教师信息吗？')) {
+            return;
+        }
+        
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        
+        fetch('{{ url_for('admin_awards.awards_refresh_supervisors') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || '刷新失败');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('刷新失败: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+});
+
+// 全选/取消全选
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.award-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    updateBatchDeleteBtn();
+});
+
+// 单个复选框变化
+document.querySelectorAll('.award-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBatchDeleteBtn);
+});
+
+function updateBatchDeleteBtn() {
+    const checked = document.querySelectorAll('.award-checkbox:checked');
+    const btn = document.getElementById('batchDeleteBtn');
+    btn.disabled = checked.length === 0;
+    btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+}
+
+// 批量删除
+document.getElementById('batchDeleteBtn').addEventListener('click', function() {
+    const checked = document.querySelectorAll('.award-checkbox:checked');
+    if (checked.length === 0) {
+        alert('请选择要删除的奖状');
+        return;
+    }
+    
+    if (!confirm(`确定要删除选中的 ${checked.length} 条奖状吗？此操作不可恢复！`)) {
+        return;
+    }
+    
+    const awardIds = Array.from(checked).map(cb => parseInt(cb.value));
+    
+    fetch('/admin/awards/batch-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ award_ids: awardIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || '批量删除失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('批量删除失败');
+    });
+});
+
+// 删除单个奖状
+function deleteAward(id) {
+    if (confirm('确定要删除这条奖状吗？')) {
+        fetch(`/admin/awards/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 跳转到奖状列表页面（不带tab参数，显示管理tab）
+                window.location.href = '{{ url_for('admin_awards.awards_list') }}';
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+</script>
+{% endblock %}
+

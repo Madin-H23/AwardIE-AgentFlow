@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}专利详情 - {{ patent.patent_name }} - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">专利详情</h1>
+    <div>
+        {% set from_page = request.args.get('from', '') %}
+        <a href="{{ url_for('admin_patents.patent_edit', patent_id=patent.id, **({'from': from_page} if from_page else {})) }}" class="btn btn-primary me-2">编辑</a>
+        <button type="button" class="btn btn-danger" onclick="deletePatent({{ patent.id }})">删除</button>
+        {% if from_page == 'achievements' %}
+        <a href="{{ url_for('admin_achievement.achievements', tab='patent') }}" class="btn btn-outline-secondary">返回列表</a>
+        {% else %}
+        <a href="{{ url_for('admin_patents.patents_list') }}" class="btn btn-outline-secondary">返回列表</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 专利信息卡片 -->
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 基本信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">专利名称</dt>
+                    <dd class="col-sm-9">{{ patent.patent_name }}</dd>
+
+                    <dt class="col-sm-3">专利类型</dt>
+                    <dd class="col-sm-9">
+                        {% if patent.patent_type %}
+                        <span class="badge bg-info">{{ patent.patent_type }}</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">申请号</dt>
+                    <dd class="col-sm-9">{{ patent.application_number or '-' }}</dd>
+
+                    <dt class="col-sm-3">公开号</dt>
+                    <dd class="col-sm-9">{{ patent.publication_number or '-' }}</dd>
+
+                    <dt class="col-sm-3">发明人</dt>
+                    <dd class="col-sm-9">{{ patent.inventor or '-' }}</dd>
+
+                    <dt class="col-sm-3">专利权人</dt>
+                    <dd class="col-sm-9">{{ patent.patentee or '-' }}</dd>
+
+                    <dt class="col-sm-3">申请日期</dt>
+                    <dd class="col-sm-9">{{ patent.application_date or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 证书文件 -->
+        {% if patent.certificate_file %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">证书文件</h5>
+                <a href="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                   class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-box-arrow-up-right"></i> 新窗口打开
+                </a>
+            </div>
+            <div class="card-body">
+                {% set file_ext = patent.certificate_file.split('.')[-1].lower() %}
+                {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                <!-- 图片预览 -->
+                <div class="text-center">
+                    <img src="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                         class="img-fluid" 
+                         alt="专利证书"
+                         style="max-height: 500px; cursor: pointer;"
+                         onclick="openImageModal(this.src)">
+                </div>
+                {% elif file_ext == 'pdf' %}
+                <!-- PDF 预览 -->
+                <iframe src="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                        class="w-100" style="height: 500px; border: none;"></iframe>
+                {% else %}
+                <!-- 其他文件 -->
+                <p class="mb-2">文件: <code>{{ patent.certificate_file }}</code></p>
+                <a href="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                   class="btn btn-primary" download>
+                    <i class="bi bi-download"></i> 下载文件
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 关联实验室 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">关联实验室</h5>
+            </div>
+            <div class="card-body">
+                {% if laboratory %}
+                <p class="mb-1"><strong>{{ laboratory.name }}</strong></p>
+                <p class="text-muted small mb-0">{{ laboratory.description or '-' }}</p>
+                {% else %}
+                <p class="text-muted mb-0">未关联实验室</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 提交信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">提交信息</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">提交人类型</dt>
+                    <dd class="col-6">{{ patent.submitter_type or '-' }}</dd>
+
+                    <dt class="col-6">提交人ID</dt>
+                    <dd class="col-6">{{ patent.submitter_id or '-' }}</dd>
+
+                    <dt class="col-6">提交时间</dt>
+                    <dd class="col-6">{{ patent.submit_time or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 系统信息 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">系统信息</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">ID</dt>
+                    <dd class="col-6">{{ patent.id }}</dd>
+
+                    <dt class="col-6">创建时间</dt>
+                    <dd class="col-6">{{ patent.created_at or '-' }}</dd>
+
+                    <dt class="col-6">更新时间</dt>
+                    <dd class="col-6">{{ patent.updated_at or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图片放大模态框 -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">专利证书预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalImage" class="img-fluid" style="max-height: 85vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    .img-fluid {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .img-fluid:hover {
+        transform: scale(1.02);
+    }
+</style>
+
+<script>
+function deletePatent(id) {
+    if (confirm('确定要删除这个专利吗？此操作不可撤销。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('admin_patents.patent_delete', patent_id=0) }}".replace('0', id);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function openImageModal(src) {
+    document.getElementById('modalImage').src = src;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+</script>
+{% endblock %}

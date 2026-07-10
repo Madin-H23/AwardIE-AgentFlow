@@ -1,0 +1,148 @@
+{% extends "user_base.html" %}
+
+{% block title %}教师仪表板 - 成果管理系统{% endblock %}
+
+{% block nav_dashboard %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block content %}
+<!-- 个人信息卡片（顶部） -->
+<section class="py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-xl shadow-lg p-5 card-hover">
+            <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-4">
+                <!-- 左侧：头像和信息 -->
+                <div class="flex items-center space-x-4 flex-1">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xl font-bold">{{ (current_user.name[0] if current_user and current_user.name else '教') }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1.5">
+                            <h3 class="hero-title text-2xl font-bold text-gray-800">{{ current_user.name if current_user and current_user.name else '教师' }}</h3>
+                            <!-- 公开主页标记 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" id="privacy-toggle" onchange="togglePublicProfile(this)">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
+                                <span class="text-xs text-gray-500">公开主页</span>
+                            </div>
+                        </div>
+                        <!-- 部门、实验室和工号信息 -->
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            {% if teacher_info %}
+                                {% if teacher_info.department %}
+                                <span class="text-gray-600">{{ teacher_info.department }}</span>
+                                {% endif %}
+                                {% if laboratory %}
+                                <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=laboratory.id) }}" class="inline-flex items-center space-x-1.5 bg-purple-50 border border-purple-200 rounded-md px-2 py-1 hover:bg-purple-100 hover:border-purple-300 transition-colors cursor-pointer no-underline">
+                                    <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-purple-700">{{ laboratory.name }}</span>
+                                </a>
+                                {% endif %}
+                                {% if teacher_info.teacher_id %}
+                                <span class="text-gray-600">工号：{{ teacher_info.teacher_id }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-600">欢迎回来，今天是充实的一天！</span>
+                            {% endif %}
+                        </div>
+                        <!-- 技术标签 -->
+                        {% if skills and skills|length > 0 %}
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            {% for skill in skills[:8] %}
+                            <span class="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-xs">{{ skill }}</span>
+                            {% endfor %}
+                            {% if skills|length > 8 %}
+                            <span class="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full text-xs">+{{ skills|length - 8 }}</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-400 mb-3">暂无技术标签</div>
+                        {% endif %}
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">{{ award_count or 0 }}</div>
+                                <div class="text-xs text-gray-600">获得成果</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-600">{{ skills_count or 0 }}</div>
+                                <div class="text-xs text-gray-600">技术标签</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：操作按钮 -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ url_for('auth.index') }}" class="border border-purple-300 text-purple-700 px-6 py-2 rounded-lg font-medium hover:border-purple-500 hover:bg-purple-50 transition-all whitespace-nowrap text-center">
+                        学生实验首页
+                    </a>
+                    <button onclick="window.location.href='{{ url_for('teacher.profile') }}'" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:border-orange-500 hover:text-orange-500 transition-all whitespace-nowrap">
+                        个人设置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 成果展示卡片 -->
+<section class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-6">
+            <!-- 成果展示 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800">成果展示</h3>
+                    <a href="{{ url_for('teacher.achievements') }}" class="text-orange-500 hover:text-orange-600 font-medium text-sm">
+                        查看更多 →
+                    </a>
+                </div>
+
+                <div class="space-y-4">
+                    {% if recent_awards %}
+                        {% for award in recent_awards %}
+                        <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="flex items-start space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 mb-1">{{ award.title }}</h4>
+                                <p class="text-sm text-gray-600 mb-2">{{ award.subtitle }}</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">竞赛获奖</span>
+                                    {% if award.date %}
+                                    <span class="text-xs text-gray-500">{{ award.date }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500 text-sm">
+                            暂无成果记录
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function togglePublicProfile(checkbox) {
+    // 切换公开主页状态（后续可对接API保存状态）
+    const isPublic = checkbox.checked;
+    console.log('公开主页状态:', isPublic ? '公开' : '私密');
+    // TODO: 调用API保存公开主页状态
+}
+</script>
+{% endblock %}
+

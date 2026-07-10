@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+
+{% block title %}系统设置 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<style>
+    .settings-section {
+        background-color: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .settings-section h5 {
+        color: #1890ff;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #1890ff;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .save-btn {
+        padding: 10px 40px;
+    }
+    /* Tabs 样式 */
+    .nav-tabs {
+        border-bottom: 2px solid #1890ff;
+        margin-bottom: 24px;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 12px 24px;
+        margin-right: 8px;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1890ff;
+        background-color: #f0f8ff;
+    }
+    .nav-tabs .nav-link.active {
+        color: #1890ff;
+        background-color: #fff;
+        border-bottom: 3px solid #1890ff;
+        font-weight: 600;
+    }
+    .tab-content {
+        background-color: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 0 8px 8px 8px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    /* 自动归档配置表格样式 */
+    .config-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .config-table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+    }
+    .config-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e8e8e8;
+    }
+    .config-table tr:last-child td {
+        border-bottom: none;
+    }
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        cursor: pointer;
+    }
+    .form-check-label {
+        margin-left: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .config-description {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+    .info-box {
+        background-color: #e7f5ff;
+        border-left: 4px solid #1890ff;
+        padding: 16px;
+        margin-bottom: 24px;
+        border-radius: 4px;
+    }
+    .info-box h6 {
+        color: #0056b3;
+        margin-bottom: 8px;
+    }
+    .info-box p {
+        margin-bottom: 4px;
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">系统设置</h2>
+
+            <!-- Tabs 导航 -->
+            <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+                        <i class="bi bi-sliders"></i> 通用设置
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="providers-tab" data-bs-toggle="tab" data-bs-target="#providers" type="button" role="tab">
+                        <i class="bi bi-gear"></i> 供应商设置
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="autoarchive-tab" data-bs-toggle="tab" data-bs-target="#autoarchive" type="button" role="tab">
+                        <i class="bi bi-archive"></i> 自动归档
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs 内容 -->
+            <div class="tab-content" id="settingsTabContent">
+                <!-- TAB 1: 通用设置 -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    <div class="settings-section">
+                        <h5>系统默认密码</h5>
+                        <div class="info-box">
+                            <h6><i class="bi bi-info-circle"></i> 说明</h6>
+                            <p>新创建的学生和教师账号将使用此默认密码。</p>
+                            <p>管理员可以在学生/教师编辑页面使用"重置密码"功能将用户密码重置为此默认密码。</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">当前默认密码</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ default_password }}" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copyPassword()">
+                                        <i class="bi bi-clipboard"></i> 复制
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-exclamation-triangle text-warning"></i> 
+                                    如需修改默认密码，请编辑配置文件 <code>config/settings.json</code> 中的 <code>system.default_password</code> 字段
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h5>缓存清理</h5>
+                        <div class="info-box">
+                            <h6><i class="bi bi-info-circle"></i> 说明</h6>
+                            <p>将删除所有<strong>未提交</strong>的待处理记录（仅 status=pending，已提交等待审核的记录会保留），并清空 <code>files/temp_upload</code> 下全部文件与文件夹。</p>
+                            <p>同时清理 <code>files/review</code> 下未被任一待审核记录引用的会话目录与文件。清理后页面会提示删除的条数和文件/文件夹数量。</p>
+                            <p class="text-muted small mb-0">不包含手动导入上传目录（如配置的 temp_dir/manual_import），该目录需另行或定时清理。</p>
+                        </div>
+                        <div class="row align-items-end">
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-outline-primary" id="cacheCleanupBtn" onclick="runCacheCleanup()">
+                                    <i class="bi bi-trash"></i> 执行缓存清理
+                                </button>
+                            </div>
+                            <div class="col" id="cacheCleanupResult"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: 供应商设置 -->
+                <div class="tab-pane fade" id="providers" role="tabpanel">
+                    <form id="settingsForm">
+                        <!-- OCR设置 -->
+                        <div class="settings-section">
+                            <h5>OCR默认供应商</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="default_ocr_provider" class="form-label">默认OCR供应商</label>
+                                    <select class="form-select" id="default_ocr_provider" name="default_ocr_provider">
+                                        <option value="">请选择</option>
+                                        {% for provider in available_ocr_providers %}
+                                        <option value="{{ provider }}" {% if provider == default_ocr_provider %}selected{% endif %}>
+                                            {{ provider }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">选择文档识别默认使用的OCR服务供应商</div>
+                                </div>
+                                <div class="col-md-6" id="ocr_api_key_container" style="display: none;">
+                                    <label for="ocr_api_key" class="form-label">API Key</label>
+                                    <input type="password" class="form-control" id="ocr_api_key" name="ocr_api_key" placeholder="留空则不修改现有 Key">
+                                    <div class="form-text">仅需修改时填写，留空则保留系统中已有配置</div>
+                                </div>
+                            </div>
+                            {% if ocr_status %}
+                            <div class="mt-3">
+                                <p class="mb-2"><strong>当前使用的高精度供应商：</strong>
+                                    <span id="ocrCurrentEffective">{{ ocr_status.current_effective_provider or '无可用高精度，已回退低精度' }}</span>
+                                    <span class="text-muted small ms-2">（配置默认：<span id="ocrDefaultBadge">{{ ocr_status.default_provider or '—' }}</span>）</span>
+                                </p>
+                                <table class="config-table table table-sm" id="ocrProviderStatusTable">
+                                    <thead>
+                                        <tr>
+                                            <th>供应商</th>
+                                            <th>精度</th>
+                                            <th>状态</th>
+                                            <th>故障理由 / 禁用时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p in ocr_status.all_providers %}
+                                        <tr data-provider="{{ p.name }}">
+                                            <td>
+                                                {{ p.name }}
+                                                {% if p.name == ocr_status.default_provider %}
+                                                <span class="badge bg-primary ms-1">默认</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ '高精度' if p.is_precise else '低精度' }}</td>
+                                            <td>
+                                                {% if p.disabled %}
+                                                <span class="badge bg-danger">已禁用</span>
+                                                {% else %}
+                                                <span class="badge bg-success">正常</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if p.disabled %}
+                                                <span class="text-muted small">{{ p.disabled_reason }}</span>
+                                                {% if p.disabled_at %}<br><span class="text-muted small">{{ p.disabled_at }}</span>{% endif %}
+                                                {% else %}
+                                                —
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if p.disabled %}
+                                                <button type="button" class="btn btn-sm btn-outline-primary ocr-reenable" data-provider="{{ p.name }}">重新启用</button>
+                                                {% else %}
+                                                {% if p.is_precise %}
+                                                <button type="button" class="btn btn-sm btn-outline-primary ocr-set-current" data-provider="{{ p.name }}">设为当前</button>
+                                                <button type="button" class="btn btn-sm btn-outline-warning ocr-disable ms-1" data-provider="{{ p.name }}">禁用</button>
+                                                {% else %}
+                                                <button type="button" class="btn btn-sm btn-outline-warning ocr-disable" data-provider="{{ p.name }}">禁用</button>
+                                                {% endif %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- LLM设置 -->
+                        <div class="settings-section">
+                            <h5>LLM默认供应商</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="default_llm_provider" class="form-label">默认LLM供应商</label>
+                                    <select class="form-select" id="default_llm_provider" name="default_llm_provider">
+                                        <option value="">请选择</option>
+                                        {% for provider in available_llm_providers %}
+                                        <option value="{{ provider }}" {% if provider == default_llm_provider %}selected{% endif %}>
+                                            {{ provider }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">选择数据抽取默认使用的大语言模型服务供应商</div>
+                                </div>
+                                <div class="col-md-6" id="llm_api_key_container" style="display: none;">
+                                    <label for="llm_api_key" class="form-label">API Key</label>
+                                    <input type="password" class="form-control" id="llm_api_key" name="llm_api_key" placeholder="留空则不修改现有 Key">
+                                    <div class="form-text">仅需修改时填写，留空则保留系统中已有配置</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 保存按钮 -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg save-btn">保存供应商设置</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 3: 自动归档设置 -->
+                <div class="tab-pane fade" id="autoarchive" role="tabpanel">
+                    <!-- 说明信息 -->
+                    <div class="info-box">
+                        <h6><i class="bi bi-info-circle"></i> 功能说明</h6>
+                        <p>本页「奖状/专利/软著」及「大创/其他」的自动归档配置<strong>仅对学生提交的成果生效</strong>；学生提交是否自动归档由下方开关控制。</p>
+                        <p><strong>教师和管理员</strong>提交的成果<strong>始终自动归档</strong>，不经过人工审核。</p>
+                        <p>开启自动归档后，学生提交并点击「提交审核」时，若对应类型/状态已勾选自动归档，系统将自动完成归档，无需等待审核人处理。</p>
+                        <p><strong>注意：</strong>提交人审核阶段不可跳过，用户必须自己确认提交。自动归档的成果将在审核日志中标记为「系统自动审核」。</p>
+                    </div>
+
+                    <form id="autoArchiveForm">
+                        <!-- 奖状/专利/软著配置 -->
+                        <div class="settings-section">
+                            <h5>奖状/专利/软著配置</h5>
+                            <table class="config-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%;">成果类型</th>
+                                        <th style="width: 25%;">识别成功</th>
+                                        <th style="width: 25%;">待修订</th>
+                                        <th style="width: 30%;">说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>奖状</strong></td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="award_valid" name="award_valid"
+                                                       {% if configs.get('award_valid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="award_valid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="award_invalid" name="award_invalid"
+                                                       {% if configs.get('award_invalid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="award_invalid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="config-description">验证通过或待修订的奖状</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>专利</strong></td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="patent_valid" name="patent_valid"
+                                                       {% if configs.get('patent_valid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="patent_valid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="patent_invalid" name="patent_invalid"
+                                                       {% if configs.get('patent_invalid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="patent_invalid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="config-description">验证通过或待修订的专利</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>软著</strong></td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="software_valid" name="software_valid"
+                                                       {% if configs.get('software_valid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="software_valid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="software_invalid" name="software_invalid"
+                                                       {% if configs.get('software_invalid') %}checked{% endif %}>
+                                                <label class="form-check-label" for="software_invalid">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="config-description">验证通过或待修订的软著</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="config-description mt-2 mb-0">以上配置仅对学生提交生效。</p>
+                        </div>
+
+                        <!-- 大创/其他配置 -->
+                        <div class="settings-section">
+                            <h5>大创/其他文件配置</h5>
+                            <table class="config-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30%;">成果类型</th>
+                                        <th style="width: 40%;">自动归档</th>
+                                        <th style="width: 30%;">说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>大创项目</strong></td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="innovation" name="innovation"
+                                                       {% if configs.get('innovation') %}checked{% endif %}>
+                                                <label class="form-check-label" for="innovation">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="config-description">不区分验证状态</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>其他文件</strong></td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="other" name="other"
+                                                       {% if configs.get('other') %}checked{% endif %}>
+                                                <label class="form-check-label" for="other">
+                                                    允许自动归档
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="config-description">不区分验证状态</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="config-description mt-2 mb-0">以上配置仅对学生提交生效。</p>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary me-3" onclick="resetAutoArchiveConfig()">重置为默认</button>
+                            <button type="submit" class="btn btn-primary btn-lg save-btn">保存自动归档设置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ========== 供应商设置表单处理 ==========
+    const settingsForm = document.getElementById('settingsForm');
+    const providersConfig = {{ providers_config | tojson | safe }};
+
+    // 状态管理：存储当前编辑的 Key
+    const currentKeys = {
+        ocr: {},
+        llm: {}
+    };
+
+    // 初始化 Keys
+    for (const type in providersConfig) {
+        for (const name in providersConfig[type]) {
+            currentKeys[type][name] = providersConfig[type][name].api_key || '';
+        }
+    }
+
+    function updateApiKeyInput(type) {
+        const select = document.getElementById(`default_${type}_provider`);
+        const container = document.getElementById(`${type}_api_key_container`);
+        const input = document.getElementById(`${type}_api_key`);
+        const providerName = select.value;
+
+        if (!providerName || !providersConfig[type][providerName]) {
+            container.style.display = 'none';
+            return;
+        }
+
+        const config = providersConfig[type][providerName];
+        if (config.needs_key) {
+            container.style.display = 'block';
+            input.value = currentKeys[type][providerName] || '';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // 监听下拉框变化
+    ['ocr', 'llm'].forEach(type => {
+        const select = document.getElementById(`default_${type}_provider`);
+        const input = document.getElementById(`${type}_api_key`);
+
+        updateApiKeyInput(type);
+
+        select.addEventListener('change', () => {
+            updateApiKeyInput(type);
+            if (type === 'ocr') syncOcrDisplayToSelect();
+        });
+
+        input.addEventListener('input', (e) => {
+            const providerName = select.value;
+            if (providerName) {
+                currentKeys[type][providerName] = e.target.value;
+            }
+        });
+    });
+
+    // 默认OCR供应商下拉框变化时，下方「当前使用的高精度供应商」「配置默认」及表格默认徽章同步变动
+    function syncOcrDisplayToSelect() {
+        const selectOcr = document.getElementById('default_ocr_provider');
+        const ocrCurrentEffective = document.getElementById('ocrCurrentEffective');
+        const defaultBadgeEl = document.getElementById('ocrDefaultBadge');
+        const tbody = ocrStatusTable ? ocrStatusTable.querySelector('tbody') : null;
+        if (!selectOcr) return;
+        const val = selectOcr.value || '';
+        if (ocrCurrentEffective) ocrCurrentEffective.textContent = val ? val : '无可用高精度，已回退低精度';
+        if (defaultBadgeEl) defaultBadgeEl.textContent = val || '—';
+        if (tbody) {
+            tbody.querySelectorAll('tr[data-provider]').forEach(function(tr) {
+                const name = tr.getAttribute('data-provider');
+                const td = tr.querySelector('td:first-child');
+                if (!td) return;
+                const badge = td.querySelector('.badge.bg-primary');
+                const isDefault = name === val;
+                if (isDefault && !badge) {
+                    td.appendChild(document.createTextNode(' '));
+                    const span = document.createElement('span');
+                    span.className = 'badge bg-primary ms-1';
+                    span.textContent = '默认';
+                    td.appendChild(span);
+                } else if (!isDefault && badge) {
+                    badge.remove();
+                }
+            });
+        }
+    }
+
+    settingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            default_ocr_provider: document.getElementById('default_ocr_provider').value,
+            default_llm_provider: document.getElementById('default_llm_provider').value,
+            ocr_keys: currentKeys.ocr,
+            llm_keys: currentKeys.llm
+        };
+
+        try {
+            const response = await fetch('/admin/settings/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert(result.message || '供应商设置保存成功', 'success');
+                refreshOcrStatus();
+            } else {
+                showAlert(result.message || '保存失败', 'danger');
+            }
+        } catch (error) {
+            showAlert('保存失败: ' + error.message, 'danger');
+        }
+    });
+
+    // ========== OCR 供应商状态：重新启用 / 设为当前 ==========
+    const ocrStatusTable = document.getElementById('ocrProviderStatusTable');
+    const ocrCurrentEffective = document.getElementById('ocrCurrentEffective');
+
+    async function refreshOcrStatus() {
+        if (!ocrCurrentEffective) return;
+        try {
+            const response = await fetch('/admin/settings/ocr-status');
+            const data = await response.json();
+            if (!data.success || !data.all_providers) return;
+            ocrCurrentEffective.textContent = data.current_effective_provider || '无可用高精度，已回退低精度';
+            const defaultBadgeEl = document.getElementById('ocrDefaultBadge');
+            if (defaultBadgeEl) defaultBadgeEl.textContent = data.default_provider || '—';
+            const selectOcr = document.getElementById('default_ocr_provider');
+            if (selectOcr && data.default_provider) selectOcr.value = data.default_provider;
+            if (ocrStatusTable && data.all_providers.length) {
+                const tbody = ocrStatusTable.querySelector('tbody');
+                if (!tbody) return;
+                const defaultProvider = data.default_provider || '';
+                tbody.innerHTML = data.all_providers.map(function(p) {
+                    let nameCell = p.name + (p.name === defaultProvider ? ' <span class="badge bg-primary ms-1">默认</span>' : '');
+                    let statusBadge = p.disabled ? '<span class="badge bg-danger">已禁用</span>' : '<span class="badge bg-success">正常</span>';
+                    let reason = p.disabled ? '<span class="text-muted small">' + (p.disabled_reason || '') + '</span>' + (p.disabled_at ? '<br><span class="text-muted small">' + p.disabled_at + '</span>' : '') : '—';
+                    let actions = '';
+                    if (p.disabled) {
+                        actions += '<button type="button" class="btn btn-sm btn-outline-primary ocr-reenable" data-provider="' + p.name + '">重新启用</button>';
+                    } else {
+                        if (p.is_precise) actions += '<button type="button" class="btn btn-sm btn-outline-primary ocr-set-current" data-provider="' + p.name + '">设为当前</button>';
+                        actions += ' <button type="button" class="btn btn-sm btn-outline-warning ocr-disable ms-1" data-provider="' + p.name + '">禁用</button>';
+                    }
+                    return '<tr data-provider="' + p.name + '"><td>' + nameCell + '</td><td>' + (p.is_precise ? '高精度' : '低精度') + '</td><td>' + statusBadge + '</td><td>' + reason + '</td><td>' + actions + '</td></tr>';
+                }).join('');
+                tbody.querySelectorAll('.ocr-reenable').forEach(function(btn) { btn.addEventListener('click', onOcrReenable); });
+                tbody.querySelectorAll('.ocr-set-current').forEach(function(btn) { btn.addEventListener('click', onOcrSetCurrent); });
+                tbody.querySelectorAll('.ocr-disable').forEach(function(btn) { btn.addEventListener('click', onOcrDisable); });
+            }
+        } catch (e) { console.warn('刷新 OCR 状态失败', e); }
+    }
+
+    function onOcrReenable(e) {
+        const provider = e.currentTarget.getAttribute('data-provider');
+        if (!provider) return;
+        fetch('/admin/settings/ocr-provider/reenable', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: provider })
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            if (res.success) { showAlert(res.message || '已重新启用', 'success'); refreshOcrStatus(); }
+            else { showAlert(res.message || '操作失败', 'danger'); }
+        }).catch(function(err) { showAlert('操作失败: ' + err.message, 'danger'); });
+    }
+
+    function onOcrSetCurrent(e) {
+        const provider = e.currentTarget.getAttribute('data-provider');
+        if (!provider) return;
+        fetch('/admin/settings/ocr-provider/set-current', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: provider })
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            if (res.success) { showAlert(res.message || '已设为当前', 'success'); refreshOcrStatus(); }
+            else { showAlert(res.message || '操作失败', 'danger'); }
+        }).catch(function(err) { showAlert('操作失败: ' + err.message, 'danger'); });
+    }
+
+    function onOcrDisable(e) {
+        const provider = e.currentTarget.getAttribute('data-provider');
+        if (!provider) return;
+        if (!confirm('确定要禁用该 OCR 供应商吗？禁用后引擎将跳过该供应商，直至您点击「重新启用」。')) return;
+        fetch('/admin/settings/ocr-provider/disable', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: provider })
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            if (res.success) { showAlert(res.message || '已禁用', 'success'); refreshOcrStatus(); }
+            else { showAlert(res.message || '操作失败', 'danger'); }
+        }).catch(function(err) { showAlert('操作失败: ' + err.message, 'danger'); });
+    }
+
+    if (ocrStatusTable) {
+        ocrStatusTable.querySelectorAll('.ocr-reenable').forEach(function(btn) { btn.addEventListener('click', onOcrReenable); });
+        ocrStatusTable.querySelectorAll('.ocr-set-current').forEach(function(btn) { btn.addEventListener('click', onOcrSetCurrent); });
+        ocrStatusTable.querySelectorAll('.ocr-disable').forEach(function(btn) { btn.addEventListener('click', onOcrDisable); });
+    }
+
+    // ========== 自动归档设置表单处理 ==========
+    const autoArchiveForm = document.getElementById('autoArchiveForm');
+
+    autoArchiveForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 收集表单数据
+        const formData = {
+            award_valid: document.getElementById('award_valid').checked,
+            award_invalid: document.getElementById('award_invalid').checked,
+            patent_valid: document.getElementById('patent_valid').checked,
+            patent_invalid: document.getElementById('patent_invalid').checked,
+            software_valid: document.getElementById('software_valid').checked,
+            software_invalid: document.getElementById('software_invalid').checked,
+            innovation: document.getElementById('innovation').checked,
+            other: document.getElementById('other').checked
+        };
+
+        try {
+            const response = await fetch('/admin/settings/auto-archive/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert(result.message || '自动归档设置保存成功', 'success');
+            } else {
+                showAlert(result.message || '保存失败', 'danger');
+            }
+        } catch (error) {
+            showAlert('保存失败: ' + error.message, 'danger');
+        }
+    });
+});
+
+// 重置自动归档配置
+async function resetAutoArchiveConfig() {
+    if (!confirm('确定要重置所有配置为默认值吗？\n\n重置后，所有类型的成果都不会自动归档。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/admin/settings/auto-archive/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 重置所有复选框为未选中状态
+            document.querySelectorAll('#autoArchiveForm input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            showAlert(result.message || '重置成功', 'success');
+        } else {
+            showAlert(result.message || '重置失败', 'danger');
+        }
+    } catch (error) {
+        showAlert('重置失败: ' + error.message, 'danger');
+    }
+}
+
+function showAlert(message, type = 'info') {
+    // 创建模态框遮罩和弹窗
+    const modalHTML = `
+        <div id="customAlertModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; border-radius: 12px; padding: 30px 40px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: alertFadeIn 0.3s ease-out;">
+                <div style="font-size: 48px; margin-bottom: 16px;">
+                    ${type === 'success' ? '✅' : type === 'danger' ? '❌' : 'ℹ️'}
+                </div>
+                <div style="font-size: 18px; color: #333; margin-bottom: 24px; line-height: 1.5;">
+                    ${message}
+                </div>
+                <button onclick="closeAlert()" style="background: ${type === 'success' ? '#52c41a' : type === 'danger' ? '#ff4d4f' : '#1890ff'}; color: white; border: none; padding: 10px 32px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                    确定
+                </button>
+            </div>
+        </div>
+        <style>
+            @keyframes alertFadeIn {
+                from { opacity: 0; transform: scale(0.9); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        </style>
+    `;
+
+    // 移除已存在的弹窗
+    const existingModal = document.getElementById('customAlertModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 添加新弹窗到 body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeAlert() {
+    const modal = document.getElementById('customAlertModal');
+    if (modal) {
+        modal.style.animation = 'alertFadeOut 0.2s ease-out';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+// 复制默认密码
+function copyPassword() {
+    const passwordInput = document.querySelector('#general input[readonly]');
+    if (passwordInput) {
+        passwordInput.select();
+        document.execCommand('copy');
+        showAlert('默认密码已复制到剪贴板', 'success');
+    }
+}
+
+// 缓存清理
+async function runCacheCleanup() {
+    const btn = document.getElementById('cacheCleanupBtn');
+    const resultEl = document.getElementById('cacheCleanupResult');
+    if (!btn || !resultEl) return;
+    btn.disabled = true;
+    resultEl.innerHTML = '<span class="text-muted">清理中…</span>';
+    try {
+        const response = await fetch('/admin/settings/cache-cleanup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}'
+        });
+        const data = await response.json();
+        if (data.success) {
+            const p = data.pending_deleted ?? 0;
+            const t = data.temp_upload_deleted ?? 0;
+            const r = data.review_deleted ?? 0;
+            const total = data.total_files_folders ?? (t + r);
+            resultEl.innerHTML = '<span class="text-success">已删除 ' + p + ' 条未提交的待处理记录；temp_upload 删除 ' + t + ' 个文件/文件夹；review 删除 ' + r + ' 个文件/文件夹。合计删除 ' + total + ' 个文件和文件夹。</span>';
+        } else {
+            resultEl.innerHTML = '<span class="text-danger">' + (data.message || '清理失败') + '</span>';
+        }
+    } catch (err) {
+        resultEl.innerHTML = '<span class="text-danger">请求失败: ' + (err.message || '未知错误') + '</span>';
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

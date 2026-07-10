@@ -1,0 +1,243 @@
+{% extends "user_base.html" %}
+
+{% block title %}提交记录 - 成果管理系统{% endblock %}
+
+{% block nav_submissions %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block extra_head %}
+<style>
+    .submission-card {
+        transition: all 0.3s ease;
+    }
+    .submission-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+    }
+    .status-pending {
+        background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        color: white;
+    }
+    .status-approved {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        color: white;
+    }
+    .status-rejected {
+        background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+        color: white;
+    }
+    .type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+    .type-award {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .type-patent {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .type-software {
+        background: #fce7f3;
+        color: #9f1239;
+    }
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<section class="relative py-8 overflow-hidden">
+    <div class="floating-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="hero-title text-3xl font-bold gradient-text mb-2">
+                    提交记录
+                </h1>
+                <p class="text-gray-600">查看您的所有成果提交记录和审核状态</p>
+            </div>
+            <a href="{{ url_for('student.achievement_submit') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                ← 返回成果提交
+            </a>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-gray-800">{{ submissions|length }}</h4>
+                <p class="text-sm text-gray-600">全部提交</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-yellow-600">{{ submissions|selectattr('status', 'equalto', 'pending')|list|length }}</h4>
+                <p class="text-sm text-gray-600">待审核</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-green-600">{{ submissions|selectattr('status', 'equalto', 'approved')|list|length }}</h4>
+                <p class="text-sm text-gray-600">已通过</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-red-600">{{ submissions|selectattr('status', 'equalto', 'rejected')|list|length }}</h4>
+                <p class="text-sm text-gray-600">已拒绝</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 提交列表 -->
+<section class="py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            {% if submissions and submissions|length > 0 %}
+                <div class="divide-y divide-gray-200">
+                    {% for submission in submissions %}
+                    <div class="submission-card p-6 hover:bg-gray-50">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <span class="type-badge type-{{ submission.achievement_type }}">
+                                        {% if submission.achievement_type == 'award' %}奖状
+                                        {% elif submission.achievement_type == 'patent' %}专利
+                                        {% elif submission.achievement_type == 'software' %}软著
+                                        {% elif submission.achievement_type == 'innovation' %}大创项目
+                                        {% else %}其他{% endif %}
+                                    </span>
+                                    <span class="status-badge status-{{ submission.status }}">
+                                        {% if submission.status == 'pending' %}待审核
+                                        {% elif submission.status == 'approved' %}已通过
+                                        {% elif submission.status == 'rejected' %}已拒绝
+                                        {% else %}未知{% endif %}
+                                    </span>
+                                </div>
+
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                                    {% set data = submission.get_achievement_data() %}
+                                    {% if submission.achievement_type == 'award' %}
+                                        {{ data.competition_name or '未命名奖状' }}
+                                    {% elif submission.achievement_type == 'patent' %}
+                                        {{ data.patent_name or '未命名专利' }}
+                                    {% elif submission.achievement_type == 'software' %}
+                                        {{ data.software_name or '未命名软著' }}
+                                    {% elif submission.achievement_type == 'innovation' %}
+                                        {{ data.project_name or '未命名项目' }}
+                                    {% else %}
+                                        未命名成果
+                                    {% endif %}
+                                </h3>
+
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    {% if submission.achievement_type == 'award' %}
+                                        {% if data.award_level %}
+                                        <p><span class="text-gray-500">获奖等级：</span>{{ data.award_level }}</p>
+                                        {% endif %}
+                                        {% if data.date %}
+                                        <p><span class="text-gray-500">获奖日期：</span>{{ data.date }}</p>
+                                        {% endif %}
+                                    {% elif submission.achievement_type == 'patent' %}
+                                        {% if data.patent_type %}
+                                        <p><span class="text-gray-500">类型：</span>{{ data.patent_type }}</p>
+                                        {% endif %}
+                                        {% if data.application_number %}
+                                        <p><span class="text-gray-500">申请号：</span>{{ data.application_number }}</p>
+                                        {% endif %}
+                                    {% elif submission.achievement_type == 'software' %}
+                                        {% if data.software_version %}
+                                        <p><span class="text-gray-500">版本：</span>{{ data.software_version }}</p>
+                                        {% endif %}
+                                        {% if data.registration_number %}
+                                        <p><span class="text-gray-500">登记号：</span>{{ data.registration_number }}</p>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="mt-3 flex items-center text-xs text-gray-500">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    提交时间：{{ submission.submit_time or submission.created_at or '未知' }}
+                                </div>
+
+                                {% if submission.status == 'rejected' and submission.review_comment %}
+                                <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p class="text-sm text-red-800">
+                                        <span class="font-medium">审核意见：</span>{{ submission.review_comment }}
+                                    </p>
+                                </div>
+                                {% endif %}
+
+                                {% if submission.has_content_issues() or submission.has_completeness_issues() %}
+                                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p class="text-sm font-medium text-yellow-800 mb-1">验证问题：</p>
+                                    <ul class="text-sm text-yellow-700 list-disc list-inside">
+                                        {% for issue in submission.has_completeness_issues() %}
+                                        <li>{{ issue }}</li>
+                                        {% endfor %}
+                                        {% for issue in submission.has_content_issues() %}
+                                        <li>{{ issue }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="ml-4 flex flex-col items-end space-y-2">
+                                {% if submission.status == 'pending' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    等待审核
+                                </span>
+                                {% elif submission.status == 'approved' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    审核通过
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    审核拒绝
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">暂无提交记录</h3>
+                    <p class="text-gray-500 mb-6">您还没有提交任何成果。</p>
+                    <a href="{{ url_for('student.achievement_submit') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        去提交成果
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

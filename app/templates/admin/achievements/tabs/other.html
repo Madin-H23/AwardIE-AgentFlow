@@ -1,0 +1,167 @@
+<!-- 实验室下载文件筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="otherFilterForm" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">实验室</label>
+                <select name="laboratory_id" class="form-select">
+                    {% if laboratory_id and laboratory_name %}
+                        {# 实验室视图模式：只显示本实验室和无，默认选中本实验室 #}
+                        <option value="{{ laboratory_id }}" selected>{{ laboratory_name }}</option>
+                        <option value="none">无</option>
+                    {% else %}
+                        {# 管理员模式：显示所有实验室 #}
+                        <option value="">全部实验室</option>
+                        {% for lab in laboratories %}
+                        <option value="{{ lab.id }}" {% if laboratory_id == lab.id %}selected{% endif %}>
+                            {{ lab.name }}
+                        </option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    这里显示各实验室下载专区中的文件。文件会在成果审核流程中移动到对应实验室的下载区。
+                </p>
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="resetOtherFilter()">重置</button>
+                <button type="button" class="btn btn-outline-danger" onclick="clearAllFiles()">
+                    <i class="bi bi-trash"></i> 清空所有
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 实验室下载文件列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if files %}
+        <!-- 批量操作栏 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" id="selectAllFiles" class="form-check-input" onchange="toggleSelectAll(this)">
+                <label for="selectAllFiles" class="form-check-label">全选</label>
+                <span class="text-muted ms-2" id="selectedCount">已选择 0 项</span>
+            </div>
+            {% if not is_readonly %}
+            <button type="button" class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDeleteFiles()" disabled>
+                <i class="bi bi-trash"></i> 批量删除
+            </button>
+            {% endif %}
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllHeader" onchange="toggleSelectAll(this)">
+                        </th>
+                        <th style="width: 50px;">ID</th>
+                        <th>文件标题</th>
+                        <th>所属实验室</th>
+                        <th>原始文件名</th>
+                        <th>文件大小</th>
+                        <th>上传时间</th>
+                        <th>状态</th>
+                        <th style="width: 180px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input file-checkbox" value="{{ file.id }}" onchange="updateSelectedCount()">
+                        </td>
+                        <td>{{ file.id }}</td>
+                        <td>
+                            <strong>{{ file.file_title or '-' }}</strong>
+                        </td>
+                        <td>
+                            {% if file.laboratory_name %}
+                            <span class="badge bg-primary">{{ file.laboratory_name }}</span>
+                            {% else %}
+                            <span class="text-muted">实验室 #{{ file.laboratory_id }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ file.file_name }}">
+                                {{ file.file_name or '-' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if file.file_size %}
+                            {{ "%.1f"|format(file.file_size / 1024) }} KB
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if file.created_at %}
+                            {{ file.created_at[:10] }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if file.is_public %}
+                            <span class="badge bg-success">公开</span>
+                            {% else %}
+                            <span class="badge bg-secondary">私密</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="/admin/laboratory-downloads/{{ file.id }}/download" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-download"></i> 下载
+                                </a>
+                                {% if not is_readonly %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOtherFile({{ file.id }})">
+                                    <i class="bi bi-trash"></i> 删除
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadOtherPage({{ page - 1 }})">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if files|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadOtherPage({{ page + 1 }})">下一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">共 {{ total_count }} 条</span>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-4 text-muted mb-3 d-block"></i>
+            <p class="text-muted mb-0">暂无实验室下载文件</p>
+            <p class="text-muted small">文件会在成果审核时移动到对应实验室的下载专区</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}教师管理 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>教师管理</h1>
+        <a href="{{ url_for('admin.teacher_edit') }}" class="btn btn-primary">添加教师</a>
+    </div>
+    
+    <!-- 搜索表单 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.teachers_list') }}" class="row g-3">
+                <div class="col-md-8">
+                    <label for="search" class="form-label">搜索</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ search }}" placeholder="输入姓名或工号进行搜索">
+                </div>
+                <div class="col-md-2">
+                    <label for="per_page" class="form-label">每页</label>
+                    <select class="form-select" id="per_page" name="per_page">
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">搜索</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 教师列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <span class="text-muted">共找到 {{ total_count }} 条记录</span>
+            </div>
+            
+            {% if teachers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>工号</th>
+                            <th>姓名</th>
+                            <th>部门</th>
+                            <th>职称</th>
+                            <th>电话</th>
+                            <th>激活状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ teacher.teacher_id }}</td>
+                            <td>{{ teacher.name }}</td>
+                            <td>{{ teacher.department or '-' }}</td>
+                            <td>{{ teacher.title or '-' }}</td>
+                            <td>{{ teacher.phone or '-' }}</td>
+                            <td>
+                                {% if teacher.user_activated %}
+                                    <span class="badge bg-success">已激活</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">未激活</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.teacher_edit', teacher_id=teacher.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">编辑</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteTeacher({{ teacher.id }})">删除</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            {% if total_pages > 1 %}
+            <nav aria-label="分页导航">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}{% if search %}&search={{ search }}{% endif %}">上一页</a>
+                    </li>
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ p }}</span>
+                        </li>
+                        {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ p }}&per_page={{ per_page }}{% if search %}&search={{ search }}{% endif %}">{{ p }}</a>
+                        </li>
+                        {% elif p == 4 or p == total_pages - 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}{% if search %}&search={{ search }}{% endif %}">下一页</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">暂无教师数据</p>
+                <a href="{{ url_for('admin.teacher_edit') }}" class="btn btn-primary">添加教师</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteTeacher(id) {
+    if (confirm('确定要删除这名教师吗？此操作不可恢复！')) {
+        fetch(`/admin/teachers/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+</script>
+{% endblock %}
+

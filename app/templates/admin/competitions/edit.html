@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{% if competition %}编辑竞赛{% else %}添加竞赛{% endif %} - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if competition %}编辑竞赛{% else %}添加竞赛{% endif %}</h1>
+        <div>
+            {% if competition %}
+                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="btn btn-outline-secondary">取消</a>
+            {% else %}
+                <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-outline-secondary">取消</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <form method="POST" action="{% if competition %}{{ url_for('admin.competition_edit', competition_id=competition.id) }}{% else %}{{ url_for('admin.competition_edit') }}{% endif %}">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">基本信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">竞赛名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   value="{{ competition.name if competition else '' }}" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="grade_category" class="form-label">竞赛等级</label>
+                                    <select class="form-select" id="grade_category" name="grade_category">
+                                        <option value="">请选择</option>
+                                        <option value="A类" {% if competition and competition.grade_category == 'A类' %}selected{% endif %}>A类</option>
+                                        <option value="B类" {% if competition and competition.grade_category == 'B类' %}selected{% endif %}>B类</option>
+                                        <option value="C类" {% if competition and competition.grade_category == 'C类' %}selected{% endif %}>C类</option>
+                                        <option value="其他" {% if competition and competition.grade_category == '其他' %}selected{% endif %}>其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="competition_time" class="form-label">举办时间范围</label>
+                                    <input type="text" class="form-control" id="competition_time" name="competition_time"
+                                           value="{{ competition.time_range if competition else '' }}"
+                                           placeholder="例如: 4-10月 或 每年5月">
+                                    <small class="form-text text-muted">支持格式: "4-10月"、"五月"、"每年5月"等</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="organizer" class="form-label">主办单位</label>
+                            <input type="text" class="form-control" id="organizer" name="organizer"
+                                   value="{{ competition.organizer or '' if competition else '' }}"
+                                   placeholder="例如: 教育部高等教育司">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="official_website" class="form-label">官网链接</label>
+                            <input type="url" class="form-control" id="official_website" name="official_website"
+                                   value="{{ competition.official_website or '' if competition else '' }}"
+                                   placeholder="https://example.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">竞赛简介</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ competition.description if competition else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="participant_requirements" class="form-label">参赛要求</label>
+                            <textarea class="form-control" id="participant_requirements" name="participant_requirements" rows="2"
+                                      placeholder="例如: 全日制在校大学生，以团队形式参赛">{{ competition.participant_requirements or '' if competition else '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="white_list" name="white_list"
+                                           {% if competition and competition.is_white_list %}checked{% endif %}>
+                                    <label class="form-check-label" for="white_list">
+                                        白名单赛事
+                                    </label>
+                                    <small class="form-text text-muted d-block">高含金量/官方认可的竞赛</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="watch_list" name="watch_list"
+                                           {% if competition and competition.is_watch_list %}checked{% endif %}>
+                                    <label class="form-check-label" for="watch_list">
+                                        观察名单
+                                    </label>
+                                    <small class="form-text text-muted d-block">考察期竞赛</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">别名</h5>
+                    </div>
+                    <div class="card-body">
+                        <label for="aliases" class="form-label">别名列表（用逗号分隔）</label>
+                        <input type="text" class="form-control" id="aliases" name="aliases" 
+                               value="{% if competition and competition.aliases %}{{ competition.aliases|join(', ') }}{% endif %}"
+                               placeholder="例如: 蓝桥杯, 蓝桥杯大赛, 蓝桥杯全国软件和信息技术专业人才大赛">
+                        <small class="form-text text-muted">多个别名用逗号分隔</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2">
+            {% if competition %}
+                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="btn btn-outline-secondary">取消</a>
+            {% else %}
+                <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-outline-secondary">取消</a>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

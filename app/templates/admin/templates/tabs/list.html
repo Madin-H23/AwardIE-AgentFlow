@@ -1,0 +1,61 @@
+<!-- 列表视图 -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">筛选后剩余 <strong>{{ templates|length }}</strong> 个模板</span>
+            </div>
+        </div>
+        
+        {% if templates %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>模板ID</th>
+                        <th>竞赛名称</th>
+                        <th>竞赛ID</th>
+                        <th>授予角色</th>
+                        <th>编辑状态</th>
+                        <th>关键词数量</th>
+                        <th>扩展关键词数量</th>
+                        <th>默认字段数量</th>
+                        <th>LLM字段数量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for template in templates %}
+                    <tr>
+                        <td>{{ template.id if template.id else '未保存' }}</td>
+                        <td>{{ template.get_competition_name() or '未知' }}</td>
+                        <td>{{ template.competition_id }}</td>
+                        <td>{{ template.granted_role or '未设置' }}</td>
+                        <td>
+                            {% if template.is_manual_edited %}
+                                <span class="badge bg-success">✅ 已编辑</span>
+                            {% else %}
+                                <span class="badge bg-secondary">🤖 自动生成</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ template.competition_keywords|length if template.competition_keywords else 0 }}</td>
+                        <td>{{ template.extend_keywords|length if template.extend_keywords else 0 }}</td>
+                        <td>{{ template.default_fields|length if template.default_fields else 0 }}</td>
+                        <td>{{ template.llm_fields|length if template.llm_fields else 0 }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_templates.templates_list', tab='detail', template_id=template.id, competition_id=competition_id, granted_role=granted_role) }}" 
+                               class="btn btn-sm btn-primary">查看</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            没有找到符合条件的模板
+        </div>
+        {% endif %}
+    </div>
+</div>
+

@@ -1,0 +1,875 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lab.name }} - 实验室详情 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+/* 实验室详情与管理员风格统一：内容区最大宽度一致 */
+.laboratory-detail-wrapper {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* 实验室主页样式 - 与管理员卡片风格一致 */
+.lab-header {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    min-height: 300px;
+    background: #f8f9fa;
+}
+
+.lab-header-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.lab-header-overlay {
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+    color: white;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.lab-header-content {
+    flex: 1;
+}
+
+.lab-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 4px rgba(0, 0, 0, 0.8),
+        0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.lab-header .lab-description {
+    font-size: 1.1rem;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.lab-header-actions {
+    margin-top: 1rem;
+}
+
+.lab-achievements {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bs-light, #fafafa);
+    border-radius: var(--bs-border-radius, 6px);
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+    border: 1px solid var(--bs-border-color, #d9d9d9);
+}
+
+.achievement-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: var(--bs-border-radius, 6px);
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+}
+
+.achievement-label {
+    font-size: 1.2rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.achievement-value {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--bs-primary, #1890ff);
+    line-height: 1.2;
+}
+
+.achievement-item-clickable {
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.achievement-item-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--bs-shadow, 0 4px 12px rgba(0,0,0,0.1));
+    border: 1px solid var(--bs-primary, #1890ff);
+}
+
+.achievement-item-clickable .achievement-label,
+.achievement-item-clickable .achievement-value {
+    color: inherit;
+}
+
+.achievement-item-clickable .achievement-label {
+    color: #6c757d;
+}
+
+.achievement-item-clickable .achievement-value {
+    color: var(--bs-primary, #1890ff);
+}
+
+.team-section {
+    background: white;
+    border-radius: var(--bs-border-radius, 6px);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+    border: 1px solid var(--bs-border-color, #d9d9d9);
+}
+
+.team-section h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.compact-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.compact-list-item {
+    color: #495057;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    border: 1px solid #e9ecef;
+}
+
+.activities-section {
+    background: white;
+    border-radius: var(--bs-border-radius, 6px);
+    padding: 1rem;
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+    border: 1px solid var(--bs-border-color, #d9d9d9);
+}
+
+.activities-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.activities-section h5 {
+    color: #495057;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.news-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.news-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s;
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.news-item:hover {
+    background-color: #f8f9fa;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.news-item-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.news-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #212529;
+    text-decoration: none;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.news-item-title:hover {
+    color: var(--bs-primary, #1890ff);
+    text-decoration: none;
+}
+
+.news-item-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.news-item-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+}
+
+.more-button {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.lab-images-section {
+    background: white;
+    border-radius: var(--bs-border-radius, 6px);
+    padding: 1rem;
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+    border: 1px solid var(--bs-border-color, #d9d9d9);
+}
+
+.lab-images-container {
+    overflow: hidden;
+    border-radius: var(--bs-border-radius, 6px);
+}
+
+.lab-images-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    user-select: none;
+}
+
+.lab-images-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.lab-images-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.lab-images-scroll::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.lab-images-scroll::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.lab-image-item {
+    flex-shrink: 0;
+    position: relative;
+}
+
+.lab-image-thumb {
+    width: 200px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lab-image-thumb:hover {
+    border-color: var(--bs-primary, #1890ff);
+    transform: scale(1.05);
+    box-shadow: var(--bs-shadow, 0 4px 12px rgba(0,0,0,0.1));
+}
+
+/* 成果展示卡片样式 - 与管理员卡片一致 */
+.achievements-section {
+    background: white;
+    border-radius: var(--bs-border-radius, 6px);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--bs-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+    border: 1px solid var(--bs-border-color, #d9d9d9);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.achievements-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.achievements-section h5 {
+    color: #495057;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.achievements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.achievement-item:last-child {
+    border-bottom: none;
+}
+
+.achievement-item:hover {
+    background-color: #f8f9fa;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.achievement-item-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.achievement-item-icon.award {
+    background: #fff8e6;
+    color: #f5a623;
+}
+
+.achievement-item-icon.patent {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.achievement-item-icon.software {
+    background: #f0f5ff;
+    color: #2f54eb;
+}
+
+.achievement-item-icon.innovation {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.achievement-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.achievement-item-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #212529;
+    text-align: left;
+}
+
+.achievement-item-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.achievement-item-badge {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    background: #e9ecef;
+    white-space: nowrap;
+}
+
+.achievements-more-link {
+    text-align: center;
+    margin-top: 0.75rem;
+}
+
+.achievements-more-link a {
+    color: var(--bs-primary, #1890ff);
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--bs-primary, #1890ff);
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.achievements-more-link a:hover {
+    background-color: var(--bs-primary, #1890ff);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="laboratory-detail-wrapper">
+<div class="laboratory-detail-page">
+    <!-- 面包屑 - 与管理员页面一致 -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            {% if is_admin %}
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratories_list') }}">实验室管理</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ lab.name }}</li>
+        </ol>
+    </nav>
+    <!-- 实验室头部（带封面图片） -->
+    <div class="lab-header">
+        {% if lab.cover_image %}
+        <img src="{{ url_for('static', filename=lab.cover_image) }}" alt="{{ lab.name }}" class="lab-header-cover">
+        {% endif %}
+        <div class="lab-header-overlay">
+            <div class="lab-header-content">
+                <h1>{{ lab.name }}</h1>
+                <p class="lab-description mb-0">{{ lab.description or '暂无描述' }}</p>
+            </div>
+            <div class="lab-header-actions d-flex gap-2">
+                {% if can_edit %}
+                <a href="{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-pencil"></i> 编辑
+                </a>
+                {% endif %}
+                {% if is_admin %}
+                <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid">
+        <!-- 实验室成果 -->
+        <div class="lab-achievements">
+            <a href="{{ url_for('admin_laboratory.laboratory_competitions', lab_id=lab.id) }}" class="achievement-item achievement-item-clickable">
+                <span class="achievement-label">参与竞赛数</span>
+                <span class="achievement-value">{{ statistics.competition_count }}</span>
+            </a>
+            <div class="achievement-item">
+                <span class="achievement-label">近三年国赛奖项</span>
+                <span class="achievement-value" style="color: #28a745;">{{ statistics.national_awards_3years }}</span>
+            </div>
+            <div class="achievement-item">
+                <span class="achievement-label">近三年省赛奖项</span>
+                <span class="achievement-value" style="color: #ffc107;">{{ statistics.provincial_awards_3years }}</span>
+            </div>
+        </div>
+        
+        <!-- 团队信息和成果展示 - 两列布局 -->
+        <div class="row">
+            <!-- 左侧：团队信息 -->
+            <div class="col-md-4">
+                <div class="team-section">
+                    <h6><i class="bi bi-bar-chart-line"></i> 数据分析</h6>
+                    <p class="text-muted mb-2 small">查看本实验室获奖与竞赛分析</p>
+                    {% if current_user and current_user.id %}
+                    <a href="{{ url_for('admin_laboratory.laboratory_data_analysis', lab_id=lab.id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-graph-up"></i> 进入数据分析
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login', next=request.url) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-box-arrow-in-right"></i> 登录后查看
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="team-section">
+                    <h6><i class="bi bi-person-badge"></i> 指导教师</h6>
+                    {% if lab.instructors %}
+                    <ul class="compact-list">
+                        {% for teacher in lab.instructors %}
+                        <li class="compact-list-item">{{ teacher.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0 small">暂无指导教师</p>
+                    {% endif %}
+                </div>
+
+                <div class="team-section">
+                    <h6><i class="bi bi-person-check"></i> 助教</h6>
+                    {% if lab.assistants %}
+                    <ul class="compact-list">
+                        {% for assistant in lab.assistants %}
+                        <li class="compact-list-item">{{ assistant.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0 small">暂无助教</p>
+                    {% endif %}
+                </div>
+
+                <div class="team-section">
+                    <h6><i class="bi bi-people"></i> 学生成员</h6>
+                    {% if lab.students %}
+                    <ul class="compact-list">
+                        {% for student in lab.students %}
+                        <li class="compact-list-item">{{ student.get_brief_desc() }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0 small">暂无学生成员</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 右侧：成果展示 -->
+            <div class="col-md-8">
+                <div class="achievements-section">
+                    <div class="achievements-section-header">
+                        <h5><i class="bi bi-trophy"></i> 成果展示</h5>
+                    </div>
+
+                    {% set has_achievements = lab_achievements.awards or lab_achievements.patents or lab_achievements.software or lab_achievements.innovation %}
+
+                    {% if has_achievements %}
+                    <ul class="achievements-list">
+                        <!-- 竞赛奖项 -->
+                        {% for award in lab_achievements.awards[:5] %}
+                        <li>
+                            <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="achievement-item">
+                                <div class="achievement-item-icon award">
+                                    <i class="bi bi-trophy-fill"></i>
+                                </div>
+                                <div class="achievement-item-content">
+                                    <div class="achievement-item-title">{{ award.title or '竞赛奖项' }}</div>
+                                    <div class="achievement-item-meta">
+                                        <span class="achievement-item-badge">竞赛</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+
+                        <!-- 专利 -->
+                        {% for patent in lab_achievements.patents[:5] %}
+                        {% set patent_year = patent.application_date[:4] if patent.application_date and patent.application_date|length >= 4 else '' %}
+                        {% set patent_display = [] %}
+                        {% if patent_year %}{% set _ = patent_display.append(patent_year) %}{% endif %}
+                        {% if patent.patent_name %}{% set _ = patent_display.append(patent.patent_name) %}{% endif %}
+                        {% if patent.patent_type %}{% set _ = patent_display.append(patent.patent_type) %}{% endif %}
+                        <li>
+                            <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="achievement-item">
+                                <div class="achievement-item-icon patent">
+                                    <i class="bi bi-lightbulb-fill"></i>
+                                </div>
+                                <div class="achievement-item-content">
+                                    <div class="achievement-item-title">{{ patent_display|join('_') or '专利' }}</div>
+                                    <div class="achievement-item-meta">
+                                        <span class="achievement-item-badge">专利</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+
+                        <!-- 软著 -->
+                        {% for software in lab_achievements.software[:5] %}
+                        {% set software_year = software.registration_date[:4] if software.registration_date and software.registration_date|length >= 4 else '' %}
+                        {% set software_display = [] %}
+                        {% if software_year %}{% set _ = software_display.append(software_year) %}{% endif %}
+                        {% if software.software_name %}{% set _ = software_display.append(software.software_name) %}{% endif %}
+                        <li>
+                            <a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="achievement-item">
+                                <div class="achievement-item-icon software">
+                                    <i class="bi bi-file-earmark-code-fill"></i>
+                                </div>
+                                <div class="achievement-item-content">
+                                    <div class="achievement-item-title">{{ software_display|join('_') or '软著' }}</div>
+                                    <div class="achievement-item-meta">
+                                        <span class="achievement-item-badge">软著</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+
+                        <!-- 大创 -->
+                        {% for innovation in lab_achievements.innovation[:5] %}
+                        {% set innovation_year = innovation.start_date[:4] if innovation.start_date and innovation.start_date|length >= 4 else '' %}
+                        {% set innovation_display = [] %}
+                        {% if innovation_year %}{% set _ = innovation_display.append(innovation_year) %}{% endif %}
+                        {% if innovation.project_type %}{% set _ = innovation_display.append(innovation.project_type) %}{% endif %}
+                        {% if innovation.project_name %}{% set _ = innovation_display.append(innovation.project_name) %}{% endif %}
+                        <li>
+                            <a href="{{ url_for('admin_innovation.innovation_view', project_id=innovation.id) }}" class="achievement-item">
+                                <div class="achievement-item-icon innovation">
+                                    <i class="bi bi-rocket-takeoff-fill"></i>
+                                </div>
+                                <div class="achievement-item-content">
+                                    <div class="achievement-item-title">{{ innovation_display|join('_') or '大创项目' }}</div>
+                                    <div class="achievement-item-meta">
+                                        <span class="achievement-item-badge">大创</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="achievements-more-link">
+                        <a href="{{ url_for('admin_laboratory.laboratory_achievements', lab_id=lab.id) }}">
+                            查看更多 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox empty-state-icon"></i>
+                        <p class="mb-0">暂无成果</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 实验室图片展示 -->
+        {% if lab.images %}
+        <div class="lab-images-section mt-4">
+            <h5 class="mb-3"><i class="bi bi-images"></i> 实验室图片</h5>
+            <div class="lab-images-container" id="labImagesContainer">
+                <div class="lab-images-scroll" id="labImagesScroll">
+                    {% for image_path in lab.images %}
+                    <div class="lab-image-item">
+                        {# 使用完整的 image_path 作为 URL 参数，统一转换反斜杠为正斜杠 #}
+                        {% set normalized_path = image_path.replace('\\', '/') %}
+                        {% set image_url = '/admin/files/laboratory/' + normalized_path %}
+                        <img src="{{ image_url }}"
+                             alt="实验室图片"
+                             class="lab-image-thumb"
+                             data-original-path="{{ image_path }}"
+                             onclick="showImageModal('{{ image_url }}')"
+                             onerror="handleLabImageError(this);">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- 下载专区 -->
+        {% if lab.downloads %}
+        <div class="lab-downloads-section mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-download"></i> 下载专区</h5>
+                {% if lab.downloads|length > 5 %}
+                <a href="{{ url_for('admin_laboratory.laboratory_downloads_list', lab_id=lab.id) }}" class="btn btn-sm btn-outline-primary">
+                    更多 <i class="bi bi-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            <div class="list-group">
+                {% for download in lab.downloads[:5] %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        {% set file_ext = download.file_name.split('.')[-1].lower() if download.file_name and '.' in download.file_name else '' %}
+                        {% if file_ext == 'pdf' %}
+                        <i class="bi bi-file-earmark-pdf text-danger me-2" style="font-size: 1.5rem;"></i>
+                        {% elif file_ext in ['doc', 'docx'] %}
+                        <i class="bi bi-file-earmark-word text-primary me-2" style="font-size: 1.5rem;"></i>
+                        {% elif file_ext in ['xls', 'xlsx'] %}
+                        <i class="bi bi-file-earmark-excel text-success me-2" style="font-size: 1.5rem;"></i>
+                        {% elif file_ext in ['ppt', 'pptx'] %}
+                        <i class="bi bi-file-earmark-ppt text-warning me-2" style="font-size: 1.5rem;"></i>
+                        {% elif file_ext in ['zip', 'rar', '7z'] %}
+                        <i class="bi bi-file-earmark-zip text-secondary me-2" style="font-size: 1.5rem;"></i>
+                        {% else %}
+                        <i class="bi bi-file-earmark text-muted me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        <div>
+                            <a href="{{ url_for('admin_laboratory.laboratory_download_file', lab_id=lab.id, download_id=download.id) }}" 
+                               class="fw-bold text-decoration-none text-dark">
+                                {{ download.file_title or download.file_name }}
+                            </a>
+                            <small class="text-muted d-block">
+                                {% if download.file_size %}
+                                {{ "%.2f"|format(download.file_size / 1024) }} KB
+                                {% endif %}
+                                {% if download.created_at %}
+                                · {{ download.created_at[:10] }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_laboratory.laboratory_download_file', lab_id=lab.id, download_id=download.id) }}" 
+                       class="btn btn-sm btn-outline-primary" title="下载文件">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 图片查看模态框 -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">查看图片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="实验室图片" class="img-fluid" style="max-height: 70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+</div><!-- /.laboratory-detail-wrapper -->
+
+<script>
+// 图片拖动查看功能（参考百度百科）
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
+const labImagesScroll = document.getElementById('labImagesScroll');
+
+if (labImagesScroll) {
+    // 鼠标按下
+    labImagesScroll.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX - labImagesScroll.offsetLeft;
+        scrollLeft = labImagesScroll.scrollLeft;
+        labImagesScroll.style.cursor = 'grabbing';
+    });
+    
+    // 鼠标移动
+    labImagesScroll.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - labImagesScroll.offsetLeft;
+        const walk = (x - startX) * 2; // 拖动速度
+        labImagesScroll.scrollLeft = scrollLeft - walk;
+    });
+    
+    // 鼠标释放
+    labImagesScroll.addEventListener('mouseup', () => {
+        isDragging = false;
+        labImagesScroll.style.cursor = 'grab';
+    });
+    
+    // 鼠标离开
+    labImagesScroll.addEventListener('mouseleave', () => {
+        isDragging = false;
+        labImagesScroll.style.cursor = 'grab';
+    });
+    
+    // 设置初始光标
+    labImagesScroll.style.cursor = 'grab';
+}
+
+// 显示图片模态框
+function showImageModal(imageSrc) {
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    document.getElementById('modalImage').src = imageSrc;
+    modal.show();
+}
+
+// 处理实验室图片加载错误
+function handleLabImageError(img) {
+    const filename = img.getAttribute('data-filename');
+    const originalPath = img.getAttribute('data-original-path');
+    const currentSrc = img.src;
+
+    console.error('实验室图片加载失败:', {
+        '当前URL': currentSrc,
+        '文件名': filename,
+        '原始路径': originalPath
+    });
+
+    // 尝试使用备用URL（仅文件名）
+    if (filename) {
+        const fallbackUrl = `/admin/files/laboratory/${filename}`;
+        if (fallbackUrl !== currentSrc) {
+            console.log('尝试备用URL:', fallbackUrl);
+            img.src = fallbackUrl;
+            return;
+        }
+    }
+
+    // 如果备用URL也失败，显示占位符
+    img.onerror = null; // 防止无限循环
+    img.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3E图片加载失败%3C/text%3E%3C/svg%3E';
+}
+</script>
+{% endblock %}

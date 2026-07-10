@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}其他文件管理 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">其他文件管理</h1>
+    <div>
+        <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="btn btn-primary">
+            <i class="bi bi-upload"></i> 上传文件
+        </a>
+    </div>
+</div>
+
+<!-- 筛选卡片 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">文件类型</label>
+                <input type="text" name="file_type" class="form-control" value="{{ filter_obj.file_type or '' }}" placeholder="输入文件类型">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">仅显示图片</label>
+                <select name="is_image" class="form-select">
+                    <option value="">全部</option>
+                    <option value="1" {% if filter_obj.is_image == true %}selected{% endif %}>仅图片</option>
+                    <option value="0" {% if filter_obj.is_image == false %}selected{% endif %}>非图片</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">实验室</label>
+                <select name="laboratory_id" class="form-select">
+                    <option value="">全部</option>
+                    {% for lab in laboratories %}
+                    <option value="{{ lab.id }}" {% if filter_obj.laboratory_id == lab.id %}selected{% endif %}>{{ lab.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <a href="{{ url_for('admin_other_files.other_files_list') }}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 文件列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if files %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>文件名</th>
+                        <th>类型</th>
+                        <th>大小</th>
+                        <th>图片</th>
+                        <th>实验室</th>
+                        <th>提交人</th>
+                        <th>上传时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>{{ file.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_other_files.other_files_view', file_id=file.id) }}" class="text-decoration-none">
+                                {{ file.file_name }}
+                            </a>
+                        </td>
+                        <td>{{ file.file_type or '-' }}</td>
+                        <td>
+                            {% if file.file_size %}
+                            {{ "%.2f KB"|format(file.file_size / 1024) }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if file.is_image %}
+                            <span class="badge bg-info">是</span>
+                            {% else %}
+                            <span class="text-muted">否</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ file.laboratory_id or '-' }}</td>
+                        <td>
+                            {{ file.submitter_type or '-' }}
+                            {% if file.submitter_id %}#{{ file.submitter_id }}{% endif %}
+                        </td>
+                        <td>{{ file.submit_time or '-' }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_other_files.other_files_view', file_id=file.id) }}" class="btn btn-outline-primary">查看</a>
+                                <a href="{{ url_for('admin_other_files.other_files_download', file_id=file.id) }}" class="btn btn-outline-secondary">下载</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if files|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无文件数据</p>
+            <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="btn btn-primary">上传第一个文件</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+</style>
+{% endblock %}

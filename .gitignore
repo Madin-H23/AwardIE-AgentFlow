@@ -1,0 +1,113 @@
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Flask
+instance/
+.webassets-cache
+
+
+# 环境变量（含真实 API Key，绝不可提交）
+.env
+.env.local
+.env.*
+
+# API 密钥
+apikey/
+apikey/apikey.json
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.swp
+*.swo
+*~
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 输出/报告（含评测结果等）
+output/
+reports/
+
+# 上传文件（真实奖状图片，含真实姓名，绝不可提交）
+files/
+images_files/
+
+# 数据库（含真实师生数据，绝不可提交）
+database/*.db
+database/*.db-journal
+database/*.db-wal
+database/*.db-shm
+
+# 向量库（Chroma 持久化数据，体积大且可重建）
+database/chroma/
+
+# 测试用真实奖状图片（含真实姓名）
+tests/test_images/
+tests/fixtures/*.jpg
+tests/fixtures/*.png
+tests/fixtures/*.jpeg
+tests/fixtures/*.jfif
+
+# docs 下的测试奖状图片（含真实姓名）
+docs/测试/测试文件/*.jpg
+docs/测试/测试文件/*.png
+docs/测试/测试文件/*.jpeg
+docs/测试/测试文件/*.jfif
+
+# 真实业务数据包（竞赛汇总 xlsx 等）
+data/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Git Worktrees
+.worktrees/
+worktrees/
+nul
+
+# 缺陷跟踪表（非代码）
+bugfix.xlsx
+# ZCode 会话文件
+.zcode/
+
+# 测试夹具中的数据文件（可能含真实联系方式）
+tests/fixtures/*.xlsx
+tests/fixtures/*.csv
+
+# 测试报告（自动生成，无需提交）
+tests/reports/
+
+# docs 内部开发文档（暴露开发过程，不该给面试官看）
+docs/AI编程记录/
+docs/TODO/
+docs/modifications/
+docs/问题分析/
+docs/plans/
+docs/迁移/
+
+# 历史压缩包（已迁移的旧代码）
+backend/document_extract.rar
+
+# 数据库迁移脚本（可选保留，体积小但非面试重点）
+# database/migrations/

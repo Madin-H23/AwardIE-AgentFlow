@@ -1,0 +1,2105 @@
+{% extends "base.html" %}
+
+{% block title %}成果/文件导入 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    .upload-zone {
+        border: 2px dashed #d9d9d9;
+        border-radius: 8px;
+        padding: 60px 20px;
+        text-align: center;
+        background-color: #fafafa;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: #1890ff;
+        background-color: #e6f7ff;
+    }
+    .upload-icon {
+        font-size: 48px;
+        color: #bfbfbf;
+        margin-bottom: 16px;
+    }
+    .file-list {
+        margin-top: 20px;
+    }
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background-color: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+    .file-item .file-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .file-item .file-icon {
+        font-size: 24px;
+        color: #1890ff;
+    }
+    .file-item .remove-btn {
+        color: #ff4d4f;
+        cursor: pointer;
+        font-size: 18px;
+    }
+    .upload-btn {
+        margin-top: 20px;
+    }
+    .supported-formats {
+        margin-top: 16px;
+        color: #8c8c8c;
+        font-size: 14px;
+    }
+    .upload-progress {
+        margin-top: 20px;
+        display: none;
+    }
+    .progress {
+        height: 24px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+        font-weight: 600;
+        line-height: 24px;
+        transition: width 0.3s ease;
+    }
+    .upload-status {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #495057;
+    }
+</style>
+
+<!-- jQuery (Select2依赖) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">成果/文件导入</h2>
+
+            <!-- 模式切换选项卡 -->
+            <ul class="nav nav-tabs mb-4" id="importModeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="autoModeTab" data-bs-toggle="tab" data-bs-target="#autoImportContent" type="button" role="tab">
+                        <i class="bi bi-magic"></i> 自动导入
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manualModeTab" data-bs-toggle="tab" data-bs-target="#manualImportContent" type="button" role="tab">
+                        <i class="bi bi-pencil-square"></i> 手动导入
+                    </button>
+                </li>
+            </ul>
+
+            <!-- 自动导入内容区 -->
+            <div class="tab-content">
+            <div id="autoImportContent" class="tab-pane fade show active import-mode-content">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">成果/文件导入</h5>
+
+                    <!-- 导入模式选择 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="importMode" id="modeFile" value="file" checked>
+                                <label class="btn btn-outline-primary" for="modeFile">
+                                    <i class="bi bi-file-earmark"></i> 文件上传
+                                </label>
+
+                                <input type="radio" class="btn-check" name="importMode" id="modeDirectory" value="directory">
+                                <label class="btn btn-outline-primary" for="modeDirectory">
+                                    <i class="bi bi-folder"></i> 目录扫描
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件上传模式 -->
+                    <div id="fileUploadMode">
+                        <!-- 上传区域 -->
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📁</div>
+                            <p>点击或拖拽文件到此处上传</p>
+                            <p class="supported-formats">
+                                支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）
+                            </p>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- 目录扫描模式 -->
+                    <div id="directoryScanMode" style="display: none;">
+                        <div class="upload-zone" id="directoryZone">
+                            <div class="upload-icon">📂</div>
+                            <p>点击选择要扫描的目录</p>
+                            <p class="supported-formats">
+                                系统会自动扫描该目录及其所有子目录中的文件<br>
+                                支持格式：PDF、JPG、PNG、Excel
+                            </p>
+                            <input type="file" id="directoryInput" webkitdirectory directory multiple style="display: none;">
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>提示：</strong>目录扫描会递归处理所有子目录，请确保选择的目录中包含您想要导入的文件。
+                        </div>
+                    </div>
+
+                    <!-- 文件列表 -->
+                    <div class="file-list" id="fileList" style="display: none;">
+                        <h6>已选择的文件：</h6>
+                        <div id="fileItems"></div>
+                    </div>
+
+                    <!-- 缓存选项 -->
+                    <div class="cache-options mt-3 mb-3 p-3 bg-light rounded border">
+                        <h6 class="mb-3">缓存设置</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="useOcrCache" checked>
+                                    <label class="form-check-label" for="useOcrCache">
+                                        <i class="bi bi-eye"></i> 使用OCR缓存
+                                    </label>
+                                    <small class="form-text text-muted d-block">使用已缓存的结果可提高识别速度</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="useLlmCache" checked>
+                                    <label class="form-check-label" for="useLlmCache">
+                                        <i class="bi bi-robot"></i> 使用LLM缓存
+                                    </label>
+                                    <small class="form-text text-muted d-block">使用已缓存的结果可提高识别速度</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 学生实验室关联设置 -->
+                    <div class="lab-association-options mt-3 mb-3 p-3 bg-light rounded border">
+                        <h6 class="mb-3">学生实验室关联设置</h6>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="labAssociationMode" id="labModeAuto" value="auto" checked>
+                                    <label class="form-check-label" for="labModeAuto">
+                                        <i class="bi bi-magic"></i> 自动关联学生实验室（按照第一导师）
+                                    </label>
+                                    <small class="form-text text-muted d-block">根据奖状中的第一指导教师自动关联到其所属实验室</small>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="labAssociationMode" id="labModeSpecific" value="specific">
+                                    <label class="form-check-label" for="labModeSpecific">
+                                        <i class="bi bi-building"></i> 设置当前批次数据的学生实验室
+                                    </label>
+                                    <small class="form-text text-muted d-block">为本批次所有成果指定同一个实验室</small>
+                                </div>
+                                <div class="ms-4 mt-2" id="specificLaboratorySelect" style="display: none;">
+                                    <select class="form-select" id="specificLaboratory">
+                                        <option value="">请选择实验室...</option>
+                                    </select>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="radio" name="labAssociationMode" id="labModeNone" value="none">
+                                    <label class="form-check-label" for="labModeNone">
+                                        <i class="bi bi-x-circle"></i> 不关联
+                                    </label>
+                                    <small class="form-text text-muted d-block">不关联实验室，保持为空</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 指定指导教师设置 -->
+                    <div class="supervisor-options mt-3 mb-3 p-3 bg-light rounded border">
+                        <h6 class="mb-3">指导教师设置</h6>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="useDefaultSupervisor">
+                                    <label class="form-check-label" for="useDefaultSupervisor">
+                                        <i class="bi bi-person-plus"></i> 指定指导教师（奖状信息缺失时）
+                                    </label>
+                                    <small class="form-text text-muted d-block">当奖状解析后指导教师信息缺失时，自动使用指定的值补充</small>
+                                </div>
+                                <div class="mt-2" id="defaultSupervisorInput" style="display: none;">
+                                    <input type="text" class="form-control" id="supervisorName" placeholder="输入指导教师姓名（多个教师用逗号分隔）">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 上传按钮 -->
+                    <div class="upload-btn text-center">
+                        <button class="btn btn-primary btn-lg" id="uploadBtn" disabled>
+                            开始上传并识别
+                        </button>
+                    </div>
+
+                    <!-- 上传进度条 -->
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                        <div class="upload-status text-center" id="uploadStatus">
+                            准备上传...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 说明信息 -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">功能说明</h6>
+                    <ul class="mb-0">
+                        <li><strong>文件上传模式：</strong>支持批量上传多个文件，或拖拽文件到上传区域</li>
+                        <li><strong>目录扫描模式：</strong>选择本地目录后，系统会自动扫描该目录及所有子目录中的文件</li>
+                        <li>支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）</li>
+                        <li>系统会自动识别文件类型（奖状、专利、软著、大创项目）</li>
+                        <li>识别完成后会跳转到结果处理页面</li>
+                        <li>您可以在结果页面逐个审核、编辑或批量导入</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>  <!-- end autoImportContent -->
+
+<!-- 手动导入内容区 -->
+<div id="manualImportContent" class="tab-pane fade import-mode-content">
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-trophy"></i> 奖状手动导入</h5>
+            <p class="text-muted mb-0">上传奖状证书图片，系统将自动解析并填充信息</p>
+        </div>
+    </div>
+
+    <!-- 奖状上传+解析区 -->
+    <div id="manualUploadSection" class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">上传文件</h5>
+            <p class="text-muted">上传奖状证书图片，系统将自动解析并填充信息</p>
+
+            <!-- 成果类型选择 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">成果类型 <span class="text-danger">*</span></label>
+                <div class="btn-group w-100" role="group" aria-label="成果类型">
+                    <input type="radio" class="btn-check" name="manualType" id="manualTypeAward" value="award" checked>
+                    <label class="btn btn-outline-primary" for="manualTypeAward">
+                        <i class="bi bi-trophy"></i> 奖状
+                    </label>
+
+                    <input type="radio" class="btn-check" name="manualType" id="manualTypePatent" value="patent">
+                    <label class="btn btn-outline-primary" for="manualTypePatent">
+                        <i class="bi bi-file-earmark-text"></i> 专利
+                    </label>
+
+                    <input type="radio" class="btn-check" name="manualType" id="manualTypeSoftware" value="software">
+                    <label class="btn btn-outline-primary" for="manualTypeSoftware">
+                        <i class="bi bi-file-code"></i> 软著
+                    </label>
+                </div>
+                <small class="form-text text-muted">请选择要导入的成果类型</small>
+            </div>
+
+            <!-- 缓存设置 -->
+            <div class="cache-options mt-3 mb-3 p-3 bg-light rounded border">
+                <h6 class="mb-3">缓存设置</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="manualUseOcrCache" checked>
+                            <label class="form-check-label" for="manualUseOcrCache">
+                                <i class="bi bi-eye"></i> 使用OCR缓存
+                            </label>
+                            <small class="form-text text-muted d-block">使用已缓存的结果可提高识别速度</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="manualUseLlmCache" checked>
+                            <label class="form-check-label" for="manualUseLlmCache">
+                                <i class="bi bi-robot"></i> 使用LLM缓存
+                            </label>
+                            <small class="form-text text-muted d-block">使用已缓存的结果可提高识别速度</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-zone" id="manualUploadZone" style="padding: 40px 20px;">
+                <div class="upload-icon">📁</div>
+                <p>点击或拖拽文件到此处上传</p>
+                <p class="supported-formats">支持格式：PDF、JPG、PNG（奖状证书）</p>
+                <input type="file" id="manualFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+            </div>
+
+            <div id="parseStatus" style="display: none;" class="mt-3">
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>正在解析文件，请稍候...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑表单区 -->
+    <div id="manualFormSection" class="card mb-3" style="display: none;">
+        <div class="card-body">
+            <h5 class="card-title">编辑信息</h5>
+            <p class="text-muted">请核对并修正以下信息</p>
+
+            <form id="manualEditForm">
+                <div class="mb-3">
+                    <label for="parsedResult" class="form-label">解析结果（JSON）</label>
+                    <textarea class="form-control" id="parsedResult" rows="5" readonly></textarea>
+                    <small class="form-text text-muted">这是系统自动识别的结果，请在下方表单中进行修改</small>
+                </div>
+
+                <div id="formFieldsContainer">
+                    <!-- 动态加载的表单字段将放在这里 -->
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitManual">
+                        <i class="bi bi-check-lg"></i> 提交审核
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnCancelManual">
+                        <i class="bi bi-x-lg"></i> 取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>  <!-- end manualImportContent -->
+
+<!-- 确认弹窗 -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">提示</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                <!-- 动态内容 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>  <!-- end tab-content -->
+
+<!-- 提示框 -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <div id="alertPlaceholder" class="toast-container"></div>
+</div>
+
+<!-- Select2 JS -->
+<script src="https://unpkg.com/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+// Prevent interference from common.js global event listeners
+(function() {
+    'use strict';
+    
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const directoryZone = document.getElementById('directoryZone');
+    const fileInput = document.getElementById('fileInput');
+    const directoryInput = document.getElementById('directoryInput');
+    const fileList = document.getElementById('fileList');
+    const fileItems = document.getElementById('fileItems');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const modeFile = document.getElementById('modeFile');
+    const modeDirectory = document.getElementById('modeDirectory');
+    const fileUploadMode = document.getElementById('fileUploadMode');
+    const directoryScanMode = document.getElementById('directoryScanMode');
+
+    if (!uploadZone || !fileInput || !fileList || !fileItems || !uploadBtn) {
+        console.error('上传页面元素未找到');
+        return;
+    }
+
+    let selectedFiles = [];
+    let currentMode = 'file'; // 'file' or 'directory'
+    let laboratories = []; // 缓存实验室列表
+
+    // === 实验室关联模式切换 ===
+    const labModeAuto = document.getElementById('labModeAuto');
+    const labModeSpecific = document.getElementById('labModeSpecific');
+    const labModeNone = document.getElementById('labModeNone');
+    const specificLaboratorySelect = document.getElementById('specificLaboratorySelect');
+    const specificLaboratory = document.getElementById('specificLaboratory');
+
+    function updateLabModeDisplay() {
+        if (labModeSpecific && labModeSpecific.checked) {
+            specificLaboratorySelect.style.display = 'block';
+        } else {
+            specificLaboratorySelect.style.display = 'none';
+        }
+    }
+
+    if (labModeAuto) labModeAuto.addEventListener('change', updateLabModeDisplay);
+    if (labModeSpecific) labModeSpecific.addEventListener('change', updateLabModeDisplay);
+    if (labModeNone) labModeNone.addEventListener('change', updateLabModeDisplay);
+
+    // === 加载实验室列表 ===
+    function loadLaboratories() {
+        fetch('/admin/api/laboratories')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.laboratories) {
+                    laboratories = data.laboratories;
+                    // 清空现有选项
+                    if (specificLaboratory) {
+                        specificLaboratory.innerHTML = '<option value="">请选择实验室...</option>';
+                        data.laboratories.forEach(lab => {
+                            const option = document.createElement('option');
+                            option.value = lab.id;
+                            option.textContent = lab.name;
+                            specificLaboratory.appendChild(option);
+                        });
+                    }
+                    console.log('实验室列表加载成功:', data.laboratories);
+                } else {
+                    console.error('获取实验室列表失败:', data);
+                }
+            })
+            .catch(error => {
+                console.error('获取实验室列表出错:', error);
+            });
+    }
+
+    // 页面加载时获取实验室列表
+    loadLaboratories();
+
+    // === 指定指导教师开关切换 ===
+    const useDefaultSupervisor = document.getElementById('useDefaultSupervisor');
+    const defaultSupervisorInput = document.getElementById('defaultSupervisorInput');
+
+    if (useDefaultSupervisor) {
+        useDefaultSupervisor.addEventListener('change', (e) => {
+            if (defaultSupervisorInput) {
+                defaultSupervisorInput.style.display = e.target.checked ? 'block' : 'none';
+            }
+        });
+    }
+
+    // === 获取实验室关联模式 ===
+    function getLabAssociationMode() {
+        if (labModeAuto && labModeAuto.checked) return 'auto';
+        if (labModeNone && labModeNone.checked) return 'none';
+        if (labModeSpecific && labModeSpecific.checked) {
+            if (specificLaboratory && specificLaboratory.value) {
+                let labValue = specificLaboratory.value.trim();
+                // 防御性处理：如果值已经包含 'specific:' 前缀，则提取最后一个冒号后的数字
+                if (labValue.includes(':')) {
+                    const parts = labValue.split(':');
+                    labValue = parts[parts.length - 1]; // 取最后一个部分
+                }
+                // 确保是纯数字
+                if (/^\d+$/.test(labValue)) {
+                    return 'specific:' + labValue;  // 格式: "specific:lab_id"
+                } else {
+                    console.warn('[文件导入] 实验室ID格式不正确:', specificLaboratory.value);
+                    return 'none'; // 格式不正确时，默认为none
+                }
+            }
+            return 'none'; // 如果选择specific但未选择实验室，默认为none
+        }
+        return 'auto'; // 默认自动关联
+    }
+
+    // === 获取指定指导教师 ===
+    function getDefaultSupervisorName() {
+        if (useDefaultSupervisor && useDefaultSupervisor.checked) {
+            const input = document.getElementById('supervisorName');
+            if (input) {
+                return input.value.trim();
+            }
+        }
+        return '';
+    }
+
+    // 模式切换
+    modeFile.addEventListener('change', () => {
+        if (modeFile.checked) {
+            currentMode = 'file';
+            fileUploadMode.style.display = 'block';
+            directoryScanMode.style.display = 'none';
+            selectedFiles = [];
+            updateFileList();
+        }
+    });
+
+    modeDirectory.addEventListener('change', () => {
+        if (modeDirectory.checked) {
+            currentMode = 'directory';
+            fileUploadMode.style.display = 'none';
+            directoryScanMode.style.display = 'block';
+            selectedFiles = [];
+            updateFileList();
+        }
+    });
+
+    // 点击文件上传区域
+    uploadZone.addEventListener('click', (e) => {
+        e.stopImmediatePropagation();
+        if (currentMode === 'file') {
+            fileInput.click();
+        }
+    });
+
+    // 点击目录扫描区域
+    if (directoryZone) {
+        directoryZone.addEventListener('click', (e) => {
+            e.stopImmediatePropagation();
+            if (currentMode === 'directory') {
+                directoryInput.click();
+            }
+        });
+    }
+
+    // 文件选择
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    // 目录选择
+    if (directoryInput) {
+        directoryInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+    }
+
+    // 拖拽上传（仅在文件模式下）
+    uploadZone.addEventListener('dragover', (e) => {
+        if (currentMode === 'file') {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        if (currentMode === 'file') {
+            uploadZone.classList.remove('dragover');
+        }
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        if (currentMode === 'file') {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        }
+    });
+
+    // Handle files
+    function handleFiles(files) {
+        if (!files || files.length === 0) return;
+
+        const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+        // 过滤支持的文件类型
+        const supportedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'xls'];
+        let addedCount = 0;
+        let skippedCount = 0;
+
+        for (let file of files) {
+            // 检查文件扩展名
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!supportedExtensions.includes(ext)) {
+                skippedCount++;
+                continue;
+            }
+
+            // 检查文件大小
+            if (file.size > MAX_FILE_SIZE) {
+                const fileSize = formatFileSize(file.size);
+                showAlert('文件 "' + file.name + '" 大小超过限制 (' + fileSize + ' > 50MB)，请压缩后重试', 'danger');
+                continue;
+            }
+
+            const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+            if (!exists) {
+                selectedFiles.push(file);
+                addedCount++;
+            }
+        }
+
+        // 显示添加结果
+        if (addedCount > 0) {
+            showAlert(`成功添加 ${addedCount} 个文件${skippedCount > 0 ? `（跳过 ${skippedCount} 个不支持的文件）` : ''}`, 'success');
+        } else if (skippedCount > 0) {
+            showAlert(`没有支持的文件（跳过 ${skippedCount} 个文件）`, 'warning');
+        }
+
+        updateFileList();
+    }
+
+    // Update file list display
+    function updateFileList() {
+        if (!fileList || !fileItems || !uploadBtn) {
+            console.error('页面元素未找到');
+            return;
+        }
+
+        if (selectedFiles.length === 0) {
+            fileList.style.display = 'none';
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '开始上传并识别';
+            return;
+        }
+
+        fileList.style.display = 'block';
+        uploadBtn.disabled = false;
+        const modeText = currentMode === 'directory' ? '目录扫描' : '上传';
+        uploadBtn.innerHTML = `开始${modeText}并识别 (${selectedFiles.length}个文件)`;
+
+        // 在目录模式下，显示目录路径信息
+        let directoryPath = '';
+        if (currentMode === 'directory' && selectedFiles.length > 0) {
+            // 从第一个文件的webkitRelativePath获取目录路径
+            directoryPath = selectedFiles[0].webkitRelativePath.split('/')[0];
+        }
+
+        let headerHTML = '<h6>已选择的文件：</h6>';
+        if (directoryPath) {
+            headerHTML += `<p class="text-muted small mb-2"><i class="bi bi-folder"></i> 目录: ${directoryPath}</p>`;
+        }
+
+        fileItems.innerHTML = headerHTML + selectedFiles.map((file, index) => {
+            const icon = getFileIcon(file.name);
+            // 在目录模式下显示相对路径
+            const displayName = currentMode === 'directory' && file.webkitRelativePath
+                ? file.webkitRelativePath
+                : file.name;
+
+            return `
+                <div class="file-item">
+                    <div class="file-info">
+                        <span class="file-icon">${icon}</span>
+                        <span style="word-break: break-all;">${displayName}</span>
+                        <span class="text-muted">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <span class="remove-btn" onclick="window.removeFile(${index})" style="cursor: pointer;">&times;</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Remove file
+    window.removeFile = function(index) {
+        if (index >= 0 && index < selectedFiles.length) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+    };
+
+    // Get file icon
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const icons = {
+            'pdf': '📄',
+            'jpg': '🖼️',
+            'jpeg': '🖼️',
+            'png': '🖼️',
+            'xlsx': '📊',
+            'xls': '📊'
+        };
+        return icons[ext] || '📁';
+    }
+
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Show alert
+    function showAlert(message, type = 'info') {
+        const alertPlaceholder = document.getElementById('alertPlaceholder');
+        const alertHTML = `
+            <div class="toast show align-items-center text-white bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        alertPlaceholder.innerHTML = alertHTML;
+        setTimeout(() => {
+            alertPlaceholder.innerHTML = '';
+        }, 3000);
+    }
+
+    // Upload file
+    uploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (selectedFiles.length === 0) {
+            showAlert('请先选择要上传的文件', 'warning');
+            return;
+        }
+
+        if (uploadBtn.disabled) {
+            return; // If button disabled, skip upload
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>上传中...';
+
+        // Show progress bar
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        if (uploadProgress) {
+            uploadProgress.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+        }
+        if (uploadStatus) {
+            uploadStatus.textContent = 'Uploading file...';
+        }
+
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const useOcrCacheEl = document.getElementById('useOcrCache');
+        const useLlmCacheEl = document.getElementById('useLlmCache');
+
+        if (!useOcrCacheEl || !useLlmCacheEl) {
+            showAlert('缓存选项未找到', 'warning');
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+            if (uploadProgress) uploadProgress.style.display = 'none';
+            return;
+        }
+
+        formData.append('use_ocr_cache', useOcrCacheEl.checked ? '1' : '0');
+        formData.append('use_llm_cache', useLlmCacheEl.checked ? '1' : '0');
+
+        // 添加实验室关联模式和指定指导教师
+        const labAssociationMode = getLabAssociationMode();
+        const defaultSupervisorName = getDefaultSupervisorName();
+        console.log('[DEBUG] 上传参数:', {
+            lab_association_mode: labAssociationMode,
+            default_supervisor_name: defaultSupervisorName
+        });
+        formData.append('lab_association_mode', labAssociationMode);
+        formData.append('default_supervisor_name', defaultSupervisorName);
+
+        // 生成 task_id 供服务端与进度接口使用，解析阶段可轮询进度
+        const taskId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+        formData.append('task_id', taskId);
+
+        let progressPollTimer = null;
+        function stopProgressPoll() {
+            if (progressPollTimer) {
+                clearInterval(progressPollTimer);
+                progressPollTimer = null;
+            }
+        }
+        function startProgressPoll() {
+            progressPollTimer = setInterval(function() {
+                fetch('/admin/file-import/progress?task_id=' + encodeURIComponent(taskId))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'processing' || data.status === 'completed') {
+                            const total = data.total || 1;
+                            const current = data.current || 0;
+                            const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                            if (progressBar) {
+                                progressBar.style.width = pct + '%';
+                                progressBar.textContent = pct + '%';
+                            }
+                            if (uploadStatus) {
+                                uploadStatus.textContent = data.current_step || ('正在解析 ' + current + '/' + total);
+                            }
+                        }
+                    })
+                    .catch(function() {});
+            }, 1000);
+        }
+
+        // 使用 XMLHttpRequest 以支持进度监控
+        const xhr = new XMLHttpRequest();
+
+        // Listen for upload progress（仅反映上传字节；解析阶段由轮询驱动）
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
+                if (progressBar) {
+                    progressBar.style.width = percentComplete + '%';
+                    progressBar.textContent = percentComplete + '%';
+                }
+                if (uploadStatus) {
+                    uploadStatus.textContent = percentComplete >= 100
+                        ? '上传完成，正在解析...'
+                        : `上传中 ${percentComplete}% (${formatFileSize(e.loaded)} / ${formatFileSize(e.total)})`;
+                }
+            }
+        });
+
+        // Listen for upload completion
+        xhr.addEventListener('load', () => {
+            stopProgressPoll();
+            if (xhr.status === 200) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+
+                    if (result.success) {
+                        uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>处理完成';
+
+                        if (progressBar) {
+                            progressBar.style.width = '100%';
+                            progressBar.textContent = '100%';
+                            progressBar.classList.remove('progress-bar-animated');
+                            progressBar.style.background = 'linear-gradient(90deg, #52c41a 0%, #73d13d 100%)';
+                        }
+                        if (uploadStatus) {
+                            uploadStatus.textContent = '处理完成，即将跳转...';
+                        }
+
+                        showAlert(`成功处理 ${result.uploaded_count} 个文件，即将跳转结果页`, 'success');
+
+                        setTimeout(() => {
+                            if (result.redirect_url) {
+                                window.location.href = result.redirect_url;
+                            } else {
+                                window.location.href = '/admin/file-import/results?session_id=' + result.import_session_id;
+                            }
+                        }, 1500);
+                    } else {
+                        showAlert(result.message || '上传失败', 'danger');
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+                        if (uploadProgress) uploadProgress.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('解析响应失败:', error);
+                    showAlert('服务器响应格式错误', 'danger');
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+                    if (uploadProgress) uploadProgress.style.display = 'none';
+                }
+            } else {
+                showAlert(`上传失败: HTTP ${xhr.status}`, 'danger');
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+                if (uploadProgress) uploadProgress.style.display = 'none';
+            }
+        });
+
+        // Listen for upload error
+        xhr.addEventListener('error', () => {
+            stopProgressPoll();
+            console.error('上传错误:', xhr.statusText);
+            showAlert('上传失败: 网络错误', 'danger');
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+            if (uploadProgress) uploadProgress.style.display = 'none';
+        });
+
+        xhr.addEventListener('abort', () => {
+            stopProgressPoll();
+            showAlert('上传已取消', 'warning');
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `开始上传并识别(${selectedFiles.length} 个文件)`;
+            if (uploadProgress) uploadProgress.style.display = 'none';
+        });
+
+        xhr.open('POST', '/admin/file-import/upload');
+        xhr.send(formData);
+        startProgressPoll();
+    });
+
+    // Debug info
+    console.log('文件上传页面初始化完成');
+    console.log('按钮状态:', uploadBtn.disabled ? '禁用' : '启用');
+});  // end DOMContentLoaded
+})();  // end IIFE (auto import)
+
+// ==========================================
+// Manual import - Global helper functions
+// ==========================================
+
+// ==========================================
+// Manual import - Main logic(IIFE)
+// ==========================================
+(function() {
+    'use strict';
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[DEBUG] DOMContentLoaded fired');
+    console.log('[DEBUG] initManualImport function exists:', typeof initManualImport);
+
+    initManualImport();
+
+    const manualModeTab = document.getElementById('manualModeTab');
+    if (manualModeTab) {
+        manualModeTab.addEventListener('shown.bs.tab', function() {
+            console.log('[DEBUG] Manual mode tab shown, re-initializing upload zone');
+            // 确保上传区域的事件绑定正确
+            setupManualUploadZone();
+        });
+    }
+});
+
+let manualImportInitialized = false;
+function initManualImport() {
+    console.log('[DEBUG] initManualImport called');
+    // Prevent duplicate initialization
+    if (manualImportInitialized) {
+        console.log('[DEBUG] Already initialized, skipping');
+        return;
+    }
+    manualImportInitialized = true;
+    const manualTypeInputs = document.querySelectorAll('input[name="manualType"]');
+    const manualUploadSection = document.getElementById('manualUploadSection');
+
+    manualTypeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const type = this.value;
+            if (manualUploadSection) manualUploadSection.style.display = 'block';
+        });
+    });
+
+    // 初始化上传区域
+    setupManualUploadZone();
+}
+
+let uploadedFilePath = null;
+let manualUploadZoneInitialized = false;
+
+function setupManualUploadZone() {
+    // 防止重复初始化
+    if (manualUploadZoneInitialized) {
+        console.log('[DEBUG] setupManualUploadZone already initialized, skipping');
+        return;
+    }
+
+    const manualUploadZone = document.getElementById('manualUploadZone');
+    const manualFileInput = document.getElementById('manualFileInput');
+    const parseStatus = document.getElementById('parseStatus');
+
+    console.log('[DEBUG] setupManualUploadZone called');
+    console.log('[DEBUG] manualUploadZone:', manualUploadZone);
+    console.log('[DEBUG] manualFileInput:', manualFileInput);
+
+    if (!manualUploadZone || !manualFileInput) {
+        console.warn('[DEBUG] manualUploadZone or manualFileInput not found');
+        return;
+    }
+
+    // 立即设置标志位，防止重复绑定
+    manualUploadZoneInitialized = true;
+    console.log('[DEBUG] manualUploadZoneInitialized set to true');
+
+    // 创建点击处理函数（只创建一次）
+    const handleClick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        console.log('[DEBUG] manualUploadZone clicked, target:', e.target);
+        console.log('[DEBUG] currentTarget:', e.currentTarget);
+
+        // 直接从 DOM 重新获取 file input 引用，确保是最新的
+        const fileInput = document.getElementById('manualFileInput');
+        if (fileInput) {
+            console.log('[DEBUG] Triggering file input click');
+            try {
+                fileInput.click();
+            } catch (err) {
+                console.error('[DEBUG] Error triggering file input click:', err);
+            }
+        } else {
+            console.error('[DEBUG] manualFileInput not found when clicking');
+        }
+    };
+
+    // 移除可能存在的旧监听器
+    manualUploadZone.removeEventListener('click', handleClick);
+    // 添加新的监听器
+    manualUploadZone.addEventListener('click', handleClick, { once: false });
+
+    console.log('[DEBUG] Click event listener added to manualUploadZone');
+
+    // 阻止 file input 的点击事件冒泡到 upload zone
+    manualFileInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // File selection
+    manualFileInput.addEventListener('change', async (e) => {
+        console.log('[MANUAL UPLOAD] ===== File change event fired =====');
+        console.log('[MANUAL UPLOAD] Event target files:', e.target.files);
+        console.log('[MANUAL UPLOAD] Files length:', e.target.files.length);
+
+        const file = e.target.files[0];
+        console.log('[MANUAL UPLOAD] Selected file:', file);
+        console.log('[MANUAL UPLOAD] File name:', file ? file.name : 'NO FILE');
+        console.log('[MANUAL UPLOAD] File size:', file ? file.size : 'NO FILE');
+        console.log('[MANUAL UPLOAD] File type:', file ? file.type : 'NO FILE');
+
+        if (!file) {
+            console.warn('[MANUAL UPLOAD] No file selected, returning');
+            return;
+        }
+
+        console.log('[MANUAL UPLOAD] Checking manual type inputs...');
+        const allTypeInputs = document.querySelectorAll('input[name="manualType"]');
+        console.log('[MANUAL UPLOAD] All manualType inputs:', allTypeInputs);
+        console.log('[MANUAL UPLOAD] Number of manualType inputs:', allTypeInputs.length);
+
+        allTypeInputs.forEach((input, index) => {
+            console.log(`[MANUAL UPLOAD] Input ${index}:`, {
+                id: input.id,
+                value: input.value,
+                checked: input.checked
+            });
+        });
+
+        const selectedType = document.querySelector('input[name="manualType"]:checked')?.value;
+        console.log('[MANUAL UPLOAD] Selected type:', selectedType);
+
+        if (!selectedType) {
+            console.error('[MANUAL UPLOAD] No type selected! Showing alert...');
+            showAlert('请先选择成果类型', 'warning');
+            return;
+        }
+
+        console.log('[MANUAL UPLOAD] Type selected:', selectedType);
+
+        if (parseStatus) parseStatus.style.display = 'block';
+        console.log('[MANUAL UPLOAD] Parse status shown');
+
+        try {
+            console.log('[MANUAL UPLOAD] Starting file upload...');
+            const formData = new FormData();
+            formData.append('files', file);
+            console.log('[MANUAL UPLOAD] FormData created');
+
+            const uploadUrl = '/admin/file-import/manual/upload';
+            console.log('[MANUAL UPLOAD] Fetching:', uploadUrl);
+
+            const uploadResp = await fetch(uploadUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            console.log('[MANUAL UPLOAD] Upload response status:', uploadResp.status);
+            console.log('[MANUAL UPLOAD] Upload response ok:', uploadResp.ok);
+
+            // 检查响应状态
+            if (!uploadResp.ok) {
+                let errorMessage = `上传失败: HTTP ${uploadResp.status}`;
+                try {
+                    const errorData = await uploadResp.json();
+                    errorMessage = errorData.message || errorMessage;
+                    console.error('[MANUAL UPLOAD] Error data:', errorData);
+                } catch (e) {
+                    const errorText = await uploadResp.text();
+                    if (errorText) {
+                        errorMessage = errorText.substring(0, 200);
+                    }
+                    console.error('[MANUAL UPLOAD] Error text:', errorText);
+                }
+                throw new Error(errorMessage);
+            }
+
+            console.log('[MANUAL UPLOAD] Parsing response JSON...');
+            const uploadData = await uploadResp.json();
+            console.log('[MANUAL UPLOAD] Upload data:', uploadData);
+
+            if (!uploadData.success) {
+                throw new Error(uploadData.message || 'Upload failed');
+            }
+
+            uploadedFilePath = uploadData.file_path;
+            console.log('[MANUAL UPLOAD] Uploaded file path:', uploadedFilePath);
+
+            if (!uploadedFilePath) {
+                throw new Error('Could not get uploaded file path');
+            }
+
+            const useOcrCache = document.getElementById('manualUseOcrCache')?.checked ?? true;
+            const useLlmCache = document.getElementById('manualUseLlmCache')?.checked ?? true;
+            console.log('[MANUAL UPLOAD] Cache settings - OCR:', useOcrCache, 'LLM:', useLlmCache);
+
+            console.log('[MANUAL UPLOAD] Starting file parsing...');
+            const parseResp = await fetch('/admin/file-import/manual/parse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    achievement_type: selectedType,
+                    file_path: uploadedFilePath,
+                    use_ocr_cache: useOcrCache,
+                    use_llm_cache: useLlmCache
+                })
+            });
+
+            console.log('[MANUAL UPLOAD] Parse response status:', parseResp.status);
+            console.log('[MANUAL UPLOAD] Parse response ok:', parseResp.ok);
+
+            // 检查响应状态
+            if (!parseResp.ok) {
+                let errorMessage = `解析失败: HTTP ${parseResp.status}`;
+                try {
+                    const errorData = await parseResp.json();
+                    errorMessage = errorData.message || errorMessage;
+                    console.error('[MANUAL UPLOAD] Parse error data:', errorData);
+                } catch (e) {
+                    const errorText = await parseResp.text();
+                    if (errorText) {
+                        errorMessage = errorText.substring(0, 200);
+                    }
+                    console.error('[MANUAL UPLOAD] Parse error text:', errorText);
+                }
+                throw new Error(errorMessage);
+            }
+
+            console.log('[MANUAL UPLOAD] Parsing parse response JSON...');
+            const parseData = await parseResp.json();
+            console.log('[MANUAL UPLOAD] Parse data:', parseData);
+
+            if (parseStatus) parseStatus.style.display = 'none';
+
+            if (parseData.success) {
+                console.log('[MANUAL UPLOAD] Parse successful!');
+
+                // 显示内联表单进行编辑
+                const manualUploadSection = document.getElementById('manualUploadSection');
+                const manualFormSection = document.getElementById('manualFormSection');
+
+                // 隐藏上传区域，显示表单区域
+                if (manualUploadSection) manualUploadSection.style.display = 'none';
+                if (manualFormSection) manualFormSection.style.display = 'block';
+
+                // 保存 session_id 用于后续提交
+                if (parseData.session_id) {
+                    window.currentSessionId = parseData.session_id;
+                    console.log('[MANUAL UPLOAD] Session ID saved:', window.currentSessionId);
+                }
+
+                // 保存文件路径
+                if (parseData.file_path) {
+                    window.uploadedFilePath = parseData.file_path;
+                }
+
+                // 调用 loadFormByType 显示表单
+                const type = parseData.template_type || achievementType;
+                const data = parseData.data || {};
+                const ocrText = parseData.ocr_text || '';
+
+                console.log('[MANUAL UPLOAD] Loading form by type:', type);
+                loadFormByType(type, data, ocrText, parseData);
+                showAlert('解析成功，请核对信息后提交', 'success');
+            } else {
+                console.error('[MANUAL UPLOAD] Parse failed:', parseData.message);
+                showAlert(parseData.message || parseData.error_message || '解析失败，请重试', 'danger');
+            }
+        } catch (error) {
+            console.error('[MANUAL UPLOAD] Error:', error);
+            if (parseStatus) parseStatus.style.display = 'none';
+            showAlert('解析失败: ' + error.message, 'danger');
+        }
+    });
+
+    // Drag and drop upload
+    manualUploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        manualUploadZone.classList.add('dragover');
+    });
+
+    manualUploadZone.addEventListener('dragleave', () => {
+        manualUploadZone.classList.remove('dragover');
+    });
+
+    manualUploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        manualUploadZone.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && manualFileInput) {
+            console.log('[DEBUG] Files dropped:', files.length);
+            // 使用 DataTransfer API 设置文件（现代浏览器支持）
+            try {
+                const dt = new DataTransfer();
+                for (let i = 0; i < files.length; i++) {
+                    dt.items.add(files[i]);
+                }
+                manualFileInput.files = dt.files;
+
+                // 触发 change 事件
+                const event = new Event('change', { bubbles: true });
+                manualFileInput.dispatchEvent(event);
+            } catch (err) {
+                console.error('[DEBUG] Failed to set dropped files:', err);
+                showAlert('拖拽文件失败，请使用点击上传', 'warning');
+            }
+        }
+    });
+}
+
+// ==========================================
+// Helper functions for manual import form
+// ==========================================
+
+// Load manual import image（PDF 时优先用第一页预览图路径，否则用原文件路径）
+function loadManualImportImage(filePath, previewImagePath) {
+    const container = document.getElementById('manualImageContainer');
+    if (!container) return;
+    const displayPath = previewImagePath || filePath;
+    if (!displayPath) return;
+
+    const encodedPath = encodeURIComponent(displayPath);
+    const imageUrl = `/admin/file-import/file/${encodedPath}`;
+
+    container.innerHTML = `
+        <img src="${imageUrl}"
+             alt="Certificate image"
+             class="img-fluid rounded"
+             style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+             onclick="window.open(this.src, '_blank')"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <p class="text-muted mt-2 small" style="display: none;">Image load failed</p>
+        <p class="text-muted mt-2 small">Click to view larger</p>
+    `;
+}
+
+// Load competitions dropdown
+function loadCompetitions(competitionName) {
+    const competitionSelect = document.getElementById('competition_id');
+    if (!competitionSelect) return;
+
+    fetch('/admin/api/competitions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.competitions) {
+                // 保留"使用解析结果"的选项
+                const currentValue = competitionSelect.options[0]?.text || '';
+                competitionSelect.innerHTML = '';
+
+                // 添加默认选项（如果有解析结果）
+                if (currentValue.includes('使用解析结果')) {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = currentValue;
+                    competitionSelect.appendChild(defaultOption);
+                } else {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = '未关联';
+                    competitionSelect.appendChild(defaultOption);
+                }
+
+                // 添加所有竞赛选项
+                let matchedId = null;
+                data.competitions.forEach(comp => {
+                    const option = document.createElement('option');
+                    option.value = comp.id;
+                    option.textContent = comp.name;
+                    competitionSelect.appendChild(option);
+
+                    // 尝试匹配竞赛名称（完全匹配或包含匹配）
+                    if (competitionName && comp.name === competitionName) {
+                        matchedId = comp.id;
+                    }
+                });
+
+                // 设置选中值
+                if (matchedId) {
+                    competitionSelect.value = matchedId;
+                }
+            }
+        })
+        .catch(error => console.error('加载竞赛列表失败:', error));
+}
+
+// Load laboratories dropdown
+function loadLaboratories() {
+    const labSelect = document.getElementById('laboratory_id');
+    if (!labSelect) return;
+
+    fetch('/admin/api/laboratories')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.laboratories) {
+                labSelect.innerHTML = '<option value="">无</option>';
+                data.laboratories.forEach(lab => {
+                    const option = document.createElement('option');
+                    option.value = lab.id;
+                    option.textContent = lab.name;
+                    labSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('加载实验室列表失败:', error));
+}
+
+// Load supervisors dropdown
+function loadSupervisors(data) {
+    const supervisorSelect = document.getElementById('supervisor_ids');
+    if (!supervisorSelect) return;
+
+    fetch('/admin/api/teachers')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success && result.teachers) {
+                supervisorSelect.innerHTML = '';
+                result.teachers.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = teacher.name;
+                    supervisorSelect.appendChild(option);
+                });
+
+                // Initialize Select2
+                if (typeof jQuery !== 'undefined') {
+                    jQuery(supervisorSelect).select2({
+                        theme: 'bootstrap-5',
+                        placeholder: '选择指导教师',
+                        allowClear: true,
+                        width: '100%'
+                    });
+
+                    // 设置已选的指导教师
+                    if (data && data.supervisor_name) {
+                        const supervisorNames = data.supervisor_name.split(',').map(n => n.trim()).filter(n => n);
+                        const matchedIds = [];
+
+                        supervisorNames.forEach(name => {
+                            const teacher = result.teachers.find(t => t.name === name);
+                            if (teacher) {
+                                matchedIds.push(teacher.id);
+                            }
+                        });
+
+                        if (matchedIds.length > 0) {
+                            jQuery(supervisorSelect).val(matchedIds).trigger('change');
+                        }
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('加载教师列表失败:', error));
+}
+
+// Initialize student winner input
+function initStudentWinnerInput() {
+    const input = document.getElementById('student_winner_input');
+    const suggestionsDiv = document.getElementById('student_suggestions');
+    const selectedDisplay = document.getElementById('selected_students_display');
+    const hiddenInput = document.getElementById('student_winner_names');
+
+    if (!input || !suggestionsDiv || !selectedDisplay) return;
+
+    const studentWinners = [];
+
+    input.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 1) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch(`/admin/api/students/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.students && data.students.length > 0) {
+                    suggestionsDiv.innerHTML = '';
+                    data.students.forEach(student => {
+                        const div = document.createElement('div');
+                        div.className = 'list-group-item suggestion-item';
+                        div.textContent = `${student.name} (${student.student_id})`;
+                        div.onclick = function() {
+                            addStudentWinner(student);
+                            input.value = '';
+                            suggestionsDiv.style.display = 'none';
+                        };
+                        suggestionsDiv.appendChild(div);
+                    });
+                    suggestionsDiv.style.display = 'block';
+                } else {
+                    suggestionsDiv.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('搜索学生失败:', error));
+    });
+
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const name = this.value.trim().replace(',', '');
+            if (name) {
+                addStudentWinner({name: name, id: null});
+                this.value = '';
+            }
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    function addStudentWinner(student) {
+        if (!student.name) return;
+        studentWinners.push(student);
+        updateSelectedDisplay();
+    }
+
+    function updateSelectedDisplay() {
+        selectedDisplay.innerHTML = '';
+        studentWinners.forEach((student, index) => {
+            const badge = document.createElement('span');
+            badge.className = student.id ? 'badge bg-success me-1' : 'badge bg-danger me-1';
+            badge.textContent = student.name;
+            badge.style.cursor = 'pointer';
+            badge.onclick = function() {
+                studentWinners.splice(index, 1);
+                updateSelectedDisplay();
+            };
+            selectedDisplay.appendChild(badge);
+        });
+        if (hiddenInput) {
+            hiddenInput.value = studentWinners.map(s => s.name).join(',');
+        }
+    }
+}
+
+// Initialize teacher winner input
+function initTeacherWinnerInput() {
+    const input = document.getElementById('teacher_winner_input');
+    const selectedDisplay = document.getElementById('selected_teachers_display');
+    const hiddenInput = document.getElementById('teacher_winner_names');
+
+    if (!input || !selectedDisplay) return;
+
+    const teacherWinners = [];
+
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const name = this.value.trim().replace(',', '');
+            if (name) {
+                teacherWinners.push({name: name});
+                this.value = '';
+                updateSelectedDisplay();
+            }
+        }
+    });
+
+    function updateSelectedDisplay() {
+        selectedDisplay.innerHTML = '';
+        teacherWinners.forEach((teacher, index) => {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-primary me-1';
+            badge.textContent = teacher.name;
+            badge.style.cursor = 'pointer';
+            badge.onclick = function() {
+                teacherWinners.splice(index, 1);
+                updateSelectedDisplay();
+            };
+            selectedDisplay.appendChild(badge);
+        });
+        if (hiddenInput) {
+            hiddenInput.value = teacherWinners.map(t => t.name).join(',');
+        }
+    }
+}
+
+// Initialize certificate type toggle
+function initCertificateTypeToggle() {
+    const studentRadio = document.getElementById('certificate_type_student');
+    const teacherRadio = document.getElementById('certificate_type_teacher');
+    const studentSection = document.getElementById('student_winners_section');
+    const teacherSection = document.getElementById('teacher_winners_section');
+
+    if (studentRadio && teacherRadio) {
+        studentRadio.addEventListener('change', function() {
+            if (this.checked) {
+                if (studentSection) studentSection.style.display = 'block';
+                if (teacherSection) teacherSection.style.display = 'none';
+            }
+        });
+
+        teacherRadio.addEventListener('change', function() {
+            if (this.checked) {
+                if (studentSection) studentSection.style.display = 'none';
+                if (teacherSection) teacherSection.style.display = 'block';
+            }
+        });
+    }
+}
+
+// Load form by type
+function loadFormByType(type, data, ocrText, parseData = null) {
+    const formFieldsContainer = document.getElementById('formFieldsContainer');
+    const parsedResult = document.getElementById('parsedResult');
+
+    // 确保 data 对象存在
+    if (!data || typeof data !== 'object') {
+        data = {};
+    }
+
+    console.log('loadFormByType 被调用:', { type, data, ocrText, parseData });
+
+    if (parsedResult) {
+        parsedResult.value = JSON.stringify(data, null, 2);
+    }
+
+    if (!formFieldsContainer) return;
+
+    let fieldsHtml = '';
+
+    console.log('准备生成表单HTML，type:', type, 'data keys:', Object.keys(data));
+
+    if (type === 'award') {
+        console.log('生成奖状表单HTML');
+
+        fieldsHtml = `
+            <style>
+                #student_suggestions, #teacher_suggestions {
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    background: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                #student_suggestions .suggestion-item,
+                #teacher_suggestions .suggestion-item {
+                    cursor: pointer;
+                    padding: 0.5rem 0.75rem;
+                }
+                #student_suggestions .suggestion-item:hover,
+                #student_suggestions .suggestion-item.active,
+                #teacher_suggestions .suggestion-item:hover,
+                #teacher_suggestions .suggestion-item.active {
+                    background-color: #f8f9fa;
+                }
+                .select2-container--bootstrap-5 .select2-selection {
+                    min-height: 31px;
+                }
+                .btn-group .btn-check:checked + .btn {
+                    background-color: #1890ff;
+                    border-color: #1890ff;
+                    color: white;
+                }
+            </style>
+
+            <!-- 第一行：三栏布局 -->
+            <div class="row g-3 mb-3">
+                <!-- 第一栏：基本信息 -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header py-2">
+                            <h6 class="mb-0">基本信息</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="mb-2">
+                                <label for="competition_id" class="form-label small">竞赛 <span class="text-danger">*</span></label>
+                                <input type="hidden" id="original_competition_name" value="${data.competition_name || ''}">
+                                <select class="form-select form-select-sm" id="competition_id" name="competition_id">
+                                    <option value="">未关联（使用解析结果：${data.competition_name || '未知'}</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="competition_level" class="form-label small">竞赛等级</label>
+                                <select class="form-select form-select-sm" id="competition_level" name="competition_level">
+                                    <option value="">未设置</option>
+                                    <option value="校赛">校赛</option>
+                                    <option value="区域赛">区域赛</option>
+                                    <option value="省赛">省赛</option>
+                                    <option value="国赛">国赛</option>
+                                    <option value="国际赛">国际赛</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="award_level" class="form-label small">获奖等级</label>
+                                <select class="form-select form-select-sm" id="award_level" name="award_level">
+                                    <option value="">未设置</option>
+                                    <option value="特等奖">特等奖</option>
+                                    <option value="一等奖">一等奖</option>
+                                    <option value="二等奖">二等奖</option>
+                                    <option value="三等奖">三等奖</option>
+                                    <option value="优秀奖">优秀奖</option>
+                                    <option value="金奖">金奖</option>
+                                    <option value="银奖">银奖</option>
+                                    <option value="铜奖">铜奖</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="year" class="form-label small">年份</label>
+                                <input type="number" class="form-control form-control-sm" id="year" name="year"
+                                       value="${data.year || ''}" min="2000" max="2099" placeholder="2024">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="track" class="form-label small">赛道</label>
+                                <input type="text" class="form-control form-control-sm" id="track" name="track"
+                                       value="${data.track || ''}" placeholder="软件类、本科B组">
+                            </div>
+
+                            <div class="mb-0">
+                                <label for="certificate_id" class="form-label small">证书编号</label>
+                                <input type="text" class="form-control form-control-sm" id="certificate_id" name="certificate_id"
+                                       value="${data.certificate_id || ''}" placeholder="证书编号">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第二栏：其他信息 -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header py-2">
+                            <h6 class="mb-0">其他信息</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="mb-2">
+                                <label for="project_title" class="form-label small">项目名称</label>
+                                <input type="text" class="form-control form-control-sm" id="project_title" name="project_title"
+                                       value="${data.project_title || ''}" placeholder="项目或作品名称">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="date" class="form-label small">日期</label>
+                                <input type="text" class="form-control form-control-sm" id="date" name="date"
+                                       value="${data.date || ''}" placeholder="YYYY-MM-DD">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="province" class="form-label small">省份</label>
+                                <input type="text" class="form-control form-control-sm" id="province" name="province"
+                                       value="${data.province || ''}" placeholder="广东省">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="issuer" class="form-label small">颁发机构</label>
+                                <input type="text" class="form-control form-control-sm" id="issuer" name="issuer"
+                                       value="${data.issuer || ''}" placeholder="颁发机构名称">
+                            </div>
+
+                            <div class="mb-0">
+                                <label for="laboratory_id" class="form-label small">关联学生实验室</label>
+                                <select class="form-select form-select-sm" id="laboratory_id" name="laboratory_id">
+                                    <option value="">无</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第三栏：图片 -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header py-2">
+                            <h6 class="mb-0">奖状图片</h6>
+                        </div>
+                        <div class="card-body text-center p-3" id="manualImageContainer">
+                            <p class="text-muted">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二行：关联信息 -->
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header py-2">
+                            <h6 class="mb-0">关联信息</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <!-- 证书类型选择 -->
+                            <div class="mb-3 pb-3 border-bottom">
+                                <label class="form-label small d-block mb-2">证书类型 <span class="text-danger">*</span></label>
+                                <div class="btn-group w-100" role="group" aria-label="证书类型">
+                                    <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_student" value="student" checked>
+                                    <label class="btn btn-outline-primary" for="certificate_type_student">学生证书</label>
+
+                                    <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_teacher" value="teacher">
+                                    <label class="btn btn-outline-primary" for="certificate_type_teacher">教师证书</label>
+                                </div>
+                                <small class="form-text text-muted mt-1 d-block">选择证书类型后，相关字段将自动调整</small>
+                            </div>
+
+                            <!-- 学生获奖者 -->
+                            <div class="mb-3" id="student_winners_section">
+                                <label for="student_winner_input" class="form-label small">学生获奖者</label>
+                                <div class="mb-2" id="selected_students_display"></div>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control form-control-sm" id="student_winner_input"
+                                           placeholder="输入学生姓名，按回车或逗号添加" autocomplete="off">
+                                    <div id="student_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto; margin-top: 2px;"></div>
+                                </div>
+                                <input type="hidden" id="student_winner_names" name="student_winner_names" value="">
+                                <input type="hidden" id="winner_name" name="winner_name" value="${Array.isArray(data.winner_name) ? (data.winner_name || []).join(',') : (data.winner_name || '')}">
+                                <small class="form-text text-muted">输入学生姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                            </div>
+
+                            <!-- 教师获奖者 -->
+                            <div class="mb-3" id="teacher_winners_section" style="display: none;">
+                                <label for="teacher_winner_input" class="form-label small">教师获奖者</label>
+                                <div class="mb-2" id="selected_teachers_display"></div>
+                                <input type="text" class="form-control form-control-sm" id="teacher_winner_input"
+                                       placeholder="输入教师姓名，按回车或逗号添加">
+                                <input type="hidden" id="teacher_winner_names" name="teacher_winner_names" value="">
+                                <small class="form-text text-muted">输入教师姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                            </div>
+
+                            <!-- 指导教师 -->
+                            <div class="mb-0" id="supervisors_section">
+                                <label for="supervisor_ids" class="form-label small">指导教师</label>
+                                <select class="form-select form-select-sm" id="supervisor_ids" name="supervisor_ids[]" multiple>
+                                </select>
+                                <small class="form-text text-muted">可输入姓名搜索</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        formFieldsContainer.innerHTML = fieldsHtml;
+
+        setTimeout(() => {
+            loadManualImportImage(window.uploadedFilePath, parseData.preview_image_path || null);
+            initStudentWinnerInput();
+            initTeacherWinnerInput();
+            initCertificateTypeToggle();
+            loadCompetitions(data.competition_name);
+            loadLaboratories();
+            loadSupervisors(data);
+
+            // 设置其他字段的值
+            if (data.competition_level) {
+                const levelSelect = document.getElementById('competition_level');
+                if (levelSelect) {
+                    levelSelect.value = data.competition_level;
+                }
+            }
+            if (data.award_level) {
+                const awardSelect = document.getElementById('award_level');
+                if (awardSelect) {
+                    awardSelect.value = data.award_level;
+                }
+            }
+
+            // 处理已有的获奖者数据（使用状态列表显示匹配状态）
+            const winnerStatusList = parseData.winner_status_list || [];
+            if (winnerStatusList.length > 0) {
+                const selectedDisplay = document.getElementById('selected_students_display');
+                const hiddenInput = document.getElementById('student_winner_names');
+
+                if (selectedDisplay) {
+                    selectedDisplay.innerHTML = '';
+                    winnerStatusList.forEach(status => {
+                        const badge = document.createElement('span');
+                        if (status.matched && status.obj) {
+                            // 唯一匹配 - 蓝色
+                            badge.className = 'badge bg-primary me-1 mb-1';
+                            badge.textContent = status.obj.brief_desc || status.name;
+                            badge.setAttribute('data-student-id', status.obj.id);
+                            badge.setAttribute('data-student-name', status.obj.name);
+                        } else if (status.ambiguous) {
+                            // 重名 - 黄色
+                            badge.className = 'badge bg-warning text-dark me-1 mb-1';
+                            badge.textContent = status.name + '(重名)';
+                            badge.setAttribute('data-student-name', status.name);
+                        } else {
+                            // 未找到 - 红色
+                            badge.className = 'badge bg-danger me-1 mb-1';
+                            badge.textContent = status.name + '(未查到)';
+                            badge.setAttribute('data-student-name', status.name);
+                        }
+                        badge.style.cursor = 'pointer';
+                        badge.onclick = function() {
+                            this.remove();
+                            const remainingBadges = selectedDisplay.querySelectorAll('.badge');
+                            const remainingNames = Array.from(remainingBadges).map(b => b.getAttribute('data-student-name') || b.textContent);
+                            if (hiddenInput) {
+                                hiddenInput.value = remainingNames.join(',');
+                            }
+                        };
+                        selectedDisplay.appendChild(badge);
+                    });
+                    // 更新隐藏字段
+                    const names = winnerStatusList.map(s => s.name);
+                    if (hiddenInput) {
+                        hiddenInput.value = names.join(',');
+                    }
+                }
+            } else if (data.winner_name) {
+                // 回退：如果没有状态列表，直接使用 winner_name（支持字符串或数组）
+                const wn = data.winner_name;
+                const winnerNames = Array.isArray(wn)
+                    ? wn.map(n => String(n || '').trim()).filter(n => n)
+                    : String(wn || '').split(',').map(n => n.trim()).filter(n => n);
+                const selectedDisplay = document.getElementById('selected_students_display');
+                const hiddenInput = document.getElementById('student_winner_names');
+
+                if (selectedDisplay) {
+                    selectedDisplay.innerHTML = '';
+                    winnerNames.forEach(name => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-success me-1';
+                        badge.textContent = name;
+                        badge.style.cursor = 'pointer';
+                        badge.onclick = function() {
+                            this.remove();
+                            const remainingBadges = selectedDisplay.querySelectorAll('.badge');
+                            const remainingNames = Array.from(remainingBadges).map(b => b.textContent);
+                            if (hiddenInput) {
+                                hiddenInput.value = remainingNames.join(',');
+                            }
+                        };
+                        selectedDisplay.appendChild(badge);
+                    });
+                    if (hiddenInput) {
+                        hiddenInput.value = winnerNames.join(',');
+                    }
+                }
+            }
+        }, 100);
+    }
+}
+
+// 绑定表单提交和取消按钮事件
+function bindManualFormEvents() {
+    // Show confirm modal function
+    function showConfirmModal(message, onConfirm) {
+        const modalElement = document.getElementById('confirmModal');
+        const modalBody = document.getElementById('confirmModalBody');
+        const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+
+        if (!modalElement || !modalBody || !confirmBtn) {
+            // 如果模态框未初始化，使用 alert
+            alert(message);
+            if (onConfirm) onConfirm();
+            return;
+        }
+
+        modalBody.textContent = message;
+
+        // 移除之前的事件监听器
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        // 添加新的事件监听器
+        newConfirmBtn.addEventListener('click', function() {
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            // 执行回调
+            if (onConfirm) onConfirm();
+        });
+
+        // 显示模态框
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
+    // Show alert function
+    function showAlert(message, type = 'info') {
+        const alertPlaceholder = document.getElementById('alertPlaceholder');
+        const alertHTML = `
+            <div class="toast show align-items-center text-white bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            const toast = alertPlaceholder.querySelector('.toast');
+            if (toast) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+
+    const btnCancelManual = document.getElementById('btnCancelManual');
+    if (btnCancelManual) {
+        btnCancelManual.addEventListener('click', function() {
+            const manualUploadSection = document.getElementById('manualUploadSection');
+            const manualFormSection = document.getElementById('manualFormSection');
+
+            if (manualUploadSection) manualUploadSection.style.display = 'block';
+            if (manualFormSection) manualFormSection.style.display = 'none';
+
+            window.currentSessionId = null;
+            window.uploadedFilePath = null;
+            document.getElementById('parsedResult').value = '';
+            document.getElementById('formFieldsContainer').innerHTML = '';
+        });
+    }
+
+    const manualEditForm = document.getElementById('manualEditForm');
+    if (manualEditForm) {
+        manualEditForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const selectedType = document.querySelector('input[name="manualType"]:checked')?.value;
+            if (!selectedType) {
+                showAlert('请先选择成果类型', 'warning');
+                return;
+            }
+
+            // 收集表单数据
+            const formData = {};
+            document.querySelectorAll('#manualEditForm [name]').forEach(field => {
+                if (field.multiple) return;
+                const fieldName = field.name;
+                if (fieldName.endsWith('[]')) {
+                    const normalizedName = fieldName.slice(0, -2);
+                    if (!formData[normalizedName]) {
+                        formData[normalizedName] = [];
+                    }
+                    if (field.value) {
+                        formData[normalizedName].push(field.value);
+                    }
+                } else {
+                    formData[fieldName] = field.value;
+                }
+            });
+
+            // 特殊处理 Select2 多选框
+            if (typeof jQuery !== 'undefined') {
+                const supervisorsSelect = jQuery('#supervisor_ids');
+                if (supervisorsSelect.length && supervisorsSelect.val()) {
+                    formData['supervisor_ids'] = supervisorsSelect.val();
+
+                    // 将 supervisor_ids 转换为 supervisor_name（后端需要姓名列表）
+                    const supervisorNames = [];
+                    supervisorsSelect.find('option:selected').each(function() {
+                        supervisorNames.push(jQuery(this).text());
+                    });
+                    if (supervisorNames.length > 0) {
+                        formData['supervisor_name'] = supervisorNames.join(',');
+                    }
+                }
+            }
+
+            // 将 competition_id 转换为 competition_name（后端需要 competition_name）
+            // 如果用户从下拉框选择了竞赛，使用选中的值；否则保留解析结果中的原始 competition_name
+            if (formData['competition_id']) {
+                const competitionSelect = document.getElementById('competition_id');
+                const selectedOption = competitionSelect ? competitionSelect.options[competitionSelect.selectedIndex] : null;
+                if (selectedOption && selectedOption.textContent && selectedOption.value !== '') {
+                    formData['competition_name'] = selectedOption.textContent;
+                }
+            } else if (!formData['competition_name']) {
+                // 如果没有 competition_id 也没有 competition_name，尝试从隐藏字段获取原始值
+                const originalCompetitionName = document.getElementById('original_competition_name');
+                if (originalCompetitionName && originalCompetitionName.value) {
+                    formData['competition_name'] = originalCompetitionName.value;
+                }
+            }
+
+            console.log('提交表单数据:', formData);
+
+            try {
+                const response = await fetch('/admin/file-import/manual/submit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        achievement_type: selectedType,
+                        achievement_data: formData,
+                        session_id: window.currentSessionId,
+                        submitter_type: 'admin'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 提交成功，显示确认弹窗
+                    const message = result.message || '提交成功';
+                    showConfirmModal(message, () => {
+                        // 用户点击确认后的回调
+                        // 检查是否已归档（action='approved' 表示同步归档完成）
+                        if (result.action === 'approved' || result.already_archived) {
+                            // 已归档，重置表单
+                            const manualUploadSection = document.getElementById('manualUploadSection');
+                            const manualFormSection = document.getElementById('manualFormSection');
+                            if (manualUploadSection) manualUploadSection.style.display = 'block';
+                            if (manualFormSection) manualFormSection.style.display = 'none';
+                            window.currentSessionId = null;
+                            window.uploadedFilePath = null;
+                            document.getElementById('parsedResult').value = '';
+                            document.getElementById('formFieldsContainer').innerHTML = '';
+                        } else {
+                            // 需要审核，跳转到 results 页面
+                            const redirectUrl = `/admin/file-import/results?session_id=${window.currentSessionId}&tab=award&sub_tab=valid&index=0`;
+                            window.location.href = redirectUrl;
+                        }
+                    });
+                } else {
+                    showAlert(result.message || '提交失败', 'danger');
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                showAlert('提交失败: ' + error.message, 'danger');
+            }
+        });
+    }
+}
+
+// 初始化时绑定表单事件
+bindManualFormEvents();
+
+
+})();  // end IIFE (manual import)
+</script>
+{% endblock %}

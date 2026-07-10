@@ -1,0 +1,733 @@
+<!-- Tab1: 奖状管理 -->
+<!-- 搜索和筛选表单 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="awardFilterForm" method="GET" action="{{ url_for('admin_awards.awards_list') }}" class="row g-3">
+            <!-- 隐藏字段：保持 tab 参数 -->
+            <input type="hidden" name="tab" value="management">
+            <!-- 第一行 -->
+            <div class="col-md-2">
+                <label for="competition_id" class="form-label">竞赛</label>
+                <select class="form-select" id="competition_id" name="competition_id">
+                    <option value="">全部</option>
+                    {% for comp in competitions %}
+                    <option value="{{ comp.id }}" {% if competition_id == comp.id %}selected{% endif %}>
+                        {{ comp.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="track" class="form-label">赛道</label>
+                <select class="form-select" id="track" name="track">
+                    <option value="">全部</option>
+                    {% for t in (track_options or []) %}
+                    <option value="{{ t }}" {% if track == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="year" class="form-label">年份</label>
+                <input type="number" class="form-control" id="year" name="year" 
+                       value="{{ year or '' }}" placeholder="年份" min="2000" max="2099">
+            </div>
+            <div class="col-md-2">
+                <label for="competition_level" class="form-label">竞赛等级</label>
+                <select class="form-select" id="competition_level" name="competition_level">
+                    <option value="">全部</option>
+                    {% for level in competition_levels %}
+                    <option value="{{ level }}" {% if competition_level == level %}selected{% endif %}>{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="award_level" class="form-label">获奖等级</label>
+                <select class="form-select" id="award_level" name="award_level">
+                    <option value="">全部</option>
+                    <option value="特等奖" {% if award_level == '特等奖' %}selected{% endif %}>特等奖</option>
+                    <option value="一等奖" {% if award_level == '一等奖' %}selected{% endif %}>一等奖</option>
+                    <option value="二等奖" {% if award_level == '二等奖' %}selected{% endif %}>二等奖</option>
+                    <option value="三等奖" {% if award_level == '三等奖' %}selected{% endif %}>三等奖</option>
+                    <option value="优秀奖" {% if award_level == '优秀奖' %}selected{% endif %}>优秀奖</option>
+                    <option value="金奖" {% if award_level == '金奖' %}selected{% endif %}>金奖</option>
+                    <option value="银奖" {% if award_level == '银奖' %}selected{% endif %}>银奖</option>
+                    <option value="铜奖" {% if award_level == '铜奖' %}selected{% endif %}>铜奖</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="supervisor_name" class="form-label">第一指导教师</label>
+                <div class="position-relative">
+                    <input type="text" class="form-control" id="supervisor_name" name="supervisor_name" 
+                           value="{{ supervisor_name or '' }}" placeholder="输入教师姓名" autocomplete="off">
+                    <div id="supervisor_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto; margin-top: 2px; border: 1px solid #dee2e6; border-radius: 0.375rem;"></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label for="winner_name" class="form-label">获奖者</label>
+                <input type="text" class="form-control" id="winner_name" name="winner_name" 
+                       value="{{ winner_name or '' }}" placeholder="输入姓名">
+            </div>
+            
+            <!-- 第二行：实验室视图下不显示学生实验室筛选；成果页筛选时始终显示全部实验室以便切换 -->
+            {% if not hide_laboratory_filter %}
+            <div class="col-md-2">
+                <label for="laboratory_id" class="form-label">学生实验室</label>
+                <select class="form-select" id="laboratory_id" name="laboratory_id">
+                    <option value="">全部</option>
+                    <option value="none" {% if laboratory_id == 'none' %}selected{% endif %}>无</option>
+                    {% for lab in laboratories %}
+                    <option value="{{ lab.id }}" {% if laboratory_id == lab.id %}selected{% endif %}>
+                        {{ lab.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-2">
+                <label for="is_abnormal" class="form-label">异常状态</label>
+                <select class="form-select" id="is_abnormal" name="is_abnormal">
+                    {% if is_abnormal_filter == '1' %}
+                    <option value="">全部</option>
+                    <option value="1" selected>仅异常</option>
+                    <option value="0">仅正常</option>
+                    {% elif is_abnormal_filter == '0' %}
+                    <option value="">全部</option>
+                    <option value="1">仅异常</option>
+                    <option value="0" selected>仅正常</option>
+                    {% else %}
+                    <option value="" selected>全部</option>
+                    <option value="1">仅异常</option>
+                    <option value="0">仅正常</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="per_page" class="form-label">每页</label>
+                <select class="form-select" id="per_page" name="per_page">
+                    <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="certificate_type" class="form-label">证书类型</label>
+                <select class="form-select" id="certificate_type" name="certificate_type">
+                    <option value="student" {% if certificate_type == 'student' or not certificate_type %}selected{% endif %}>学生</option>
+                    <option value="all" {% if certificate_type == 'all' %}selected{% endif %}>全部</option>
+                    <option value="teacher" {% if certificate_type == 'teacher' %}selected{% endif %}>教师</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary" id="awardFilterSubmitBtn">
+                    <i class="bi bi-funnel"></i> 筛选
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="awardFilterResetBtn">重置</button>
+            </div>
+        </form>
+        <!-- 关联师生奖状按钮 -->
+        <div class="mt-3 pt-3 border-top">
+            <button type="button" class="btn btn-warning" id="linkTeacherStudentBtn">
+                <i class="bi bi-link-45deg"></i> 关联师生奖状
+            </button>
+            <small class="text-muted ms-2">从教师奖状中补充学生奖状的导师信息</small>
+            {% if not laboratory_id %}
+                {# 只在管理员模式下显示自动关联实验室按钮 #}
+                <button type="button" class="btn btn-outline-info ms-3" id="autoLinkLaboratoryBtn">
+                    <i class="bi bi-building"></i> 自动关联实验室
+                </button>
+                <small class="text-muted ms-2">将有指导教师但未关联实验室的奖状自动关联到第一指导教师所属实验室</small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 奖状列表 -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">共找到 {{ total_count }} 条记录</span>
+            </div>
+            {% if not is_readonly %}
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                    批量删除
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if awards %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40">
+                            <input type="checkbox" id="selectAllAwards">
+                        </th>
+                        <th>ID</th>
+                        <th style="width: 18%; max-width: 220px;">竞赛名称</th>
+                        <th>竞赛等级</th>
+                        <th style="width: 10%; max-width: 120px;">赛道</th>
+                        <th>获奖等级</th>
+                        <th>首位获奖者</th>
+                        <th>首位指导教师</th>
+                        <th>关联实验室</th>
+                        <th>年份</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                    <tr class="{% if award.is_abnormal %}table-warning{% endif %}">
+                        <td>
+                            <input type="checkbox" class="award-checkbox" value="{{ award.id }}">
+                        </td>
+                        <td>
+                            <span class="d-inline-flex align-items-center gap-1">
+                                {{ award.id }}
+                                {% if award.is_abnormal %}
+                                    <span class="badge bg-danger" style="font-size: 0.7rem;" title="此奖状存在异常，请查看异常原因">异常</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="award-cell-wrap" style="max-width: 220px;">
+                            {% if award.competition_id %}
+                                {% set comp = competitions|selectattr('id', 'equalto', award.competition_id)|first %}
+                                {{ comp.name if comp else '未知竞赛' }}
+                            {% else %}
+                                <span class="text-muted">未关联</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.competition_level %}
+                                {% set badge_class = get_competition_level_badge_class(award.competition_level) %}
+                                <span class="badge {{ badge_class }}{% if badge_class == 'bg-warning' %} text-dark{% endif %}">{{ award.competition_level }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="award-cell-wrap" style="max-width: 120px;">
+                            {% if award.track %}
+                                {{ award.track }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.award_level %}
+                                <span class="badge bg-warning text-dark">{{ award.award_level }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set winner_info = award.get_first_winner_info() %}
+                            {% if winner_info and winner_info.name %}
+                                {% if winner_info.obj and winner_info.obj_type == 'student' %}
+                                    <span class="badge bg-primary" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ winner_info.name }}</strong><br/>专业：{{ winner_info.obj.major or '未知' }}<br/>年级：{{ winner_info.obj.grade or '未知' }}">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% elif winner_info.obj and winner_info.obj_type == 'teacher' %}
+                                    <span class="badge bg-success" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ winner_info.name }}</strong><br/>职称：{{ winner_info.obj.title or '未知' }}">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% else %}
+                                    {# 不在数据库中的学生，显示为红色，tooltip显示空或提示信息 #}
+                                    <span class="badge bg-danger" 
+                                          data-bs-toggle="tooltip" 
+                                          title="该学生不在数据库中">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set supervisor_info = award.get_first_supervisor_info() %}
+                            {% if supervisor_info and supervisor_info.name %}
+                                {% if supervisor_info.obj and supervisor_info.obj_type == 'teacher' %}
+                                    <span class="badge bg-secondary" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ supervisor_info.name }}</strong><br/>职称：{{ supervisor_info.obj.title or '未知' }}">
+                                        {{ supervisor_info.name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ supervisor_info.name }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award_laboratory_map and award.id in award_laboratory_map %}
+                                <span class="badge bg-info">{{ award_laboratory_map[award.id] }}</span>
+                            {% elif award.laboratory_id %}
+                                {% if laboratory_map and award.laboratory_id in laboratory_map %}
+                                    <span class="badge bg-info">{{ laboratory_map[award.laboratory_id] }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark" title="实验室ID {{ award.laboratory_id }} 不存在或已被删除">实验室{{ award.laboratory_id }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.year %}
+                                {{ award.year }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-nowrap gap-1 align-items-center">
+                            {% if is_readonly %}
+                                {% if laboratory_id %}
+                                    <a href="{{ url_for('admin_awards.award_edit', award_id=award.id, laboratory_id=laboratory_id) }}" 
+                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">查看</a>
+                                {% else %}
+                                    <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
+                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">查看</a>
+                                {% endif %}
+                            {% else %}
+                                {% if laboratory_id %}
+                                    <a href="{{ url_for('admin_awards.award_edit', award_id=award.id, laboratory_id=laboratory_id) }}" 
+                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">编辑</a>
+                                {% else %}
+                                    <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
+                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">编辑</a>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteAward({{ award.id }})">删除</button>
+                            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分页 -->
+        {% if total_pages > 1 %}
+        <nav aria-label="分页导航">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if track %}&track={{ track|urlencode }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if laboratory_id %}&laboratory_id={{ laboratory_id }}{% endif %}{% if is_abnormal_filter %}&is_abnormal={{ is_abnormal_filter }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">上一页</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ p }}</span>
+                    </li>
+                    {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ p }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if track %}&track={{ track|urlencode }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if laboratory_id %}&laboratory_id={{ laboratory_id }}{% endif %}{% if is_abnormal_filter %}&is_abnormal={{ is_abnormal_filter }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">{{ p }}</a>
+                    </li>
+                    {% elif p == 4 or p == total_pages - 3 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if track %}&track={{ track|urlencode }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if supervisor_name %}&supervisor_name={{ supervisor_name }}{% endif %}{% if winner_name %}&winner_name={{ winner_name }}{% endif %}{% if laboratory_id %}&laboratory_id={{ laboratory_id }}{% endif %}{% if is_abnormal_filter %}&is_abnormal={{ is_abnormal_filter }}{% endif %}{% if certificate_type %}&certificate_type={{ certificate_type }}{% endif %}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无奖状数据</p>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('tab-import').click()">开始导入</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* 竞赛名称、赛道列：控制宽度，超出可换行 */
+.award-cell-wrap {
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    min-width: 0;
+}
+
+/* 第一指导教师自动完成建议列表样式 */
+#supervisor_suggestions {
+    background-color: white;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#supervisor_suggestions .suggestion-item {
+    cursor: pointer;
+}
+
+#supervisor_suggestions .suggestion-item:hover,
+#supervisor_suggestions .suggestion-item.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+#supervisor_suggestions .suggestion-item.active .text-muted,
+#supervisor_suggestions .suggestion-item:hover .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+</style>
+
+<script>
+// 自动过滤功能（debounce）
+let filterTimeout;
+function autoFilter() {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(function() {
+        const form = document.querySelector('#pane-management form[action="{{ url_for('admin_awards.awards_list') }}"]');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        // 收集所有表单字段
+        formData.forEach((value, key) => {
+            if (value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        });
+        
+        // 证书类型下拉框处理
+        const certificateType = document.getElementById('certificate_type');
+        if (certificateType && certificateType.value) {
+            params.append('certificate_type', certificateType.value);
+        }
+        
+        // 跳转到新的URL（保留page=1，因为过滤后应该从第一页开始）
+        params.set('page', '1');
+        window.location.href = '{{ url_for('admin_awards.awards_list') }}?' + params.toString();
+    }, 500); // 500ms debounce
+}
+
+// 初始化Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // 为所有过滤条件添加自动过滤事件
+    const filterInputs = [
+        'competition_id',
+        'track',
+        'year',
+        'competition_level',
+        'award_level',
+        'supervisor_name',
+        'winner_name',
+        'laboratory_id',
+        'is_abnormal',
+        'per_page',
+        'certificate_type'
+    ];
+    
+    filterInputs.forEach(function(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', autoFilter);
+            } else {
+                input.addEventListener('input', autoFilter);
+            }
+        }
+    });
+    
+    // 初始化所有tooltip
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// 全选/取消全选
+const selectAllAwards = document.getElementById('selectAllAwards');
+if (selectAllAwards) {
+    selectAllAwards.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.award-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateBatchDeleteBtn();
+    });
+}
+
+// 单个复选框变化
+document.querySelectorAll('.award-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBatchDeleteBtn);
+});
+
+// 表单筛选字段改变时自动提交表单
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('awardFilterForm');
+    if (form) {
+        // 监听所有筛选字段的变化（select、input）
+        const filterFields = form.querySelectorAll('select, input[type="text"], input[type="number"]');
+        filterFields.forEach(field => {
+            field.addEventListener('change', function() {
+                // 确保 tab 参数存在
+                const tabInput = form.querySelector('input[name="tab"]');
+                if (!tabInput) {
+                    const hiddenTab = document.createElement('input');
+                    hiddenTab.type = 'hidden';
+                    hiddenTab.name = 'tab';
+                    hiddenTab.value = 'management';
+                    form.appendChild(hiddenTab);
+                }
+                // 立即提交表单
+                form.submit();
+            });
+        });
+        
+        // 注意：不要在这里修改 is_abnormal 的值，让模板的 Jinja2 条件判断来设置正确的选中状态
+    }
+});
+
+function updateBatchDeleteBtn() {
+    const checked = document.querySelectorAll('.award-checkbox:checked');
+    const btn = document.getElementById('batchDeleteBtn');
+    if (btn) {
+        btn.disabled = checked.length === 0;
+        btn.textContent = checked.length > 0 ? `批量删除 (${checked.length})` : '批量删除';
+    }
+}
+
+// 批量删除
+const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+if (batchDeleteBtn) {
+    batchDeleteBtn.addEventListener('click', function() {
+        const checked = document.querySelectorAll('.award-checkbox:checked');
+        if (checked.length === 0) {
+            alert('请选择要删除的奖状');
+            return;
+        }
+
+        if (!confirm(`确定要删除选中的 ${checked.length} 条奖状吗？此操作不可恢复！`)) {
+            return;
+        }
+
+        const awardIds = Array.from(checked).map(cb => parseInt(cb.value));
+
+        fetch('/admin/awards/batch-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ award_ids: awardIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || '批量删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('批量删除失败');
+        });
+    });
+}
+
+// 关联师生奖状按钮
+const linkTeacherStudentBtn = document.getElementById('linkTeacherStudentBtn');
+if (linkTeacherStudentBtn) {
+    linkTeacherStudentBtn.addEventListener('click', function() {
+        if (!confirm('确定要从教师奖状中补充学生奖状的导师信息吗？')) {
+            return;
+        }
+
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+
+        fetch('/admin/api/awards/link-teacher-student', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ dry_run: false })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || '操作完成');
+                location.reload();
+            } else {
+                alert(data.message || '操作失败');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('操作失败');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+}
+
+// 注意：deleteAward 函数由包含此模板的主页面定义
+// 当在 achievements.html 中使用时，deleteAward 在那里定义
+// 当在 awards/main.html 中使用时，需要确保有对应的 deleteAward 函数
+// 为了避免函数覆盖问题，这里不再定义 deleteAward
+
+// 第一指导教师输入框自动完成功能
+(function() {
+    var supervisorSearchTimeout = null;
+    var selectedSupervisorSuggestionIndex = -1;
+    var isComposing = false; // 输入法组合状态标志
+    var supervisorInput = document.getElementById('supervisor_name');
+    var suggestionsDiv = document.getElementById('supervisor_suggestions');
+    
+    if (!supervisorInput || !suggestionsDiv) return;
+    
+    // 输入法组合开始
+    supervisorInput.addEventListener('compositionstart', function() {
+        isComposing = true;
+        // 清除搜索定时器，避免在组合过程中搜索
+        if (supervisorSearchTimeout) {
+            clearTimeout(supervisorSearchTimeout);
+            supervisorSearchTimeout = null;
+        }
+    });
+    
+    // 输入法组合更新（输入拼音过程中）
+    supervisorInput.addEventListener('compositionupdate', function() {
+        isComposing = true;
+    });
+    
+    // 输入法组合结束（确认输入）
+    supervisorInput.addEventListener('compositionend', function() {
+        isComposing = false;
+        // 组合结束后，触发一次搜索
+        var query = this.value.trim();
+        if (query) {
+            performSearch(query);
+        }
+    });
+    
+    // 执行搜索的函数
+    function performSearch(query) {
+        // 清除之前的定时器
+        if (supervisorSearchTimeout) {
+            clearTimeout(supervisorSearchTimeout);
+        }
+        
+        if (!query) {
+            suggestionsDiv.style.display = 'none';
+            selectedSupervisorSuggestionIndex = -1;
+            return;
+        }
+        
+        // 延迟搜索，避免频繁请求
+        supervisorSearchTimeout = setTimeout(function() {
+            fetch('{{ url_for("admin.api_teachers_search") }}?q=' + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.teachers && data.teachers.length > 0) {
+                        var html = '';
+                        data.teachers.forEach(function(teacher, index) {
+                            var displayText = teacher.name + (teacher.teacher_id ? ' (' + teacher.teacher_id + ')' : '');
+                            var titleText = teacher.title ? ' - ' + teacher.title : '';
+                            html += '<a href="#" class="list-group-item list-group-item-action suggestion-item" data-index="' + index + '" data-teacher-name="' + 
+                                    (teacher.name || '').replace(/"/g, '&quot;') + '">' +
+                                    '<div class="fw-bold">' + (teacher.name || '') + '</div>' +
+                                    '<small class="text-muted">' + (teacher.teacher_id || '') + titleText + '</small>' +
+                                    '</a>';
+                        });
+                        suggestionsDiv.innerHTML = html;
+                        suggestionsDiv.style.display = 'block';
+                        selectedSupervisorSuggestionIndex = -1;
+                        
+                        // 绑定点击事件
+                        suggestionsDiv.querySelectorAll('.suggestion-item').forEach(function(item) {
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                var teacherName = this.getAttribute('data-teacher-name');
+                                supervisorInput.value = teacherName;
+                                suggestionsDiv.style.display = 'none';
+                                // 触发自动过滤
+                                autoFilter();
+                            });
+                        });
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('搜索教师失败:', error);
+                    suggestionsDiv.style.display = 'none';
+                });
+        }, 300);
+    }
+    
+    // 输入事件（只在非组合状态下触发搜索）
+    supervisorInput.addEventListener('input', function() {
+        // 如果正在使用输入法组合，不触发搜索
+        if (isComposing) {
+            return;
+        }
+        
+        var query = this.value.trim();
+        performSearch(query);
+    });
+    
+    // 键盘事件（在非组合状态下处理）
+    supervisorInput.addEventListener('keydown', function(e) {
+        // 如果正在使用输入法组合，不处理导航键（但允许Escape关闭）
+        if (isComposing && e.key !== 'Escape') {
+            return;
+        }
+        
+        var items = suggestionsDiv.querySelectorAll('.suggestion-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedSupervisorSuggestionIndex = Math.min(selectedSupervisorSuggestionIndex + 1, items.length - 1);
+            items.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            if (selectedSupervisorSuggestionIndex >= 0 && items[selectedSupervisorSuggestionIndex]) {
+                items[selectedSupervisorSuggestionIndex].classList.add('active');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedSupervisorSuggestionIndex = Math.max(selectedSupervisorSuggestionIndex - 1, -1);
+            items.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            if (selectedSupervisorSuggestionIndex >= 0 && items[selectedSupervisorSuggestionIndex]) {
+                items[selectedSupervisorSuggestionIndex].classList.add('active');
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedSupervisorSuggestionIndex >= 0 && items.length > 0 && items[selectedSupervisorSuggestionIndex]) {
+                // 选择当前高亮的建议
+                items[selectedSupervisorSuggestionIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsDiv.style.display = 'none';
+            selectedSupervisorSuggestionIndex = -1;
+        }
+    });
+    
+    // 失去焦点时延迟隐藏，以便点击建议项
+    supervisorInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            suggestionsDiv.style.display = 'none';
+        }, 200);
+    });
+})();
+</script>
+

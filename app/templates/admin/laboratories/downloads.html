@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lab.name }} - 下载专区 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<style>
+.downloads-page {
+    padding: 1rem 0;
+}
+
+.download-item {
+    transition: background-color 0.2s;
+}
+
+.download-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-icon {
+    font-size: 2rem;
+    width: 50px;
+    text-align: center;
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="downloads-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ lab.name }} - 下载专区</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratories_list') }}">实验室列表</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}">{{ lab.name }}</a></li>
+                    <li class="breadcrumb-item active">下载专区</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回实验室
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-download"></i> 下载文件列表</h5>
+            <span class="badge bg-primary">{{ downloads|length }} 个文件</span>
+        </div>
+        <div class="card-body p-0">
+            {% if downloads %}
+            <div class="list-group list-group-flush">
+                {% for download in downloads %}
+                <div class="list-group-item download-item d-flex align-items-center">
+                    <!-- 文件图标 -->
+                    <div class="file-icon me-3">
+                        {% set file_ext = download.file_name.split('.')[-1].lower() if download.file_name and '.' in download.file_name else '' %}
+                        {% if file_ext == 'pdf' %}
+                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                        {% elif file_ext in ['doc', 'docx'] %}
+                        <i class="bi bi-file-earmark-word text-primary"></i>
+                        {% elif file_ext in ['xls', 'xlsx'] %}
+                        <i class="bi bi-file-earmark-excel text-success"></i>
+                        {% elif file_ext in ['ppt', 'pptx'] %}
+                        <i class="bi bi-file-earmark-ppt text-warning"></i>
+                        {% elif file_ext in ['zip', 'rar', '7z'] %}
+                        <i class="bi bi-file-earmark-zip text-secondary"></i>
+                        {% elif file_ext in ['jpg', 'jpeg', 'png', 'gif'] %}
+                        <i class="bi bi-file-earmark-image text-info"></i>
+                        {% else %}
+                        <i class="bi bi-file-earmark text-muted"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 文件信息 -->
+                    <div class="file-info">
+                        <div class="fw-bold">{{ download.file_title or download.file_name }}</div>
+                        <div class="small text-muted">
+                            <span class="me-3">{{ download.file_name }}</span>
+                            {% if download.file_size %}
+                            <span class="me-3">{{ "%.2f"|format(download.file_size / 1024) }} KB</span>
+                            {% endif %}
+                            {% if download.created_at %}
+                            <span>上传于 {{ download.created_at[:10] }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="file-actions">
+                        <a href="{{ url_for('admin_laboratory.laboratory_download_file', lab_id=lab.id, download_id=download.id) }}" 
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-download"></i> 下载
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                <p class="text-muted mt-3 mb-0">暂无下载文件</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

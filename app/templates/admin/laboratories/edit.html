@@ -1,0 +1,1056 @@
+{% extends "base.html" %}
+
+{% block title %}{% if lab %}编辑实验室{% else %}添加实验室{% endif %} - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="laboratory-edit-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if lab %}编辑实验室{% else %}添加实验室{% endif %}</h1>
+        <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-secondary">返回列表</a>
+    </div>
+    
+    <form method="POST" action="{% if lab %}{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}{% else %}{{ url_for('admin_laboratory.laboratory_edit') }}{% endif %}" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">基本信息</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <div class="mb-2">
+                            <label for="name" class="form-label">实验室名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ lab.name if lab else '' }}" required>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="description" class="form-label">描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ lab.description if lab else '' }}</textarea>
+                            <small class="form-text text-muted">实验室的简要介绍和说明</small>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="cover_image" class="form-label">封面图片</label>
+                            <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                            <small class="form-text text-muted">建议尺寸：800x400px，支持 JPG、PNG 格式</small>
+                            {% if lab and lab.cover_image %}
+                            <div class="mt-2">
+                                <p class="text-muted small mb-1">当前封面：</p>
+                                <img src="{{ url_for('static', filename=lab.cover_image) }}" alt="当前封面"
+                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                            </div>
+                            {% endif %}
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <p class="text-muted small mb-1">预览：</p>
+                                <img id="previewImg" src="" alt="预览" 
+                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">指导教师</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <p class="text-muted small mb-2">选择一个或多个指导教师。注意：每个教师只能属于一个实验室。</p>
+                        <div class="list-group" style="max-height: 250px; overflow-y: auto;">
+                            {% for teacher in all_teachers %}
+                            <label class="list-group-item" style="padding: 0.5rem 0.75rem;">
+                                <input type="checkbox" class="form-check-input me-2" name="instructor_ids" value="{{ teacher.id }}"
+                                       {% if lab and teacher in lab.instructors %}checked{% endif %}>
+                                <strong>{{ teacher.name }}</strong>
+                                <span class="text-muted ms-2">({{ teacher.teacher_id }})</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% if not all_teachers %}
+                        <p class="text-muted mb-0">暂无教师数据</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">学生成员</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <p class="text-muted small mb-2">输入学生姓名或学号进行搜索，然后选择学生成员。</p>
+                        
+                        <!-- 搜索输入框 -->
+                        <div class="mb-2 position-relative">
+                            <label for="studentSearch" class="form-label">搜索学生</label>
+                            <input type="text" class="form-control form-control-sm" id="studentSearch" 
+                                   placeholder="输入学生姓名或学号..." autocomplete="off">
+                            <div id="studentSearchResults" class="list-group mt-2" style="display: none; max-height: 250px; overflow-y: auto; position: absolute; z-index: 1000; width: 100%;">
+                                <!-- 候选结果将动态插入这里 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 已选择的学生列表 -->
+                        <div class="mb-2">
+                            <label class="form-label">已选择的学生</label>
+                            <div id="selectedStudentsList" class="d-flex flex-wrap gap-2">
+                                {% if lab and lab.students %}
+                                    {% for student in lab.students %}
+                                    <span class="badge bg-primary d-flex align-items-center" data-student-id="{{ student.id }}">
+                                        {{ student.get_brief_desc() }}
+                                        <button type="button" class="btn-close btn-close-white ms-2" onclick="removeStudent({{ student.id }})" aria-label="移除"></button>
+                                    </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div id="noStudentsSelected" class="text-muted" style="display: {% if lab and lab.students %}none{% else %}block{% endif %}; font-size: 0.875rem;">
+                                暂无已选择的学生
+                            </div>
+                        </div>
+                        
+                        <!-- 隐藏的input用于存储已选择的学生ID -->
+                        <div id="studentIdsContainer">
+                            {% if lab and lab.students %}
+                                {% for student in lab.students %}
+                                <input type="hidden" name="student_ids" value="{{ student.id }}">
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <!-- 实验室图片管理 -->
+                {% if lab %}
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">活动图片</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <div class="mb-2">
+                            <label for="labImagesUpload" class="form-label">上传图片</label>
+                            <input type="file" class="form-control form-control-sm" id="labImagesUpload" name="lab_images" accept="image/*" multiple>
+                            <small class="form-text text-muted">支持多选，建议尺寸：800x600px，支持 JPG、PNG 格式</small>
+                        </div>
+                        
+                        <div id="labImagesList" class="d-flex flex-wrap gap-2">
+                            {% if lab.images %}
+                            {% for image_path in lab.images %}
+                            {% set normalized_path = image_path.replace('\\', '/') %}
+                            <div class="lab-image-item position-relative" data-image-path="{{ image_path }}">
+                                <img src="{{ url_for('admin_laboratory.laboratory_image_file', filename=normalized_path) }}" 
+                                     alt="实验室图片" 
+                                     style="width: 120px; height: 80px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #dee2e6;">
+                                <button type="button" class="lab-image-delete-btn" 
+                                        onclick="deleteLabImage({{ lab.id }}, '{{ image_path|replace("'", "\\'") }}')" 
+                                        title="删除图片">
+                                    ×
+                                </button>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div id="labImagesEmpty" class="text-muted" style="display: {% if lab.images %}none{% else %}block{% endif %}; font-size: 0.875rem;">
+                            暂无图片
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 成果管理 (未认领成果) -->
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">成果认领</h5>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <ul class="nav nav-tabs nav-tabs-sm px-3 pt-2" id="unclaimedTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="unclaimed-award-tab" data-bs-toggle="tab" data-bs-target="#unclaimed-award" type="button" role="tab" aria-controls="unclaimed-award" aria-selected="true">奖状</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="unclaimed-patent-tab" data-bs-toggle="tab" data-bs-target="#unclaimed-patent" type="button" role="tab" aria-controls="unclaimed-patent" aria-selected="false">专利</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="unclaimed-software-tab" data-bs-toggle="tab" data-bs-target="#unclaimed-software" type="button" role="tab" aria-controls="unclaimed-software" aria-selected="false">软著</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-3" id="unclaimedTabContent" style="max-height: 400px; overflow-y: auto;">
+                            <!-- 奖状列表 -->
+                            <div class="tab-pane fade show active" id="unclaimed-award" role="tabpanel" aria-labelledby="unclaimed-award-tab">
+                                <div class="text-center py-3 loading-spinner">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                                <div class="list-group list-group-flush content-list"></div>
+                            </div>
+                            <!-- 专利列表 -->
+                            <div class="tab-pane fade" id="unclaimed-patent" role="tabpanel" aria-labelledby="unclaimed-patent-tab">
+                                <div class="text-center py-3 loading-spinner">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                                <div class="list-group list-group-flush content-list"></div>
+                            </div>
+                            <!-- 软著列表 -->
+                            <div class="tab-pane fade" id="unclaimed-software" role="tabpanel" aria-labelledby="unclaimed-software-tab">
+                                <div class="text-center py-3 loading-spinner">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                                <div class="list-group list-group-flush content-list"></div>
+                            </div>
+                        </div>
+                        <div class="px-3 pb-3 text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> 显示所有无指导教师且无实验室关联的成果。点击"编辑"进行认领。
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 下载专区管理 -->
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">下载专区</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <div class="mb-2">
+                            <label for="downloadFileUpload" class="form-label">上传文件</label>
+                            <div class="input-group input-group-sm">
+                                <input type="file" class="form-control form-control-sm" id="downloadFileUpload" name="download_file">
+                                <input type="text" class="form-control form-control-sm" id="downloadFileTitle" placeholder="文件标题（可选）">
+                                <button type="button" class="btn btn-outline-primary" onclick="uploadDownloadFile()">
+                                    <i class="bi bi-upload"></i> 上传
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">支持 PDF、文档、压缩包等文件格式</small>
+                        </div>
+                        
+                        <div id="downloadFilesList" class="list-group list-group-flush mt-2">
+                            {% if lab.downloads %}
+                            {% for download in lab.downloads %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0" id="download-{{ download.id }}">
+                                <div class="d-flex align-items-center">
+                                    {% set file_ext = download.file_name.split('.')[-1].lower() if download.file_name and '.' in download.file_name else '' %}
+                                    {% if file_ext == 'pdf' %}
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                    {% elif file_ext in ['doc', 'docx'] %}
+                                    <i class="bi bi-file-earmark-word text-primary me-2"></i>
+                                    {% elif file_ext in ['xls', 'xlsx'] %}
+                                    <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                                    {% else %}
+                                    <i class="bi bi-file-earmark text-muted me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="small fw-bold">{{ download.file_title or download.file_name }}</div>
+                                        <small class="text-muted">{{ download.file_name }}</small>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteDownloadFile({{ lab.id }}, {{ download.id }}, '{{ download.file_title or download.file_name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div id="downloadFilesEmpty" class="text-muted" style="display: {% if lab.downloads %}none{% else %}block{% endif %}; font-size: 0.875rem;">
+                            暂无下载文件
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- 学生助教管理 -->
+                {% if lab %}
+                <div class="card mb-3">
+                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                        <h5 class="mb-0" style="font-size: 1rem;">学生助教管理</h5>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <p class="text-muted small mb-2">只能从实验室成员中选择助教，且每个学生只能在一个实验室担任助教。</p>
+                        
+                        <div class="mb-2">
+                            <label for="assistantSelect" class="form-label">添加助教</label>
+                            <select class="form-select form-select-sm" id="assistantSelect">
+                                <option value="">选择学生...</option>
+                                {% if lab.students %}
+                                {% for student in lab.students %}
+                                {% if student not in lab.assistants %}
+                                <option value="{{ student.id }}">{{ student.get_brief_desc() }}</option>
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        
+                        <div id="assistantsList">
+                            {% if lab.assistants %}
+                            <label class="form-label">当前助教</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for assistant in lab.assistants %}
+                                <span class="badge bg-primary d-flex align-items-center" id="assistant-{{ assistant.id }}" style="font-size: 0.875rem; padding: 0.5rem 0.75rem;">
+                                    {{ assistant.get_brief_desc() }}
+                                    <button type="button" class="btn-close btn-close-white ms-2" onclick="removeAssistant({{ lab.id }}, {{ assistant.id }}, '{{ assistant.name }}')" aria-label="移除"></button>
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted mb-0" style="font-size: 0.875rem;">暂无学生助教</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-secondary">取消</a>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// 学生搜索功能
+let searchTimeout = null;
+const studentSearchInput = document.getElementById('studentSearch');
+const studentSearchResults = document.getElementById('studentSearchResults');
+const selectedStudentsList = document.getElementById('selectedStudentsList');
+const noStudentsSelected = document.getElementById('noStudentsSelected');
+const studentIdsContainer = document.getElementById('studentIdsContainer');
+const selectedStudentIds = new Set();
+
+// 初始化已选择的学生ID集合
+document.querySelectorAll('#studentIdsContainer input[name="student_ids"]').forEach(input => {
+    selectedStudentIds.add(parseInt(input.value));
+});
+
+// 搜索输入事件
+studentSearchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    // 清除之前的定时器
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // 如果查询为空，隐藏结果
+    if (!query) {
+        studentSearchResults.style.display = 'none';
+        return;
+    }
+    
+    // 延迟搜索，避免频繁请求
+    searchTimeout = setTimeout(() => {
+        searchStudents(query);
+    }, 300);
+});
+
+// 搜索学生
+function searchStudents(query) {
+    fetch(`{{ url_for('admin.api_students_search') }}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displaySearchResults(data.students);
+            } else {
+                studentSearchResults.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('搜索失败:', error);
+            studentSearchResults.style.display = 'none';
+        });
+}
+
+// 显示搜索结果
+function displaySearchResults(students) {
+    if (students.length === 0) {
+        studentSearchResults.innerHTML = '<div class="list-group-item text-muted">未找到匹配的学生</div>';
+        studentSearchResults.style.display = 'block';
+        return;
+    }
+    
+    studentSearchResults.innerHTML = '';
+    students.forEach(student => {
+        // 如果已选择，跳过
+        if (selectedStudentIds.has(student.id)) {
+            return;
+        }
+        
+        const item = document.createElement('div');
+        item.className = 'list-group-item list-group-item-action';
+        item.style.cursor = 'pointer';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'd-flex justify-content-between align-items-center';
+        
+        const infoDiv = document.createElement('div');
+        const nameStrong = document.createElement('strong');
+        nameStrong.textContent = student.name;
+        const briefSpan = document.createElement('span');
+        briefSpan.className = 'text-muted ms-2';
+        briefSpan.textContent = student.brief_desc || student.display || '';
+        infoDiv.appendChild(nameStrong);
+        infoDiv.appendChild(briefSpan);
+        
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'btn btn-sm btn-primary';
+        addButton.textContent = '添加';
+        addButton.onclick = function() {
+            addStudent(student.id, student.name, student.brief_desc || student.display || student.name);
+        };
+        
+        nameDiv.appendChild(infoDiv);
+        nameDiv.appendChild(addButton);
+        item.appendChild(nameDiv);
+        studentSearchResults.appendChild(item);
+    });
+    
+    studentSearchResults.style.display = 'block';
+}
+
+// 添加学生
+function addStudent(studentId, studentName, studentBriefDesc) {
+    // 如果已存在，不重复添加
+    if (selectedStudentIds.has(studentId)) {
+        return;
+    }
+    
+    // 添加到集合
+    selectedStudentIds.add(studentId);
+    
+    // 创建隐藏input
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'student_ids';
+    hiddenInput.value = studentId;
+    studentIdsContainer.appendChild(hiddenInput);
+    
+    // 创建显示标签
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-primary d-flex align-items-center';
+    badge.setAttribute('data-student-id', studentId);
+    
+    const badgeText = document.createTextNode(studentBriefDesc || studentName);
+    badge.appendChild(badgeText);
+    
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn-close btn-close-white ms-2';
+    removeButton.setAttribute('aria-label', '移除');
+    removeButton.onclick = function() {
+        removeStudent(studentId);
+    };
+    badge.appendChild(removeButton);
+    
+    selectedStudentsList.appendChild(badge);
+    
+    // 隐藏"暂无已选择的学生"提示
+    noStudentsSelected.style.display = 'none';
+    
+    // 清空搜索框并隐藏结果
+    studentSearchInput.value = '';
+    studentSearchResults.style.display = 'none';
+    
+    // 从搜索结果中移除该项
+    updateSearchResults();
+}
+
+// 移除学生
+function removeStudent(studentId) {
+    // 从集合中移除
+    selectedStudentIds.delete(studentId);
+    
+    // 移除隐藏input
+    const hiddenInput = studentIdsContainer.querySelector(`input[value="${studentId}"]`);
+    if (hiddenInput) {
+        hiddenInput.remove();
+    }
+    
+    // 移除显示标签
+    const badge = selectedStudentsList.querySelector(`[data-student-id="${studentId}"]`);
+    if (badge) {
+        badge.remove();
+    }
+    
+    // 如果没有任何已选择的学生，显示提示
+    if (selectedStudentIds.size === 0) {
+        noStudentsSelected.style.display = 'block';
+    }
+    
+    // 更新搜索结果（重新显示之前隐藏的项）
+    if (studentSearchInput.value.trim()) {
+        searchStudents(studentSearchInput.value.trim());
+    }
+}
+
+// 更新搜索结果（移除已选择的项）
+function updateSearchResults() {
+    if (studentSearchInput.value.trim()) {
+        searchStudents(studentSearchInput.value.trim());
+    }
+}
+
+// HTML转义函数
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 点击外部区域关闭搜索结果
+document.addEventListener('click', function(event) {
+    if (!studentSearchInput.contains(event.target) && !studentSearchResults.contains(event.target)) {
+        studentSearchResults.style.display = 'none';
+    }
+});
+
+// 图片预览功能
+const coverImageInput = document.getElementById('cover_image');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+
+if (coverImageInput) {
+    coverImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 文件大小限制：50MB
+            const MAX_FILE_SIZE = 50 * 1024 * 1024;
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`文件大小超过限制！\n\n当前文件: ${(file.size / 1024 / 1024).toFixed(2)} MB\n限制大小: 50 MB\n\n请压缩后重试。`);
+                e.target.value = '';
+                imagePreview.style.display = 'none';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.style.display = 'none';
+        }
+    });
+}
+
+// 助教管理功能
+{% if lab %}
+// 添加助教
+const assistantSelect = document.getElementById('assistantSelect');
+if (assistantSelect) {
+    assistantSelect.addEventListener('change', function() {
+        const studentId = this.value;
+        if (!studentId) return;
+        
+        const option = this.options[this.selectedIndex];
+        const studentName = option.text;
+        
+        fetch(`/admin/laboratories/{{ lab.id }}/assistants/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ student_id: parseInt(studentId) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || '添加助教失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('添加助教失败：' + error.message);
+        });
+    });
+}
+
+// 移除助教
+function removeAssistant(labId, studentId, studentName) {
+    if (!confirm(`确定要移除助教"${studentName}"吗？`)) {
+        return;
+    }
+    
+    fetch(`/admin/laboratories/${labId}/assistants/${studentId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || '移除助教失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('移除助教失败：' + error.message);
+    });
+}
+{% endif %}
+
+// 实验室图片上传
+{% if lab %}
+// 全局变量，确保删除函数可以访问
+const labImagesUpload = document.getElementById('labImagesUpload');
+const labImagesList = document.getElementById('labImagesList');
+const labImagesEmpty = document.getElementById('labImagesEmpty');
+
+if (labImagesUpload) {
+    labImagesUpload.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        // 前端验证文件类型
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const invalidFiles = files.filter(file => {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const typeValid = allowedTypes.includes(file.type);
+            const extValid = ['jpg', 'jpeg', 'png'].includes(ext);
+            return !typeValid && !extValid;
+        });
+        
+        if (invalidFiles.length > 0) {
+            alert('以下文件格式不支持: ' + invalidFiles.map(f => f.name).join(', ') + '\n仅支持 JPG、PNG 格式');
+            e.target.value = '';
+            return;
+        }
+        
+        files.forEach(file => {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            fetch(`/admin/laboratories/{{ lab.id }}/images/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 添加图片到列表
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'lab-image-item position-relative';
+                    imageItem.setAttribute('data-image-path', data.image_path);
+                    
+                    const img = document.createElement('img');
+                    // 使用完整的 image_path 作为 URL 参数
+                    img.src = `/admin/files/laboratory/${data.image_path}`;
+                    img.alt = '实验室图片';
+                    img.style.cssText = 'width: 150px; height: 100px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #dee2e6;';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'lab-image-delete-btn';
+                    deleteBtn.title = '删除图片';
+                    deleteBtn.innerHTML = '×';
+                    deleteBtn.onclick = function() {
+                        deleteLabImage({{ lab.id }}, data.image_path);
+                    };
+                    
+                    imageItem.appendChild(img);
+                    imageItem.appendChild(deleteBtn);
+                    labImagesList.appendChild(imageItem);
+                    
+                    if (labImagesEmpty) {
+                        labImagesEmpty.style.display = 'none';
+                    }
+                } else {
+                    alert('上传失败: ' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('上传失败:', error);
+                alert('上传失败: ' + error.message);
+            });
+        });
+        
+        // 清空文件选择
+        e.target.value = '';
+    });
+}
+
+function deleteLabImage(labId, imagePath) {
+    console.log('删除图片:', labId, imagePath); // 调试用
+    
+    // 直接删除，不需要确认
+    fetch(`/admin/laboratories/${labId}/images/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image_path: imagePath })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 从DOM中移除图片项
+            const imageList = document.getElementById('labImagesList');
+            const imageEmpty = document.getElementById('labImagesEmpty');
+            
+            if (imageList) {
+                // 遍历所有子元素查找匹配的图片项
+                let imageItem = null;
+                Array.from(imageList.children).forEach(item => {
+                    const itemPath = item.getAttribute('data-image-path');
+                    if (itemPath === imagePath) {
+                        imageItem = item;
+                    }
+                });
+                
+                if (imageItem) {
+                    // 添加淡出动画
+                    imageItem.style.transition = 'opacity 0.3s';
+                    imageItem.style.opacity = '0';
+                    setTimeout(() => {
+                        imageItem.remove();
+                        
+                        // 如果没有图片了，显示提示
+                        if (imageList.children.length === 0 && imageEmpty) {
+                            imageEmpty.style.display = 'block';
+                        }
+                    }, 300);
+                }
+            }
+        } else {
+            console.error('删除失败:', data.message);
+            alert('删除失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('删除失败:', error);
+        alert('删除失败: ' + error.message);
+    });
+}
+
+// 下载专区文件上传
+function uploadDownloadFile() {
+    const fileInput = document.getElementById('downloadFileUpload');
+    const titleInput = document.getElementById('downloadFileTitle');
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('请选择要上传的文件');
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    // 文件大小限制：50MB
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`文件大小超过限制！\n\n当前文件: ${(file.size / 1024 / 1024).toFixed(2)} MB\n限制大小: 50 MB\n\n请压缩后重试。`);
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('file_title', titleInput.value || file.name);
+    
+    fetch(`/admin/laboratories/{{ lab.id }}/downloads/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('文件上传成功');
+            location.reload();
+        } else {
+            alert('上传失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('上传失败:', error);
+        alert('上传失败: ' + error.message);
+    });
+    
+    // 清空输入
+    fileInput.value = '';
+    titleInput.value = '';
+}
+
+// 删除下载专区文件
+function deleteDownloadFile(labId, downloadId, fileName) {
+    if (!confirm(`确定要删除文件"${fileName}"吗？`)) {
+        return;
+    }
+    
+    fetch(`/admin/laboratories/${labId}/downloads/${downloadId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 从 DOM 中移除
+            const item = document.getElementById(`download-${downloadId}`);
+            if (item) {
+                item.remove();
+            }
+            
+            // 检查是否还有其他文件
+            const filesList = document.getElementById('downloadFilesList');
+            const emptyHint = document.getElementById('downloadFilesEmpty');
+            if (filesList && filesList.children.length === 0 && emptyHint) {
+                emptyHint.style.display = 'block';
+            }
+        } else {
+            alert('删除失败: ' + (data.message || '未知错误'));
+        }
+    })
+    .catch(error => {
+        console.error('删除失败:', error);
+        alert('删除失败: ' + error.message);
+    });
+}
+{% endif %}
+
+// 成果认领功能
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始加载奖状
+    loadUnclaimed('award');
+    
+    // Tab切换事件
+    const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(el => {
+        el.addEventListener('shown.bs.tab', function (event) {
+            const targetId = event.target.getAttribute('data-bs-target');
+            if (targetId === '#unclaimed-award') loadUnclaimed('award');
+            else if (targetId === '#unclaimed-patent') loadUnclaimed('patent');
+            else if (targetId === '#unclaimed-software') loadUnclaimed('software');
+        });
+    });
+});
+
+const loadedTabs = { award: false, patent: false, software: false };
+
+function loadUnclaimed(type) {
+    if (loadedTabs[type]) return; // 避免重复加载
+    
+    const containerId = `unclaimed-${type}`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const spinner = container.querySelector('.loading-spinner');
+    const list = container.querySelector('.content-list');
+    
+    if (spinner) spinner.style.display = 'block';
+    if (list) list.innerHTML = '';
+    
+    let url = '';
+    if (type === 'award') url = '/admin/api/laboratories/unclaimed/awards';
+    else if (type === 'patent') url = '/admin/api/laboratories/unclaimed/patents';
+    else if (type === 'software') url = '/admin/api/laboratories/unclaimed/software';
+    
+    fetch(url)
+        .then(response => {
+            const ct = response.headers.get('content-type') || '';
+            if (!response.ok) {
+                throw new Error(response.status === 404 ? '接口不存在' : `HTTP ${response.status}`);
+            }
+            if (!ct.includes('application/json')) {
+                throw new Error('服务器返回了非 JSON 响应，请检查接口');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                renderUnclaimedList(type, list, data.data);
+                loadedTabs[type] = true;
+            } else {
+                list.innerHTML = `<div class="text-danger p-3">加载失败: ${data.message || '未知错误'}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('成果认领加载失败:', error);
+            list.innerHTML = `<div class="text-danger p-3">加载失败: ${error.message}</div>`;
+        })
+        .finally(() => {
+            if (spinner) spinner.style.display = 'none';
+        });
+}
+
+function renderUnclaimedList(type, container, items) {
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-muted p-3 text-center">暂无未认领成果</div>';
+        return;
+    }
+    
+    let html = '';
+    items.forEach(item => {
+        let content = '';
+        let badge = '';
+        
+        if (type === 'award') {
+            content = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-truncate" style="max-width: 300px;" title="${item.title}">${item.title}</div>
+                        <div class="small text-muted">
+                            ${item.competition_name} | ${item.year || '-'} | ${item.winner_name || '未知获奖者'}
+                        </div>
+                    </div>
+                </div>`;
+            badge = item.award_level ? `<span class="badge bg-light text-dark border me-2">${item.award_level}</span>` : '';
+        } else if (type === 'patent') {
+            content = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-truncate" style="max-width: 300px;" title="${item.patent_name}">${item.patent_name}</div>
+                        <div class="small text-muted">
+                            ${item.patent_type || '专利'} | ${item.inventor || '-'} | ${item.application_date || '-'}
+                        </div>
+                    </div>
+                </div>`;
+        } else if (type === 'software') {
+            content = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-truncate" style="max-width: 300px;" title="${item.software_name}">${item.software_name}</div>
+                        <div class="small text-muted">
+                            ${item.registration_number || '-'} | ${item.copyright_owner || '-'} | ${item.registration_date || '-'}
+                        </div>
+                    </div>
+                </div>`;
+        }
+        
+        html += `
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center overflow-hidden">
+                    ${badge}
+                    ${content}
+                </div>
+                <a href="${item.edit_url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0">
+                    <i class="bi bi-pencil-square"></i> 编辑/认领
+                </a>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+</script>
+
+<style>
+/* 卡片紧凑样式 */
+.laboratory-edit-page .card {
+    margin-bottom: 1rem;
+}
+
+.laboratory-edit-page .card-header {
+    padding: 0.5rem 1rem;
+}
+
+.laboratory-edit-page .card-header h5 {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.laboratory-edit-page .card-body {
+    padding: 1rem;
+}
+
+.laboratory-edit-page .form-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.laboratory-edit-page .mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.laboratory-edit-page .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+#studentSearchResults {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#studentSearchResults .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+#selectedStudentsList .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/* 实验室图片删除按钮样式 */
+.lab-image-item {
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.lab-image-item:hover {
+    transform: scale(1.02);
+}
+
+.lab-image-delete-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    z-index: 10;
+    opacity: 0.9;
+}
+
+.lab-image-item:hover .lab-image-delete-btn {
+    opacity: 1;
+    background-color: #dc3545;
+    transform: scale(1.1);
+}
+
+.lab-image-delete-btn:hover {
+    opacity: 1;
+    background-color: #c82333;
+    transform: scale(1.15);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.lab-image-delete-btn:active {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
+

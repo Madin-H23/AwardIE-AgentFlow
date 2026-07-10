@@ -1,0 +1,996 @@
+/**
+ * 自定义样式 - 现代简洁风格
+ * 参考洋葱学园设计风格
+ */
+
+/* ============================================
+   1. CSS变量定义（现代风格）
+   ============================================ */
+:root {
+    /* 核心色彩体系 - 柔和现代 */
+    --bs-primary: #1890ff;        /* 主色调 - 蓝色 */
+    --bs-primary-hover: #40a9ff;  /* 主色悬停 */
+    --bs-primary-active: #096dd9; /* 主色激活 */
+    --bs-secondary: #8c8c8c;      /* 次要色 */
+    --bs-success: #52c41a;        /* 成功色 */
+    --bs-warning: #faad14;        /* 警告色 */
+    --bs-danger: #ff4d4f;          /* 危险色 */
+    --bs-dark: #262626;           /* 深色文字 */
+    --bs-light: #fafafa;          /* 浅色背景 */
+    
+    /* 文字颜色 */
+    --bs-body-color: #262626;
+    --bs-body-bg: #f0f2f5;        /* 浅灰背景 */
+    
+    /* 字体 */
+    --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --bs-font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    
+    /* 边框 */
+    --bs-border-width: 1px;
+    --bs-border-radius: 6px;      /* 圆角设计 */
+    --bs-border-color: #d9d9d9;    /* 边框颜色 */
+    
+    /* 阴影 */
+    --bs-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --bs-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --bs-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    
+    /* 间距 */
+    --bs-spacer: 1rem;
+}
+
+/* ============================================
+   2. 基础样式重置
+   ============================================ */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--bs-font-sans-serif);
+    font-size: 16px;              /* 从14px增加到16px，提升可读性 */
+    line-height: 1.6;             /* 增加行高，让文字更舒适 */
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   3. 排版系统
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--bs-font-heading);
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 0.5em;
+    color: var(--bs-dark);
+}
+
+h1 {
+    font-size: 32px;              /* 从28px增加到32px */
+    font-weight: 600;
+    margin-bottom: 1rem;          /* 增加底部间距 */
+}
+
+h2 {
+    font-size: 26px;              /* 从24px增加到26px */
+    font-weight: 600;
+    margin-bottom: 0.75rem;       /* 增加底部间距 */
+}
+
+h3 {
+    font-size: 22px;              /* 从20px增加到22px */
+    font-weight: 500;
+    margin-bottom: 0.75rem;       /* 增加底部间距 */
+}
+
+h4 {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+h5 {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+h6 {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* ============================================
+   4. 按钮样式（现代圆角）
+   ============================================ */
+.btn {
+    border-radius: var(--bs-border-radius);
+    border-width: 1px;
+    font-weight: 500;             /* 从400增加到500，更醒目 */
+    padding: 10px 20px;           /* 从8px 16px增加到10px 20px */
+    font-size: 16px;              /* 从14px增加到16px */
+    line-height: 1.5;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #fff;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
+}
+
+.btn-primary:hover {
+    background-color: var(--bs-primary-hover);
+    border-color: var(--bs-primary-hover);
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(24, 144, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    background-color: var(--bs-primary-active);
+    border-color: var(--bs-primary-active);
+    transform: translateY(0);
+}
+
+.btn-primary:focus {
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.btn-lg {
+    padding: 14px 28px;           /* 增加内边距 */
+    font-size: 18px;              /* 增加字体 */
+    height: 48px;                 /* 增加高度 */
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 14px;
+    height: 32px;
+}
+
+/* ============================================
+   5. 卡片样式（圆角阴影）
+   ============================================ */
+.card {
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-color);
+    background-color: #fff;
+    box-shadow: var(--bs-shadow);
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.card:hover {
+    box-shadow: var(--bs-shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-body {
+    padding: 32px;                /* 从24px增加到32px，增加内边距 */
+}
+
+.card-header {
+    padding: 20px 32px;           /* 增加卡片头部内边距 */
+    font-size: 18px;              /* 增加头部字体 */
+    font-weight: 600;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* ============================================
+   6. 导航栏样式
+   ============================================ */
+.navbar {
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: #fff;
+    padding: 0 32px;              /* 从24px增加到32px */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-height: 72px;             /* 增加导航栏高度 */
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-family: var(--bs-font-heading);
+    font-weight: 700;             /* 从600增加到700，更醒目 */
+    font-size: 22px;              /* 从20px增加到22px */
+    color: var(--bs-dark);
+    text-decoration: none;
+    transition: color 0.3s;
+    line-height: 1.2;
+}
+
+.navbar-brand:hover {
+    color: var(--bs-primary);
+}
+
+/* 导航栏文本样式 */
+.navbar-text {
+    font-size: 16px;              /* 增加导航栏文本大小 */
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link {
+    font-size: 16px;              /* 增加导航链接字体 */
+    font-weight: 500;
+    padding: 8px 16px;
+}
+
+/* ============================================
+   7. 侧边栏样式
+   ============================================ */
+.sidebar-wrapper {
+    background-color: #fff;
+    color: var(--bs-dark);
+    padding: 24px 0;              /* 从16px增加到24px，增加上下内边距 */
+    min-height: calc(100vh - 64px);
+    border-right: 1px solid var(--bs-border-color);
+}
+
+.sidebar-nav {
+    padding: 0 12px;              /* 增加侧边栏左右内边距 */
+}
+
+.sidebar-nav .nav-link {
+    color: var(--bs-dark);
+    padding: 16px 24px;           /* 从12px 24px增加到16px 24px，增加垂直内边距 */
+    border-left: 4px solid transparent;  /* 从3px增加到4px，更醒目 */
+    margin: 6px 0;                /* 从4px增加到6px，增加链接间距 */
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s;
+    border-radius: 0 6px 6px 0;   /* 从4px增加到6px */
+    font-size: 18px;              /* 从16px增加到18px，使侧边栏字体更大更醒目 */
+    font-weight: 500;             /* 增加字重，使其更醒目 */
+    line-height: 1.6;             /* 从1.5增加到1.6，增加行高提升可读性 */
+}
+
+.sidebar-nav .nav-link:hover {
+    background-color: #f0f7ff;   /* 使用更明显的背景色 */
+    color: var(--bs-primary);
+    border-left-color: var(--bs-primary);
+    transform: translateX(2px);   /* 添加轻微的向右移动效果 */
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: #e6f7ff;
+    color: var(--bs-primary);
+    border-left-color: var(--bs-primary);
+    font-weight: 600;             /* 从500增加到600，激活态更醒目 */
+    font-size: 18px;              /* 从16px增加到18px，与普通状态保持一致 */
+}
+
+/* 侧边栏分组标题和分割线 */
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid var(--bs-border-color);
+    margin: 20px 0 10px 0;
+}
+
+.sidebar-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 24px;
+    margin-top: 10px;
+}
+
+/* ============================================
+   8. 主内容区
+   ============================================ */
+.main-content {
+    padding: 32px;                /* 从24px增加到32px，增加主内容区内边距 */
+    background-color: var(--bs-body-bg);
+    min-height: calc(100vh - 64px);
+}
+
+/* 仪表板和个人设置页面的主内容区需要移除内边距，让全宽背景显示 */
+.main-content > section.dashboard-hero-section,
+.main-content > section.profile-hero-section {
+    margin-left: -32px;
+    margin-right: -32px;
+    margin-top: -32px;
+    width: calc(100% + 64px);
+}
+
+.main-content > section:not(.dashboard-hero-section):not(.profile-hero-section) {
+    margin-left: -32px;
+    margin-right: -32px;
+    padding-left: 32px;
+    padding-right: 32px;
+}
+
+/* 确保容器内的padding不会影响布局 */
+.main-content > section:not(.dashboard-hero-section):not(.profile-hero-section) .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ============================================
+   9. 表单样式（现代设计）
+   ============================================ */
+.form-control,
+.form-select {
+    border-radius: var(--bs-border-radius);
+    border: 1px solid var(--bs-border-color);
+    padding: 10px 14px;           /* 从8px 12px增加到10px 14px */
+    font-size: 16px;              /* 从14px增加到16px */
+    line-height: 1.5;
+    transition: all 0.3s;
+    background-color: #fff;
+    color: var(--bs-dark);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    outline: none;
+}
+
+.form-control:hover {
+    border-color: var(--bs-primary-hover);
+}
+
+.form-control::placeholder {
+    color: #bfbfbf;
+}
+
+.form-label {
+    font-weight: 600;             /* 从500增加到600，标签更醒目 */
+    color: var(--bs-dark);
+    margin-bottom: 10px;          /* 从8px增加到10px */
+    display: block;
+    font-size: 16px;              /* 从14px增加到16px */
+}
+
+/* 表单组间距 */
+.form-group,
+.row.g-3 > * {
+    margin-bottom: 1.5rem;        /* 增加表单组之间的间距 */
+}
+
+.row.g-3 {
+    margin-bottom: 1rem;
+}
+
+/* 输入框组 */
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group .form-control {
+    padding-left: 40px;
+}
+
+.input-group-icon {
+    position: absolute;
+    left: 12px;
+    color: #8c8c8c;
+    z-index: 1;
+}
+
+/* ============================================
+   10. 登录页面特殊样式
+   ============================================ */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-title {
+    font-size: 32px;              /* 从28px增加到32px */
+    font-weight: 700;             /* 从600增加到700 */
+    color: var(--bs-dark);
+    text-align: center;
+    margin-bottom: 40px;          /* 从32px增加到40px */
+}
+
+.login-form .form-group {
+    margin-bottom: 28px;          /* 从24px增加到28px */
+}
+
+.login-form .form-label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.login-form .form-control {
+    height: 48px;                 /* 从40px增加到48px */
+    padding: 12px 16px 12px 44px; /* 增加内边距 */
+    font-size: 16px;
+}
+
+.login-form .btn-primary {
+    width: 100%;
+    height: 48px;                 /* 从40px增加到48px */
+    font-size: 18px;              /* 从16px增加到18px */
+    font-weight: 600;             /* 从500增加到600 */
+    margin-top: 12px;             /* 从8px增加到12px */
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 32px;             /* 从24px增加到32px */
+    color: #8c8c8c;
+    font-size: 14px;              /* 从12px增加到14px */
+}
+
+.login-footer a {
+    color: var(--bs-primary);
+    text-decoration: none;
+}
+
+.login-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   11. 警告框样式
+   ============================================ */
+.alert {
+    border-radius: var(--bs-border-radius);
+    border-width: 1px;
+    padding: 16px 20px;           /* 从12px 16px增加到16px 20px */
+    margin-bottom: 20px;          /* 从16px增加到20px */
+    border-left: 4px solid;
+    font-size: 16px;              /* 明确设置字体大小 */
+    line-height: 1.6;
+}
+
+.alert-warning {
+    border-color: var(--bs-warning);
+    background-color: #fffbe6;
+    color: #ad6800;
+}
+
+.alert-error,
+.alert-danger {
+    border-color: var(--bs-danger);
+    background-color: #fff2f0;
+    color: #cf1322;
+}
+
+.alert-info {
+    border-color: var(--bs-primary);
+    background-color: #e6f7ff;
+    color: #0958d9;
+}
+
+.alert-success {
+    border-color: var(--bs-success);
+    background-color: #f6ffed;
+    color: #389e0d;
+}
+
+/* ============================================
+   12. 表格样式优化
+   ============================================ */
+.table {
+    font-size: 16px;              /* 增加表格字体 */
+}
+
+.table thead th {
+    font-weight: 600;             /* 表头字体加粗 */
+    font-size: 15px;
+    padding: 14px 12px;           /* 增加表头内边距 */
+    border-bottom: 2px solid var(--bs-border-color);
+}
+
+.table tbody td {
+    padding: 12px;                /* 增加表格单元格内边距 */
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* ============================================
+   13. 响应式调整
+   ============================================ */
+@media (max-width: 991.98px) {
+    .sidebar-wrapper {
+        border-right: none;
+        border-bottom: 1px solid var(--bs-border-color);
+        min-height: auto;
+        padding: 16px 0;
+    }
+    
+    .sidebar-nav .nav-link {
+        padding: 14px 20px;
+        font-size: 17px;           /* 从15px增加到17px，移动端也保持较大字体 */
+    }
+    
+    .main-content {
+        padding: 20px;            /* 移动端也保持合理的内边距 */
+    }
+    
+    .login-card {
+        padding: 32px;            /* 增加登录卡片内边距 */
+    }
+    
+    h1 {
+        font-size: 28px;
+    }
+    
+    h2 {
+        font-size: 24px;
+    }
+}
+
+/* ============================================
+   14. 分页样式优化
+   ============================================ */
+.pagination {
+    font-size: 16px;
+}
+
+.pagination .page-link {
+    padding: 10px 16px;           /* 增加分页按钮内边距 */
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* ============================================
+   15. Badge标签样式优化
+   ============================================ */
+.badge {
+    font-size: 13px;              /* Badge字体稍小但清晰 */
+    padding: 6px 10px;
+    font-weight: 500;
+}
+
+/* ============================================
+   16. 文本大小工具类
+   ============================================ */
+.text-small {
+    font-size: 14px;
+}
+
+.text-normal {
+    font-size: 16px;
+}
+
+.text-large {
+    font-size: 18px;
+}
+
+.text-xl {
+    font-size: 20px;
+}
+
+/* ============================================
+   17. 间距工具类增强
+   ============================================ */
+.mb-5 {
+    margin-bottom: 3rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+.mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mt-5 {
+    margin-top: 3rem !important;
+}
+
+.mt-4 {
+    margin-top: 2rem !important;
+}
+
+.mt-3 {
+    margin-top: 1.5rem !important;
+}
+
+.py-4 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+}
+
+.py-5 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+}
+
+/* ============================================
+   18. 工具类
+   ============================================ */
+.text-primary {
+    color: var(--bs-primary) !important;
+}
+
+.bg-light {
+    background-color: var(--bs-light) !important;
+}
+
+.shadow-sm {
+    box-shadow: var(--bs-shadow-sm) !important;
+}
+
+.shadow {
+    box-shadow: var(--bs-shadow) !important;
+}
+
+.shadow-lg {
+    box-shadow: var(--bs-shadow-lg) !important;
+}
+
+/* ============================================
+   14. 动画效果
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ============================================
+   15. 工具类（兼容旧代码）
+   ============================================ */
+.text-brutal,
+.border-brutal,
+.shadow-brutal,
+.brutal-reveal {
+    /* 这些类不再使用，保留以避免破坏现有代码 */
+    /* 新设计使用默认的现代样式 */
+}
+
+/* ============================================
+   16. 仪表板欢迎区域样式（参考网站风格）
+   ============================================ */
+.dashboard-hero-section {
+    position: relative;
+    padding: 3rem 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+
+.dashboard-hero-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+    top: 0;
+    left: 0;
+}
+
+.dashboard-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dashboard-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(246, 173, 85, 0.3);
+    border-radius: 50%;
+    animation: float-particle 6s ease-in-out infinite;
+}
+
+@keyframes float-particle {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+.dashboard-hero-content {
+    position: relative;
+    z-index: 10;
+    padding: 2rem 1rem;
+}
+
+.dashboard-hero-title {
+    font-family: 'Noto Serif SC', serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.dashboard-hero-subtitle {
+    font-size: 1.25rem;
+    color: #4a5568;
+    margin-bottom: 2rem;
+}
+
+.dashboard-hero-buttons {
+    gap: 1rem;
+}
+
+/* ============================================
+   17. 参考网站风格的按钮样式
+   ============================================ */
+.btn-hero-primary {
+    background: linear-gradient(to right, #f6ad55, #ed8936);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(246, 173, 85, 0.2);
+}
+
+.btn-hero-primary:hover {
+    background: linear-gradient(to right, #ed8936, #dd6b20);
+    color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 8px rgba(246, 173, 85, 0.3);
+}
+
+.btn-hero-secondary {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-hero-secondary:hover {
+    border-color: #f6ad55;
+    color: #f6ad55;
+    background: white;
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   18. 个人设置页面样式
+   ============================================ */
+.profile-hero-section {
+    position: relative;
+    padding: 3rem 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+
+.profile-hero-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.profile-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.profile-hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.profile-hero-title {
+    font-family: 'Noto Serif SC', serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #2d3748 0%, #f6ad55 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.profile-hero-subtitle {
+    font-size: 1.25rem;
+    color: #4a5568;
+    margin-bottom: 2rem;
+}
+
+.profile-card {
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: none;
+    background: white;
+}
+
+.profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.profile-avatar {
+    width: 96px;
+    height: 96px;
+    background: linear-gradient(135deg, #f6ad55, #ed8936);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    position: relative;
+}
+
+.profile-info-item {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.profile-info-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.profile-info-value {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.profile-info-item .btn-link {
+    padding: 0;
+    color: #f6ad55;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.profile-info-item .btn-link:hover {
+    opacity: 1;
+    color: #f6ad55;
+}
+
+.skill-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0.25rem;
+}
+
+.skill-tag-blue {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.skill-tag-green {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.skill-tag-purple {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+.skill-tag-yellow {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.skill-tag-pink {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.skill-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.skill-input-group .form-control {
+    flex: 1;
+}
+
+.skill-input-group .form-select {
+    width: auto;
+    min-width: 150px;
+    border-radius: 0.5rem;
+}
+
+.skill-input-group .form-control:focus,
+.skill-input-group .form-select:focus {
+    border-color: #f6ad55;
+    box-shadow: 0 0 0 2px rgba(246, 173, 85, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .dashboard-hero-title {
+        font-size: 2rem;
+    }
+    
+    .profile-hero-title {
+        font-size: 2rem;
+    }
+    
+    .dashboard-hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .dashboard-hero-buttons .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    /* 移动端调整主内容区边距 */
+    .main-content > section.dashboard-hero-section,
+    .main-content > section.profile-hero-section {
+        margin-left: -20px;
+        margin-right: -20px;
+        margin-top: -20px;
+        width: calc(100% + 40px);
+    }
+    
+    .main-content > section:not(.dashboard-hero-section):not(.profile-hero-section) {
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .main-content > section:not(.dashboard-hero-section):not(.profile-hero-section) .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}

@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if patent %}编辑专利 - {{ patent.patent_name }}{% else %}添加专利{% endif %} - 竞赛管理系统
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">{% if patent %}编辑专利{% else %}添加专利{% endif %}</h1>
+    {% set from_page = request.args.get('from', '') %}
+    {% if patent %}
+        <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id, **({'from': from_page} if from_page else {})) }}" class="btn btn-outline-secondary">返回详情</a>
+    {% else %}
+        {% if from_page == 'achievements' %}
+        <a href="{{ url_for('admin_achievement.achievements', tab='patent') }}" class="btn btn-outline-secondary">返回列表</a>
+        {% else %}
+        <a href="{{ url_for('admin_patents.patents_list') }}" class="btn btn-outline-secondary">返回列表</a>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div class="row">
+    <!-- 左侧：专利文件预览 -->
+    <div class="col-lg-5">
+        <div class="card mb-4 sticky-top" style="top: 20px;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">专利文件</h5>
+                {% if patent and patent.certificate_file %}
+                <a href="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                   class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-box-arrow-up-right"></i> 新窗口打开
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-2">
+                {% if patent and patent.certificate_file %}
+                    {% set file_ext = patent.certificate_file.split('.')[-1].lower() %}
+                    {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                    <!-- 图片预览 -->
+                    <div class="text-center">
+                        <img src="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                             class="img-fluid patent-preview-img" 
+                             alt="专利证书"
+                             style="max-height: 600px; cursor: pointer;"
+                             onclick="openImageModal(this.src)">
+                    </div>
+                    {% elif file_ext == 'pdf' %}
+                    <!-- PDF 预览 -->
+                    <div class="pdf-preview-container">
+                        <iframe src="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                                class="w-100" style="height: 600px; border: none;"></iframe>
+                    </div>
+                    {% else %}
+                    <!-- 其他文件类型 -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">{{ patent.certificate_file }}</p>
+                        <a href="{{ url_for('admin_patents.patent_file', patent_id=patent.id) }}" 
+                           class="btn btn-primary" download>
+                            <i class="bi bi-download"></i> 下载文件
+                        </a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-image fs-1 text-muted"></i>
+                    <p class="text-muted mt-2">暂无专利文件</p>
+                    <p class="small text-muted">请在右侧上传专利证书文件</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if patent and patent.certificate_file %}
+            <div class="card-footer bg-light">
+                <small class="text-muted">文件: {{ patent.certificate_file }}</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 右侧：编辑表单 -->
+    <div class="col-lg-7">
+        <form id="patentForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% if from_page %}<input type="hidden" name="from" value="{{ from_page }}">{% endif %}
+            <!-- 基本信息 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="patent_name" class="form-label">专利名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="patent_name" name="patent_name" required
+                                   value="{{ patent.patent_name if patent else '' }}">
+                            <div class="invalid-feedback">请输入专利名称</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="patent_type" class="form-label">专利类型</label>
+                            <select class="form-select" id="patent_type" name="patent_type">
+                                <option value="">请选择</option>
+                                <option value="发明专利" {% if patent and patent.patent_type == '发明专利' %}selected{% endif %}>发明专利</option>
+                                <option value="实用新型" {% if patent and patent.patent_type == '实用新型' %}selected{% endif %}>实用新型</option>
+                                <option value="外观设计" {% if patent and patent.patent_type == '外观设计' %}selected{% endif %}>外观设计</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="application_number" class="form-label">申请号</label>
+                            <input type="text" class="form-control" id="application_number" name="application_number"
+                                   value="{{ patent.application_number if patent else '' }}"
+                                   placeholder="例: CN202310123456.X">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="publication_number" class="form-label">公开号</label>
+                            <input type="text" class="form-control" id="publication_number" name="publication_number"
+                                   value="{{ patent.publication_number if patent else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="inventor" class="form-label">发明人</label>
+                            <input type="text" class="form-control" id="inventor" name="inventor"
+                                   value="{{ patent.inventor if patent else '' }}"
+                                   placeholder="多个发明人用逗号分隔">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="patentee" class="form-label">专利权人</label>
+                            <input type="text" class="form-control" id="patentee" name="patentee"
+                                   value="{{ patent.patentee if patent else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="application_date" class="form-label">申请日期</label>
+                            <input type="date" class="form-control" id="application_date" name="application_date"
+                                   value="{{ patent.application_date if patent else '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关联实验室 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">关联实验室</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-0">
+                        <label for="laboratory_id" class="form-label">选择实验室</label>
+                        <select class="form-select" id="laboratory_id" name="laboratory_id">
+                            <option value="">未关联</option>
+                            {% for lab in laboratories %}
+                            <option value="{{ lab.id }}" {% if patent and patent.laboratory_id == lab.id %}selected{% endif %}>{{ lab.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">关联到实验室便于成果统计</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg"></i> 保存修改
+                </button>
+                {% if patent %}
+                <button type="button" class="btn btn-outline-danger" onclick="deletePatent({{ patent.id }})">
+                    <i class="bi bi-trash"></i> 删除专利
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 图片放大模态框 -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">专利证书预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalImage" class="img-fluid" style="max-height: 85vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 0.2rem rgba(24, 144, 255, 0.25);
+    }
+    .patent-preview-img {
+        border-radius: 4px;
+        transition: transform 0.2s;
+    }
+    .patent-preview-img:hover {
+        transform: scale(1.02);
+    }
+    .sticky-top {
+        z-index: 100;
+    }
+</style>
+
+<script>
+// 表单验证
+(function() {
+    'use strict';
+    const form = document.getElementById('patentForm');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+})();
+
+// 图片放大预览
+function openImageModal(src) {
+    document.getElementById('modalImage').src = src;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+
+{% if patent %}
+function deletePatent(id) {
+    if (confirm('确定要删除这个专利吗？此操作不可撤销。')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('admin_patents.patent_delete', patent_id=0) }}".replace('0', id);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+{% endif %}
+</script>
+{% endblock %}

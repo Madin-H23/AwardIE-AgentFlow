@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}竞赛管理 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>竞赛管理</h1>
+        <a href="{{ url_for('admin.competition_edit') }}" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            添加竞赛
+        </a>
+    </div>
+
+    <!-- 搜索表单 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.competitions_list') }}" id="searchForm" class="row g-3">
+                <div class="col-md-12">
+                    <label for="searchInput" class="form-label">搜索竞赛名称</label>
+                    <input type="text" class="form-control" id="searchInput" name="search"
+                           value="{{ search }}" placeholder="输入竞赛名称进行搜索...">
+                </div>
+            </form>
+        </div>
+    </div>
+
+            <!-- 竞赛列表 -->
+    <div class="card">
+        <div class="card-body">
+            {% if competitions %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="competitionsListTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>竞赛名称</th>
+                            <th>比赛时间</th>
+                            <th>别名</th>
+                            <th>白名单</th>
+                            <th>观察名单</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comp in competitions %}
+                        <tr>
+                            <td>{{ comp.id }}</td>
+                            <td>
+                                {% if comp.official_website %}
+                                    <a href="{{ comp.official_website }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                        <strong>{{ comp.name }}</strong>
+                                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" class="ms-1" style="vertical-align: text-top;">
+                                            <path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                            <path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793l-9.147 9.146a.5.5 0 0 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <strong>{{ comp.name }}</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.time_range %}
+                                    <span class="text-muted">{{ comp.time_range }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.aliases %}
+                                    {% for alias in comp.aliases[:3] %}
+                                        <span class="badge bg-secondary me-1">{{ alias }}</span>
+                                    {% endfor %}
+                                    {% if comp.aliases|length > 3 %}
+                                        <span class="text-muted">+{{ comp.aliases|length - 3 }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.is_white_list %}
+                                    <span class="badge bg-success">是</span>
+                                {% else %}
+                                    <span class="text-muted">否</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.is_watch_list %}
+                                    <span class="badge bg-warning text-dark">是</span>
+                                {% else %}
+                                    <span class="text-muted">否</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.competition_detail', competition_id=comp.id) }}"
+                                   class="btn btn-sm btn-outline-primary">查看</a>
+                                <a href="{{ url_for('admin.competition_edit', competition_id=comp.id) }}"
+                                   class="btn btn-sm btn-outline-secondary">编辑</a>
+                                <form method="POST" action="{{ url_for('admin.competition_delete_post', competition_id=comp.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('确定要删除这个竞赛吗？此操作不可恢复！');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控件 -->
+            {% if total_pages > 1 %}
+            <nav aria-label="竞赛列表分页">
+                <ul class="pagination justify-content-center mt-3">
+                    <!-- 上一页 -->
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin.competitions_list', search=search, page=page-1) }}" tabindex="-1">上一页</a>
+                    </li>
+
+                    <!-- 页码 -->
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == page %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ p }}</a></li>
+                        {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('admin.competitions_list', search=search, page=p) }}">{{ p }}</a></li>
+                        {% elif p == 4 or p == total_pages - 3 %}
+                            <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- 下一页 -->
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin.competitions_list', search=search, page=page+1) }}">下一页</a>
+                    </li>
+                </ul>
+                <div class="text-center text-muted">
+                    <small>第 {{ page }} 页 / 共 {{ total_pages }} 页，总计 {{ total }} 条记录</small>
+                </div>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">暂无竞赛数据</p>
+                <a href="{{ url_for('admin.competition_edit') }}" class="btn btn-primary">添加第一个竞赛</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// 自动过滤功能：当搜索框内容变化时，自动提交表单
+(function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+    let debounceTimer = null;
+
+    // 使用防抖处理，避免频繁提交
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+            searchForm.submit();
+        }, 500); // 用户停止输入500ms后自动提交
+    });
+
+    // 按回车键时立即提交
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(debounceTimer);
+            e.preventDefault();
+            searchForm.submit();
+        }
+    });
+})();
+
+</script>
+{% endblock %}
+

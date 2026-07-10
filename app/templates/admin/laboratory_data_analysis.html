@@ -1,0 +1,889 @@
+{% extends "base.html" %}
+
+{% block title %}实验室数据分析 - 管理员{% endblock %}
+
+{% block extra_head %}
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1890ff;
+        border-bottom-color: #1890ff;
+    }
+    .nav-tabs .nav-link.active {
+        color: #1890ff;
+        background-color: transparent;
+        border-bottom-color: #1890ff;
+    }
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    /* 年份多选框高度 */
+    select[multiple] {
+        min-height: 120px;
+    }
+    /* 年份标签样式 */
+    .year-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .year-tag {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+        border: 1px solid transparent;
+    }
+    .year-tag.unselected {
+        background-color: #e9ecef;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+    .year-tag.unselected:hover {
+        background-color: #dee2e6;
+    }
+    .year-tag.selected {
+        background-color: #1890ff;
+        color: #fff;
+    }
+    .year-tag.selected:hover {
+        background-color: #40a9ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 页面头部 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratories_list') }}">实验室管理</a></li>
+                    <li class="breadcrumb-item active">数据分析</li>
+                </ol>
+            </nav>
+            <h2 class="h4 mb-3">实验室数据分析</h2>
+        </div>
+    </div>
+
+    <!-- Tab导航 -->
+    <ul class="nav nav-tabs mb-4" id="analysisTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">
+                竞赛信息
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">
+                竞赛分析
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab内容区 -->
+    <div class="tab-content" id="analysisTabsContent">
+        <!-- Tab 1: 竞赛信息 -->
+        <div class="tab-pane fade show active" id="tab1" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div id="timelineChart" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="competitionsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>竞赛名称</th>
+                                            <th>时间范围</th>
+                                            <th>官网</th>
+                                            <th>白名单</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 竞赛分析（布局与 admin/data-analysis 一致） -->
+        <div class="tab-pane fade" id="tab2" role="tabpanel">
+            <!-- 筛选条件 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-2 me-2">年份筛选</label>
+                                </div>
+                                <div class="col">
+                                    <div class="year-tags" id="yearTags">
+                                        <!-- 动态生成年份标签 -->
+                                    </div>
+                                    <small class="text-muted">至少选择一个年份</small>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="tab2WhitelistFilter">
+                                        <label class="form-check-label" for="tab2WhitelistFilter">仅白名单赛事</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="tab2TeacherCertFilter">
+                                        <label class="form-check-label" for="tab2TeacherCertFilter">包含教师证书</label>
+                                    </div>
+                                    <small class="text-muted d-block">默认只显示学生奖状</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 竞赛贡献度 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title">竞赛贡献度</h6>
+                            <div id="contributionChart" style="height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 竞赛×实验室 获奖数量热力图：占满页面剩余空间 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title">竞赛×实验室 获奖数量热力图</h6>
+                            <div id="labCompetitionHeatmap" style="height: calc(100vh - 520px); min-height: 650px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ECharts：HTTPS 主源 + 备用 CDN，避免混合内容或单源不可用 -->
+<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
+        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='https://unpkg.com/echarts@5.4.3/dist/echarts.min.js'"></script>
+
+<script>
+// API 配置：管理员使用 /api/admin 前缀
+const DATA_ANALYSIS_CONFIG = {
+    apiPrefix: '/api/admin'
+};
+
+/**
+ * 年份标签筛选组件
+ */
+class YearTagFilter {
+    constructor(containerId, availableYears, defaultAll = true, onChange) {
+        this.container = document.getElementById(containerId);
+        this.availableYears = availableYears;
+        this.selectedYears = defaultAll ? [...availableYears] : [availableYears[availableYears.length - 1]];
+        this.onChange = onChange;
+        this.render();
+    }
+
+    toggleYear(year) {
+        const index = this.selectedYears.indexOf(year);
+        if (index > -1) {
+            if (this.selectedYears.length > 1) {
+                this.selectedYears.splice(index, 1);
+            }
+        } else {
+            this.selectedYears.push(year);
+        }
+        this.render();
+        if (this.onChange) {
+            this.onChange(this.selectedYears);
+        }
+    }
+
+    render() {
+        if (!this.container) return;
+        this.container.innerHTML = '';
+        this.availableYears.forEach(year => {
+            const tag = document.createElement('span');
+            tag.className = 'year-tag';
+            tag.textContent = year;
+            if (this.selectedYears.includes(year)) {
+                tag.classList.add('selected');
+            } else {
+                tag.classList.add('unselected');
+            }
+            tag.addEventListener('click', () => this.toggleYear(year));
+            this.container.appendChild(tag);
+        });
+    }
+}
+
+/**
+ * 竞赛×实验室热力图组件（与 admin/data-analysis 一致）
+ */
+class LabCompetitionHeatmap {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.chart = null;
+    }
+
+    render(data) {
+        if (!this.container) return;
+
+        if (this.chart) {
+            this.chart.dispose();
+            this.chart = null;
+        }
+
+        if (!data || !data.competitions || !data.laboratories) {
+            this.container.innerHTML = '<div class="text-center text-muted p-5">暂无数据，请调整筛选条件</div>';
+            return;
+        }
+
+        if (data.competitions.length === 0 || data.laboratories.length === 0) {
+            this.container.innerHTML = '<div class="text-center text-muted p-5">暂无数据，请调整筛选条件</div>';
+            return;
+        }
+
+        if (typeof echarts === 'undefined') return;
+
+        this.chart = echarts.init(this.container);
+
+        const heatmapData = [];
+        data.competitions.forEach((comp, i) => {
+            data.laboratories.forEach((lab, j) => {
+                heatmapData.push([j, i, data.data[i][j]]);
+            });
+        });
+
+        const maxValue = Math.max(...heatmapData.map(d => d[2])) || 10;
+
+        const option = {
+            title: {
+                text: '竞赛×实验室 获奖数量',
+                left: 'center',
+                textStyle: { fontSize: 20, fontWeight: 600, color: '#333' }
+            },
+            tooltip: {
+                formatter: params => {
+                    const comp = data.competitions[params.data[1]];
+                    const lab = data.laboratories[params.data[0]];
+                    return `${comp}<br/>${lab}: ${params.data[2]} 项`;
+                }
+            },
+            grid: {
+                top: '10%',
+                bottom: '18%',
+                left: '8%',
+                right: '8%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: data.laboratories,
+                axisLabel: {
+                    interval: 0,
+                    margin: 14,
+                    fontSize: 15
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: data.competitions,
+                axisLabel: {
+                    width: 220,
+                    overflow: 'truncate',
+                    fontSize: 15
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: maxValue,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '0%',
+                inRange: { color: ['#f7f7f7', '#1890ff', '#003a8c'] },
+                textStyle: { fontSize: 14 }
+            },
+            series: [{
+                type: 'heatmap',
+                data: heatmapData,
+                label: {
+                    show: true,
+                    fontSize: 14
+                },
+                emphasis: {
+                    itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' }
+                }
+            }]
+        };
+
+        this.chart.setOption(option);
+    }
+
+    resize() {
+        if (this.chart && !this.chart.isDisposed()) {
+            this.chart.resize();
+        }
+    }
+
+    dispose() {
+        if (this.chart && !this.chart.isDisposed()) {
+            this.chart.dispose();
+        }
+    }
+}
+
+/**
+ * 实验室数据分析模块
+ */
+class LaboratoryDataAnalysis {
+    constructor(labId) {
+        this.labId = labId;
+        this.apiPrefix = DATA_ANALYSIS_CONFIG.apiPrefix;
+        this.charts = {};
+        this.competitions = [];
+        this.yearFilter = null;
+        this.heatmapChart = null;
+        this.init();
+    }
+
+    async init() {
+        try {
+            this.initEventListeners();
+            await this.loadCompetitions();
+            this.renderTab1();
+        } catch (error) {
+            console.error('初始化失败:', error);
+            const msg = (error && error.message) ? error.message : '加载数据失败，请刷新页面重试';
+            this.showError(msg);
+        }
+    }
+
+    initEventListeners() {
+        // Tab切换事件
+        const tabButtons = document.querySelectorAll('#analysisTabs .nav-link');
+        tabButtons.forEach(button => {
+            button.addEventListener('shown.bs.tab', (event) => {
+                const tabId = event.target.id;
+                this.onTabChange(tabId);
+            });
+        });
+
+        // 白名单筛选监听
+        const whitelistFilter = document.getElementById('tab2WhitelistFilter');
+        if (whitelistFilter) {
+            whitelistFilter.addEventListener('change', () => {
+                this.updateTab2Charts();
+            });
+        }
+
+        // 教师证书筛选监听
+        const teacherCertFilter = document.getElementById('tab2TeacherCertFilter');
+        if (teacherCertFilter) {
+            teacherCertFilter.addEventListener('change', () => {
+                this.updateTab2Charts();
+            });
+        }
+    }
+
+    async loadCompetitions() {
+        const response = await fetch(`${this.apiPrefix}/laboratory/${this.labId}/data-analysis/competitions`);
+        if (!response.ok) {
+            let msg = `请求失败 (${response.status})`;
+            try {
+                const body = await response.json();
+                if (body && body.message) msg = body.message;
+            } catch (_) {}
+            throw new Error(msg);
+        }
+        const data = await response.json();
+        this.competitions = Array.isArray(data) ? data : (data.competitions || []);
+        console.log('加载竞赛数据:', this.competitions.length, '条');
+    }
+
+    onTabChange(tabId) {
+        console.log('切换到Tab:', tabId);
+        setTimeout(() => {
+            switch (tabId) {
+                case 'tab1-tab':
+                    break;
+                case 'tab2-tab':
+                    this.renderTab2();
+                    break;
+            }
+            this.resizeCharts();
+        }, 100);
+    }
+
+    // ==================== Tab 1: 竞赛信息 ====================
+    renderTab1() {
+        this.renderTimelineChart();
+        this.renderCompetitionsTable();
+    }
+
+    ensureEcharts(chartDom) {
+        if (typeof echarts === 'undefined') {
+            if (chartDom) chartDom.innerHTML = '<div class="text-center text-muted p-5">图表库加载失败，请刷新页面重试</div>';
+            return false;
+        }
+        return true;
+    }
+
+    renderTimelineChart() {
+        const chartDom = document.getElementById('timelineChart');
+        if (!chartDom) {
+            console.error('找不到timelineChart容器');
+            return;
+        }
+        if (!this.ensureEcharts(chartDom)) return;
+
+        if (this.charts.timeline) {
+            this.charts.timeline.dispose();
+        }
+
+        this.charts.timeline = echarts.init(chartDom);
+
+        const filteredCompetitions = this.competitions;
+
+        if (filteredCompetitions.length === 0) {
+            chartDom.innerHTML = '<div class="text-center text-muted p-5">暂无数据</div>';
+            return;
+        }
+
+        const yAxisData = filteredCompetitions.map(c => c.name);
+
+        const seriesStart = [];
+        const seriesMiddle = [];
+        const seriesEnd = [];
+
+        filteredCompetitions.forEach(c => {
+            if (c.start_month !== null && c.end_month !== null) {
+                seriesStart.push([c.start_month, c.name]);
+
+                const midMonth = c.is_cross_year
+                    ? this.getMidMonthCross(c.start_month, c.end_month)
+                    : (c.start_month + c.end_month) / 2;
+                seriesMiddle.push([parseFloat(midMonth.toFixed(1)), c.name]);
+
+                seriesEnd.push([c.end_month, c.name]);
+            } else {
+                seriesStart.push([null, c.name]);
+                seriesMiddle.push([null, c.name]);
+                seriesEnd.push([null, c.name]);
+            }
+        });
+
+        const option = {
+            title: {
+                text: '竞赛时间分布',
+                left: 'center',
+                textStyle: {
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: '#333'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: params => {
+                    if (params.data[0] === null) {
+                        return `${params.marker} ${params.data[1]}<br/><span style="color: #999;">时间数据未知</span>`;
+                    }
+                    const month = Math.floor(params.data[0]);
+                    return `${params.marker} ${params.data[1]}<br/>月份: ${month}月`;
+                }
+            },
+            legend: {
+                data: ['报名开始', '比赛时间', '出奖时间'],
+                top: 30,
+                left: 'center'
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                top: 80,
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                min: 0.5,
+                max: 12.5,
+                name: '月份',
+                nameLocation: 'middle',
+                nameGap: 30,
+                interval: 1,
+                axisLabel: {
+                    formatter: value => {
+                        const months = ['', '1月', '2月', '3月', '4月', '5月', '6月',
+                                      '7月', '8月', '9月', '10月', '11月', '12月'];
+                        return months[Math.floor(value)] || '';
+                    }
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: yAxisData,
+                axisLabel: {
+                    width: 180,
+                    overflow: 'truncate',
+                    ellipsis: '...'
+                }
+            },
+            series: [
+                {
+                    name: '报名开始',
+                    type: 'scatter',
+                    symbolSize: 14,
+                    data: seriesStart,
+                    itemStyle: {
+                        color: '#3498db'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: '#2980b9'
+                        }
+                    }
+                },
+                {
+                    name: '比赛时间',
+                    type: 'scatter',
+                    symbolSize: 14,
+                    data: seriesMiddle,
+                    itemStyle: {
+                        color: '#f39c12'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: '#e67e22'
+                        }
+                    }
+                },
+                {
+                    name: '出奖时间',
+                    type: 'scatter',
+                    symbolSize: 14,
+                    data: seriesEnd,
+                    itemStyle: {
+                        color: '#27ae60'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: '#229954'
+                        }
+                    }
+                }
+            ]
+        };
+
+        this.charts.timeline.setOption(option);
+    }
+
+    getMidMonthCross(start, end) {
+        const startToEnd = 12 - start + end;
+        const mid = startToEnd / 2;
+        const result = start + mid;
+        return result > 12 ? result - 12 : result;
+    }
+
+    renderCompetitionsTable() {
+        const tbody = document.querySelector('#competitionsTable tbody');
+        if (!tbody) {
+            console.error('找不到competitionsTable tbody');
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        if (this.competitions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">暂无数据</td></tr>';
+            return;
+        }
+
+        this.competitions.forEach(c => {
+            const tr = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = c.name;
+            tr.appendChild(nameCell);
+
+            const timeCell = document.createElement('td');
+            if (c.time_raw) {
+                const timeText = c.time_raw + (c.is_cross_year ? ' (跨年)' : '');
+                timeCell.textContent = timeText;
+            } else {
+                timeCell.textContent = '-';
+                timeCell.className = 'text-muted';
+            }
+            tr.appendChild(timeCell);
+
+            const websiteCell = document.createElement('td');
+            if (c.website) {
+                const link = document.createElement('a');
+                link.href = c.website;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = '访问';
+                link.className = 'btn btn-sm btn-outline-primary';
+                websiteCell.appendChild(link);
+            } else {
+                websiteCell.textContent = '-';
+                websiteCell.className = 'text-muted';
+            }
+            tr.appendChild(websiteCell);
+
+            const whitelistCell = document.createElement('td');
+            if (c.white_list) {
+                whitelistCell.innerHTML = '<span class="badge bg-success">是</span>';
+            } else {
+                whitelistCell.innerHTML = '<span class="badge bg-secondary">否</span>';
+            }
+            tr.appendChild(whitelistCell);
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ==================== Tab 2: 竞赛分析 ====================
+    async renderTab2() {
+        // 初始化年份筛选组件
+        if (!this.yearFilter) {
+            const availableYears = this.getAvailableYears();
+            this.yearFilter = new YearTagFilter(
+                'yearTags',
+                availableYears,
+                true,  // 默认全选
+                () => this.updateTab2Charts()
+            );
+        }
+
+        // 初始化热力图组件（与 admin/data-analysis 一致）
+        if (!this.heatmapChart) {
+            this.heatmapChart = new LabCompetitionHeatmap('labCompetitionHeatmap');
+        }
+
+        // 初始渲染
+        await this.updateTab2Charts();
+    }
+
+    getAvailableYears() {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let y = 2022; y <= currentYear + 1; y++) {
+            years.push(y);
+        }
+        return years;
+    }
+
+    async updateTab2Charts() {
+        if (!this.yearFilter) return;
+
+        const filters = {
+            years: this.yearFilter.selectedYears,
+            white_list_only: document.getElementById('tab2WhitelistFilter')?.checked || false,
+            include_teacher_certificates: document.getElementById('tab2TeacherCertFilter')?.checked || false
+        };
+
+        await Promise.all([
+            this.renderContributionChart(filters),
+            this.renderLabCompetitionHeatmap(filters)
+        ]);
+    }
+
+    async renderContributionChart(filters) {
+        try {
+            const params = new URLSearchParams();
+            if (filters.years && filters.years.length > 0) {
+                const sortedYears = filters.years.sort((a, b) => a - b);
+                params.append('year_range', `${sortedYears[0]},${sortedYears[sortedYears.length - 1]}`);
+            }
+            if (filters.white_list_only) {
+                params.append('white_list_only', 'true');
+            }
+            if (filters.include_teacher_certificates) {
+                params.append('include_teacher_certificates', 'true');
+            }
+
+            const response = await fetch(`${this.apiPrefix}/laboratory/${this.labId}/data-analysis/contribution?${params}`);
+            const data = await response.json();
+
+            const chartDom = document.getElementById('contributionChart');
+            if (!chartDom) {
+                console.error('找不到contributionChart容器');
+                return;
+            }
+
+            if (this.charts.contribution) {
+                this.charts.contribution.dispose();
+            }
+
+            if (!data || data.length === 0) {
+                chartDom.innerHTML = '<div class="text-center text-muted p-5">暂无数据，请调整筛选条件</div>';
+                return;
+            }
+            if (!this.ensureEcharts(chartDom)) return;
+
+            this.charts.contribution = echarts.init(chartDom);
+
+            const option = {
+                title: {
+                    text: '竞赛贡献度（奖状数量）',
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: '#333'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '5%',
+                    bottom: '18%',
+                    top: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.map(d => d.name),
+                    axisLabel: {
+                        rotate: 90,
+                        interval: 0,
+                        margin: 12
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '奖状数量'
+                },
+                series: [{
+                    type: 'bar',
+                    data: data.map(d => d.award_count),
+                    itemStyle: {
+                        color: '#3498db'
+                    }
+                }]
+            };
+
+            this.charts.contribution.setOption(option);
+        } catch (error) {
+            console.error('渲染贡献度图失败:', error);
+        }
+    }
+
+    async renderLabCompetitionHeatmap(filters) {
+        try {
+            const params = new URLSearchParams();
+            if (filters.years && filters.years.length > 0) {
+                params.append('years', filters.years.join(','));
+            }
+            if (filters.white_list_only) {
+                params.append('white_list_only', 'true');
+            }
+            if (filters.include_teacher_certificates) {
+                params.append('include_teacher_certificates', 'true');
+            }
+
+            const response = await fetch(`${this.apiPrefix}/data-analysis/lab-competition-heatmap?${params}`);
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.message || `请求失败 (${response.status})`);
+            }
+            const data = await response.json();
+
+            if (this.heatmapChart) {
+                this.heatmapChart.render(data);
+            }
+        } catch (error) {
+            console.error('渲染竞赛×实验室热力图失败:', error);
+            const chartDom = document.getElementById('labCompetitionHeatmap');
+            if (chartDom) {
+                chartDom.innerHTML = '<div class="text-center text-muted p-5">加载失败，请刷新重试</div>';
+            }
+        }
+    }
+
+    resizeCharts() {
+        if (typeof echarts === 'undefined') return;
+        Object.values(this.charts).forEach(chart => {
+            if (chart && !chart.isDisposed()) {
+                chart.resize();
+            }
+        });
+        if (this.heatmapChart) {
+            this.heatmapChart.resize();
+        }
+    }
+
+    showError(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container-fluid').prepend(alertDiv);
+    }
+}
+
+// 初始化实验室数据分析
+const labId = {{ lab_id }};
+document.addEventListener('DOMContentLoaded', () => {
+    window.laboratoryDataAnalysis = new LaboratoryDataAnalysis(labId);
+});
+
+// 窗口大小改变时重新调整图表
+window.addEventListener('resize', () => {
+    if (window.laboratoryDataAnalysis) {
+        window.laboratoryDataAnalysis.resizeCharts();
+    }
+});
+</script>
+{% endblock %}

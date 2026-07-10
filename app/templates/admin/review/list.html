@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}成果审核 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">成果审核</h1>
+</div>
+
+<!-- 状态统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">待审核</h5>
+                <h2 class="text-warning">{{ status_counts.pending or 0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">已通过</h5>
+                <h2 class="text-success">{{ status_counts.approved or 0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">已拒绝</h5>
+                <h2 class="text-danger">{{ status_counts.rejected or 0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">总计</h5>
+                <h2>{{ (status_counts.pending or 0) + (status_counts.approved or 0) + (status_counts.rejected or 0) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选卡片 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">审核状态</label>
+                <select name="status" class="form-select">
+                    <option value="pending" {% if filter_obj.status == 'pending' %}selected{% endif %}>待审核</option>
+                    <option value="approved" {% if filter_obj.status == 'approved' %}selected{% endif %}>已通过</option>
+                    <option value="rejected" {% if filter_obj.status == 'rejected' %}selected{% endif %}>已拒绝</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">成果类型</label>
+                <select name="achievement_type" class="form-select">
+                    <option value="">全部</option>
+                    <option value="award" {% if filter_obj.achievement_type == 'award' %}selected{% endif %}>奖状</option>
+                    <option value="patent" {% if filter_obj.achievement_type == 'patent' %}selected{% endif %}>专利</option>
+                    <option value="software" {% if filter_obj.achievement_type == 'software' %}selected{% endif %}>软著</option>
+                    <option value="innovation" {% if filter_obj.achievement_type == 'innovation' %}selected{% endif %}>大创</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">筛选</button>
+                <a href="{{ url_for('admin_review.review_list') }}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 待审核列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if pending_list %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>成果类型</th>
+                        <th>提交人</th>
+                        <th>提交时间</th>
+                        <th>审核状态</th>
+                        <th>审核时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pending in pending_list %}
+                    <tr>
+                        <td>{{ pending.id }}</td>
+                        <td>
+                            {% if pending.achievement_type == 'award' %}
+                            <span class="badge bg-primary">奖状</span>
+                            {% elif pending.achievement_type == 'patent' %}
+                            <span class="badge bg-info">专利</span>
+                            {% elif pending.achievement_type == 'software' %}
+                            <span class="badge bg-success">软著</span>
+                            {% elif pending.achievement_type == 'innovation' %}
+                            <span class="badge bg-warning">大创</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ pending.submitter_type }}
+                            {% if pending.submitter_id %}#{{ pending.submitter_id }}{% endif %}
+                        </td>
+                        <td>{{ pending.submit_time or '-' }}</td>
+                        <td>
+                            {% if pending.status == 'pending' %}
+                            <span class="badge bg-warning">待审核</span>
+                            {% elif pending.status == 'approved' %}
+                            <span class="badge bg-success">已通过</span>
+                            {% elif pending.status == 'rejected' %}
+                            <span class="badge bg-danger">已拒绝</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ pending.review_time or '-' }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_review.review_view', pending_id=pending.id) }}" class="btn btn-outline-primary">
+                                    {% if pending.status == 'pending' %}审核{% else %}查看{% endif %}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if pending_list|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无待审核记录</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+</style>
+{% endblock %}

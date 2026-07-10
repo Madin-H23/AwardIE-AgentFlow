@@ -1,0 +1,295 @@
+{% extends "user_base.html" %}
+
+{% block title %}学生仪表板 - 成果管理系统{% endblock %}
+
+{% block nav_dashboard %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block content %}
+<!-- 个人信息卡片 -->
+<section class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-xl shadow-lg p-5 card-hover">
+            <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-4">
+                <!-- 左侧：头像和信息 -->
+                <div class="flex items-center space-x-4 flex-1">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xl font-bold">{{ (student.name[0] if student and student.name else '学') }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1.5">
+                            <h3 class="hero-title text-2xl font-bold text-gray-800">{{ student.name if student and student.name else '学生' }}</h3>
+                            <!-- 公开主页标记 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" id="privacy-toggle" onchange="togglePublicProfile(this)">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
+                                <span class="text-xs text-gray-500">公开主页</span>
+                            </div>
+                        </div>
+                        <!-- 年级、专业和实验室标签 -->
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            {% if student %}
+                                {% if student.grade %}
+                                <span class="text-gray-600">{{ student.grade }}</span>
+                                {% endif %}
+                                {% if student.major %}
+                                <span class="text-gray-600">{{ student.major }}</span>
+                                {% endif %}
+                                {% if student.student_id %}
+                                <span class="text-gray-600">学号：{{ student.student_id }}</span>
+                                {% endif %}
+                            {% endif %}
+                            <!-- 实验室标签 -->
+                            {% if laboratories and laboratories|length > 0 %}
+                                {% for laboratory in laboratories %}
+                                <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=laboratory.id) }}" class="inline-flex items-center space-x-1.5 bg-purple-50 border border-purple-200 rounded-md px-2 py-1 hover:bg-purple-100 hover:border-purple-300 transition-colors cursor-pointer no-underline">
+                                    <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-purple-700">{{ laboratory.name }}</span>
+                                </a>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <!-- 技术标签 -->
+                        {% if skills and skills|length > 0 %}
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            {% for skill in skills[:8] %}
+                            <span class="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-xs">{{ skill }}</span>
+                            {% endfor %}
+                            {% if skills|length > 8 %}
+                            <span class="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full text-xs">+{{ skills|length - 8 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 统计卡片 -->
+<section class="py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    </svg>
+                </div>
+                <h4 class="text-2xl font-bold text-green-600">{{ award_count }}</h4>
+                <p class="text-sm text-gray-600">获奖数量</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <h4 class="text-2xl font-bold text-orange-600">{{ innovation_count }}</h4>
+                <p class="text-sm text-gray-600">大创数量</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+                <h4 class="text-2xl font-bold text-blue-600">{{ skills_count }}</h4>
+                <p class="text-sm text-gray-600">技术标签</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 成果展示区域 -->
+<section class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="hero-title text-2xl font-bold text-gray-800">我的成果</h2>
+            <a href="{{ url_for('student.export_all') }}" class="inline-flex items-center px-4 py-2 rounded-lg font-medium text-sm bg-orange-500 text-white hover:bg-orange-600 transition-colors">
+                导出全部
+            </a>
+        </div>
+
+        {% if award_count == 0 and innovation_count == 0 and (not patents or patents|length == 0) and (not software_list or software_list|length == 0) %}
+        <!-- 无数据时显示空状态 -->
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">暂无成果记录</h3>
+            <p class="text-gray-600 mb-6">开始提交您的第一份成果吧！</p>
+            <a href="{{ user_route('achievement_submit') }}" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                提交成果
+            </a>
+        </div>
+        {% else %}
+        <!-- 有数据时显示成果列表 -->
+        <div class="space-y-4">
+            {% if awards and awards|length > 0 %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">获奖记录（{{ award_count }}项）</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">竞赛名称</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">竞赛级别</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">获奖等级</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">年份</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for award in awards %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {% if award.competition %}
+                                        {{ award.competition.name }}
+                                    {% else %}
+                                        {{ award.competition_name_in_file or '-' }}
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {% if award.competition and award.competition.grade %}
+                                        <span class="px-2 py-1 rounded-full text-xs {{ {
+                                            'A类': 'bg-red-100 text-red-700',
+                                            'B类': 'bg-orange-100 text-orange-700',
+                                            'C类': 'bg-yellow-100 text-yellow-700',
+                                            '其他': 'bg-gray-100 text-gray-700'
+                                        }.get(award.competition.grade, 'bg-gray-100 text-gray-700') }}">
+                                            {{ award.competition.grade }}
+                                        </span>
+                                    {% else %}
+                                        {{ award.competition_level or '-' }}
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ award.award_level if award.award_level else '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ award.year if award.year else '-' }}</td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if innovation_projects and innovation_projects|length > 0 %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">大创项目（{{ innovation_count }}项）</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目编号</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目名称</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">级别</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">负责人</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">指导教师</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for project in innovation_projects %}
+                            {% set year = project.start_date.split('-')[0] if project.start_date else '' %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ project.project_no if project.project_no else '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {% if year %}<span class="text-gray-500 mr-2">[{{ year }}]</span>{% endif %}
+                                    {{ project.project_name if project.project_name else '-' }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ project.project_type if project.project_type else '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ project.student_leader_name if project.student_leader_name else '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ project.supervisors if project.supervisors else '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ project.status if project.status else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if patents and patents|length > 0 %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">专利（{{ patents|length }}项）</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">专利名称</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for patent in patents %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ patent.id }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ patent.patent_type or '-' }}</td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if software_list and software_list|length > 0 %}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">软著（{{ software_list|length }}项）</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">软件名称</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">登记号</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for software in software_list %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ software.id }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ software.registration_number or '-' }}</td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function togglePublicProfile(checkbox) {
+    const isPublic = checkbox.checked;
+    console.log('公开主页状态:', isPublic ? '公开' : '私密');
+    // TODO: 调用API保存公开主页状态
+}
+</script>
+{% endblock %}

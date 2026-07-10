@@ -1,0 +1,221 @@
+{
+  "database_name": "competitions.db",
+  "tables": [
+    {
+      "table_name": "competitions",
+      "description": "竞赛基础信息表",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": "PRIMARY KEY AUTOINCREMENT",
+          "description": "竞赛唯一ID"
+        },
+        {
+          "name": "competition_name",
+          "type": "TEXT",
+          "constraints": "NOT NULL UNIQUE",
+          "description": "竞赛官方名称"
+        },
+        {
+          "name": "official_website",
+          "type": "TEXT",
+          "description": "官网链接"
+        },
+        {
+          "name": "organizer",
+          "type": "TEXT",
+          "description": "主办单位"
+        },
+        {
+          "name": "competition_time",
+          "type": "TEXT",
+          "description": "举办时间范围"
+        },
+        {
+          "name": "participant_requirements",
+          "type": "TEXT",
+          "description": "参赛要求"
+        },
+        {
+          "name": "grade_category",
+          "type": "TEXT",
+          "description": "竞赛等级分类"
+        },
+        {
+          "name": "brief_description",
+          "type": "TEXT",
+          "description": "简介"
+        },
+        {
+          "name": "alias_list",
+          "type": "TEXT",
+          "description": "别名列表（逗号分隔）"
+        },
+        {
+          "name": "white_list",
+          "type": "BOOLEAN",
+          "default": 0,
+          "description": "是否白名单赛事"
+        },
+        {
+          "name": "watch_list",
+          "type": "BOOLEAN",
+          "default": 0,
+          "description": "是否观察名单赛事"
+        },
+        {
+          "name": "is_auto_added",
+          "type": "BOOLEAN",
+          "default": 0,
+          "description": "是否为程序自动添加（1=程序添加，0=手工添加）"
+        }
+      ]
+    },
+    {
+      "table_name": "tracks",
+      "description": "竞赛赛道/组别信息表",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": "PRIMARY KEY AUTOINCREMENT",
+          "description": "赛道ID"
+        },
+        {
+          "name": "competition_id",
+          "type": "INTEGER",
+          "constraints": "NOT NULL",
+          "description": "关联的竞赛ID"
+        },
+        {
+          "name": "year",
+          "type": "TEXT",
+          "description": "所属年份"
+        },
+        {
+          "name": "track_id",
+          "type": "TEXT",
+          "description": "原始赛道编号"
+        },
+        {
+          "name": "track_name",
+          "type": "TEXT",
+          "description": "赛道名称"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "competition_id",
+          "references_table": "competitions",
+          "references_column": "id"
+        }
+      ]
+    },
+    {
+      "table_name": "awards",
+      "description": "奖状主表",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY AUTOINCREMENT", "description": "奖状ID"},
+        {"name": "image_hash", "type": "TEXT", "description": "图片哈希值"},
+        {"name": "certificate_id", "type": "TEXT", "description": "证书编号"},
+        {"name": "match_status", "type": "BOOLEAN", "description": "关联状态"},
+        {"name": "ocr_result", "type": "TEXT", "description": "OCR文本"},
+        {"name": "competition_name_in_file", "type": "TEXT", "description": "识别出的竞赛名"},
+        {"name": "winner_name", "type": "TEXT", "description": "识别出的获奖者"},
+        {"name": "supervisor_name", "type": "TEXT", "description": "识别出的指导教师"},
+        {"name": "granted_role", "type": "TEXT", "description": "获奖角色"},
+        {"name": "award_level", "type": "TEXT", "description": "获奖等级"},
+        {"name": "competition_id", "type": "INTEGER", "description": "关联的竞赛ID"}
+      ],
+      "foreign_keys": [
+        {"column": "competition_id", "references_table": "competitions", "references_column": "id"}
+      ]
+    },
+    {
+      "table_name": "award_student_winners",
+      "description": "奖状-获奖学生关联表",
+      "columns": [
+        {"name": "award_id", "type": "INTEGER"},
+        {"name": "student_id", "type": "INTEGER"}
+      ]
+    },
+    {
+      "table_name": "award_teacher_winners",
+      "description": "奖状-获奖教师关联表",
+      "columns": [
+        {"name": "award_id", "type": "INTEGER"},
+        {"name": "teacher_id", "type": "INTEGER"}
+      ]
+    },
+    {
+      "table_name": "award_supervisors",
+      "description": "奖状-指导教师关联表",
+      "columns": [
+        {"name": "award_id", "type": "INTEGER"},
+        {"name": "teacher_id", "type": "INTEGER"}
+      ]
+    },
+    {
+      "table_name": "award_related_students",
+      "description": "奖状-关联学生关联表",
+      "columns": [
+        {"name": "award_id", "type": "INTEGER"},
+        {"name": "student_id", "type": "INTEGER"}
+      ]
+    },
+    {
+      "table_name": "ocr_cache",
+      "description": "OCR 识别结果缓存表",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY AUTOINCREMENT", "description": "缓存ID"},
+        {"name": "image_hash", "type": "TEXT", "constraints": "NOT NULL UNIQUE", "description": "图片 SHA256 哈希值"},
+        {"name": "ocr_data", "type": "TEXT", "constraints": "NOT NULL", "description": "OCR 结果 JSON 数据"},
+        {"name": "created_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "创建时间"},
+        {"name": "updated_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "更新时间"}
+      ],
+      "indexes": [
+        {"name": "idx_ocr_cache_hash", "columns": ["image_hash"], "description": "图片哈希索引"},
+        {"name": "idx_ocr_cache_created_at", "columns": ["created_at"], "description": "创建时间索引"}
+      ]
+    },
+    {
+      "table_name": "extract_cache",
+      "description": "LLM 提取结果缓存表",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY AUTOINCREMENT", "description": "缓存ID"},
+        {"name": "cache_key", "type": "TEXT", "constraints": "NOT NULL", "description": "缓存键（prompt + text 的哈希值）"},
+        {"name": "extract_data", "type": "TEXT", "constraints": "NOT NULL", "description": "提取结果 JSON 数据"},
+        {"name": "prompt_hash", "type": "TEXT", "description": "提示词哈希值（用于追踪提示词变化）"},
+        {"name": "created_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "创建时间"},
+        {"name": "updated_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "更新时间"}
+      ],
+      "indexes": [
+        {"name": "idx_extract_cache_key", "columns": ["cache_key"], "description": "缓存键索引"},
+        {"name": "idx_extract_cache_created_at", "columns": ["created_at"], "description": "创建时间索引"}
+      ]
+    },
+    {
+      "table_name": "detect_rules",
+      "description": "数据驱动的检测规则表",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY AUTOINCREMENT", "description": "规则ID"},
+        {"name": "competition_name", "type": "TEXT", "constraints": "NOT NULL", "description": "竞赛名称（分类维度）"},
+        {"name": "track", "type": "TEXT", "description": "赛道（分类维度，可为NULL）"},
+        {"name": "competition_level", "type": "TEXT", "description": "比赛等级（分类维度，可为NULL）"},
+        {"name": "granted_role", "type": "TEXT", "description": "获奖角色（分类维度，可为NULL）"},
+        {"name": "field_name", "type": "TEXT", "constraints": "NOT NULL", "description": "字段名称（如 'supervisor_name'）"},
+        {"name": "is_required", "type": "BOOLEAN", "constraints": "NOT NULL", "default": 0, "description": "是否必需字段（1=必需，0=非必需）"},
+        {"name": "is_manual_override", "type": "BOOLEAN", "constraints": "NOT NULL", "default": 0, "description": "是否手动覆盖（1=手动修改，0=自动生成）"},
+        {"name": "threshold_percentage", "type": "REAL", "description": "生成规则时的阈值百分比"},
+        {"name": "actual_percentage", "type": "REAL", "description": "实际统计的字段出现百分比"},
+        {"name": "created_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "创建时间"},
+        {"name": "updated_at", "type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP", "description": "更新时间"}
+      ],
+      "indexes": [
+        {"name": "idx_detect_rules_category", "columns": ["competition_name", "track", "competition_level", "granted_role"], "description": "分类维度索引"},
+        {"name": "idx_detect_rules_field", "columns": ["field_name"], "description": "字段名称索引"}
+      ]
+    }
+  ]
+}

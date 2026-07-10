@@ -1,0 +1,74 @@
+<nav class="sidebar-nav">
+    {% if current_user.role == 'admin' %}
+        <a class="nav-link {% if request.endpoint and 'achievements' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_achievement.achievements') }}">
+            成果管理
+        </a>
+        <a class="nav-link {% if request.endpoint and 'review' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_review.review_list') }}">
+            成果审核
+        </a>
+        <a class="nav-link {% if request.endpoint and 'file_import' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_achievement.file_import') }}">
+            成果/文件导入
+        </a>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section-title">基础数据管理</div>
+        <a class="nav-link {% if request.endpoint and 'template' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_templates.templates_list') }}">
+            奖状模板管理
+        </a>
+        <a class="nav-link {% if request.endpoint and 'competition' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin.competitions_list') }}">
+            竞赛管理
+        </a>
+        <a class="nav-link {% if request.endpoint and 'laboratory' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_laboratory.laboratories_list') }}">
+            实验室管理
+        </a>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section-title">用户管理</div>
+        <a class="nav-link {% if request.endpoint and 'student' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin.students_list') }}">
+            学生管理
+        </a>
+        <a class="nav-link {% if request.endpoint and 'teacher' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin.teachers_list') }}">
+            教师管理
+        </a>
+        <a class="nav-link {% if request.endpoint and 'data_analysis' in request.endpoint and 'data_export' not in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_data_analysis.data_analysis') }}">
+            数据分析
+        </a>
+        <a class="nav-link {% if request.endpoint and 'data_export' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_export.data_export') }}">
+            数据导出
+        </a>
+        <hr class="sidebar-divider">
+        <div class="sidebar-section-title">系统设置</div>
+        <a class="nav-link {% if request.endpoint and 'settings' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin.settings') }}">
+            系统设置
+        </a>
+    {% elif current_user.role == 'teacher' %}
+        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('teacher') %}active{% endif %}" 
+           href="{{ url_for('teacher.dashboard') }}">
+            教师首页
+        </a>
+        <a class="nav-link" href="#">
+            我的成果
+        </a>
+        <a class="nav-link" href="#">
+            奖状管理
+        </a>
+    {% else %}
+        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('student') %}active{% endif %}" 
+           href="{{ url_for('student.dashboard') }}">
+            学生首页
+        </a>
+        <a class="nav-link" href="#">
+            我的成果
+        </a>
+    {% endif %}
+</nav>
+

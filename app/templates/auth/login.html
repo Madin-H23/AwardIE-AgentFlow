@@ -1,0 +1,52 @@
+{% extends "base_simple.html" %}
+
+{% block title %}登录 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h1 class="login-title">登录</h1>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">用户名</label>
+                <div class="input-group">
+                    <svg class="input-group-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm2-3a2 2 0 11-4 0 2 2 0 014 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                    </svg>
+                    <input type="text" 
+                           class="form-control" 
+                           id="username" 
+                           name="username" 
+                           required 
+                           autofocus
+                           placeholder="请输入学号/工号">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">密码</label>
+                <div class="input-group">
+                    <svg class="input-group-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           required
+                           placeholder="请输入密码">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg">
+                登录
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <small>默认密码：P@ss301（首次登录后请修改）</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

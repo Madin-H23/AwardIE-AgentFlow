@@ -1,0 +1,511 @@
+{
+  "version": "2.0",
+  "flask": {
+    "env": "development",
+    "log_level": "INFO",
+    "max_content_length_mb": 2048
+  },
+  "ocr": {
+    "default_provider": "baidu",
+    "pdf_dpi": 200.0,
+    "runtime_status_path": "config/ocr_runtime.json",
+    "providers": {
+      "zhipu": {
+        "type": "api",
+        "is_precise": true,
+        "api_key_env": "ZHIPUAI_API_KEY",
+        "api_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        "model": "glm-4.6v-flash",
+        "prompt": "请识别图片中的所有文字内容，按原始排版顺序输出，保留文字的层次结构。请直接输出文字内容，不要添加任何解释或说明。",
+        "temperature": 0.1,
+        "max_tokens": 4096,
+        "timeout": 120,
+        "max_retries": 3,
+        "retry_delay": 5
+      },
+      "baidu": {
+        "type": "api",
+        "is_precise": true,
+        "api_key_env": "BAIDU_API_KEY",
+        "secret_key_env": "BAIDU_SECRET_KEY",
+        "api_url": "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
+      },
+      "paddle": {
+        "type": "local",
+        "is_precise": true,
+        "device": "gpu",
+        "lang": "ch",
+        "ocr_version": "PP-OCRv5",
+        "use_doc_orientation_classify": false,
+        "use_doc_unwarping": false,
+        "use_textline_orientation": false
+      },
+      "rapid": {
+        "type": "local",
+        "is_precise": false,
+        "use_gpu": false
+      }
+    },
+    "cache": {
+      "enabled": true,
+      "db_path": "database/ocr_cache.db"
+    }
+  },
+  "llm": {
+    "default_provider": "deepseek",
+    "providers": {
+      "zhipu": {
+        "type": "api",
+        "api_key_env": "ZHIPUAI_API_KEY",
+        "base_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        "model": "glm-4.7",
+        "temperature": 0.1
+      },
+      "kimi": {
+        "type": "api",
+        "api_key_env": "KIMI_API_KEY",
+        "base_url": "https://api.moonshot.cn/v1/chat/completions",
+        "model": "kimi-latest",
+        "temperature": 0.3
+      },
+      "deepseek": {
+        "type": "api",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "base_url": "https://api.deepseek.com/v1/chat/completions",
+        "model": "deepseek-v4-flash"
+      },
+      "ollama": {
+        "type": "local",
+        "base_url_env": "OLLAMA_BASE_URL",
+        "model": "cnshenyang/qwen3-nothink:30b",
+        "temperature": 0,
+        "format": "json"
+      }
+    },
+    "cache": {
+      "enabled": true,
+      "db_path": "database/extract_cache.db"
+    },
+    "prompts": {
+      "base_dir": "backend/utils/prompts",
+      "general_award": "awards/general_award_prompt.md",
+      "specialized_prompts_file": "awards/specialized_prompts.json"
+    }
+  },
+  "pdf": {
+    "debug": false,
+    "default_provider": "MinerU",
+    "providers": {
+      "mineru": {
+        "api_key_env": "MINERU_API_KEY",
+        "page_ranges": "1-2",
+        "url": "https://mineru.net/api/v4/extract/task"
+      }
+    }
+  },
+  "competition_levels": [
+    "国际赛",
+    "国赛",
+    "省赛",
+    "区域赛",
+    "校赛"
+  ],
+  "award_levels": [
+    "一等奖",
+    "二等奖",
+    "三等奖",
+    "特等奖",
+    "金奖",
+    "银奖",
+    "铜奖",
+    "优秀奖",
+    "行星级",
+    "恒星级",
+    "卫星级"
+  ],
+  "innovation_levels": [
+    "国家级",
+    "省级",
+    "院级"
+  ],
+  "achievement_types": {
+    "types": [
+      "award",
+      "patent",
+      "software",
+      "innovation",
+      "other"
+    ],
+    "data_import_types": [
+      "award",
+      "patent",
+      "software",
+      "innovation"
+    ],
+    "type_names": {
+      "award": "奖状",
+      "patent": "专利",
+      "software": "软著",
+      "innovation": "大创",
+      "other": "其他文件"
+    }
+  },
+  "detection": {
+    "valid_roles": [
+      "学生",
+      "教师"
+    ],
+    "year_range": {
+      "min": 2000,
+      "max": null
+    },
+    "name_validation": {
+      "min_length": 2,
+      "max_length": 4
+    },
+    "rule_generation": {
+      "threshold_percentage": 0.6,
+      "min_award_count": 3
+    },
+    "report_path": "output/scan_report.md"
+  },
+  "validation": {
+    "granted_roles": [
+      "学生",
+      "教师"
+    ],
+    "standardized_competition_levels": [
+      "国际赛",
+      "国赛",
+      "省赛",
+      "校赛"
+    ],
+    "patent_types": [
+      "发明专利",
+      "实用新型",
+      "外观设计"
+    ],
+    "name_validation": {
+      "zh_min_length": 2,
+      "zh_max_length": 4,
+      "en_min_length": 2,
+      "en_max_length": 50
+    },
+    "date_validation": {
+      "min_year": 2000,
+      "max_year": "current"
+    },
+    "certificate_id_validation": {
+      "min_length": 1,
+      "max_length": 100
+    },
+    "value_mappings": {
+      "competition_level": {
+        "区域赛": "省赛"
+      },
+      "award_level": {
+        "Bronze Medal": "铜奖",
+        "Silver Medal": "银奖",
+        "Gold Medal": "金奖",
+        "First Prize": "一等奖",
+        "Second Prize": "二等奖",
+        "Third Prize": "三等奖",
+        "Excellent Award": "优秀奖",
+        "Special Prize": "特等奖"
+      }
+    }
+  },
+  "database": {
+    "competitions_db": "database/competitions.db",
+    "ocr_cache_db": "database/ocr_cache.db",
+    "extract_cache_db": "database/extract_cache.db",
+    "validation_db": "database/competitions.db"
+  },
+  "files": "files",
+  "pending_cleanup": {
+    "expire_minutes": 30
+  },
+  "document_extract": {
+    "config_dir": "backend/extract/config"
+  },
+  "extract": {
+    "image_extensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".bmp",
+      ".pdf"
+    ],
+    "other": {
+      "note_no_extension": "不支持的文件扩展名",
+      "note_no_match": "没有抽取器能够处理此文件"
+    },
+    "llm_max_text_length": 4000,
+    "innovation": {
+      "enabled": true,
+      "extensions": [
+        ".xlsx",
+        ".xls"
+      ],
+      "target_departments": [
+        "计算机工程系"
+      ],
+      "header_keywords": [
+        "项目",
+        "学号",
+        "教师",
+        "负责人"
+      ],
+      "file_keywords": [
+        "大学生创新创业训练计划项目",
+        "大学生创新创业训练",
+        "大学生创新训练计划项目",
+        "大学生创新训练计划",
+        "大学生创新创业",
+        "大创项目",
+        "大创"
+      ],
+      "column_mapping": {
+        "项目编号": [
+          "项目编号",
+          "编号",
+          "项目ID"
+        ],
+        "项目名称": [
+          "项目名称",
+          "名称",
+          "项目"
+        ],
+        "项目开始时间": [
+          "起讫时间",
+          "项目开始时间",
+          "开始时间",
+          "立项年份",
+          "起止时间",
+          "起止年月"
+        ],
+        "项目结束时间": [
+          "起讫时间",
+          "项目结束时间",
+          "结束时间",
+          "起止时间",
+          "起止年月"
+        ],
+        "学生负责人": [
+          "学生负责人",
+          "项目负责人姓名",
+          "项目负责人",
+          "负责人"
+        ],
+        "项目负责人学号": [
+          "项目负责人学号",
+          "负责人学号"
+        ],
+        "项目其他成员信息": [
+          "项目其他成员信息",
+          "项目成员",
+          "成员",
+          "项目中有计科专业的学生，姓名学号写出来"
+        ],
+        "指导教师": [
+          "指导教师",
+          "指导教师姓名",
+          "指导  老师",
+          "指导老师",
+          "教师"
+        ],
+        "项目级别": [
+          "项目级别",
+          "级别",
+          "推荐级别"
+        ],
+        "验收等级": [
+          "验收等级",
+          "验收结果",
+          "等级"
+        ],
+        "项目简介": [
+          "项目简介(500字以内)",
+          "项目简介",
+          "简介",
+          "项目内容"
+        ],
+        "系别": [
+          "系别",
+          "系名",
+          "系",
+          "学院",
+          "所属学院"
+        ]
+      },
+      "student_id_length": 9
+    },
+    "patent": {
+      "enabled": true,
+      "extensions": [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".jfif"
+      ],
+      "keywords": [
+        "专利",
+        "发明专利",
+        "实用新型",
+        "外观设计",
+        "申请号",
+        "公开号",
+        "专利权人",
+        "发明人"
+      ],
+      "min_confidence": 0.3,
+      "fields_file": "patent_fields.json"
+    },
+    "software": {
+      "enabled": true,
+      "extensions": [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".jfif"
+      ],
+      "keywords": [
+        "著作权",
+        "登记号",
+        "软著",
+        "软件著作权"
+      ],
+      "min_confidence": 0.3,
+      "fields_file": "software_fields.json"
+    },
+    "award": {
+      "enabled": true,
+      "extensions": [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".jfif"
+      ],
+      "keywords": [
+        "奖",
+        "证书",
+        "荣誉",
+        "荣誉证书",
+        "比赛",
+        "竞赛",
+        "获奖",
+        "获奖证书",
+        "award",
+        "awards",
+        "certificate",
+        "certificates",
+        "competition",
+        "competitions",
+        "CERTIFICATE",
+        "Certificate",
+        "AWARD",
+        "ACHIEVEMENT",
+        "HONOR",
+        "prize",
+        "winner"
+      ],
+      "min_confidence": 0.3,
+      "enable_quick_screen": true,
+      "quick_screen_min_length": 15,
+      "quick_screen_max_length": 1200,
+      "english_ratio_threshold": 0.7,
+      "fields_file": "award_fields.json"
+    }
+  },
+  "prompts_dir": "backend/utils/prompts",
+  "logs": {
+    "debug_log": ".cursor/debug.log"
+  },
+  "temp_dir": "files/temp/uploads",
+  "unified_file_manager": {
+    "cleanup": {
+      "temp_upload_hours": 1,
+      "review_hours": 24,
+      "batch_size": 100,
+      "log_cleanup": true
+    }
+  },
+  "auto_archive": {
+    "award_valid": false,
+    "award_invalid": false,
+    "patent_valid": false,
+    "patent_invalid": false,
+    "software_valid": false,
+    "software_invalid": false,
+    "innovation": false,
+    "other": false
+  },
+  "system": {
+    "default_password": "P@ss301"
+  },
+  "rag": {
+    "enabled": true,
+    "default_embedding_provider": "siliconflow",
+    "embedding": {
+      "zhipu": {
+        "type": "api",
+        "api_key_env": "ZHIPUAI_API_KEY",
+        "base_url": "https://open.bigmodel.cn/api/paas/v4/embeddings",
+        "model": "embedding-3",
+        "dimensions": 1024
+      },
+      "siliconflow": {
+        "type": "api",
+        "api_key_env": "SILICONFLOW_API_KEY",
+        "base_url": "https://api.siliconflow.cn/v1/embeddings",
+        "model": "BAAI/bge-m3",
+        "dimensions": null
+      }
+    },
+    "vectorstore": {
+      "type": "chroma",
+      "persist_path": "database/chroma",
+      "default_collection": "competition_rules",
+      "collections": ["competition_rules", "policies"]
+    },
+    "retrieval": {
+      "top_k": 4,
+      "score_threshold": 0.5,
+      "search_type": "mmr",
+      "mmr_lambda": 0.5
+    },
+    "split": {
+      "chunk_size": 500,
+      "chunk_overlap": 50
+    },
+    "knowledge_sources": {
+      "competition_levels_doc": "data/(2025年)福州大学至诚学院学生文化科技创新竞赛等级分类一览表(1).docx"
+    }
+  },
+  "agent": {
+    "enabled": true,
+    "default_llm_provider": "deepseek",
+    "max_iterations": 10,
+    "verbose": false,
+    "supervisor": {
+      "model_provider": "deepseek",
+      "temperature": 0.1
+    },
+    "extraction_agent": {
+      "model_provider": "deepseek",
+      "temperature": 0
+    },
+    "review_agent": {
+      "model_provider": "deepseek",
+      "temperature": 0
+    },
+    "qa_agent": {
+      "model_provider": "deepseek",
+      "temperature": 0.3
+    }
+  }
+}

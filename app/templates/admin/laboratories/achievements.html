@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lab.name }} - 成果展示 - 成果管理系统{% endblock %}
+
+{% block extra_head %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+body {
+    background: #f5f5f5;
+}
+
+.page-header {
+    background: white;
+    padding: 1.5rem 0;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.breadcrumb {
+    margin-bottom: 0;
+}
+
+/* Tab 导航样式 */
+.nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #1890ff;
+    border-bottom-color: #1890ff;
+}
+
+.nav-tabs .nav-link.active {
+    color: #1890ff;
+    background-color: transparent;
+    border-bottom-color: #1890ff;
+}
+
+.tab-content {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 列表项样式 */
+.achievement-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e9ecef;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s;
+}
+
+.achievement-item:last-child {
+    border-bottom: none;
+}
+
+.achievement-item:hover {
+    background-color: #f8f9fa;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.achievement-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    margin-right: 1rem;
+}
+
+.achievement-icon.award {
+    background: #fff8e6;
+    color: #f5a623;
+}
+
+.achievement-icon.patent {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.achievement-icon.software {
+    background: #f0f5ff;
+    color: #2f54eb;
+}
+
+.achievement-icon.innovation {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.achievement-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.achievement-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.achievement-meta {
+    font-size: 0.8rem;
+    color: #6c757d;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.achievement-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    font-size: 0.75rem;
+}
+
+.achievement-arrow {
+    color: #adb5bd;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.achievement-item:hover .achievement-arrow {
+    color: #1890ff;
+    transform: translateX(4px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="laboratory-achievements-page">
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <div class="container-fluid">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratories_list') }}">实验室</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}">{{ lab.name }}</a></li>
+                    <li class="breadcrumb-item active">成果展示</li>
+                </ol>
+            </nav>
+            <h1 class="mb-0">{{ lab.name }} - 成果展示</h1>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Tab 导航 -->
+        <ul class="nav nav-tabs" id="achievementTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active"
+                        id="award-tab"
+                        type="button"
+                        role="tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#award-panel">
+                    <i class="bi bi-trophy-fill"></i> 竞赛奖项
+                    <span class="badge bg-secondary rounded-pill ms-1">{{ lab_achievements.awards|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="patent-tab"
+                        type="button"
+                        role="tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#patent-panel">
+                    <i class="bi bi-lightbulb-fill"></i> 专利
+                    <span class="badge bg-secondary rounded-pill ms-1">{{ lab_achievements.patents|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="software-tab"
+                        type="button"
+                        role="tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#software-panel">
+                    <i class="bi bi-file-earmark-code-fill"></i> 软著
+                    <span class="badge bg-secondary rounded-pill ms-1">{{ lab_achievements.software|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="innovation-tab"
+                        type="button"
+                        role="tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#innovation-panel">
+                    <i class="bi bi-rocket-takeoff-fill"></i> 大创项目
+                    <span class="badge bg-secondary rounded-pill ms-1">{{ lab_achievements.innovation|length }}</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab 内容 -->
+        <div class="tab-content" id="achievementTabContent">
+            <!-- 竞赛奖项 -->
+            <div class="tab-pane fade show active"
+                 id="award-panel"
+                 role="tabpanel">
+                {% if lab_achievements.awards %}
+                <ul class="achievement-list">
+                    {% for award in lab_achievements.awards %}
+                    <li>
+                        <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="achievement-item">
+                            <div class="achievement-icon award">
+                                <i class="bi bi-trophy-fill"></i>
+                            </div>
+                            <div class="achievement-content">
+                                <div class="achievement-title">{{ award.title or '竞赛奖项' }}</div>
+                                <div class="achievement-meta">
+                                    {% if award.award_level %}
+                                    <span class="achievement-badge">{{ award.award_level }}</span>
+                                    {% endif %}
+                                    {% if award.competition_name %}
+                                    <span>{{ award.competition_name }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="achievement-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox empty-state-icon"></i>
+                    <p class="mb-0">暂无竞赛奖项</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 专利 -->
+            <div class="tab-pane fade"
+                 id="patent-panel"
+                 role="tabpanel">
+                {% if lab_achievements.patents %}
+                <ul class="achievement-list">
+                    {% for patent in lab_achievements.patents %}
+                    {% set patent_year = patent.application_date[:4] if patent.application_date and patent.application_date|length >= 4 else '' %}
+                    {% set patent_display = [] %}
+                    {% if patent_year %}{% set _ = patent_display.append(patent_year) %}{% endif %}
+                    {% if patent.patent_name %}{% set _ = patent_display.append(patent.patent_name) %}{% endif %}
+                    {% if patent.patent_type %}{% set _ = patent_display.append(patent.patent_type) %}{% endif %}
+                    <li>
+                        <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="achievement-item">
+                            <div class="achievement-icon patent">
+                                <i class="bi bi-lightbulb-fill"></i>
+                            </div>
+                            <div class="achievement-content">
+                                <div class="achievement-title">{{ patent_display|join('_') or '专利' }}</div>
+                                <div class="achievement-meta">
+                                    {% if patent.patent_type %}
+                                    <span class="achievement-badge">{{ patent.patent_type }}</span>
+                                    {% endif %}
+                                    {% if patent.application_date %}
+                                    <span>{{ patent.application_date[:10] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="achievement-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox empty-state-icon"></i>
+                    <p class="mb-0">暂无专利</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 软著 -->
+            <div class="tab-pane fade"
+                 id="software-panel"
+                 role="tabpanel">
+                {% if lab_achievements.software %}
+                <ul class="achievement-list">
+                    {% for software in lab_achievements.software %}
+                    {% set software_year = software.registration_date[:4] if software.registration_date and software.registration_date|length >= 4 else '' %}
+                    {% set software_display = [] %}
+                    {% if software_year %}{% set _ = software_display.append(software_year) %}{% endif %}
+                    {% if software.software_name %}{% set _ = software_display.append(software.software_name) %}{% endif %}
+                    <li>
+                        <a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="achievement-item">
+                            <div class="achievement-icon software">
+                                <i class="bi bi-file-earmark-code-fill"></i>
+                            </div>
+                            <div class="achievement-content">
+                                <div class="achievement-title">{{ software_display|join('_') or '软著' }}</div>
+                                <div class="achievement-meta">
+                                    {% if software.registration_number %}
+                                    <span class="achievement-badge">{{ software.registration_number }}</span>
+                                    {% endif %}
+                                    {% if software.registration_date %}
+                                    <span>{{ software.registration_date[:10] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="achievement-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox empty-state-icon"></i>
+                    <p class="mb-0">暂无软著</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 大创项目 -->
+            <div class="tab-pane fade"
+                 id="innovation-panel"
+                 role="tabpanel">
+                {% if lab_achievements.innovation %}
+                <ul class="achievement-list">
+                    {% for innovation in lab_achievements.innovation %}
+                    {% set innovation_year = innovation.start_date[:4] if innovation.start_date and innovation.start_date|length >= 4 else '' %}
+                    {% set innovation_display = [] %}
+                    {% if innovation_year %}{% set _ = innovation_display.append(innovation_year) %}{% endif %}
+                    {% if innovation.project_type %}{% set _ = innovation_display.append(innovation.project_type) %}{% endif %}
+                    {% if innovation.project_name %}{% set _ = innovation_display.append(innovation.project_name) %}{% endif %}
+                    <li>
+                        <a href="{{ url_for('admin_innovation.innovation_view', project_id=innovation.id) }}" class="achievement-item">
+                            <div class="achievement-icon innovation">
+                                <i class="bi bi-rocket-takeoff-fill"></i>
+                            </div>
+                            <div class="achievement-content">
+                                <div class="achievement-title">{{ innovation_display|join('_') or '大创项目' }}</div>
+                                <div class="achievement-meta">
+                                    {% if innovation.project_type %}
+                                    <span class="achievement-badge">{{ innovation.project_type }}</span>
+                                    {% endif %}
+                                    {% if innovation.start_date %}
+                                    <span>{{ innovation.start_date[:10] }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="achievement-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox empty-state-icon"></i>
+                    <p class="mb-0">暂无大创项目</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

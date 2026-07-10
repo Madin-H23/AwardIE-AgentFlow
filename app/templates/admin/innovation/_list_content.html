@@ -1,0 +1,172 @@
+<!-- 筛选卡片（供成果管理-大创 tab 使用，分页/筛选通过 loadInnovationPage 刷新本片段） -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="innovationFilterForm" method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">年份</label>
+                <select name="year" class="form-select">
+                    <option value="">全部</option>
+                    {% for y in available_years %}
+                    <option value="{{ y }}" {% if filter_obj.year == y %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">项目级别</label>
+                <select name="project_type" class="form-select">
+                    <option value="">全部</option>
+                    <option value="国家级" {% if filter_obj.project_type == '国家级' %}selected{% endif %}>国家级</option>
+                    <option value="省级" {% if filter_obj.project_type == '省级' %}selected{% endif %}>省级</option>
+                    <option value="院级" {% if filter_obj.project_type == '院级' %}selected{% endif %}>院级</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">项目状态</label>
+                <select name="status" class="form-select">
+                    <option value="">全部</option>
+                    <option value="进行中" {% if filter_obj.status == '进行中' %}selected{% endif %}>进行中</option>
+                    <option value="已结题" {% if filter_obj.status == '已结题' %}selected{% endif %}>已结题</option>
+                    <option value="终止" {% if filter_obj.status == '终止' %}selected{% endif %}>终止</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">项目名称</label>
+                <input type="text" name="project_name" class="form-control" value="{{ filter_obj.project_name or '' }}" placeholder="输入项目名称">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">实验室</label>
+                <select name="laboratory_id" class="form-select">
+                    <option value="">全部</option>
+                    {% for lab in laboratories %}
+                    <option value="{{ lab.id }}" {% if filter_obj.laboratory_id == lab.id %}selected{% endif %}>{{ lab.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">每页</label>
+                <select name="per_page" class="form-select">
+                    <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetInnovationFilter()">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 项目列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if projects %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted">共找到 {{ total_count|default(0) }} 条记录</span>
+            <div>
+                <a href="{{ url_for('admin_innovation.innovation_create') }}" class="btn btn-sm btn-primary me-2">添加项目</a>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="innovationBatchDeleteBtn" disabled>批量删除</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40"><input type="checkbox" id="selectAllInnovation" title="全选"></th>
+                        <th>ID</th>
+                        <th>项目编号</th>
+                        <th>项目名称</th>
+                        <th>年份</th>
+                        <th>项目类型</th>
+                        <th>负责人</th>
+                        <th>指导教师</th>
+                        <th>关联实验室</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td><input type="checkbox" class="innovation-checkbox" value="{{ project.id }}"></td>
+                        <td>{{ project.id }}</td>
+                        <td>{{ project.project_no or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_innovation.innovation_view', project_id=project.id) }}" class="text-decoration-none">
+                                {{ project.project_name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if project.get_year() %}
+                            <span class="badge bg-info">{{ project.get_year() }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if project.project_type %}
+                            <span class="badge bg-{% if project.project_type == '国家级' %}danger{% elif project.project_type == '省级' %}warning{% else %}info{% endif %}">
+                                {{ project.project_type }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ project.student_leader_name or '-' }}</td>
+                        <td>{{ project.supervisors or '-' }}</td>
+                        <td>
+                            {% if project.laboratory_name %}
+                            <span class="badge bg-info">{{ project.laboratory_name }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('admin_innovation.innovation_view', project_id=project.id) }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                <a href="{{ url_for('admin_innovation.innovation_edit', project_id=project.id) }}" class="btn btn-sm btn-outline-secondary">编辑</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteInnovationRow({{ project.id }})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page and total_pages is defined and total_pages > 0 %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadInnovationPage({{ page - 1 }})">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} / {{ total_pages }} 页</span>
+                </li>
+                {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadInnovationPage({{ page + 1 }})">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无大创项目数据</p>
+            <a href="{{ url_for('admin_innovation.innovation_create') }}" class="btn btn-primary">手动添加</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; }
+.table th { font-weight: 600; color: #495057; background-color: #f8f9fa; }
+.btn-primary { background-color: #1890ff; border-color: #1890ff; }
+.btn-primary:hover { background-color: #40a9ff; border-color: #40a9ff; }
+</style>

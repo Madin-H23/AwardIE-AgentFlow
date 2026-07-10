@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}专利管理 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">专利管理</h1>
+    <div>
+        <a href="{{ url_for('admin_patents.patent_create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> 添加专利
+        </a>
+    </div>
+</div>
+
+<!-- 筛选卡片 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">专利类型</label>
+                <select name="patent_type" class="form-select">
+                    <option value="">全部</option>
+                    <option value="发明专利" {% if filter_obj.patent_type == '发明专利' %}selected{% endif %}>发明专利</option>
+                    <option value="实用新型" {% if filter_obj.patent_type == '实用新型' %}selected{% endif %}>实用新型</option>
+                    <option value="外观设计" {% if filter_obj.patent_type == '外观设计' %}selected{% endif %}>外观设计</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">发明人</label>
+                <input type="text" name="inventor" class="form-control" value="{{ filter_obj.inventor or '' }}" placeholder="输入发明人姓名">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">实验室</label>
+                <select name="laboratory_id" class="form-select">
+                    <option value="">全部</option>
+                    {% for lab in laboratories %}
+                    <option value="{{ lab.id }}" {% if filter_obj.laboratory_id == lab.id %}selected{% endif %}>{{ lab.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <a href="{{ url_for('admin_patents.patents_list') }}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 专利列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if patents %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>专利名称</th>
+                        <th>专利类型</th>
+                        <th>申请号</th>
+                        <th>发明人</th>
+                        <th>专利权人</th>
+                        <th>实验室</th>
+                        <th>提交人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patent in patents %}
+                    <tr>
+                        <td>{{ patent.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-decoration-none">
+                                {{ patent.patent_name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if patent.patent_type %}
+                            <span class="badge bg-info">{{ patent.patent_type }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ patent.application_number or '-' }}</td>
+                        <td>{{ patent.inventor or '-' }}</td>
+                        <td>{{ patent.patentee or '-' }}</td>
+                        <td>{{ lab_dict.get(patent.laboratory_id, '-') }}</td>
+                        <td>{{ submitter_names.get(patent.id, '-') }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="btn btn-outline-primary">查看</a>
+                                <a href="{{ url_for('admin_patents.patent_edit', patent_id=patent.id) }}" class="btn btn-outline-secondary">编辑</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&per_page={{ per_page }}{% if filter_obj.patent_type %}&patent_type={{ filter_obj.patent_type }}{% endif %}{% if filter_obj.inventor %}&inventor={{ filter_obj.inventor }}{% endif %}{% if filter_obj.laboratory_id %}&laboratory_id={{ filter_obj.laboratory_id }}{% endif %}">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if patents|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&per_page={{ per_page }}{% if filter_obj.patent_type %}&patent_type={{ filter_obj.patent_type }}{% endif %}{% if filter_obj.inventor %}&inventor={{ filter_obj.inventor }}{% endif %}{% if filter_obj.laboratory_id %}&laboratory_id={{ filter_obj.laboratory_id }}{% endif %}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无专利数据</p>
+            <a href="{{ url_for('admin_patents.patent_create') }}" class="btn btn-primary">添加第一个专利</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+</style>
+{% endblock %}

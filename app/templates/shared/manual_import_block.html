@@ -1,0 +1,1031 @@
+{# 手动导入区块：成果类型选择、缓存选项、上传区、解析状态、内联表单编辑。需由父模板设置 manual_upload_url、manual_parse_url、manual_submit_url、api_base_url、api_competitions_url、api_teachers_url、api_laboratories_url、api_students_search_base、file_preview_base、submitter_type #}
+<div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">成果类型 <span class="text-red-500">*</span></label>
+    <div class="flex flex-wrap gap-2" role="group">
+        <label class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-blue-600 has-[:checked]:text-white has-[:checked]:border-blue-600">
+            <input type="radio" name="manualType" value="award" checked class="sr-only peer">
+            <span class="text-sm">奖状</span>
+        </label>
+    </div>
+    <p class="text-xs text-gray-500 mt-1">请选择要导入的成果类型（仅支持奖状）</p>
+</div>
+
+<div class="mt-4 p-4 bg-gray-50 rounded-lg mb-4">
+    <h6 class="font-medium mb-3">缓存设置</h6>
+    <div class="grid grid-cols-2 gap-4">
+        <label class="flex items-center">
+            <input type="checkbox" id="manualUseOcrCache" checked class="mr-2 rounded border-gray-300">
+            <span class="text-sm">使用OCR缓存</span>
+        </label>
+        <label class="flex items-center">
+            <input type="checkbox" id="manualUseLlmCache" checked class="mr-2 rounded border-gray-300">
+            <span class="text-sm">使用LLM缓存</span>
+        </label>
+    </div>
+</div>
+
+<!-- 上传区域 -->
+<div id="manualUploadSection">
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="manualUploadZone">
+        <div class="text-4xl mb-4">📁</div>
+        <p class="text-gray-700 mb-2">点击或拖拽文件到此处上传</p>
+        <p class="text-sm text-gray-500">支持格式：PDF、JPG、PNG（奖状、证书）</p>
+        <input type="file" id="manualFileInput" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+    </div>
+
+    <div id="manualParseStatus" class="hidden mt-4">
+        <div class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
+            <svg class="animate-spin h-5 w-5 mr-2 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            正在解析文件，请稍候...
+        </div>
+    </div>
+</div>
+
+<!-- 内联表单编辑区域 -->
+<div id="manualFormSection" class="hidden card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">编辑信息</h5>
+        <textarea id="parsedResult" rows="3" readonly class="form-control mb-3"></textarea>
+        <div id="formFieldsContainer"></div>
+        <div class="mt-3">
+            <button type="button" id="btnSubmitManual" class="btn btn-primary">提交审核</button>
+            <button type="button" id="btnCancelManual" class="btn btn-secondary">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">提示</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    var manual_upload_url = {{ manual_upload_url|tojson }};
+    var manual_parse_url = {{ manual_parse_url|tojson }};
+    var manual_submit_url = {{ manual_submit_url|tojson }};
+    var api_base_url = {{ api_base_url|tojson }};
+    var api_competitions_url = {{ api_competitions_url|tojson }};
+    var api_teachers_url = {{ api_teachers_url|tojson }};
+    var api_laboratories_url = {{ api_laboratories_url|tojson }};
+    var api_students_search_base = {{ api_students_search_base|tojson }};
+    var file_preview_base = {{ file_preview_base|tojson }};
+    var submitter_type = {{ submitter_type|tojson }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var manualUploadZone = document.getElementById('manualUploadZone');
+        var manualFileInput = document.getElementById('manualFileInput');
+        var manualParseStatus = document.getElementById('manualParseStatus');
+        var manualUploadSection = document.getElementById('manualUploadSection');
+        var manualFormSection = document.getElementById('manualFormSection');
+
+        if (!manualUploadZone || !manualFileInput) return;
+
+        // 将确认弹窗移到 body 下，避免父级 relative/z-index 形成层叠上下文导致遮罩盖住弹窗、无法点击
+        var confirmModalEl = document.getElementById('confirmModal');
+        if (confirmModalEl && confirmModalEl.parentNode !== document.body) {
+            document.body.appendChild(confirmModalEl);
+        }
+
+        window.currentSessionId = null;
+        window.uploadedFilePath = null;
+        window.currentParseData = null;
+
+        function showManualAlert(msg, type) {
+            var alertPlaceholder = document.getElementById('alertPlaceholder');
+            if (!alertPlaceholder) {
+                if (typeof alert === 'function') alert(msg);
+                return;
+            }
+            var wrapper = document.createElement('div');
+            wrapper.className = 'alert alert-' + type + ' alert-dismissible fade show';
+            wrapper.innerHTML = '<div>' + msg + '</div><button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            alertPlaceholder.innerHTML = '';
+            alertPlaceholder.appendChild(wrapper);
+            setTimeout(function() {
+                var toast = alertPlaceholder.querySelector('.alert');
+                if (toast) toast.remove();
+            }, 3000);
+        }
+
+        function showConfirmModal(message, onConfirm) {
+            var modalElement = document.getElementById('confirmModal');
+            var modalBody = document.getElementById('confirmModalBody');
+            var confirmBtn = document.getElementById('confirmModalConfirmBtn');
+
+            if (!modalElement || !modalBody || !confirmBtn) {
+                alert(message);
+                if (onConfirm) onConfirm();
+                return;
+            }
+
+            modalBody.textContent = message;
+
+            // 移除旧的事件监听器
+            var newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            function runCallback() {
+                if (onConfirm) onConfirm();
+            }
+
+            newConfirmBtn.addEventListener('click', function() {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modalElement.addEventListener('hidden.bs.modal', function onceHidden() {
+                        modalElement.removeEventListener('hidden.bs.modal', onceHidden);
+                        runCallback();
+                        // 若未发生跳转，强制移除可能残留的遮罩，避免页面灰死
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('padding-right');
+                        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+                    }, { once: true });
+                    modal.hide();
+                } else {
+                    runCallback();
+                }
+            });
+
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+
+        manualUploadZone.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            manualFileInput.click();
+        });
+        manualFileInput.addEventListener('click', function(e) { e.stopPropagation(); });
+
+        manualFileInput.addEventListener('change', function(e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            var typeInput = document.querySelector('input[name="manualType"]:checked');
+            var selectedType = typeInput ? typeInput.value : 'award';
+            if (selectedType !== 'award') {
+                showManualAlert('仅支持奖状类型', 'warning');
+                return;
+            }
+
+            if (manualParseStatus) manualParseStatus.classList.remove('hidden');
+
+            var useOcrCache = document.getElementById('manualUseOcrCache');
+            var useLlmCache = document.getElementById('manualUseLlmCache');
+            var useOcr = useOcrCache ? useOcrCache.checked : true;
+            var useLlm = useLlmCache ? useLlmCache.checked : true;
+
+            var formData = new FormData();
+            formData.append('files', file);
+
+            fetch(manual_upload_url, { method: 'POST', body: formData, credentials: 'same-origin' })
+                .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+                .then(function(r) {
+                    if (!r.ok || !r.data.success) {
+                        throw new Error(r.data && r.data.message ? r.data.message : '上传失败');
+                    }
+                    var filePath = r.data.file_path;
+                    if (!filePath) throw new Error('未返回文件路径');
+                    window.uploadedFilePath = filePath;
+                    return fetch(manual_parse_url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            achievement_type: selectedType,
+                            file_path: filePath,
+                            use_ocr_cache: useOcr,
+                            use_llm_cache: useLlm
+                        }),
+                        credentials: 'same-origin'
+                    });
+                })
+                .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+                .then(function(r) {
+                    if (manualParseStatus) manualParseStatus.classList.add('hidden');
+                    if (r.ok && r.data.success) {
+                        window.currentSessionId = r.data.session_id;
+                        window.uploadedFilePath = r.data.file_path;
+                        window.currentParseData = r.data;
+                        loadFormByType(selectedType, r.data.data || {}, r.data.ocr_text || '', r.data);
+                        if (manualUploadSection) manualUploadSection.classList.add('hidden');
+                        if (manualFormSection) manualFormSection.classList.remove('hidden');
+                    } else {
+                        showManualAlert(r.data && r.data.message ? r.data.message : '解析失败', 'danger');
+                    }
+                })
+                .catch(function(err) {
+                    if (manualParseStatus) manualParseStatus.classList.add('hidden');
+                    showManualAlert('操作失败: ' + (err.message || String(err)), 'danger');
+                });
+            e.target.value = '';
+        });
+
+        var btnCancelManual = document.getElementById('btnCancelManual');
+        if (btnCancelManual) {
+            btnCancelManual.addEventListener('click', function() {
+                if (manualUploadSection) manualUploadSection.classList.remove('hidden');
+                if (manualFormSection) manualFormSection.classList.add('hidden');
+                window.currentSessionId = null;
+                window.uploadedFilePath = null;
+                window.currentParseData = null;
+                var parsedResult = document.getElementById('parsedResult');
+                var formFieldsContainer = document.getElementById('formFieldsContainer');
+                if (parsedResult) parsedResult.value = '';
+                if (formFieldsContainer) formFieldsContainer.innerHTML = '';
+            });
+        }
+
+        var btnSubmitManual = document.getElementById('btnSubmitManual');
+        if (btnSubmitManual) {
+            btnSubmitManual.addEventListener('click', function() {
+                var selectedType = document.querySelector('input[name="manualType"]:checked')?.value;
+                if (!selectedType) {
+                    showManualAlert('请先选择成果类型', 'warning');
+                    return;
+                }
+
+                var formData = {};
+                document.querySelectorAll('#formFieldsContainer [name]').forEach(function(field) {
+                    if (field.type === 'radio' && !field.checked) return;
+                    if (field.multiple) return;
+                    var fieldName = field.name;
+                    if (fieldName.endsWith('[]')) {
+                        var normalizedName = fieldName.slice(0, -2);
+                        if (!formData[normalizedName]) formData[normalizedName] = [];
+                        if (field.value) formData[normalizedName].push(field.value);
+                    } else {
+                        formData[fieldName] = field.value;
+                    }
+                });
+
+                if (typeof jQuery !== 'undefined') {
+                    var supervisorsSelect = jQuery('#supervisor_ids');
+                    if (supervisorsSelect.length && supervisorsSelect.val()) {
+                        formData['supervisor_ids'] = supervisorsSelect.val();
+                        var supervisorNames = [];
+                        supervisorsSelect.find('option:selected').each(function() {
+                            supervisorNames.push(jQuery(this).text());
+                        });
+                        if (supervisorNames.length > 0) {
+                            formData['supervisor_name'] = supervisorNames.join(',');
+                        }
+                    }
+                }
+
+                if (formData['competition_id']) {
+                    var competitionSelect = document.getElementById('competition_id');
+                    var selectedOption = competitionSelect ? competitionSelect.options[competitionSelect.selectedIndex] : null;
+                    if (selectedOption && selectedOption.textContent && selectedOption.value !== '') {
+                        formData['competition_name'] = selectedOption.textContent;
+                    }
+                } else if (!formData['competition_name']) {
+                    var originalCompetitionName = document.getElementById('original_competition_name');
+                    if (originalCompetitionName && originalCompetitionName.value) {
+                        formData['competition_name'] = originalCompetitionName.value;
+                    }
+                }
+
+                fetch(manual_submit_url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        achievement_type: selectedType,
+                        achievement_data: formData,
+                        session_id: window.currentSessionId,
+                        submitter_type: submitter_type
+                    }),
+                    credentials: 'same-origin'
+                })
+                .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+                .then(function(r) {
+                    if (r.ok && r.data.success) {
+                        var message = r.data.message || '提交成功';
+                        // 已归档的情况直接显示成功消息并重置表单
+                        if (r.data.action === 'approved' || r.data.already_archived) {
+                            showManualAlert(message, 'success');
+                            // 延迟重置表单，让用户看到成功消息
+                            setTimeout(function() {
+                                if (manualUploadSection) manualUploadSection.classList.remove('hidden');
+                                if (manualFormSection) manualFormSection.classList.add('hidden');
+                                window.currentSessionId = null;
+                                window.uploadedFilePath = null;
+                                var parsedResult = document.getElementById('parsedResult');
+                                var formFieldsContainer = document.getElementById('formFieldsContainer');
+                                if (parsedResult) parsedResult.value = '';
+                                if (formFieldsContainer) formFieldsContainer.innerHTML = '';
+                            }, 1500);
+                        } else {
+                            // 需要审核的情况：学生端留在当前页并重置表单；教师/管理员端弹窗确认后跳转结果页
+                            if (submitter_type === 'student') {
+                                showManualAlert(message, 'success');
+                                setTimeout(function() {
+                                    if (manualUploadSection) manualUploadSection.classList.remove('hidden');
+                                    if (manualFormSection) manualFormSection.classList.add('hidden');
+                                    window.currentSessionId = null;
+                                    window.uploadedFilePath = null;
+                                    var parsedResult = document.getElementById('parsedResult');
+                                    var formFieldsContainer = document.getElementById('formFieldsContainer');
+                                    if (parsedResult) parsedResult.value = '';
+                                    if (formFieldsContainer) formFieldsContainer.innerHTML = '';
+                                }, 1500);
+                            } else {
+                                showConfirmModal(message, function() {
+                                    var sep = api_base_url.indexOf('?') >= 0 ? '&' : '?';
+                                    var redirectUrl = api_base_url + sep + 'session_id=' + encodeURIComponent(window.currentSessionId) + '&tab=' + encodeURIComponent(selectedType) + '&sub_tab=valid&index=0';
+                                    window.location.href = redirectUrl;
+                                });
+                            }
+                        }
+                    } else {
+                        showManualAlert(r.data && r.data.message ? r.data.message : '提交失败', 'danger');
+                    }
+                })
+                .catch(function(err) {
+                    showManualAlert('提交失败: ' + (err.message || String(err)), 'danger');
+                });
+            });
+        }
+
+        manualUploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            manualUploadZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        manualUploadZone.addEventListener('dragleave', function() {
+            manualUploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        manualUploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            manualUploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+            var files = e.dataTransfer && e.dataTransfer.files;
+            if (files && files.length) {
+                manualFileInput.files = files;
+                manualFileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    });
+
+    function loadManualImportImage(filePath, previewImagePath) {
+        var container = document.getElementById('manualImageContainer');
+        if (!container) return;
+        var displayPath = previewImagePath || filePath;
+        if (!displayPath) return;
+
+        var encodedPath = encodeURIComponent(displayPath);
+        var imageUrl = file_preview_base + encodedPath;
+
+        container.innerHTML = '<img src="' + imageUrl + '" alt="Certificate image" class="img-fluid rounded" style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;" onclick="window.open(this.src, \'_blank\')" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';"><p class="text-muted mt-2 small" style="display: none;">Image load failed</p><p class="text-muted mt-2 small">Click to view larger</p>';
+    }
+
+    function loadCompetitions(competitionName) {
+        var competitionSelect = document.getElementById('competition_id');
+        if (!competitionSelect) return;
+
+        fetch(api_competitions_url)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && data.competitions) {
+                    var currentValue = competitionSelect.options[0]?.text || '';
+                    competitionSelect.innerHTML = '';
+
+                    if (currentValue.includes('使用解析结果') || currentValue.includes('未关联')) {
+                        var defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = currentValue;
+                        competitionSelect.appendChild(defaultOption);
+                    } else {
+                        var defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '未关联';
+                        competitionSelect.appendChild(defaultOption);
+                    }
+
+                    var matchedId = null;
+                    data.competitions.forEach(function(comp) {
+                        var option = document.createElement('option');
+                        option.value = comp.id;
+                        option.textContent = comp.name;
+                        competitionSelect.appendChild(option);
+
+                        if (competitionName && comp.name === competitionName) {
+                            matchedId = comp.id;
+                        }
+                    });
+
+                    if (matchedId) {
+                        competitionSelect.value = matchedId;
+                    }
+                }
+            })
+            .catch(function(error) { console.error('加载竞赛列表失败:', error); });
+    }
+
+    function loadLaboratories() {
+        var labSelect = document.getElementById('laboratory_id');
+        if (!labSelect) return;
+
+        fetch(api_laboratories_url)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && data.laboratories) {
+                    labSelect.innerHTML = '<option value="">无</option>';
+                    data.laboratories.forEach(function(lab) {
+                        var option = document.createElement('option');
+                        option.value = lab.id;
+                        option.textContent = lab.name;
+                        labSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(function(error) { console.error('加载实验室列表失败:', error); });
+    }
+
+    function loadSupervisors(data, parseData) {
+        var supervisorSelect = document.getElementById('supervisor_ids');
+        if (!supervisorSelect) return;
+
+        fetch(api_teachers_url)
+            .then(function(response) { return response.json(); })
+            .then(function(result) {
+                if (result.success && result.teachers) {
+                    // 先获取所有教师（包含实验室信息）
+                    var allTeachersMap = {};
+                    result.teachers.forEach(function(teacher) {
+                        allTeachersMap[teacher.id] = teacher;
+                    });
+
+                    supervisorSelect.innerHTML = '';
+
+                    // 优先使用 supervisor_status_list 来保持导师原始顺序
+                    var supervisorStatusList = parseData && parseData.supervisor_status_list;
+                    var orderedTeacherIds = [];
+                    var addedTeacherIds = {};
+
+                    if (supervisorStatusList && supervisorStatusList.length > 0) {
+                        // 按 supervisor_status_list 的顺序添加已匹配的导师
+                        supervisorStatusList.forEach(function(status) {
+                            if (status.matched && status.obj && status.obj.id) {
+                                var teacher = status.obj;
+                                var option = document.createElement('option');
+                                option.value = teacher.id;
+                                option.textContent = teacher.name;
+                                supervisorSelect.appendChild(option);
+                                orderedTeacherIds.push(teacher.id);
+                                addedTeacherIds[teacher.id] = true;
+                            }
+                        });
+                    } else if (data && data.supervisor_name) {
+                        // 降级到使用 supervisor_name 匹配
+                        var supervisorNames = data.supervisor_name.split(',').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
+                        supervisorNames.forEach(function(name) {
+                            var teacher = result.teachers.find(function(t) { return t.name === name; });
+                            if (teacher && !addedTeacherIds[teacher.id]) {
+                                var option = document.createElement('option');
+                                option.value = teacher.id;
+                                option.textContent = teacher.name;
+                                supervisorSelect.appendChild(option);
+                                orderedTeacherIds.push(teacher.id);
+                                addedTeacherIds[teacher.id] = true;
+                            }
+                        });
+                    }
+
+                    // 添加剩余的教师（未在 supervisor_status_list 中的）
+                    result.teachers.forEach(function(teacher) {
+                        if (!addedTeacherIds[teacher.id]) {
+                            var option = document.createElement('option');
+                            option.value = teacher.id;
+                            option.textContent = teacher.name;
+                            supervisorSelect.appendChild(option);
+                        }
+                    });
+
+                    if (typeof jQuery !== 'undefined') {
+                        jQuery(supervisorSelect).select2({
+                            theme: 'bootstrap-5',
+                            placeholder: '选择指导教师',
+                            allowClear: true,
+                            width: '100%'
+                        });
+
+                        // 设置选中的导师（按已排列的顺序）
+                        if (orderedTeacherIds.length > 0) {
+                            jQuery(supervisorSelect).val(orderedTeacherIds).trigger('change');
+                        }
+
+                        // 监听导师变化，自动关联实验室（根据第一导师）
+                        jQuery(supervisorSelect).on('change', function() {
+                            var selectedIds = jQuery(this).val();
+                            if (selectedIds && selectedIds.length > 0) {
+                                var firstTeacherId = selectedIds[0];
+                                var firstTeacher = allTeachersMap[firstTeacherId];
+                                if (firstTeacher && firstTeacher.laboratory_id) {
+                                    var labSelect = document.getElementById('laboratory_id');
+                                    if (labSelect) {
+                                        labSelect.value = firstTeacher.laboratory_id;
+                                        console.log('根据第一导师自动关联实验室: laboratory_id=', firstTeacher.laboratory_id);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(function(error) { console.error('加载教师列表失败:', error); });
+    }
+
+    function initStudentWinnerInput() {
+        var input = document.getElementById('student_winner_input');
+        var suggestionsDiv = document.getElementById('student_suggestions');
+        var selectedDisplay = document.getElementById('selected_students_display');
+        var hiddenInput = document.getElementById('student_winner_names');
+
+        if (!input || !suggestionsDiv || !selectedDisplay) return;
+
+        var studentWinners = [];
+        var activeIndex = -1;
+
+        input.addEventListener('input', function() {
+            var query = this.value.trim();
+            if (query.length < 1) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            fetch(api_students_search_base + encodeURIComponent(query))
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success && data.students && data.students.length > 0) {
+                        suggestionsDiv.innerHTML = '';
+                        activeIndex = -1;
+                        data.students.forEach(function(student, index) {
+                            var div = document.createElement('div');
+                            div.className = 'list-group-item suggestion-item';
+                            div.textContent = student.name + ' (' + student.student_id + ')';
+                            div.dataset.index = index;
+                            div.onclick = function() {
+                                addStudentWinner(student);
+                                input.value = '';
+                                suggestionsDiv.style.display = 'none';
+                            };
+                            suggestionsDiv.appendChild(div);
+                        });
+                        suggestionsDiv.style.display = 'block';
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                })
+                .catch(function(error) { console.error('搜索学生失败:', error); });
+        });
+
+        input.addEventListener('keydown', function(e) {
+            var items = suggestionsDiv.querySelectorAll('.suggestion-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                updateActiveItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, -1);
+                updateActiveItem(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeIndex >= 0 && items[activeIndex]) {
+                    items[activeIndex].click();
+                } else {
+                    var name = input.value.trim().replace(',', '');
+                    if (name) {
+                        addStudentWinner({name: name, id: null});
+                        input.value = '';
+                    }
+                }
+                suggestionsDiv.style.display = 'none';
+            } else if (e.key === 'Escape') {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+
+        function updateActiveItem(items) {
+            items.forEach(function(item, idx) {
+                if (idx === activeIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function addStudentWinner(student) {
+            if (!student.name) return;
+            studentWinners.push(student);
+            updateSelectedDisplay();
+        }
+
+        function updateSelectedDisplay() {
+            selectedDisplay.innerHTML = '';
+            studentWinners.forEach(function(student, index) {
+                var badge = document.createElement('span');
+                badge.className = student.id ? 'badge bg-success me-1 mb-1' : 'badge bg-danger me-1 mb-1';
+                badge.textContent = student.name;
+                badge.style.cursor = 'pointer';
+                badge.onclick = function() {
+                    studentWinners.splice(index, 1);
+                    updateSelectedDisplay();
+                };
+                selectedDisplay.appendChild(badge);
+            });
+            if (hiddenInput) {
+                hiddenInput.value = studentWinners.map(function(s) { return s.name; }).join(',');
+            }
+        }
+    }
+
+    function initTeacherWinnerInput() {
+        var input = document.getElementById('teacher_winner_input');
+        var selectedDisplay = document.getElementById('selected_teachers_display');
+        var hiddenInput = document.getElementById('teacher_winner_names');
+
+        if (!input || !selectedDisplay) return;
+
+        var teacherWinners = [];
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                var name = input.value.trim().replace(',', '');
+                if (name) {
+                    teacherWinners.push({name: name});
+                    input.value = '';
+                    updateSelectedDisplay();
+                }
+            }
+        });
+
+        function updateSelectedDisplay() {
+            selectedDisplay.innerHTML = '';
+            teacherWinners.forEach(function(teacher, index) {
+                var badge = document.createElement('span');
+                badge.className = 'badge bg-primary me-1 mb-1';
+                badge.textContent = teacher.name;
+                badge.style.cursor = 'pointer';
+                badge.onclick = function() {
+                    teacherWinners.splice(index, 1);
+                    updateSelectedDisplay();
+                };
+                selectedDisplay.appendChild(badge);
+            });
+            if (hiddenInput) {
+                hiddenInput.value = teacherWinners.map(function(t) { return t.name; }).join(',');
+            }
+        }
+    }
+
+    function initCertificateTypeToggle() {
+        var studentRadio = document.getElementById('certificate_type_student');
+        var teacherRadio = document.getElementById('certificate_type_teacher');
+        var studentSection = document.getElementById('student_winners_section');
+        var teacherSection = document.getElementById('teacher_winners_section');
+
+        if (studentRadio && teacherRadio) {
+            studentRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    if (studentSection) studentSection.style.display = 'block';
+                    if (teacherSection) teacherSection.style.display = 'none';
+                }
+            });
+
+            teacherRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    if (studentSection) studentSection.style.display = 'none';
+                    if (teacherSection) teacherSection.style.display = 'block';
+                }
+            });
+        }
+    }
+
+    function loadFormByType(type, data, ocrText, parseData) {
+        var formFieldsContainer = document.getElementById('formFieldsContainer');
+        var parsedResult = document.getElementById('parsedResult');
+
+        if (!data || typeof data !== 'object') {
+            data = {};
+        }
+
+        console.log('loadFormByType 被调用:', { type: type, data: data, ocrText: ocrText, parseData: parseData });
+
+        if (parsedResult) {
+            parsedResult.value = JSON.stringify(data, null, 2);
+        }
+
+        if (!formFieldsContainer) return;
+
+        if (type === 'award') {
+            var fieldsHtml = `
+<style>
+    #student_suggestions, #teacher_suggestions {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #student_suggestions .suggestion-item,
+    #teacher_suggestions .suggestion-item {
+        cursor: pointer;
+        padding: 0.5rem 0.75rem;
+    }
+    #student_suggestions .suggestion-item:hover,
+    #student_suggestions .suggestion-item.active,
+    #teacher_suggestions .suggestion-item:hover,
+    #teacher_suggestions .suggestion-item.active {
+        background-color: #f8f9fa;
+    }
+    .select2-container--bootstrap-5 .select2-selection {
+        min-height: 31px;
+    }
+    .btn-group .btn-check:checked + .btn {
+        background-color: #1890ff;
+        border-color: #1890ff;
+        color: white;
+    }
+</style>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header py-2">
+                <h6 class="mb-0">基本信息</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="mb-2">
+                    <label for="competition_id" class="form-label small">竞赛 <span class="text-danger">*</span></label>
+                    <input type="hidden" id="original_competition_name" value="${data.competition_name || ''}">
+                    <select class="form-select form-select-sm" id="competition_id" name="competition_id">
+                        <option value="">未关联（使用解析结果：${data.competition_name || '未知'}</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label for="competition_level" class="form-label small">竞赛等级</label>
+                    <select class="form-select form-select-sm" id="competition_level" name="competition_level">
+                        <option value="">未设置</option>
+                        <option value="校赛">校赛</option>
+                        <option value="区域赛">区域赛</option>
+                        <option value="省赛">省赛</option>
+                        <option value="国赛">国赛</option>
+                        <option value="国际赛">国际赛</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label for="award_level" class="form-label small">获奖等级</label>
+                    <select class="form-select form-select-sm" id="award_level" name="award_level">
+                        <option value="">未设置</option>
+                        <option value="特等奖">特等奖</option>
+                        <option value="一等奖">一等奖</option>
+                        <option value="二等奖">二等奖</option>
+                        <option value="三等奖">三等奖</option>
+                        <option value="优秀奖">优秀奖</option>
+                        <option value="金奖">金奖</option>
+                        <option value="银奖">银奖</option>
+                        <option value="铜奖">铜奖</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label for="year" class="form-label small">年份</label>
+                    <input type="number" class="form-control form-control-sm" id="year" name="year"
+                           value="${data.year || ''}" min="2000" max="2099" placeholder="2024">
+                </div>
+
+                <div class="mb-2">
+                    <label for="track" class="form-label small">赛道</label>
+                    <input type="text" class="form-control form-control-sm" id="track" name="track"
+                           value="${data.track || ''}" placeholder="软件类、本科B组">
+                </div>
+
+                <div class="mb-0">
+                    <label for="certificate_id" class="form-label small">证书编号</label>
+                    <input type="text" class="form-control form-control-sm" id="certificate_id" name="certificate_id"
+                           value="${data.certificate_id || ''}" placeholder="证书编号">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header py-2">
+                <h6 class="mb-0">其他信息</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="mb-2">
+                    <label for="project_title" class="form-label small">项目名称</label>
+                    <input type="text" class="form-control form-control-sm" id="project_title" name="project_title"
+                           value="${data.project_title || ''}" placeholder="项目或作品名称">
+                </div>
+
+                <div class="mb-2">
+                    <label for="date" class="form-label small">日期</label>
+                    <input type="text" class="form-control form-control-sm" id="date" name="date"
+                           value="${data.date || ''}" placeholder="YYYY-MM-DD">
+                </div>
+
+                <div class="mb-2">
+                    <label for="province" class="form-label small">省份</label>
+                    <input type="text" class="form-control form-control-sm" id="province" name="province"
+                           value="${data.province || ''}" placeholder="广东省">
+                </div>
+
+                <div class="mb-2">
+                    <label for="issuer" class="form-label small">颁发机构</label>
+                    <input type="text" class="form-control form-control-sm" id="issuer" name="issuer"
+                           value="${data.issuer || ''}" placeholder="颁发机构名称">
+                </div>
+
+                <div class="mb-0">
+                    <label for="laboratory_id" class="form-label small">关联学生实验室</label>
+                    <select class="form-select form-select-sm" id="laboratory_id" name="laboratory_id">
+                        <option value="">无</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header py-2">
+                <h6 class="mb-0">奖状图片</h6>
+            </div>
+            <div class="card-body text-center p-3" id="manualImageContainer">
+                <p class="text-muted">加载中...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header py-2">
+                <h6 class="mb-0">关联信息</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="mb-3 pb-3 border-bottom">
+                    <label class="form-label small d-block mb-2">证书类型 <span class="text-danger">*</span></label>
+                    <div class="btn-group w-100" role="group" aria-label="证书类型">
+                        <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_student" value="student" checked>
+                        <label class="btn btn-outline-primary" for="certificate_type_student">学生证书</label>
+
+                        <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_teacher" value="teacher">
+                        <label class="btn btn-outline-primary" for="certificate_type_teacher">教师证书</label>
+                    </div>
+                    <small class="form-text text-muted mt-1 d-block">选择证书类型后，相关字段将自动调整</small>
+                </div>
+
+                <div class="mb-3" id="student_winners_section">
+                    <label for="student_winner_input" class="form-label small">学生获奖者</label>
+                    <div class="mb-2" id="selected_students_display"></div>
+                    <div class="position-relative">
+                        <input type="text" class="form-control form-control-sm" id="student_winner_input"
+                               placeholder="输入学生姓名，按回车或逗号添加" autocomplete="off">
+                        <div id="student_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto; margin-top: 2px;"></div>
+                    </div>
+                    <input type="hidden" id="student_winner_names" name="student_winner_names" value="">
+                    <input type="hidden" id="winner_name" name="winner_name" value="${data.winner_name || ''}">
+                    <small class="form-text text-muted">输入学生姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                </div>
+
+                <div class="mb-3" id="teacher_winners_section" style="display: none;">
+                    <label for="teacher_winner_input" class="form-label small">教师获奖者</label>
+                    <div class="mb-2" id="selected_teachers_display"></div>
+                    <input type="text" class="form-control form-control-sm" id="teacher_winner_input"
+                           placeholder="输入教师姓名，按回车或逗号添加">
+                    <input type="hidden" id="teacher_winner_names" name="teacher_winner_names" value="">
+                    <small class="form-text text-muted">输入教师姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                </div>
+
+                <div class="mb-0" id="supervisors_section">
+                    <label for="supervisor_ids" class="form-label small">指导教师</label>
+                    <select class="form-select form-select-sm" id="supervisor_ids" name="supervisor_ids[]" multiple>
+                    </select>
+                    <small class="form-text text-muted">可输入姓名搜索</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+            formFieldsContainer.innerHTML = fieldsHtml;
+
+            setTimeout(function() {
+                loadManualImportImage(window.uploadedFilePath, parseData.preview_image_path || null);
+                initStudentWinnerInput();
+                initTeacherWinnerInput();
+                initCertificateTypeToggle();
+                loadCompetitions(data.competition_name);
+                loadLaboratories();
+                loadSupervisors(data, parseData);
+
+                if (data.competition_level) {
+                    var levelSelect = document.getElementById('competition_level');
+                    if (levelSelect) levelSelect.value = data.competition_level;
+                }
+                if (data.award_level) {
+                    var awardSelect = document.getElementById('award_level');
+                    if (awardSelect) awardSelect.value = data.award_level;
+                }
+
+                var winnerStatusList = parseData.winner_status_list || [];
+                if (winnerStatusList.length > 0) {
+                    var selectedDisplay = document.getElementById('selected_students_display');
+                    var hiddenInput = document.getElementById('student_winner_names');
+
+                    if (selectedDisplay) {
+                        selectedDisplay.innerHTML = '';
+                        winnerStatusList.forEach(function(status) {
+                            var badge = document.createElement('span');
+                            if (status.matched && status.obj) {
+                                badge.className = 'badge bg-primary me-1 mb-1';
+                                badge.textContent = status.obj.brief_desc || status.name;
+                                badge.setAttribute('data-student-id', status.obj.id);
+                                badge.setAttribute('data-student-name', status.obj.name);
+                            } else if (status.ambiguous) {
+                                badge.className = 'badge bg-warning text-dark me-1 mb-1';
+                                badge.textContent = status.name + '(重名)';
+                                badge.setAttribute('data-student-name', status.name);
+                            } else {
+                                badge.className = 'badge bg-danger me-1 mb-1';
+                                badge.textContent = status.name + '(未查到)';
+                                badge.setAttribute('data-student-name', status.name);
+                            }
+                            badge.style.cursor = 'pointer';
+                            badge.onclick = function() {
+                                this.remove();
+                                var remainingBadges = selectedDisplay.querySelectorAll('.badge');
+                                var remainingNames = Array.from(remainingBadges).map(function(b) {
+                                    return b.getAttribute('data-student-name') || b.textContent;
+                                });
+                                if (hiddenInput) {
+                                    hiddenInput.value = remainingNames.join(',');
+                                }
+                            };
+                            selectedDisplay.appendChild(badge);
+                        });
+                        var names = winnerStatusList.map(function(s) { return s.name; });
+                        if (hiddenInput) {
+                            hiddenInput.value = names.join(',');
+                        }
+                    }
+                } else if (data.winner_name) {
+                    var winnerNames = data.winner_name.split(',').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
+                    var selectedDisplay = document.getElementById('selected_students_display');
+                    var hiddenInput = document.getElementById('student_winner_names');
+
+                    if (selectedDisplay) {
+                        selectedDisplay.innerHTML = '';
+                        winnerNames.forEach(function(name) {
+                            var badge = document.createElement('span');
+                            badge.className = 'badge bg-success me-1';
+                            badge.textContent = name;
+                            badge.style.cursor = 'pointer';
+                            badge.onclick = function() {
+                                this.remove();
+                                var remainingBadges = selectedDisplay.querySelectorAll('.badge');
+                                var remainingNames = Array.from(remainingBadges).map(function(b) { return b.textContent; });
+                                if (hiddenInput) {
+                                    hiddenInput.value = remainingNames.join(',');
+                                }
+                            };
+                            selectedDisplay.appendChild(badge);
+                        });
+                        if (hiddenInput) {
+                            hiddenInput.value = winnerNames.join(',');
+                        }
+                    }
+                }
+            }, 100);
+        } else if (type === 'patent' || type === 'software') {
+            formFieldsContainer.innerHTML = '<p class="text-muted">暂不支持 ' + type + ' 类型表单，请联系管理员。</p>';
+        } else {
+            formFieldsContainer.innerHTML = '<p class="text-muted">未知类型: ' + type + '</p>';
+        }
+    }
+})();
+</script>

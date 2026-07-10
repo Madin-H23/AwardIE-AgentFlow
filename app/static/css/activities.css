@@ -1,0 +1,294 @@
+/* 活动管理样式 */
+
+.activities-list-page,
+.activity-add-page,
+.activity-edit-page {
+    padding: 20px 0;
+}
+
+/* 筛选区域 */
+.card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 16px;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+/* 表格样式 */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* 奖状搜索样式 */
+.awards-search-results {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.award-item {
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.award-item:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
+}
+
+.award-item.selected {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.award-summary {
+    font-size: 0.9rem;
+}
+
+.award-summary div {
+    margin-bottom: 4px;
+}
+
+.award-detail {
+    font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.award-detail pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.toggle-detail {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #6c757d;
+}
+
+.toggle-detail:hover {
+    color: #0d6efd;
+}
+
+/* 紧凑布局 */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+}
+
+.form-control,
+.form-select {
+    font-size: 0.9rem;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 6px 12px;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+/* 分页样式 */
+.pagination {
+    margin-top: 20px;
+}
+
+.page-link {
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+/* 自动完成下拉框样式 */
+.suggestions-list {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 2px;
+    background-color: white;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.suggestions-list .suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+    display: block;
+    text-decoration: none;
+    color: #212529;
+}
+
+.suggestions-list .suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestions-list .suggestion-item:hover,
+.suggestions-list .suggestion-item.active {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+
+.suggestions-list .suggestion-item:focus {
+    outline: none;
+    background-color: #e7f1ff;
+}
+
+/* 状态图标 */
+.status-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.status-icon.loading::after {
+    content: "⏳";
+    animation: spin 1s linear infinite;
+}
+
+.status-icon.success::after {
+    content: "✅";
+    color: #198754;
+}
+
+.status-icon.error::after {
+    content: "❌";
+    color: #dc3545;
+}
+
+.status-icon.warning::after {
+    content: "⚠️";
+    color: #ffc107;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 标签容器 */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    min-height: 32px;
+}
+
+/* 标签样式 */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.tag-teacher {
+    background-color: #e7f1ff;
+    color: #1e40af;
+}
+
+.tag-member {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tag-remove {
+    margin-left: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tag-remove:hover {
+    opacity: 1;
+    color: #dc3545;
+}
+
+/* 输入框组样式调整 */
+.input-group-text {
+    border-left: none;
+    padding-right: 8px;
+}
+
+.input-group .form-control:focus + .input-group-text {
+    border-color: #0d6efd;
+}
+
+/* 错误状态 */
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid {
+    border-color: #198754;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .activities-list-page,
+    .activity-add-page,
+    .activity-edit-page {
+        padding: 10px 0;
+    }
+    
+    .card-body {
+        padding: 12px;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+}
+

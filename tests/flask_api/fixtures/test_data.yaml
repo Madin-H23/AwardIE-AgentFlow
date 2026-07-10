@@ -1,0 +1,174 @@
+# 测试样本数据配置
+# 定义测试用中使用的文件和预期结果
+
+# 测试样本文件列表
+test_samples:
+  # 奖状类 - 有模板（验证通过）
+  - id: "sample_001"
+    file_path: "images/测试图片/奖状/2025蓝桥杯网络安全赛道-陈鸿秋-省赛-二等奖.jpg"
+    type: "award"
+    has_template: true
+    expected_validation: "pass"
+    student_award: true  # 学生奖状
+    key_fields:
+      competition_name: "蓝桥杯"
+      award_level: "二等奖"
+      competition_level: "省赛"
+      winner_name: "陈鸿秋"
+    cover_scenarios:
+      - "award_import"
+      - "student_view"
+      - "teacher_supervisor_view"
+    notes: "蓝桥杯学生奖状，有模板匹配，用于完整流程测试"
+
+  - id: "sample_002"
+    file_path: "images/测试图片/奖状/蓝桥杯教师_国赛_项目实战赛_项目实战赛-智能体开发大学组_二等奖_陈品天_阴爱英.jpg"
+    type: "award"
+    has_template: true
+    expected_validation: "pass"
+    teacher_award: true  # 教师奖状
+    key_fields:
+      competition_name: "蓝桥杯"
+      award_level: "二等奖"
+      competition_level: "国赛"
+      winner_name: "陈品天"
+      supervisor_name: "阴爱英"
+    cover_scenarios:
+      - "award_import"
+      - "teacher_winner_view"
+    notes: "蓝桥杯教师奖状，区分学生和教师模板"
+
+  # 奖状类 - 无模板（LLM抽取）
+  - id: "sample_003"
+    file_path: "images/测试图片/奖状/2025ciscn-吴凌森等-国赛-二等奖.jpg"
+    type: "award"
+    has_template: false
+    expected_validation: "pass"
+    key_fields:
+      competition_name: "CISCN"
+      award_level: "二等奖"
+      competition_level: "国赛"
+      winner_name: "吴凌森"
+    cover_scenarios:
+      - "award_import_no_template"
+      - "llm_extraction"
+    notes: "无模板奖状，LLM抽取，验证无模板情况"
+
+  - id: "sample_004"
+    file_path: "images/测试图片/奖状/睿抗-国家一等奖-高映轩.jpg"
+    type: "award"
+    has_template: false
+    expected_validation: "pass"
+    key_fields:
+      competition_name: "睿抗机器人大赛"
+      award_level: "一等奖"
+      winner_name: "高映轩"
+    cover_scenarios:
+      - "award_import_no_template"
+    notes: "睿抗机器人，无模板但有标准答案"
+
+  # 专利类
+  - id: "sample_005"
+    file_path: "images/测试图片/专利/发明1.jpg"
+    type: "patent"
+    patent_type: "发明"
+    expected_validation: "pass"
+    key_fields:
+      patent_name: "待识别"
+      patent_number: "待识别"
+      patent_type: "发明"
+    cover_scenarios:
+      - "patent_import"
+      - "patent_view"
+    notes: "发明专利，测试专利抽取和导入"
+
+  - id: "sample_006"
+    file_path: "images/测试图片/专利/实用新型.jpg"
+    type: "patent"
+    patent_type: "实用新型"
+    expected_validation: "pass"
+    cover_scenarios:
+      - "patent_import"
+    notes: "实用新型专利"
+
+  # 软著类
+  - id: "sample_007"
+    file_path: "images/测试图片/软著/家居慧眼.png"
+    type: "software"
+    expected_validation: "pass"
+    key_fields:
+      software_name: "家居慧眼"
+      registration_number: "待识别"
+    cover_scenarios:
+      - "software_import"
+      - "software_view"
+    notes: "软著证书，测试软著导入"
+
+  # 其他文件 - 图片
+  - id: "sample_008"
+    file_path: "images/测试图片/其他/照片1.jpg"
+    type: "other"
+    file_type: "image"
+    expected_destination: "laboratory_images"
+    cover_scenarios:
+      - "other_import_image"
+      - "lab_images_view"
+    notes: "其他文件-图片，应写入laboratory_images表"
+
+  # 其他文件 - 文档
+  - id: "sample_009"
+    file_path: "images/测试图片/其他/23陈淼-HCIE证书.pdf"
+    type: "other"
+    file_type: "document"
+    expected_destination: "laboratory_downloads"
+    cover_scenarios:
+      - "other_import_document"
+      - "lab_downloads_view"
+    notes: "其他文件-PDF，应写入laboratory_downloads表"
+
+# 测试数据组合 - 用于测试不同场景
+test_combinations:
+  # 完整流程测试组合
+  full_flow_set:
+    - "sample_001"  # 蓝桥杯学生奖状
+    - "sample_005"  # 发明专利
+    - "sample_007"  # 软著
+    - "sample_008"  # 其他图片
+
+  # 模板匹配测试组合
+  template_match_set:
+    - "sample_001"  # 有模板 - 学生
+    - "sample_002"  # 有模板 - 教师
+
+  # 无模板测试组合
+  no_template_set:
+    - "sample_003"  # CISCN
+    - "sample_004"  # 睿抗
+
+  # 可见性测试组合
+  visibility_test_set:
+    - "sample_001"  # 学生A的奖状
+    - "sample_002"  # 教师B的奖状
+
+# 模拟用户数据
+test_users:
+  student_1:
+    user_id: "2021001"
+    password: "123456"
+    name: "测试学生A"
+    role: "student"
+    notes: "用于测试学生上传和查看"
+
+  teacher_1:
+    user_id: "T001"
+    password: "123456"
+    name: "测试教师李"
+    role: "teacher"
+    notes: "用于测试教师上传和查看"
+
+  admin_1:
+    user_id: "admin"
+    password: "Mayy123"
+    name: "管理员"
+    role: "admin"
+    notes: "用于测试管理员审核功能"

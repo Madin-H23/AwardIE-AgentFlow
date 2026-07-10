@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}数据导出 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>数据导出</h1>
+    </div>
+    
+    <!-- Tab导航 -->
+    <ul class="nav nav-tabs mb-4" id="dataExportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if request.endpoint == 'admin_export.department_summary' %}active{% endif %}" 
+               href="{{ url_for('admin_export.department_summary') }}">
+                系年度总结
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if request.endpoint == 'admin_export.student_affairs' %}active{% endif %}" 
+               href="{{ url_for('admin_export.student_affairs') }}">
+                学工数据
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if request.endpoint == 'admin_export.teacher_personal' %}active{% endif %}" 
+               href="{{ url_for('admin_export.teacher_personal') }}">
+                教师个人数据
+            </a>
+        </li>
+    </ul>
+    
+    <!-- Tab内容 -->
+    <div class="tab-content" id="dataExportTabContent">
+        <!-- Tab1: 系年度总结 -->
+        {% if request.endpoint == 'admin_export.department_summary' %}
+        <div class="tab-pane fade show active" 
+             id="pane-department-summary" role="tabpanel" aria-labelledby="tab-department-summary">
+            {% include 'admin/data_export/tabs/department_summary.html' %}
+        </div>
+        {% elif request.endpoint == 'admin_export.student_affairs' %}
+        <!-- Tab2: 学工数据 -->
+        <div class="tab-pane fade show active" 
+             id="pane-student-affairs" role="tabpanel" aria-labelledby="tab-student-affairs">
+            {% include 'admin/data_export/tabs/student_affairs.html' %}
+        </div>
+        {% elif request.endpoint == 'admin_export.teacher_personal' %}
+        <!-- Tab3: 教师个人数据 -->
+        <div class="tab-pane fade show active" 
+             id="pane-teacher-personal" role="tabpanel" aria-labelledby="tab-teacher-personal">
+            {% include 'admin/data_export/tabs/teacher_personal.html' %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

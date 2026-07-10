@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}上传文件 - 成果管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">上传文件</h1>
+    <a href="{{ url_for('admin_other_files.other_files_list') }}" class="btn btn-outline-secondary">返回列表</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form id="uploadForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <!-- 文件上传 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">选择文件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">文件 <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="file" name="file" required>
+                        <div class="form-text">支持任意格式文件上传</div>
+                        <div class="invalid-feedback">请选择文件</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">文件描述</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="输入文件描述..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">上传</button>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 关联实验室 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">关联实验室</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="laboratory_id" class="form-label">选择实验室</label>
+                    <select class="form-select" id="laboratory_id" name="laboratory_id">
+                        <option value="">未关联</option>
+                        {% for lab in laboratories %}
+                        <option value="{{ lab.id }}">{{ lab.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">关联到实验室便于文件管理</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 上传说明 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">上传说明</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0 small text-muted">
+                    <li>支持任意格式文件</li>
+                    <li>图片文件会自动识别</li>
+                    <li>建议添加文件描述</li>
+                    <li>可关联到实验室便于管理</li>
+                    <li>上传后可编辑元数据</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .btn-primary {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    .btn-primary:hover {
+        background-color: #40a9ff;
+        border-color: #40a9ff;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 0.2rem rgba(24, 144, 255, 0.25);
+    }
+</style>
+
+<script>
+// 表单验证
+(function() {
+    'use strict';
+    const form = document.getElementById('uploadForm');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{% if student %}编辑学生{% else %}添加学生{% endif %} - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if student %}编辑学生{% else %}添加学生{% endif %}</h1>
+        <a href="{{ url_for('admin.students_list') }}" class="btn btn-outline-secondary">返回列表</a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="student_id" class="form-label">学号 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="student_id" name="student_id" 
+                               value="{{ student.student_id if student else '' }}" required>
+                        {% if student %}
+                        <div class="form-text text-warning">修改学号将影响该学生的登录账号，请谨慎操作。</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">姓名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ student.name if student else '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="major" class="form-label">专业</label>
+                        <input type="text" class="form-control" id="major" name="major" 
+                               value="{{ student.major if student else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="grade" class="form-label">年级</label>
+                        <input type="text" class="form-control" id="grade" name="grade" 
+                               value="{{ student.grade if student else '' }}" placeholder="例如: 2024级">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label">电话</label>
+                        <input type="text" class="form-control" id="phone" name="phone" 
+                               value="{{ student.phone if student else '' }}">
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="user_activated" name="user_activated" 
+                                   {% if student and student.user_activated %}checked{% endif %}>
+                            <label class="form-check-label" for="user_activated">
+                                用户激活（允许登录系统）
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="{{ url_for('admin.students_list') }}" class="btn btn-outline-secondary">取消</a>
+                    {% if student %}
+                    <button type="button" class="btn btn-warning ms-auto" onclick="resetPassword()">
+                        <i class="bi bi-key"></i> 重置密码
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if student %}
+<script>
+function resetPassword() {
+    if (!confirm('确定要将该学生的密码重置为系统默认密码吗？')) {
+        return;
+    }
+    
+    fetch('{{ url_for("admin.student_reset_password", student_id=student.id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('重置密码失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('重置密码失败: ' + error.message);
+    });
+}
+</script>
+{% endif %}
+{% endblock %}
+

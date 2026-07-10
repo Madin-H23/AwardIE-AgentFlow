@@ -1,0 +1,11 @@
+{
+  "name": "awardie-agentflow",
+  "version": "1.0.0",
+  "description": "AwardIE-AgentFlow - 信息抽取与多智能体协作的奖状智能管理系统",
+  "scripts": {
+    "build:css": "tailwindcss -i ./app/static/css/tailwind_input.css -o ./app/static/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

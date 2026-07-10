@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}成果管理系统{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://unpkg.com/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts: Clash Display (标题) 和 Satoshi (正文) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- 注意：Clash Display和Satoshi可能需要付费，这里使用Inter作为替代，实际部署时替换 -->
+    
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.id %}
+    <!-- 导航栏（仅登录后显示） -->
+    {% include 'layout/navbar.html' %}
+    {% endif %}
+    
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.role == 'admin' %}
+            <!-- 侧边栏（仅管理员可见） -->
+            <aside class="col-md-3 col-lg-2 sidebar-wrapper">
+                {% include 'layout/sidebar.html' %}
+            </aside>
+            <!-- 主内容区（管理员有侧边栏时） -->
+            <main class="col-md-9 col-lg-10 main-content">
+            {% else %}
+            <!-- 主内容区（全宽，普通用户） -->
+            <main class="col-12 main-content">
+            {% endif %}
+                <!-- Flash消息 -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- 页面内容 -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    {% include 'layout/footer.html' %}
+    
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://unpkg.com/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 通用JavaScript -->
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

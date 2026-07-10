@@ -1,0 +1,187 @@
+<!-- Tab3: 异常奖状 -->
+<div class="alert alert-warning mb-3">
+    <strong>提示：</strong>以下列表显示所有存在异常的奖状。请编辑这些奖状并修复异常后，系统会自动重新检测并标记为正常。
+</div>
+
+<!-- 奖状列表 -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">共找到 {{ total_count }} 条异常记录</span>
+            </div>
+        </div>
+        
+        {% if awards %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>竞赛名称</th>
+                        <th>竞赛等级</th>
+                        <th>赛道</th>
+                        <th>获奖等级</th>
+                        <th>首位获奖者</th>
+                        <th>首位指导教师</th>
+                        <th>年份</th>
+                        <th>异常原因</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                    <tr class="{% if award.is_abnormal %}table-warning{% endif %}">
+                        <td>
+                            <span class="d-inline-flex align-items-center gap-1">
+                                {{ award.id }}
+                                <span class="badge bg-danger" style="font-size: 0.7rem;" title="此奖状存在异常，请查看异常原因">异常</span>
+                            </span>
+                        </td>
+                        <td>
+                            {% if award.competition_id %}
+                                {% set comp = competitions|selectattr('id', 'equalto', award.competition_id)|first %}
+                                {{ comp.name if comp else '未知竞赛' }}
+                            {% else %}
+                                <span class="text-muted">未关联</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.competition_level %}
+                                {% if get_competition_level_badge_class %}
+                                    {% set badge_class = get_competition_level_badge_class(award.competition_level) %}
+                                    <span class="badge {{ badge_class }}{% if badge_class == 'bg-warning' %} text-dark{% endif %}">{{ award.competition_level }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ award.competition_level }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.track and award.track != 'None' %}
+                                {{ award.track }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.award_level %}
+                                <span class="badge bg-warning text-dark">{{ award.award_level }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set winner_info = award.get_first_winner_info() %}
+                            {% if winner_info and winner_info.name %}
+                                {% if winner_info.obj and winner_info.obj_type == 'student' %}
+                                    <span class="badge bg-primary" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ winner_info.name }}</strong><br/>专业：{{ winner_info.obj.major or '未知' }}<br/>年级：{{ winner_info.obj.grade or '未知' }}">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% elif winner_info.obj and winner_info.obj_type == 'teacher' %}
+                                    <span class="badge bg-success" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ winner_info.name }}</strong><br/>职称：{{ winner_info.obj.title or '未知' }}">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% else %}
+                                    {# 不在数据库中的学生，显示为红色，tooltip显示空或提示信息 #}
+                                    <span class="badge bg-danger" 
+                                          data-bs-toggle="tooltip" 
+                                          title="该学生不在数据库中">
+                                        {{ winner_info.name }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set supervisor_info = award.get_first_supervisor_info() %}
+                            {% if supervisor_info and supervisor_info.name %}
+                                {% if supervisor_info.obj and supervisor_info.obj_type == 'teacher' %}
+                                    <span class="badge bg-secondary" 
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-html="true"
+                                          title="<strong>{{ supervisor_info.name }}</strong><br/>职称：{{ supervisor_info.obj.title or '未知' }}">
+                                        {{ supervisor_info.name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ supervisor_info.name }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-danger">未填写</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if award.year %}
+                                {{ award.year }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                                    title="检测规则功能已废弃">
+                                查看异常
+                            </button>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
+                               class="btn btn-sm btn-outline-primary">编辑</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分页 -->
+        {% if total_pages > 1 %}
+        <nav aria-label="分页导航">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="?tab=abnormal&page={{ page - 1 }}&per_page={{ per_page }}">上一页</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ p }}</span>
+                    </li>
+                    {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?tab=abnormal&page={{ p }}&per_page={{ per_page }}">{{ p }}</a>
+                    </li>
+                    {% elif p == 4 or p == total_pages - 3 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="?tab=abnormal&page={{ page + 1 }}&per_page={{ per_page }}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">暂无异常奖状</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// 初始化Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+

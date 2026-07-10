@@ -1,0 +1,156 @@
+<!-- 专利筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="patentFilterForm" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">专利类型</label>
+                <select name="patent_type" class="form-select">
+                    <option value="">全部</option>
+                    <option value="发明专利">发明专利</option>
+                    <option value="实用新型">实用新型</option>
+                    <option value="外观设计">外观设计</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">发明人</label>
+                <input type="text" name="inventor" class="form-control" placeholder="输入发明人姓名">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">申请号</label>
+                <input type="text" name="application_number" class="form-control" placeholder="输入申请号">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">搜索</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetPatentFilter()">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 专利列表 -->
+<div class="card">
+    <div class="card-body">
+        {% if patents %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">共 {{ patents|length }} 条记录</span>
+            </div>
+            {% if not is_readonly %}
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeletePatentsBtn" disabled>
+                    批量删除
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="40">
+                            <input type="checkbox" id="selectAllPatents">
+                        </th>
+                        <th>ID</th>
+                        <th>专利名称</th>
+                        <th>专利类型</th>
+                        <th>申请号</th>
+                        <th>发明人</th>
+                        <th>专利权人</th>
+                        {% if not hide_laboratory_filter %}
+                        <th>关联实验室</th>
+                        {% endif %}
+                        <th>申请日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patent in patents %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="patent-checkbox" value="{{ patent.id }}">
+                        </td>
+                        <td>{{ patent.id }}</td>
+                        <td>
+                            <a href="/admin/patents/{{ patent.id }}" class="text-decoration-none">
+                                {{ patent.patent_name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if patent.patent_type %}
+                            <span class="badge bg-info">{{ patent.patent_type }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ patent.application_number or '-' }}</td>
+                        <td>{{ patent.inventor or '-' }}</td>
+                        <td>{{ patent.patentee or '-' }}</td>
+                        {% if not hide_laboratory_filter %}
+                        <td>
+                            {% if patent.laboratory_id %}
+                                {% set lab_name = namespace(value='-') %}
+                                {% for lab in laboratories %}
+                                    {% if lab.id == patent.laboratory_id %}
+                                        {% set lab_name.value = lab.name %}
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="badge bg-secondary">{{ lab_name.value }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>{{ patent.application_date or '-' }}</td>
+                        <td>
+                            {% if is_readonly %}
+                            <div class="action-buttons">
+                                <a href="/admin/patents/{{ patent.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                {% if patent.certificate_file %}
+                                <a href="/admin/patents/{{ patent.id }}/file" class="btn btn-sm btn-outline-success">文件</a>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="action-buttons">
+                                <a href="/admin/patents/{{ patent.id }}/edit?from=achievements" class="btn btn-sm btn-outline-primary">编辑</a>
+                                {% if patent.certificate_file %}
+                                <a href="/admin/patents/{{ patent.id }}/file" class="btn btn-sm btn-outline-success">文件</a>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePatent({{ patent.id }})">删除</button>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if per_page %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadPatentsPage({{ page - 1 }})">上一页</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">第 {{ page }} 页</span>
+                </li>
+                {% if patents|length == per_page %}
+                <li class="page-item">
+                    <a class="page-link" href="javascript:loadPatentsPage({{ page + 1 }})">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">暂无专利数据</p>
+            <a href="/admin/patents/create" class="btn btn-primary">添加第一个专利</a>
+        </div>
+        {% endif %}
+    </div>
+</div>

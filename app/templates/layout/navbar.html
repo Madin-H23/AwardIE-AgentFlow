@@ -1,0 +1,38 @@
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('auth.index') }}">
+            <strong>成果管理系统</strong>
+        </a>
+        
+        {% if current_user.id %}
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-3">
+                    {% if current_user.role == 'teacher' %}
+                    <a class="nav-link" href="{{ url_for('teacher.dashboard') }}">回到主页</a>
+                    {% elif current_user.role == 'admin' %}
+                    <a class="nav-link" href="{{ url_for('admin_laboratory.laboratories_list') }}">回到主页</a>
+                    {% elif current_user.role == 'student' %}
+                    <a class="nav-link" href="{{ url_for('student.dashboard') }}">回到主页</a>
+                    {% endif %}
+                </li>
+                <li class="nav-item me-3">
+                    <span class="navbar-text text-muted">
+                        欢迎，<strong>{{ current_user.name }}</strong>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                        登出
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</nav>
+

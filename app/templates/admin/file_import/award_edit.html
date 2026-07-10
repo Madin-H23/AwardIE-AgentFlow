@@ -1,0 +1,1420 @@
+{% extends "base.html" %}
+
+{% block title %}奖状编辑（文件导入） - 成果管理系统{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">奖状编辑（文件导入）</h1>
+        <div class="d-flex gap-2">
+            <button type="submit" form="awardForm" class="btn btn-primary">保存</button>
+            <button type="button" class="btn btn-primary" onclick="deletePending()">删除</button>
+            <a href="{{ url_for('admin_achievement.file_import_results', session_id=session_id) }}" class="btn btn-outline-secondary">返回结果</a>
+        </div>
+    </div>
+    
+    <style>
+        /* 确保删除按钮也是蓝色 */
+        .btn-primary {
+            background-color: #1890ff;
+            border-color: #1890ff;
+        }
+        .btn-primary:hover {
+            background-color: #40a9ff;
+            border-color: #40a9ff;
+        }
+        /* 紧凑布局 */
+        .card-header {
+            padding: 0.5rem 1rem;
+        }
+        .card-body {
+            padding: 0.75rem 1rem;
+        }
+        .form-label.small {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        /* Select2样式调整 */
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+        }
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+        /* 证书类型按钮组样式 */
+        .btn-group .btn-check:checked + .btn {
+            background-color: #1890ff;
+            border-color: #1890ff;
+            color: white;
+        }
+        /* 隐藏字段的过渡效果 */
+        #student_winners_section,
+        #teacher_winners_section,
+        #supervisors_section,
+        #related_students_section {
+            transition: opacity 0.2s ease-in-out;
+        }
+        #student_winners_section[style*="display: none"],
+        #teacher_winners_section[style*="display: none"],
+        #supervisors_section[style*="display: none"],
+        #related_students_section[style*="display: none"] {
+            display: none !important;
+        }
+        /* 学生建议列表样式 */
+        #student_suggestions {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #student_suggestions .suggestion-item {
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+        }
+        #student_suggestions .suggestion-item:hover,
+        #student_suggestions .suggestion-item.active {
+            background-color: #f8f9fa;
+        }
+        /* 拖拽排序样式 */
+        #selected_students_display .badge,
+        #selected_teachers_display .badge {
+            cursor: move;
+            user-select: none;
+        }
+        #selected_students_display .badge.dragging,
+        #selected_teachers_display .badge.dragging {
+            opacity: 0.5;
+        }
+        #selected_students_display .badge.drag-over,
+        #selected_teachers_display .badge.drag-over {
+            border: 2px dashed #1890ff;
+        }
+    </style>
+    
+    <!-- jQuery (Select2依赖) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Select2 CSS -->
+    <link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
+    <form method="POST" action="{{ url_for('admin_achievement.file_import_award_edit', session_id=session_id, index=index) }}" id="awardForm">
+        <!-- 第一行：三栏布局 -->
+        <div class="row g-3 mb-3">
+            <!-- 第一栏：基本信息 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">基本信息</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="mb-2">
+                            <label for="competition_id" class="form-label small">竞赛 <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" id="competition_id" name="competition_id">
+                                <option value="">未关联</option>
+                                {% for comp in competitions %}
+                                <option value="{{ comp.id }}" {% if award.competition_id == comp.id %}selected{% endif %}>
+                                    {{ comp.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if missing_competition_name %}
+                            <div class="alert alert-warning alert-dismissible fade show mt-2 mb-0" role="alert" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <strong>竞赛未找到：</strong>{{ missing_competition_name }}<br>
+                                <small>提交时将自动创建此竞赛。您也可以点击下方按钮立即添加。</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭" style="font-size: 0.7rem;"></button>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-primary mt-2" id="quick_add_competition_btn" onclick="quickAddCompetition('{{ missing_competition_name }}')">
+                                <i class="bi bi-plus-circle me-1"></i>快速添加竞赛
+                            </button>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="competition_level" class="form-label small">竞赛等级</label>
+                            <select class="form-select form-select-sm" id="competition_level" name="competition_level">
+                                <option value="">未设置</option>
+                                <option value="校赛" {% if award.competition_level == '校赛' %}selected{% endif %}>校赛</option>
+                                <option value="区域赛" {% if award.competition_level == '区域赛' %}selected{% endif %}>区域赛</option>
+                                <option value="省赛" {% if award.competition_level == '省赛' %}selected{% endif %}>省赛</option>
+                                <option value="国赛" {% if award.competition_level == '国赛' %}selected{% endif %}>国赛</option>
+                                <option value="国际赛" {% if award.competition_level == '国际赛' %}selected{% endif %}>国际赛</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="award_level" class="form-label small">获奖等级</label>
+                            <select class="form-select form-select-sm" id="award_level" name="award_level">
+                                <option value="">未设置</option>
+                                <option value="特等奖" {% if award.award_level == '特等奖' %}selected{% endif %}>特等奖</option>
+                                <option value="一等奖" {% if award.award_level == '一等奖' %}selected{% endif %}>一等奖</option>
+                                <option value="二等奖" {% if award.award_level == '二等奖' %}selected{% endif %}>二等奖</option>
+                                <option value="三等奖" {% if award.award_level == '三等奖' %}selected{% endif %}>三等奖</option>
+                                <option value="优秀奖" {% if award.award_level == '优秀奖' %}selected{% endif %}>优秀奖</option>
+                                <option value="金奖" {% if award.award_level == '金奖' %}selected{% endif %}>金奖</option>
+                                <option value="银奖" {% if award.award_level == '银奖' %}selected{% endif %}>银奖</option>
+                                <option value="铜奖" {% if award.award_level == '铜奖' %}selected{% endif %}>铜奖</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="year" class="form-label small">年份</label>
+                            <input type="number" class="form-control form-control-sm" id="year" name="year" 
+                                   value="{{ award.year if award.year is not none else '' }}" min="2000" max="2099" placeholder="2024">
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="track" class="form-label small">赛道</label>
+                            <input type="text" class="form-control form-control-sm" id="track" name="track" 
+                                   value="{{ award.track or '' }}" placeholder="软件类、本科B组">
+                        </div>
+                        
+                        <div class="mb-0">
+                            <label for="certificate_id" class="form-label small">证书编号</label>
+                            <input type="text" class="form-control form-control-sm" id="certificate_id" name="certificate_id" 
+                                   value="{{ award.certificate_id or '' }}" placeholder="证书编号">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第二栏：其他信息 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">其他信息</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="mb-2">
+                            <label for="project_title" class="form-label small">项目名称</label>
+                            <input type="text" class="form-control form-control-sm" id="project_title" name="project_title" 
+                                   value="{{ award.project_title or '' }}" placeholder="项目或作品名称">
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="date" class="form-label small">日期</label>
+                            <input type="text" class="form-control form-control-sm" id="date" name="date" 
+                                   value="{{ award.date or '' }}" placeholder="YYYY-MM-DD">
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="province" class="form-label small">省份</label>
+                            <input type="text" class="form-control form-control-sm" id="province" name="province" 
+                                   value="{{ award.province or '' }}" placeholder="广东省">
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label for="issuer" class="form-label small">颁发机构</label>
+                            <input type="text" class="form-control form-control-sm" id="issuer" name="issuer" 
+                                   value="{{ award.issuer or '' }}" placeholder="颁发机构名称">
+                        </div>
+                        
+                        <div class="mb-0">
+                            <label for="laboratory_id" class="form-label small">关联学生实验室</label>
+                            <select class="form-select form-select-sm" id="laboratory_id" name="laboratory_id">
+                                <option value="" {% if not default_laboratory_id %}selected{% endif %}>无</option>
+                                {% for lab in all_laboratories %}
+                                <option value="{{ lab.id }}" {% if default_laboratory_id == lab.id %}selected{% endif %}>
+                                    {{ lab.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 第三栏：图片 -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">奖状图片</h6>
+                    </div>
+                    <div class="card-body text-center p-3">
+                        {% if file_path %}
+                            {% set file_ext = file_path.split('.')[-1].lower() if '.' in file_path else '' %}
+                            {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                {% if file_url %}
+                                    <img src="{{ file_url }}" 
+                                         alt="奖状图片" 
+                                         class="img-fluid rounded" 
+                                         style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+                                         onclick="window.open(this.src, '_blank')"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
+                                    <p class="text-muted mt-2 small">点击查看大图</p>
+                                {% else %}
+                                    <p class="text-muted">图片路径无效</p>
+                                {% endif %}
+                            {% elif file_ext == 'pdf' %}
+                                {% if preview_image_url %}
+                                    {# PDF文件有预览图片，显示预览图片 #}
+                                    <img src="{{ preview_image_url }}" 
+                                         alt="PDF预览" 
+                                         class="img-fluid rounded" 
+                                         style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+                                         onclick="window.open(this.src, '_blank')"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <p class="text-muted mt-2 small" style="display: none;">预览图片加载失败</p>
+                                    <p class="text-muted mt-2 small">PDF预览（点击查看大图）</p>
+                                    <small class="text-muted d-block mt-1">{{ file_path.split('/')[-1] if '/' in file_path else file_path.split('\\')[-1] }}</small>
+                                {% else %}
+                                    {# PDF文件但没有预览图片，显示PDF图标 #}
+                                    <div class="text-center">
+                                        <div style="font-size: 48px;">📄</div>
+                                        <div>PDF文件</div>
+                                        <small class="text-muted">{{ file_path.split('/')[-1] if '/' in file_path else file_path.split('\\')[-1] }}</small>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">文件类型: {{ file_ext }}</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">暂无图片</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 第二行：关联信息和OCR/LLM应答 -->
+        <div class="row g-3">
+            <!-- 左侧：关联信息 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">关联信息</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <!-- 证书类型选择 -->
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="form-label small d-block mb-2">证书类型 <span class="text-danger">*</span></label>
+                            <div class="btn-group w-100" role="group" aria-label="证书类型">
+                                <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_student" value="student" 
+                                       {% if not award.granted_role or "教师" not in award.granted_role %}checked{% endif %}>
+                                <label class="btn btn-outline-primary" for="certificate_type_student">学生证书</label>
+                                
+                                <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_teacher" value="teacher" 
+                                       {% if award.granted_role and "教师" in award.granted_role %}checked{% endif %}>
+                                <label class="btn btn-outline-primary" for="certificate_type_teacher">教师证书</label>
+                            </div>
+                            <small class="form-text text-muted mt-1 d-block">选择证书类型后，相关字段将自动调整</small>
+                        </div>
+                        
+                        <!-- 学生获奖者 -->
+                        <div class="mb-3" id="student_winners_section">
+                            <label for="student_winner_input" class="form-label small">学生获奖者</label>
+                            
+                            <!-- 显示当前匹配的获奖者（带标记和删除按钮） -->
+                            <div class="mb-2" id="selected_students_display">
+                            {% if winner_status_list %}
+                                {% for status in winner_status_list %}
+                                    {% if not award.granted_role or "教师" not in award.granted_role %}
+                                        {% if status.matched and status.obj %}
+                                                <span class="badge bg-primary me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-id="{{ status.obj.id }}" data-student-name="{{ status.obj.name }}">
+                                                    <span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>
+                                                    {{ status.obj.get_brief_desc() }}
+                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudent('{{ status.obj.id }}', '{{ status.obj.name }}')" aria-label="删除"></button>
+                                                </span>
+                                        {% elif status.ambiguous %}
+                                                <span class="badge bg-warning text-dark me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="{{ status.name }}">
+                                                    <span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>
+                                                    {{ status.name }}(重名)
+                                                    <button type="button" class="btn-close ms-1" style="font-size: 0.7em;" onclick="removeStudentByName('{{ status.name }}')" aria-label="删除"></button>
+                                                </span>
+                                        {% elif status.not_found %}
+                                                <span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="{{ status.name }}">
+                                                    <span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>
+                                                    {{ status.name }}(未查到)
+                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudentByName('{{ status.name }}')" aria-label="删除"></button>
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% endif %}
+                                {% if award.student_winners %}
+                                    {% for winner in award.student_winners %}
+                                        <span class="badge bg-primary me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-id="{{ winner.id }}" data-student-name="{{ winner.name }}">
+                                            <span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>
+                                            {{ winner.get_brief_desc() }}
+                                            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudent('{{ winner.id }}', '{{ winner.name }}')" aria-label="删除"></button>
+                                        </span>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="position-relative">
+                                <input type="text" class="form-control form-control-sm" id="student_winner_input" 
+                                       placeholder="输入学生姓名，按回车或逗号添加" autocomplete="off">
+                                <div id="student_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto; margin-top: 2px;"></div>
+                            </div>
+                            <input type="hidden" id="student_winner_names" name="student_winner_names" value="">
+                            <small class="form-text text-muted">输入学生姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                        </div>
+                        
+                        <!-- 教师获奖者 -->
+                        <div class="mb-3" id="teacher_winners_section" style="display: none;">
+                            <label for="teacher_winner_input" class="form-label small">教师获奖者</label>
+                            
+                            <!-- 显示当前匹配的获奖者（带标记和删除按钮） -->
+                            <div class="mb-2" id="selected_teachers_display">
+                            {% if winner_status_list %}
+                                {% for status in winner_status_list %}
+                                    {% if award.granted_role and "教师" in award.granted_role %}
+                                        {% if status.matched and status.obj %}
+                                                <span class="badge bg-success me-1 mb-1 d-inline-flex align-items-center" data-teacher-id="{{ status.obj.id }}" data-teacher-name="{{ status.obj.name }}">
+                                                    {{ status.obj.name }}{% if status.obj.teacher_id %} ({{ status.obj.teacher_id }}){% endif %}
+                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacher('{{ status.obj.id }}', '{{ status.obj.name }}')" aria-label="删除"></button>
+                                                </span>
+                                        {% elif status.ambiguous %}
+                                                <span class="badge bg-warning text-dark me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="{{ status.name }}">
+                                                    {{ status.name }}(重名)
+                                                    <button type="button" class="btn-close ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName('{{ status.name }}')" aria-label="删除"></button>
+                                                </span>
+                                        {% elif status.not_found %}
+                                                <span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="{{ status.name }}">
+                                                    {{ status.name }}(未查到)
+                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName('{{ status.name }}')" aria-label="删除"></button>
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% endif %}
+                                {% if award.teacher_winners %}
+                                    {% for winner in award.teacher_winners %}
+                                        {% if winner.id not in matched_teacher_ids %}
+                                        <span class="badge bg-success me-1 mb-1 d-inline-flex align-items-center" data-teacher-id="{{ winner.id }}" data-teacher-name="{{ winner.name }}">
+                                            {{ winner.name }}{% if winner.teacher_id %} ({{ winner.teacher_id }}){% endif %}
+                                            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacher('{{ winner.id }}', '{{ winner.name }}')" aria-label="删除"></button>
+                                        </span>
+                                        {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <input type="text" class="form-control form-control-sm" id="teacher_winner_input" 
+                                   placeholder="输入教师姓名，按回车或逗号添加">
+                            <input type="hidden" id="teacher_winner_names" name="teacher_winner_names" value="">
+                            <small class="form-text text-muted">输入教师姓名后按回车或逗号添加，如果查不到会显示为红色</small>
+                        </div>
+                        
+                        <!-- 指导教师 -->
+                        <div class="mb-3" id="supervisors_section">
+                            <label for="supervisor_ids" class="form-label small">指导教师</label>
+                            
+                            <!-- 显示当前匹配的指导教师（带标记） -->
+                            {% if supervisor_status_list %}
+                            <div class="mb-2">
+                                {% for status in supervisor_status_list %}
+                                    {% if status.matched and status.obj %}
+                                        <span class="badge bg-secondary me-1 mb-1">{{ status.obj.name }}{% if status.obj.teacher_id %} ({{ status.obj.teacher_id }}){% endif %}</span>
+                                    {% elif status.ambiguous %}
+                                        <span class="badge bg-warning text-dark me-1 mb-1">{{ status.name }}(重名)</span>
+                                    {% elif status.not_found %}
+                                        <span class="badge bg-danger me-1 mb-1">{{ status.name }}(未查到)</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <select class="form-select form-select-sm" id="supervisor_ids" name="supervisor_ids[]" multiple>
+                                {% for teacher in all_teachers %}
+                                <option value="{{ teacher.id }}" 
+                                        {% if award.supervisors %}
+                                            {% for supervisor in award.supervisors %}
+                                                {% if supervisor.id == teacher.id %}selected{% endif %}
+                                            {% endfor %}
+                                        {% endif %}>
+                                    {{ teacher.name }}{% if teacher.teacher_id %} ({{ teacher.teacher_id }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- 关联学生（仅教师证书时可选） -->
+                        <div class="mb-0" id="related_students_section" style="display: none;">
+                            <label for="related_student_ids" class="form-label small">关联学生</label>
+                            <select class="form-select form-select-sm" id="related_student_ids" name="related_student_ids[]" multiple>
+                                {% for student in all_students %}
+                                <option value="{{ student.id }}" 
+                                        {% if award.related_students %}
+                                            {% for related in award.related_students %}
+                                                {% if related.id == student.id %}selected{% endif %}
+                                            {% endfor %}
+                                        {% endif %}>
+                                    {{ student.get_brief_desc() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">教师证书可关联所指导的学生</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：OCR和LLM应答 -->
+            <div class="col-md-6">
+                {% if award.ocr_result or award.llm_response %}
+                <div class="card">
+                    <div class="card-header py-2">
+                        <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#ocrCollapse" aria-expanded="false">
+                            <h6 class="mb-0 d-inline">OCR和LLM应答</h6>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="float-end" style="margin-top: 2px;">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="collapse" id="ocrCollapse">
+                        <div class="card-body p-3">
+                            <!-- OCR和LLM开关按钮 -->
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_ocr" name="use_ocr" value="true" checked>
+                                    <label class="form-check-label small" for="use_ocr">
+                                        使用OCR
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="use_llm" name="use_llm" value="true" checked>
+                                    <label class="form-check-label small" for="use_llm">
+                                        使用LLM
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {% if award.ocr_result %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">OCR结果</label>
+                                <pre class="bg-light p-2 rounded small" style="max-height: 200px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;">{{ award.ocr_result }}</pre>
+                            </div>
+                            {% endif %}
+                            
+                            {% if award.llm_response %}
+                            <div>
+                                <label class="form-label small fw-bold">LLM提取结果</label>
+                                <pre class="bg-light p-2 rounded small" style="max-height: 200px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;">{{ award.llm_response }}</pre>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">OCR和LLM应答</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <!-- OCR和LLM开关按钮 -->
+                        <div class="mb-3 pb-3 border-bottom">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="use_ocr" name="use_ocr" value="true" checked>
+                                <label class="form-check-label small" for="use_ocr">
+                                    使用OCR
+                                </label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="use_llm" name="use_llm" value="true" checked>
+                                <label class="form-check-label small" for="use_llm">
+                                    使用LLM
+                                </label>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0">暂无数据</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Select2 JS -->
+<script src="https://unpkg.com/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+// 阻止表单默认提交，添加确认
+document.getElementById('awardForm').addEventListener('submit', function(e) {
+    // 允许正常提交
+});
+
+// 删除功能
+function deletePending() {
+    if (confirm('确定要删除这条待处理记录吗？此操作不可恢复！')) {
+        fetch('{{ url_for('admin_achievement.file_import_api_delete') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ item_id: {{ pending_id }} })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{{ url_for('admin_achievement.file_import_results', session_id=session_id) }}';
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+
+// 证书类型切换逻辑
+function updateCertificateTypeUI() {
+    const certificateType = $('input[name="certificate_type"]:checked').val();
+    const isStudentCertificate = certificateType === 'student';
+    
+    // 学生证书：只能选择学生获奖者，关联学生不可编辑
+    // 教师证书：只能选择教师获奖者，关联学生可选
+    if (isStudentCertificate) {
+        // 学生证书模式
+        $('#student_winners_section').show();
+        
+        $('#teacher_winners_section').hide();
+        
+        $('#related_students_section').hide();
+        $('#related_student_ids').prop('disabled', true);
+        try {
+            if ($('#related_student_ids').length > 0) {
+                var relatedSelect2 = $('#related_student_ids').data('select2');
+                if (relatedSelect2) {
+                    $('#related_student_ids').select2('disable');
+                    $('#related_student_ids').val(null).trigger('change');
+                }
+            }
+        } catch (e) {
+            console.warn('操作关联学生select2失败:', e);
+        }
+        
+        // 指导教师仍然可选（学生证书可以有指导教师）
+        $('#supervisors_section').show();
+        $('#supervisor_ids').prop('disabled', false);
+        try {
+            if ($('#supervisor_ids').length > 0) {
+                var supervisorSelect2 = $('#supervisor_ids').data('select2');
+                if (supervisorSelect2) {
+                    $('#supervisor_ids').select2('enable');
+                }
+            }
+        } catch (e) {
+            console.warn('操作指导教师select2失败:', e);
+        }
+    } else {
+        // 教师证书模式
+        $('#student_winners_section').hide();
+        
+        $('#teacher_winners_section').show();
+        
+        $('#related_students_section').show();
+        $('#related_student_ids').prop('disabled', false);
+        try {
+            if ($('#related_student_ids').length > 0) {
+                var relatedSelect2 = $('#related_student_ids').data('select2');
+                if (relatedSelect2) {
+                    $('#related_student_ids').select2('enable');
+                }
+            }
+        } catch (e) {
+            console.warn('操作关联学生select2失败:', e);
+        }
+        
+        // 教师证书通常没有指导教师
+        $('#supervisors_section').hide();
+        $('#supervisor_ids').prop('disabled', true);
+        try {
+            if ($('#supervisor_ids').length > 0) {
+                var supervisorSelect2 = $('#supervisor_ids').data('select2');
+                if (supervisorSelect2) {
+                    $('#supervisor_ids').select2('disable');
+                    $('#supervisor_ids').val(null).trigger('change');
+                }
+            }
+        } catch (e) {
+            console.warn('操作指导教师select2失败:', e);
+        }
+    }
+}
+
+// 学生和教师获奖者管理
+var studentWinners = {}; // {name: {id: xxx, briefDesc: xxx, found: true/false}}
+var studentWinnersOrder = []; // 维护学生顺序的数组
+var teacherWinners = {}; // {name: {id: xxx, name: xxx, teacherId: xxx, found: true/false}}
+var teacherWinnersOrder = []; // 维护教师顺序的数组
+
+// 初始化
+$(document).ready(function() {
+    // 初始化学生获奖者输入框
+    var studentSearchTimeout = null;
+    var selectedSuggestionIndex = -1;
+    
+    $('#student_winner_input').on('input', function() {
+        var query = $(this).val().trim();
+        var suggestionsDiv = $('#student_suggestions');
+        
+        // 清除之前的定时器
+        if (studentSearchTimeout) {
+            clearTimeout(studentSearchTimeout);
+        }
+        
+        if (!query) {
+            suggestionsDiv.hide();
+            selectedSuggestionIndex = -1;
+            return;
+        }
+        
+        // 延迟搜索，避免频繁请求
+        studentSearchTimeout = setTimeout(function() {
+            fetch(`{{ url_for('admin.api_students_search') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.students && data.students.length > 0) {
+                        var html = '';
+                        data.students.forEach(function(student, index) {
+                            html += `<a href="#" class="list-group-item list-group-item-action suggestion-item" data-index="${index}" data-student-id="${student.id}" data-student-name="${student.name}" data-brief-desc="${student.brief_desc.replace(/"/g, '&quot;')}">
+                                <div class="fw-bold">${student.name}</div>
+                                <small class="text-muted">${student.brief_desc}</small>
+                            </a>`;
+                        });
+                        suggestionsDiv.html(html).show();
+                        selectedSuggestionIndex = -1;
+                        
+                        // 绑定点击事件
+                        $('.suggestion-item').on('click', function(e) {
+                            e.preventDefault();
+                            var studentName = $(this).data('student-name');
+                            var studentId = $(this).data('student-id');
+                            var briefDesc = $(this).data('brief-desc');
+                            
+                            // 检查是否已存在（按姓名或ID）
+                            var exists = false;
+                            if (studentWinners[studentName]) {
+                                exists = true;
+                            } else {
+                                // 检查是否已有相同ID的学生
+                                $('#selected_students_display').find('span[data-student-id]').each(function() {
+                                    if ($(this).attr('data-student-id') == studentId) {
+                                        exists = true;
+                                        return false; // break
+                                    }
+                                });
+                            }
+                            
+                            if (!exists) {
+                                studentWinners[studentName] = {
+                                    id: studentId,
+                                    name: studentName,
+                                    briefDesc: briefDesc,
+                                    found: true
+                                };
+                                // 添加到顺序数组
+                                if (studentWinnersOrder.indexOf(studentName) === -1) {
+                                    studentWinnersOrder.push(studentName);
+                                }
+                                var container = $('#selected_students_display');
+                                var badge = $('<span class="badge bg-primary me-1 mb-1 d-inline-flex align-items-center" data-student-id="' + studentId + '" data-student-name="' + studentName + '">' + 
+                                              briefDesc + 
+                                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudent(\'' + studentId + '\', \'' + studentName.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                                container.append(badge);
+                                updateStudentNamesHidden();
+                            }
+                            
+                            $('#student_winner_input').val('');
+                            suggestionsDiv.hide();
+                        });
+                    } else {
+                        suggestionsDiv.hide();
+                    }
+                })
+                .catch(error => {
+                    console.error('搜索学生失败:', error);
+                    suggestionsDiv.hide();
+                });
+        }, 300);
+    }).on('keydown', function(e) {
+        var suggestionsDiv = $('#student_suggestions');
+        var items = suggestionsDiv.find('.suggestion-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+            items.removeClass('active');
+            if (selectedSuggestionIndex >= 0) {
+                items.eq(selectedSuggestionIndex).addClass('active');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+            items.removeClass('active');
+            if (selectedSuggestionIndex >= 0) {
+                items.eq(selectedSuggestionIndex).addClass('active');
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedSuggestionIndex >= 0 && items.length > 0) {
+                // 选择当前高亮的建议
+                items.eq(selectedSuggestionIndex).click();
+            } else {
+                // 直接添加输入的姓名
+                var name = $(this).val().trim();
+                if (name) {
+                    addStudentByName(name);
+                    $(this).val('');
+                    suggestionsDiv.hide();
+                }
+            }
+        } else if (e.key === ',') {
+            e.preventDefault();
+            var name = $(this).val().trim();
+            if (name) {
+                addStudentByName(name);
+                $(this).val('');
+                suggestionsDiv.hide();
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsDiv.hide();
+            selectedSuggestionIndex = -1;
+        }
+    }).on('blur', function() {
+        // 延迟隐藏，以便点击建议项
+        setTimeout(function() {
+            $('#student_suggestions').hide();
+        }, 200);
+    });
+    
+    // 初始化教师获奖者输入框
+    $('#teacher_winner_input').on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTeacherByName($(this).val().trim());
+            $(this).val('');
+        }
+    }).on('blur', function() {
+        var name = $(this).val().trim();
+        if (name) {
+            addTeacherByName(name);
+            $(this).val('');
+        }
+    });
+    
+    // 初始化已存在的学生和教师（从页面加载）
+    // 使用Set来跟踪已添加的学生，避免重复
+    var addedStudentIds = new Set();
+    var addedStudentNames = new Set();
+    
+    $('#selected_students_display .badge').each(function() {
+        var $badge = $(this);
+        var studentId = $badge.attr('data-student-id');
+        var studentName = $badge.attr('data-student-name');
+        if (studentName) {
+            // 检查是否已添加（按ID或姓名）
+            if (studentId && addedStudentIds.has(studentId)) {
+                // 已存在相同ID，移除重复的
+                $badge.remove();
+                return;
+            }
+            if (addedStudentNames.has(studentName)) {
+                // 已存在相同姓名，移除重复的
+                $badge.remove();
+                return;
+            }
+            
+            var isFound = $badge.hasClass('bg-primary');
+            studentWinners[studentName] = {
+                id: studentId || null,
+                name: studentName,
+                found: isFound
+            };
+            // 添加到顺序数组（按DOM顺序）
+            if (studentWinnersOrder.indexOf(studentName) === -1) {
+                studentWinnersOrder.push(studentName);
+            }
+            if (studentId) addedStudentIds.add(studentId);
+            addedStudentNames.add(studentName);
+        }
+    });
+    
+    $('#selected_teachers_display .badge').each(function() {
+        var $badge = $(this);
+        var teacherId = $badge.attr('data-teacher-id');
+        var teacherName = $badge.attr('data-teacher-name');
+        if (teacherName) {
+            var isFound = $badge.hasClass('bg-success');
+            teacherWinners[teacherName] = {
+                id: teacherId || null,
+                name: teacherName,
+                found: isFound
+            };
+        }
+    });
+    
+    updateStudentNamesHidden();
+    updateTeacherNamesHidden();
+    
+    // 初始化所有已存在的标签的拖拽功能
+    $('#selected_students_display .badge').each(function() {
+        initDragAndDrop(this);
+    });
+    
+    // 初始化指导教师选择框
+    $('#supervisor_ids').select2({
+        theme: 'bootstrap-5',
+        placeholder: '请选择指导教师（可输入姓名搜索）',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: function() {
+                return "未找到匹配的教师";
+            },
+            searching: function() {
+                return "搜索中...";
+            }
+        }
+    });
+    
+    // 初始化关联学生选择框
+    $('#related_student_ids').select2({
+        theme: 'bootstrap-5',
+        placeholder: '请选择关联学生（可输入姓名搜索）',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: function() {
+                return "未找到匹配的学生";
+            },
+            searching: function() {
+                return "搜索中...";
+            }
+        }
+    });
+    
+    // 监听证书类型切换
+    $('input[name="certificate_type"]').on('change', function() {
+        // 延迟执行，确保select2已初始化
+        setTimeout(function() {
+            updateCertificateTypeUI();
+        }, 100);
+    });
+    
+    // 初始化UI状态（延迟执行，确保select2已初始化）
+    setTimeout(function() {
+        updateCertificateTypeUI();
+    }, 100);
+});
+
+// 检查学生是否已存在（按姓名或ID）
+function isStudentExists(studentName, studentId) {
+    // 检查按姓名
+    if (studentWinners[studentName]) {
+        return true;
+    }
+    // 检查按ID（如果提供了ID）
+    if (studentId) {
+        var exists = false;
+        $('#selected_students_display').find('span[data-student-id]').each(function() {
+            if ($(this).attr('data-student-id') == studentId) {
+                exists = true;
+                return false; // break
+            }
+        });
+        if (exists) return true;
+    }
+    // 检查按姓名（即使没有ID）
+    var exists = false;
+    $('#selected_students_display').find('span[data-student-name]').each(function() {
+        if ($(this).attr('data-student-name') == studentName) {
+            exists = true;
+            return false; // break
+        }
+    });
+    return exists;
+}
+
+// 添加学生（通过API搜索）
+function addStudentByName(name) {
+    if (!name) return;
+    
+    // 检查是否已存在（按姓名）
+    if (isStudentExists(name, null)) {
+        console.log('学生已存在:', name);
+        return;
+    }
+    
+    console.log('搜索学生:', name);
+    
+    // 调用API搜索学生
+    fetch(`{{ url_for('admin.api_students_search') }}?q=${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('API返回数据:', data);
+            var container = $('#selected_students_display');
+            var badge;
+            
+            if (data.success && data.students && data.students.length > 0) {
+                // 查找精确匹配
+                var exactMatches = data.students.filter(s => s.name.trim() === name.trim());
+                
+                if (exactMatches.length === 1) {
+                    // 找到唯一匹配
+                    var student = exactMatches[0];
+                    console.log('找到学生:', student);
+                    
+                    // 再次检查是否已存在（按ID）
+                    if (isStudentExists(student.name, student.id)) {
+                        console.log('学生已存在（按ID）:', student.id);
+                        return;
+                    }
+                    
+                    studentWinners[name] = {
+                        id: student.id,
+                        name: student.name,
+                        briefDesc: student.brief_desc,
+                        found: true
+                    };
+                    // 添加到顺序数组
+                    if (studentWinnersOrder.indexOf(name) === -1) {
+                        if (insertIndex !== undefined && insertIndex >= 0) {
+                            studentWinnersOrder.splice(insertIndex, 0, name);
+                        } else {
+                            studentWinnersOrder.push(name);
+                        }
+                    }
+                    badge = $('<span class="badge bg-primary me-1 mb-1 d-inline-flex align-items-center" data-student-id="' + student.id + '" data-student-name="' + student.name + '">' + 
+                              student.brief_desc + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudent(\'' + student.id + '\', \'' + student.name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                } else if (exactMatches.length > 1) {
+                    // 重名
+                    console.log('找到重名学生:', exactMatches.length);
+                    // 检查是否已存在（按姓名）
+                    if (isStudentExists(name, null)) {
+                        console.log('学生已存在（重名）:', name);
+                        return;
+                    }
+                    studentWinners[name] = {
+                        id: null,
+                        name: name,
+                        found: false
+                    };
+                    // 添加到顺序数组
+                    if (studentWinnersOrder.indexOf(name) === -1) {
+                        if (insertIndex !== undefined && insertIndex >= 0) {
+                            studentWinnersOrder.splice(insertIndex, 0, name);
+                        } else {
+                            studentWinnersOrder.push(name);
+                        }
+                    }
+                    badge = $('<span class="badge bg-warning text-dark me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="' + name + '">' + 
+                              '<span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>' +
+                              name + '(重名)' + 
+                              ' <button type="button" class="btn-close ms-1" style="font-size: 0.7em;" onclick="removeStudentByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                } else {
+                    // 未找到精确匹配
+                    console.log('未找到精确匹配');
+                    // 检查是否已存在（按姓名）
+                    if (isStudentExists(name, null)) {
+                        console.log('学生已存在（未查到）:', name);
+                        return;
+                    }
+                    studentWinners[name] = {
+                        id: null,
+                        name: name,
+                        found: false
+                    };
+                    // 添加到顺序数组
+                    if (studentWinnersOrder.indexOf(name) === -1) {
+                        if (insertIndex !== undefined && insertIndex >= 0) {
+                            studentWinnersOrder.splice(insertIndex, 0, name);
+                        } else {
+                            studentWinnersOrder.push(name);
+                        }
+                    }
+                    badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="' + name + '">' + 
+                              '<span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>' +
+                              name + '(未查到)' + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudentByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                }
+            } else {
+                // API调用失败或没有结果，标记为未找到
+                console.log('API没有返回学生数据');
+                // 检查是否已存在（按姓名）
+                if (isStudentExists(name, null)) {
+                    console.log('学生已存在（API失败）:', name);
+                    return;
+                }
+                studentWinners[name] = {
+                    id: null,
+                    name: name,
+                    found: false
+                };
+                // 添加到顺序数组
+                if (studentWinnersOrder.indexOf(name) === -1) {
+                    if (insertIndex !== undefined && insertIndex >= 0) {
+                        studentWinnersOrder.splice(insertIndex, 0, name);
+                    } else {
+                        studentWinnersOrder.push(name);
+                    }
+                }
+                badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="' + name + '">' + 
+                          '<span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>' +
+                          name + '(未查到)' + 
+                          ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudentByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+            }
+            
+            if (badge) {
+                // 如果指定了插入位置，在对应位置插入；否则追加到末尾
+                if (insertIndex !== undefined && insertIndex >= 0 && insertIndex < container.children().length) {
+                    var $target = container.children().eq(insertIndex);
+                    if ($target.length) {
+                        badge.insertBefore($target);
+                    } else {
+                        container.append(badge);
+                    }
+                } else {
+                    container.append(badge);
+                }
+                initDragAndDrop(badge[0]);
+                updateStudentNamesHidden();
+            }
+        })
+        .catch(error => {
+            console.error('搜索学生失败:', error);
+            // 即使失败也添加为未找到
+            if (!isStudentExists(name, null)) {
+                studentWinners[name] = {
+                    id: null,
+                    name: name,
+                    found: false
+                };
+                // 添加到顺序数组
+                if (studentWinnersOrder.indexOf(name) === -1) {
+                    if (insertIndex !== undefined && insertIndex >= 0) {
+                        studentWinnersOrder.splice(insertIndex, 0, name);
+                    } else {
+                        studentWinnersOrder.push(name);
+                    }
+                }
+                var container = $('#selected_students_display');
+                var badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center draggable-badge" draggable="true" data-student-name="' + name + '">' + 
+                              '<span class="drag-handle" style="cursor: move; margin-right: 4px;">☰</span>' +
+                              name + '(未查到)' + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeStudentByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                // 如果指定了插入位置，在对应位置插入；否则追加到末尾
+                if (insertIndex !== undefined && insertIndex >= 0 && insertIndex < container.children().length) {
+                    var $target = container.children().eq(insertIndex);
+                    if ($target.length) {
+                        badge.insertBefore($target);
+                    } else {
+                        container.append(badge);
+                    }
+                } else {
+                    container.append(badge);
+                }
+                initDragAndDrop(badge[0]);
+                updateStudentNamesHidden();
+            }
+        });
+}
+
+// 添加教师（通过API搜索）
+function addTeacherByName(name) {
+    if (!name || teacherWinners[name]) return;
+    
+    // 调用API搜索教师
+    fetch(`{{ url_for('admin.api_teachers_search') }}?q=${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(data => {
+            var container = $('#selected_teachers_display');
+            var badge;
+            
+            if (data.success && data.teachers) {
+                // 查找精确匹配
+                var exactMatches = data.teachers.filter(t => t.name.trim() === name.trim());
+                
+                if (exactMatches.length === 1) {
+                    // 找到唯一匹配
+                    var teacher = exactMatches[0];
+                    teacherWinners[name] = {
+                        id: teacher.id,
+                        name: teacher.name,
+                        teacherId: teacher.teacher_id,
+                        found: true
+                    };
+                    var displayText = teacher.name + (teacher.teacher_id ? ' (' + teacher.teacher_id + ')' : '');
+                    badge = $('<span class="badge bg-success me-1 mb-1 d-inline-flex align-items-center" data-teacher-id="' + teacher.id + '" data-teacher-name="' + teacher.name + '">' + 
+                              displayText + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacher(\'' + teacher.id + '\', \'' + teacher.name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                } else if (exactMatches.length > 1) {
+                    // 重名
+                    teacherWinners[name] = {
+                        id: null,
+                        name: name,
+                        found: false
+                    };
+                    badge = $('<span class="badge bg-warning text-dark me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="' + name + '">' + 
+                              name + '(重名)' + 
+                              ' <button type="button" class="btn-close ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                } else {
+                    // 未找到
+                    teacherWinners[name] = {
+                        id: null,
+                        name: name,
+                        found: false
+                    };
+                    badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="' + name + '">' + 
+                              name + '(未查到)' + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                }
+            } else {
+                // API调用失败，标记为未找到
+                teacherWinners[name] = {
+                    id: null,
+                    name: name,
+                    found: false
+                };
+                badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="' + name + '">' + 
+                          name + '(未查到)' + 
+                          ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+            }
+            
+            container.append(badge);
+            updateTeacherNamesHidden();
+        })
+        .catch(error => {
+            console.error('搜索教师失败:', error);
+            // 即使失败也添加为未找到
+            if (!teacherWinners[name]) {
+                teacherWinners[name] = {
+                    id: null,
+                    name: name,
+                    found: false
+                };
+                var container = $('#selected_teachers_display');
+                var badge = $('<span class="badge bg-danger me-1 mb-1 d-inline-flex align-items-center" data-teacher-name="' + name + '">' + 
+                              name + '(未查到)' + 
+                              ' <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.7em;" onclick="removeTeacherByName(\'' + name.replace(/'/g, "\\'") + '\')" aria-label="删除"></button></span>');
+                container.append(badge);
+                updateTeacherNamesHidden();
+            }
+        });
+}
+
+// 删除学生（通过ID）
+function removeStudent(id, name) {
+    // 记录删除位置，用于后续替换
+    var deleteIndex = studentWinnersOrder.indexOf(name);
+    delete studentWinners[name];
+    // 从顺序数组中移除
+    if (deleteIndex > -1) {
+        studentWinnersOrder.splice(deleteIndex, 1);
+    }
+    $('#selected_students_display').find('span[data-student-id="' + id + '"]').remove();
+    updateStudentNamesHidden();
+}
+
+// 删除学生（通过姓名）
+function removeStudentByName(name) {
+    // 记录删除位置，用于后续替换
+    var deleteIndex = studentWinnersOrder.indexOf(name);
+    delete studentWinners[name];
+    // 从顺序数组中移除
+    if (deleteIndex > -1) {
+        studentWinnersOrder.splice(deleteIndex, 1);
+    }
+    $('#selected_students_display').find('span[data-student-name="' + name + '"]').remove();
+    updateStudentNamesHidden();
+}
+
+// 删除教师（通过ID）
+function removeTeacher(id, name) {
+    delete teacherWinners[name];
+    $('#selected_teachers_display').find('span[data-teacher-id="' + id + '"]').remove();
+    updateTeacherNamesHidden();
+}
+
+// 删除教师（通过姓名）
+function removeTeacherByName(name) {
+    delete teacherWinners[name];
+    $('#selected_teachers_display').find('span[data-teacher-name="' + name + '"]').remove();
+    updateTeacherNamesHidden();
+}
+
+// 更新学生姓名隐藏字段
+function updateStudentNamesHidden() {
+    // 根据DOM顺序更新顺序数组和隐藏字段
+    var names = [];
+    $('#selected_students_display .badge').each(function() {
+        var name = $(this).attr('data-student-name');
+        if (name && names.indexOf(name) === -1) {
+            names.push(name);
+        }
+    });
+    // 更新顺序数组
+    studentWinnersOrder = names;
+    $('#student_winner_names').val(names.join(','));
+}
+
+// 更新教师姓名隐藏字段
+function updateTeacherNamesHidden() {
+    var names = Object.keys(teacherWinners);
+    $('#teacher_winner_names').val(names.join(','));
+}
+
+// 初始化拖拽排序功能
+function initDragAndDrop(element) {
+    if (!element) return;
+    
+    // 移除旧的事件监听器（如果存在）
+    var newElement = element.cloneNode(true);
+    element.parentNode.replaceChild(newElement, element);
+    element = newElement;
+    
+    element.addEventListener('dragstart', function(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', ''); // 某些浏览器需要设置数据
+    });
+    
+    element.addEventListener('dragend', function(e) {
+        this.classList.remove('dragging');
+        // 移除所有drag-over类
+        $('#selected_students_display .badge').removeClass('drag-over');
+        // 更新顺序
+        updateStudentNamesHidden();
+    });
+    
+    element.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        var dragging = document.querySelector('.dragging');
+        if (!dragging || dragging === this) {
+            return;
+        }
+        
+        var container = $('#selected_students_display')[0];
+        var allBadges = Array.from(container.querySelectorAll('.badge'));
+        var draggingIndex = allBadges.indexOf(dragging);
+        var currentIndex = allBadges.indexOf(this);
+        
+        if (draggingIndex === -1 || currentIndex === -1) {
+            return;
+        }
+        
+        // 根据鼠标位置决定插入位置
+        var rect = this.getBoundingClientRect();
+        var mouseY = e.clientY;
+        var elementCenterY = rect.top + rect.height / 2;
+        
+        if (draggingIndex < currentIndex) {
+            // 向下拖拽
+            if (mouseY > elementCenterY) {
+                container.insertBefore(dragging, this.nextSibling);
+            }
+        } else {
+            // 向上拖拽
+            if (mouseY < elementCenterY) {
+                container.insertBefore(dragging, this);
+            }
+        }
+    });
+    
+    element.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        var dragging = document.querySelector('.dragging');
+        if (dragging && dragging !== this) {
+            this.classList.add('drag-over');
+        }
+    });
+    
+    element.addEventListener('dragleave', function(e) {
+        // 只有当离开到容器外部时才移除样式
+        if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('drag-over');
+        }
+    });
+    
+    element.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('drag-over');
+        // 更新顺序
+        updateStudentNamesHidden();
+        return false;
+    });
+}
+
+// 快速添加竞赛
+function quickAddCompetition(competitionName) {
+    if (!competitionName) {
+        alert('竞赛名称不能为空');
+        return;
+    }
+    
+    // 禁用按钮，防止重复点击
+    var btn = document.getElementById('quick_add_competition_btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>添加中...';
+    }
+    
+    // 调用API添加竞赛
+    fetch('{{ url_for("admin.api_add_competition") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: competitionName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 添加成功，更新下拉框
+            var select = document.getElementById('competition_id');
+            if (select) {
+                // 添加新选项
+                var option = document.createElement('option');
+                option.value = data.competition.id;
+                option.text = data.competition.name;
+                option.selected = true;
+                select.appendChild(option);
+                
+                // 隐藏警告提示和按钮
+                var alert = document.querySelector('.alert-warning');
+                if (alert) {
+                    alert.style.display = 'none';
+                }
+                if (btn) {
+                    btn.style.display = 'none';
+                }
+                
+                // 显示成功提示
+                alert('竞赛添加成功！已自动选中。');
+            }
+        } else {
+            // 添加失败
+            alert(data.message || '添加竞赛失败');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>快速添加竞赛';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('添加竞赛失败:', error);
+        alert('添加竞赛失败，请稍后重试');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>快速添加竞赛';
+        }
+    });
+}
+</script>
+{% endblock %}
+
