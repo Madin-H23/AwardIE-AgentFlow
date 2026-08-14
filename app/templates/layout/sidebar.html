@@ -13,6 +13,12 @@
             成果/文件导入
         </a>
         <hr class="sidebar-divider">
+        <div class="sidebar-section-title">智能体</div>
+        <a class="nav-link {% if request.endpoint and 'chat' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('chat.assistant') }}">
+            AI 智能体协作
+        </a>
+        <hr class="sidebar-divider">
         <div class="sidebar-section-title">基础数据管理</div>
         <a class="nav-link {% if request.endpoint and 'template' in request.endpoint %}active{% endif %}"
            href="{{ url_for('admin_templates.templates_list') }}">

@@ -1,0 +1,68 @@
+{% extends "user_base.html" %}
+
+{% block title %}获奖详情 - 成果管理系统{% endblock %}
+
+{% block nav_achievements %}text-orange-500 font-medium border-b-2 border-orange-500 pb-1{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-4">
+        <a href="{{ url_for('student.achievements') }}" class="text-orange-600 hover:text-orange-800 text-sm font-medium">← 返回获奖列表</a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-3">
+            {{ award.competition_obj.name if award.competition_obj else (award.competition_name_in_file or '未知竞赛') }}
+        </h1>
+        <div class="flex flex-wrap gap-2 mb-6">
+            {% if award.award_level %}<span class="bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">{{ award.award_level }}</span>{% endif %}
+            {% if award.competition_level %}<span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">{{ award.competition_level }}</span>{% endif %}
+            {% if award.competition_obj and award.competition_obj.grade %}<span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">{{ award.competition_obj.grade }}</span>{% endif %}
+            {% if award.year %}<span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">{{ award.year }}年</span>{% endif %}
+        </div>
+
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">获奖人</dt><dd class="text-gray-900 mt-1">{{ award.winner_name or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">指导教师</dt><dd class="text-gray-900 mt-1">{{ award.supervisor_name or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">日期</dt><dd class="text-gray-900 mt-1">{{ award.date or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">证书编号</dt><dd class="text-gray-900 mt-1">{{ award.certificate_id or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">赛道</dt><dd class="text-gray-900 mt-1">{{ award.track or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">颁发机构</dt><dd class="text-gray-900 mt-1">{{ award.issuer or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">省份</dt><dd class="text-gray-900 mt-1">{{ award.province or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">组别</dt><dd class="text-gray-900 mt-1">{{ award.group_name or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">届别</dt><dd class="text-gray-900 mt-1">{{ award.edition or '-' }}</dd></div>
+            <div><dt class="text-xs text-gray-500 uppercase tracking-wide">授予角色</dt><dd class="text-gray-900 mt-1">{{ award.granted_role or '-' }}</dd></div>
+            <div class="md:col-span-2"><dt class="text-xs text-gray-500 uppercase tracking-wide">项目名称</dt><dd class="text-gray-900 mt-1">{{ award.project_title or '-' }}</dd></div>
+        </dl>
+
+        {% if award.student_winners or award.supervisors %}
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            {% if award.student_winners %}
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">获奖学生</h3>
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for s in award.student_winners %}<span class="bg-green-50 text-green-700 text-sm px-3 py-1 rounded">{{ s.name }}{% if s.student_id %} <span class="text-green-400">({{ s.student_id }})</span>{% endif %}</span>{% endfor %}
+            </div>
+            {% endif %}
+            {% if award.supervisors %}
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">指导教师</h3>
+            <div class="flex flex-wrap gap-2">
+                {% for t in award.supervisors %}<span class="bg-indigo-50 text-indigo-700 text-sm px-3 py-1 rounded">{{ t.name }}{% if t.teacher_id %} <span class="text-indigo-400">({{ t.teacher_id }})</span>{% endif %}</span>{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if award.competition_obj %}
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">所属竞赛</h3>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                <div><dt class="text-gray-500 inline">等级：</dt><dd class="inline text-gray-900">{{ award.competition_obj.grade or '-' }}</dd></div>
+                <div><dt class="text-gray-500 inline">白名单：</dt><dd class="inline text-gray-900">{{ '是' if award.competition_obj.is_white_list else '否' }}</dd></div>
+                <div><dt class="text-gray-500 inline">主办方：</dt><dd class="inline text-gray-900">{{ award.competition_obj.organizer or '-' }}</dd></div>
+                <div><dt class="text-gray-500 inline">举办时间：</dt><dd class="inline text-gray-900">{{ award.competition_obj.time_range or '-' }}</dd></div>
+            </dl>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

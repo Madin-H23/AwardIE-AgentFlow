@@ -956,6 +956,40 @@ def file_import_upload():
         return jsonify({'success': False, 'message': f'上传失败: {str(e)}'}), 500
 
 
+def _compute_agent_review(current_item):
+    """对当前 pending 奖状跑 Agent 智能复核（规则校验 + RAG 知识库交叉校验）。
+
+    独立于多智能体工作流，直接调用 review_api.review_extraction。
+    任何失败都降级返回 None，绝不影响校对页正常渲染（业务可用性优先）。
+    """
+    try:
+        from backend.agent.review_api import review_extraction
+        from config.loader import get_config
+        from backend.rag.embeddings import build_embeddings
+        from backend.rag.vectorstore import build_vectorstore
+
+        config_loader = get_config()
+        data = current_item.get_achievement_data() or {}
+        doc_type = getattr(current_item, "achievement_type", None)
+
+        # 向量库可选：构造失败则只做规则校验，跳过 RAG 交叉校验
+        vectorstore = None
+        try:
+            emb = build_embeddings(config_loader)
+            vectorstore = build_vectorstore(config_loader, emb)
+        except Exception as e:
+            logger.warning("Agent 复核：向量库不可用，跳过 RAG 交叉校验: %s", e)
+
+        return review_extraction(
+            config_loader,
+            {"data": data, "doc_type": doc_type},
+            vectorstore,
+        )
+    except Exception as e:
+        logger.warning("Agent 智能复核失败，降级跳过: %s", e)
+        return None
+
+
 @bp.route('/file-import/results')
 @require_role('admin')
 def file_import_results():
@@ -1016,6 +1050,9 @@ def file_import_results():
             # 获取验证结果
             validation_result = current_item.get_validation_result()
             field_errors, is_valid = process_validation_result(validation_result)
+
+            # AI 智能复核（Agent）：语义+知识库交叉校验，失败降级为 None
+            agent_review = _compute_agent_review(current_item)
             
             # 调试：返回前打印模板匹配情况
             data = current_item.get_achievement_data()
@@ -1058,6 +1095,7 @@ def file_import_results():
                                   preview_image_url=preview_image_url,
                                   field_errors=field_errors,
                                   is_valid=is_valid,
+                                  agent_review=agent_review,
                                   missing_competition_name=award_data.get('missing_competition_name'))
         else:
             # 处理非奖状类型

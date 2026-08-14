@@ -5,11 +5,6 @@
       "disabled_reason": "管理员手动禁用",
       "disabled_at": "2026-02-01T03:51:25"
     },
-    "baidu": {
-      "disabled": true,
-      "disabled_reason": "创建 Provider 'baidu' 失败: Baidu API key 或 secret key 未配置",
-      "disabled_at": "2026-07-09T06:56:58"
-    },
     "paddle": {
       "disabled": true,
       "disabled_reason": "PaddleOCR 未安装。请运行: pip install paddleocr",

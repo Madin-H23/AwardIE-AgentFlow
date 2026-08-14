@@ -99,8 +99,25 @@ def list_collections(config_loader) -> List[str]:
     return resolve_vectorstore_config(config_loader)["collections"]
 
 
+def build_default_vectorstore(config_loader):
+    """
+    按默认配置惰性构建向量库（embedding + Chroma）。
+
+    供 Agent 节点（QA/审核）在未显式传入 vectorstore 时兜底使用。
+    任何失败返回 None，由调用方降级处理，绝不抛异常。
+    """
+    try:
+        from backend.rag.embeddings import build_embeddings
+        emb = build_embeddings(config_loader)
+        return build_vectorstore(config_loader, emb)
+    except Exception as e:
+        logger.warning("构建默认向量库失败，跳过 RAG: %s", e)
+        return None
+
+
 __all__ = [
     "build_vectorstore",
     "resolve_vectorstore_config",
     "list_collections",
+    "build_default_vectorstore",
 ]

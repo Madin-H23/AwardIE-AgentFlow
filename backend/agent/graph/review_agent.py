@@ -33,6 +33,12 @@ REQUIRED_AWARD_FIELDS = {
 }
 
 
+def _ensure_vectorstore(config_loader):
+    """惰性构建 RAG 向量库；失败返回 None，由调用方降级跳过交叉校验。"""
+    from backend.rag.vectorstore import build_default_vectorstore
+    return build_default_vectorstore(config_loader)
+
+
 def _get_field(data: dict, candidates) -> "any":
     """从 data 中按候选字段名取值（兼容不同抽取器的字段命名）。"""
     if isinstance(candidates, str):
@@ -41,6 +47,23 @@ def _get_field(data: dict, candidates) -> "any":
         if name in data and data[name] not in (None, "", []):
             return data[name]
     return None
+
+
+def _resolve_valid_levels(config_loader) -> set:
+    """从配置读取合法奖项级别集合。
+
+    settings.json 中 award_levels 为顶层键（早期实现误读 validation.award_levels，
+    导致永远命中 fallback 硬编码集合，缺少行星级/恒星级/卫星级）。此处修正。
+    """
+    config = config_loader.load_config()
+    levels = config.get("award_levels") or (config.get("validation") or {}).get("award_levels")
+    if levels:
+        return set(levels)
+    return {
+        "一等奖", "二等奖", "三等奖", "特等奖",
+        "金奖", "银奖", "铜奖", "优秀奖",
+        "行星级", "恒星级", "卫星级",
+    }
 
 
 def make_review_node(config_loader, vectorstore=None):
@@ -54,12 +77,8 @@ def make_review_node(config_loader, vectorstore=None):
     Returns:
         LangGraph 节点函数
     """
-    # 预读校验规则配置
-    config = config_loader.load_config()
-    val_cfg = config.get("validation", {})
-    valid_levels = set(val_cfg.get("award_levels") or []) or {
-        "一等奖", "二等奖", "三等奖", "特等奖", "金奖", "银奖", "铜奖", "优秀奖"
-    }
+    # 预读合法奖项级别（award_levels 在 settings.json 顶层）
+    valid_levels = _resolve_valid_levels(config_loader)
 
     def review_node(state: AgentState) -> Dict[str, Any]:
         extraction = state.get("extraction_result") or {}
@@ -75,10 +94,11 @@ def make_review_node(config_loader, vectorstore=None):
             issues.extend(_check_award_level(data, valid_levels))
             issues.extend(_check_roles(data))
 
-        # RAG 交叉校验（若有向量库）
+        # RAG 交叉校验（未显式传入向量库时惰性构建；构建失败则跳过）
         rag_ref = None
-        if vectorstore and data.get("competition_name"):
-            rag_ref = _rag_cross_check(vectorstore, data["competition_name"])
+        vs = vectorstore or _ensure_vectorstore(config_loader)
+        if vs and data.get("competition_name"):
+            rag_ref = _rag_cross_check(vs, data["competition_name"])
             if rag_ref and rag_ref.get("category"):
                 issues.append({
                     "field": "competition_category",
@@ -87,10 +107,12 @@ def make_review_node(config_loader, vectorstore=None):
                 })
 
         # 决策
-        high_count = sum(1 for i in issues if i.get("severity") == "high")
+        # 仅 high/medium/low 影响决策；info 只是知识库附加提示，不触发拦截
+        real_issues = [i for i in issues if i.get("severity") in ("high", "medium", "low")]
+        high_count = sum(1 for i in real_issues if i.get("severity") == "high")
         if high_count >= 2:
             decision = "reject"
-        elif issues:
+        elif real_issues:
             decision = "need_manual"
         else:
             decision = "pass"

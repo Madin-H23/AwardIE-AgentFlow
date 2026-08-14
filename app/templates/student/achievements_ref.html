@@ -118,7 +118,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ award.award_level or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ award.year if award.year else '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('student.award_detail', award_id=award.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -142,7 +142,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ patent.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ patent.patent_type or '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">—</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -166,7 +166,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ software.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ software.registration_number or '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm"><a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="text-orange-600 hover:text-orange-900">查看</a></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">—</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -43,12 +43,12 @@
                             <!-- 实验室标签 -->
                             {% if laboratories and laboratories|length > 0 %}
                                 {% for laboratory in laboratories %}
-                                <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=laboratory.id) }}" class="inline-flex items-center space-x-1.5 bg-purple-50 border border-purple-200 rounded-md px-2 py-1 hover:bg-purple-100 hover:border-purple-300 transition-colors cursor-pointer no-underline">
+                                <span class="inline-flex items-center space-x-1.5 bg-purple-50 border border-purple-200 rounded-md px-2 py-1 transition-colors">
                                     <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                     </svg>
                                     <span class="text-sm font-medium text-purple-700">{{ laboratory.name }}</span>
-                                </a>
+                                </span>
                                 {% endfor %}
                             {% endif %}
                         </div>
@@ -177,7 +177,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">{{ award.award_level if award.award_level else '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600">{{ award.year if award.year else '-' }}</td>
-                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('student.achievements') }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -241,7 +241,7 @@
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ patent.id }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600">{{ patent.patent_type or '-' }}</td>
-                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_patents.patent_view', patent_id=patent.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('student.achievements') }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -269,7 +269,7 @@
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ software.id }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600">{{ software.registration_number or '-' }}</td>
-                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('admin_software.software_view', copyright_id=software.id) }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
+                                <td class="px-4 py-3 text-sm"><a href="{{ url_for('student.achievements') }}" class="text-orange-500 hover:text-orange-600">查看</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>

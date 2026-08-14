@@ -470,7 +470,10 @@
       "type": "chroma",
       "persist_path": "database/chroma",
       "default_collection": "competition_rules",
-      "collections": ["competition_rules", "policies"]
+      "collections": [
+        "competition_rules",
+        "policies"
+      ]
     },
     "retrieval": {
       "top_k": 4,

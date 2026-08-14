@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, render_template, request, jsonify, session
+from flask import Blueprint, render_template, request, jsonify, session, current_app
 
 from app.auth import require_user_type
 
@@ -96,6 +96,66 @@ def health():
     return jsonify(_check_capability())
 
 
+@bp.route('/assistant/extract', methods=['POST'])
+@require_user_type('admin', 'teacher', 'student')
+def extract():
+    """上传奖状文件 → 多智能体抽取 + 审核。
+
+    走 extract_and_review 工作流：Supervisor → 抽取 Agent → 审核 Agent，
+    让 extraction/review 两个 Agent 在对话场景真正串联起来。
+    """
+    file = request.files.get('file')
+    if not file or not file.filename:
+        return jsonify({"error": "未上传文件"}), 400
+
+    # 落盘到 files/agent_upload/
+    import uuid
+    from pathlib import Path
+    from werkzeug.utils import secure_filename
+
+    files_dir = Path(current_app.config.get('FILES_DIR')
+                     or (Path(current_app.root_path).parent / 'files'))
+    upload_dir = files_dir / 'agent_upload'
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = secure_filename(file.filename) or 'upload'
+    file_path = upload_dir / f"{uuid.uuid4().hex[:8]}_{safe_name}"
+    file.save(str(file_path))
+
+    user_context = {
+        "role": session.get("role"),
+        "name": session.get("user_name"),
+        "user_id": session.get("user_id"),
+        "user_type": session.get("user_type"),
+    }
+
+    try:
+        from backend.agent.graph.workflow import MultiAgentWorkflow
+        from config.loader import get_config
+        config_loader = get_config()
+        wf = MultiAgentWorkflow.from_config(config_loader)
+        state = wf.run(
+            task_type="extract_and_review",
+            file_path=str(file_path),
+            user_context=user_context,
+        )
+        return jsonify({
+            "extraction": state.get("extraction_result"),
+            "review": state.get("review_result"),
+            "steps": state.get("steps", []),
+            "mode_used": "extract_and_review",
+        })
+    except ImportError as e:
+        logger.warning("Agent 依赖未安装: %s", e)
+        return jsonify({
+            "error": "AI 助手依赖未安装",
+            "detail": str(e),
+            "hint": "请运行: pip install langchain langchain-openai langgraph langchain-chroma",
+        }), 503
+    except Exception as e:
+        logger.exception("抽取审核失败: %s", e)
+        return jsonify({"error": f"抽取审核失败: {e}"}), 500
+
+
 # ==================== 内部实现 ====================
 
 def _check_capability():
@@ -146,17 +206,32 @@ def _dispatch(message: str, mode: str, user_context: dict) -> dict:
 
 
 def _run_workflow(config_loader, message: str, user_context: dict) -> dict:
-    """多智能体工作流（auto 模式）。"""
+    """多智能体工作流（auto 模式）。
+
+    透传完整的结构化结果，供前端展示审核结论、抽取结果与协作过程：
+    - review:     审核结论（decision/issues/suggestion），来自 review_agent
+    - extraction: 抽取结果（doc_type/data/confidence），来自 extraction_agent
+    """
     from backend.agent.graph.workflow import MultiAgentWorkflow
 
     wf = MultiAgentWorkflow.from_config(config_loader)
     state = wf.run(task_type="auto", message=message, user_context=user_context)
     qa = state.get("qa_context") or {}
+    review = state.get("review_result")
+    extraction = state.get("extraction_result")
+
+    # 走“抽取+审核”分支时 qa_context 通常为空，给前端一个友好默认回答
+    answer = qa.get("answer")
+    if not answer and (review or extraction):
+        answer = "已完成材料抽取与智能审核，详见下方结果卡片。"
+
     return {
-        "answer": qa.get("answer", "(工作流未产生回答，请查看步骤)"),
+        "answer": answer or "(工作流未产生回答，请查看步骤)",
         "sources": qa.get("sources", []),
         "steps": state.get("steps", []),
         "mode_used": "multi_agent",
+        "review": review,
+        "extraction": extraction,
     }
 
 
@@ -169,7 +244,7 @@ def _run_qa(config_loader, message: str) -> dict:
 
     llm = build_chat_model(config_loader)
     emb = build_embeddings(config_loader)
-    vs = build_vectorstore(config_loader)
+    vs = build_vectorstore(config_loader, emb)
     result = answer_question(config_loader, vs, llm, message)
     return {
         "answer": result["answer"],

@@ -543,6 +543,36 @@
     {% endif %}
     </div>
 
+    <!-- AI 智能复核（Agent 语义+知识库交叉校验，仅奖状且有结果时展示） -->
+    {% if agent_review and tab_type == 'award' %}
+    <div style="background:linear-gradient(135deg,#f5f8ff 0%,#f9f0ff 100%);border:1px solid #e6e6f5;border-radius:8px;padding:.75rem 1rem;margin-top:.5rem;">
+        <div style="font-size:.8rem;font-weight:700;color:#531dab;margin-bottom:.4rem;">🤖 AI 智能复核</div>
+        {% if agent_review.decision == 'pass' %}
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;">✓ 审核通过</span>
+        {% elif agent_review.decision == 'reject' %}
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#fff2f0;color:#cf1322;border:1px solid #ffccc7;">✗ 不通过</span>
+        {% else %}
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#fffbe6;color:#d48806;border:1px solid #ffe58f;">⚠ 需人工复核</span>
+        {% endif %}
+        {% if agent_review.issues %}
+        <ul style="list-style:none;padding:0;margin:.5rem 0 0;">
+            {% for issue in agent_review.issues %}
+            <li style="padding:.35rem .5rem;margin:.25rem 0;background:#fff;border-radius:5px;font-size:.82rem;border-left:3px solid {% if issue.severity == 'high' %}#ff4d4f{% elif issue.severity == 'medium' %}#faad14{% else %}#d9d9d9{% endif %};">
+                {% if issue.field %}<b>{{ issue.field }}</b>: {% endif %}{{ issue.issue }}
+                <span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.7rem;font-weight:600;margin-left:.3rem;background:{% if issue.severity == 'high' %}#fff2f0;color:#cf1322{% elif issue.severity == 'medium' %}#fff7e6;color:#d46b08{% elif issue.severity == 'low' %}#e6f7ff;color:#096dd9{% else %}#f5f5f5;color:#8c8c8c{% endif %};">{{ issue.severity }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if agent_review.suggestion %}
+        <div style="margin-top:.5rem;padding:.45rem .65rem;background:#e6f7ff;border:1px solid #91d5ff;border-radius:5px;font-size:.82rem;color:#096dd9;">💡 {{ agent_review.suggestion }}</div>
+        {% endif %}
+        {% if agent_review.rag_reference and agent_review.rag_reference.matched_name %}
+        <div style="margin-top:.4rem;font-size:.78rem;color:#8c8c8c;">📚 知识库匹配：{{ agent_review.rag_reference.matched_name }}{% if agent_review.rag_reference.level %} · {{ agent_review.rag_reference.level }}{% endif %}{% if agent_review.rag_reference.category %} · {{ agent_review.rag_reference.category }}类赛事{% endif %}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <!-- 内容区域 -->
     <div id="contentArea">
         {% if current_item and tab_type == 'award' %}

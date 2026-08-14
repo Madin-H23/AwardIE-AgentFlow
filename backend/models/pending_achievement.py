@@ -596,7 +596,8 @@ class PendingAchievementManager:
                file_path: Optional[str] = None,
                submitter_type: Optional[str] = None,
                submitter_id: Optional[int] = None,
-               assigned_reviewer_type: Optional[str] = None) -> bool:
+               assigned_reviewer_type: Optional[str] = None,
+               ext_info: Optional[Any] = None) -> bool:
         """
         Update a pending achievement
 
@@ -617,6 +618,7 @@ class PendingAchievementManager:
             submitter_type: New submitter type (student, teacher, admin)
             submitter_id: New submitter ID
             assigned_reviewer_type: New assigned reviewer type
+            ext_info: New extended info (dict or JSON string；常用于存 AI 审核结论 agent_review)
 
         Returns:
             True if successful
@@ -702,6 +704,15 @@ class PendingAchievementManager:
                         except Exception:
                             data_summary = 'get_achievement_data_error'
                    
+
+            if ext_info is not None:
+                update_fields.append("ext_info = ?")
+                if isinstance(ext_info, dict):
+                    params.append(json.dumps(ext_info, ensure_ascii=False))
+                elif isinstance(ext_info, str):
+                    params.append(ext_info)
+                else:
+                    logger.warning(f"ext_info 类型不支持: {type(ext_info)}，跳过更新")
 
             if reviewer_id is not None:
                 update_fields.append("reviewer_id = ?")

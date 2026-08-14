@@ -318,6 +318,43 @@ def achievements():
                              total_awards=0, awards=[], patents=[], software_list=[], innovation_projects=[])
 
 
+@bp.route('/award/<int:award_id>')
+@require_user_type('student')
+def award_detail(award_id):
+    """学生查看自己某条获奖的完整详情（只读）。"""
+    import sqlite3
+    user_id = session.get('user_id')
+    app_context = get_app_context_instance()
+    award_manager = app_context.get_award_manager()
+    competition_manager = app_context.get_competition_manager()
+    student_manager = app_context.get_student_manager()
+    teacher_manager = app_context.get_teacher_manager()
+
+    student = student_manager.get_student_by_student_id(user_id) if user_id else None
+    if not student:
+        flash('学生信息不存在', 'error')
+        return redirect(url_for('student.achievements'))
+
+    # 权限：该获奖必须属于当前学生（通过 award_student_winners 关联表）
+    conn = sqlite3.connect(award_manager.db_path)
+    belongs = conn.execute(
+        "SELECT 1 FROM award_student_winners WHERE award_id=? AND student_id=? LIMIT 1",
+        (award_id, student.id)
+    ).fetchone()
+    conn.close()
+    if not belongs:
+        flash('无权查看该获奖记录', 'error')
+        return redirect(url_for('student.achievements'))
+
+    award = award_manager.get_award_by_id(award_id)
+    if not award:
+        flash('获奖记录不存在', 'error')
+        return redirect(url_for('student.achievements'))
+
+    award.refresh_associations(competition_manager, student_manager, teacher_manager)
+    return render_template('student/award_detail.html', award=award)
+
+
 @bp.route('/profile/data')
 @require_user_type('student')
 def get_profile_data():

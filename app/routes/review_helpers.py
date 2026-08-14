@@ -625,6 +625,19 @@ def prepare_software_context(current_item, app_context):
     }
 
 
+def _get_stored_agent_review(item):
+    """读取 pending.ext_info.agent_review（P1 提交时 Agent 把关存下的审核结论）。"""
+    if not item:
+        return None
+    try:
+        ext_info = item.get_ext_info()
+        if isinstance(ext_info, dict):
+            return ext_info.get('agent_review')
+    except Exception:
+        pass
+    return None
+
+
 def render_review_page(session_id, tab_type, status, index, app_context, title_prefix='审核', route_prefix='admin'):
     """
     渲染统一的审核页面
@@ -1055,7 +1068,8 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
             'route_prefix': route_prefix,
             'is_global_review': session_id is None,
             'current_tab_pending_ids': current_tab_pending_ids,
-            'submit_display_count': submit_display_count
+            'submit_display_count': submit_display_count,
+            'agent_review': _get_stored_agent_review(current_item),
         }
 
         return render_template('admin/file_import/results.html', **template_context)
@@ -1125,7 +1139,8 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
         'route_prefix': route_prefix,
         'is_global_review': session_id is None,  # 标记是否为全局审核
         'current_tab_pending_ids': current_tab_pending_ids,
-        'submit_display_count': submit_display_count
+        'submit_display_count': submit_display_count,
+        'agent_review': _get_stored_agent_review(current_item),
     }
 
     # 根据类型添加特定参数

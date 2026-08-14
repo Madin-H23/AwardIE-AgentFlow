@@ -189,9 +189,51 @@ def make_check_whitelist_tool(ctx):
     return is_white_list_competition
 
 
+def make_list_whitelist_tool(ctx):
+    """构造"列出白名单赛事"工具：列出所有官方认可的白名单赛事。"""
+    from langchain_core.tools import tool
+
+    @tool
+    def list_white_list_competitions(category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        列出所有白名单赛事（官方认可的高质量竞赛）。
+        当用户问"哪些是白名单赛事""白名单有哪些""列出白名单"等列表类问题时使用此工具，
+        而不是 is_white_list_competition（后者只判断单个竞赛）。
+
+        Args:
+            category: 可选，按类别过滤，如 "A"/"B"/"C"（留空返回全部白名单赛事）
+
+        Returns:
+            白名单赛事列表，每项含 name / grade_category(类别) / is_white_list 等
+        """
+        try:
+            comps = (getattr(ctx.competition_manager, "competitions", None)
+                     or getattr(ctx.competition_manager, "_competitions", None)
+                     or [])
+            result = []
+            for c in comps:
+                if not getattr(c, "is_white_list", False):
+                    continue
+                d = _competition_to_dict(c)
+                if category:
+                    gc = str(d.get("grade_category") or "").upper()
+                    if category.upper() not in gc:
+                        continue
+                result.append(d)
+            result.sort(key=lambda x: (str(x.get("grade_category") or ""), str(x.get("name") or "")))
+            logger.info("list_white_list_competitions 命中 %d 条", len(result))
+            return result
+        except Exception as e:
+            logger.exception("list_white_list_competitions 失败: %s", e)
+            return [{"error": f"查询失败: {e}"}]
+
+    return list_white_list_competitions
+
+
 __all__ = [
     "make_query_awards_tool",
     "make_match_competition_tool",
     "make_get_competition_tool",
     "make_check_whitelist_tool",
+    "make_list_whitelist_tool",
 ]

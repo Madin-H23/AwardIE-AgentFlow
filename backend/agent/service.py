@@ -168,6 +168,7 @@ def _collect_all_tools(ctx: ToolContext) -> List:
         make_match_competition_tool,
         make_get_competition_tool,
         make_check_whitelist_tool,
+        make_list_whitelist_tool,
     )
     from backend.agent.tools.stats_tools import (
         make_list_competitions_tool,
@@ -184,6 +185,7 @@ def _collect_all_tools(ctx: ToolContext) -> List:
         make_match_competition_tool(ctx),
         make_get_competition_tool(ctx),
         make_check_whitelist_tool(ctx),
+        make_list_whitelist_tool(ctx),
         # 统计类
         make_list_competitions_tool(ctx),
         make_contribution_ranking_tool(ctx),

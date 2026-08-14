@@ -1058,6 +1058,10 @@ def award_edit(award_id):
         # laboratories = laboratory_manager.get_all() if hasattr(laboratory_manager, 'get_all') else []
         competitions = competition_manager.competitions if hasattr(competition_manager, 'competitions') else []
         return_url = request.args.get('return_url', '')
+        if not return_url:
+            # award_edit 由 admin/teacher 共用，返回列表按角色回到各自的列表页
+            role = (session.get('role') or '').strip().lower()
+            return_url = url_for('admin_awards.awards_list') if role == 'admin' else url_for('teacher.achievements')
 
         return render_template('admin/awards/edit.html',
                                award=award,

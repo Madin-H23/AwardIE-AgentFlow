@@ -116,7 +116,8 @@ def _llm_route(state: AgentState, llm) -> str:
     for msg in reversed(messages):
         role = getattr(msg, "type", None) or (msg.get("role") if isinstance(msg, dict) else None)
         content = getattr(msg, "content", None) or (msg.get("content") if isinstance(msg, dict) else None)
-        if role == "user" and content:
+        # 兼容两种消息形态：dict 的 role="user"，LangChain BaseMessage 的 type="human"
+        if role in ("user", "human") and content:
             user_text = content
             break
 

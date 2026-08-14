@@ -107,6 +107,143 @@
         color: #ad6800;
         font-size: 0.9rem;
     }
+    /* ===== 结构化结果卡（审核 / 抽取） ===== */
+    .agent-result-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .agent-result-card .card-title {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #8c8c8c;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.3px;
+    }
+    /* 审核决策徽章 */
+    .decision-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .decision-badge.pass { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .decision-badge.need_manual { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+    .decision-badge.reject { background: #fff2f0; color: #cf1322; border: 1px solid #ffccc7; }
+    /* 问题清单 */
+    .issue-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+    .issue-item {
+        padding: 0.4rem 0.6rem;
+        margin: 0.3rem 0;
+        background: #fafafa;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        border-left: 3px solid #d9d9d9;
+    }
+    .issue-item .issue-field { font-weight: 600; color: #262626; }
+    .issue-item.high { border-left-color: #ff4d4f; }
+    .issue-item.medium { border-left-color: #faad14; }
+    .sev-tag {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin-left: 0.4rem;
+    }
+    .sev-tag.high { background: #fff2f0; color: #cf1322; }
+    .sev-tag.medium { background: #fff7e6; color: #d46b08; }
+    .sev-tag.low { background: #e6f7ff; color: #096dd9; }
+    .sev-tag.info { background: #f5f5f5; color: #8c8c8c; }
+    .review-suggestion {
+        margin-top: 0.6rem;
+        padding: 0.55rem 0.75rem;
+        background: #e6f7ff;
+        border: 1px solid #91d5ff;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #096dd9;
+    }
+    /* 抽取结果 */
+    .confidence-row { display: flex; align-items: center; gap: 0.6rem; margin: 0.3rem 0 0.5rem; }
+    .confidence-bar { flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+    .confidence-bar > span { display: block; height: 100%; border-radius: 4px; }
+    .extract-fields { margin: 0; }
+    .extract-fields dt { font-weight: 600; color: #595959; font-size: 0.82rem; }
+    .extract-fields dd { color: #262626; font-size: 0.88rem; word-break: break-word; }
+    /* ===== 协作时间线 ===== */
+    .agent-timeline { position: relative; margin: 0.5rem 0; padding-left: 1.5rem; }
+    .agent-timeline::before {
+        content: ''; position: absolute; left: 0.5rem; top: 0.5rem; bottom: 0.5rem;
+        width: 2px; background: #e8e8e8;
+    }
+    .tl-item { position: relative; padding: 0.3rem 0; font-size: 0.84rem; }
+    .tl-item .tl-dot {
+        position: absolute; left: -1.2rem; top: 0.45rem;
+        width: 13px; height: 13px; border-radius: 50%;
+        background: #d9d9d9; border: 2px solid #fff; box-shadow: 0 0 0 1px #d9d9d9;
+    }
+    .tl-item.supervisor .tl-dot { background: #1890ff; box-shadow: 0 0 0 1px #1890ff; }
+    .tl-item.extraction .tl-dot { background: #13c2c2; box-shadow: 0 0 0 1px #13c2c2; }
+    .tl-item.review .tl-dot { background: #722ed1; box-shadow: 0 0 0 1px #722ed1; }
+    .tl-item.qa .tl-dot { background: #52c41a; box-shadow: 0 0 0 1px #52c41a; }
+    .tl-item .tl-name { font-weight: 600; }
+    .tl-item.supervisor .tl-name { color: #1890ff; }
+    .tl-item.extraction .tl-name { color: #13c2c2; }
+    .tl-item.review .tl-name { color: #722ed1; }
+    .tl-item.qa .tl-name { color: #52c41a; }
+    .tl-item .tl-meta { color: #8c8c8c; font-size: 0.8rem; }
+    .tl-item .tl-detail { display: block; color: #595959; font-size: 0.8rem; margin-top: 0.15rem; word-break: break-word; }
+    .tl-badge {
+        display: inline-block; padding: 0 6px; border-radius: 3px;
+        font-size: 0.72rem; font-weight: 600; margin-left: 0.3rem;
+    }
+    .tl-badge.ok { background: #f6ffed; color: #389e0d; }
+    .tl-badge.warn { background: #fffbe6; color: #d48806; }
+    .tl-badge.err { background: #fff2f0; color: #cf1322; }
+    /* ===== 模式说明面板 ===== */
+    .mode-panel {
+        background: linear-gradient(135deg, #f5f8ff 0%, #f9f0ff 100%);
+        border: 1px solid #e6e6f5;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.75rem;
+    }
+    .mode-panel-title { font-weight: 700; font-size: 0.95rem; color: #262626; margin-bottom: 0.15rem; }
+    .mode-panel-desc { font-size: 0.82rem; color: #8c8c8c; line-height: 1.5; }
+    .mode-panel-examples { margin-top: 0.55rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .example-chip {
+        background: #fff;
+        border: 1px solid #d3adf7;
+        color: #531dab;
+        border-radius: 16px;
+        padding: 0.25rem 0.7rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+    }
+    .example-chip:hover { background: #f9f0ff; border-color: #722ed1; }
+    /* ===== 输入工具栏 ===== */
+    .chat-input-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.4rem;
+        padding: 0 0.2rem;
+    }
+    .chat-input-toolbar .mode-hint { color: #bfbfbf; font-size: 0.78rem; }
+    .chat-input-toolbar .clear-btn {
+        color: #8c8c8c; font-size: 0.8rem; text-decoration: none;
+        background: none; border: none; cursor: pointer; padding: 0.15rem 0.4rem;
+    }
+    .chat-input-toolbar .clear-btn:hover { color: #595959; }
 </style>
 {% endblock %}
 
@@ -119,6 +256,12 @@
             <li class="nav-item"><a class="nav-link" href="#" data-mode="qa">知识问答</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-mode="tools">数据操作</a></li>
         </ul>
+    </div>
+
+    <div class="mode-panel" id="modePanel">
+        <div class="mode-panel-title" id="modePanelTitle"></div>
+        <div class="mode-panel-desc" id="modePanelDesc"></div>
+        <div class="mode-panel-examples" id="modePanelExamples"></div>
     </div>
 
     {% if not capability.ready %}
@@ -145,11 +288,17 @@
 
     <div class="chat-input-area">
         <div class="input-group">
+            <button class="btn btn-outline-secondary" id="uploadBtn" type="button" title="上传奖状图片/PDF，自动抽取+智能审核">📎</button>
             <input type="text" class="form-control" id="chatInput"
                    placeholder="输入你的问题..." autocomplete="off">
             <button class="btn btn-primary" id="sendBtn" type="button">
                 发送
             </button>
+        </div>
+        <input type="file" id="awardFile" accept="image/*,.pdf" style="display:none">
+        <div class="chat-input-toolbar">
+            <small class="mode-hint" id="modeHint">当前模式：智能路由</small>
+            <button class="clear-btn" id="clearBtn" type="button">🧹 清空对话</button>
         </div>
     </div>
 </div>
@@ -162,23 +311,78 @@ const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 let currentMode = 'auto';
 
-// 模式切换
+// 各模式说明、示例、输入提示
+const MODE_META = {
+    auto: {
+        title: '🧭 智能路由',
+        desc: 'AI 自动判断你的意图，选择合适的处理方式。不确定用哪个功能时选它。',
+        placeholder: '描述你的需求，AI 会自动判断…',
+        hint: '智能路由',
+        examples: ['帮我梳理一下今年的获奖情况', '挑战杯是什么级别的比赛？'],
+    },
+    qa: {
+        title: '💬 知识问答',
+        desc: '查询竞赛的等级分类（A/B/C类）、级别（国家/省/校）等规则知识，回答会附引用来源。',
+        placeholder: '问竞赛等级/类别，如：挑战杯是几类竞赛？',
+        hint: '知识问答',
+        examples: ['挑战杯是几类竞赛？', 'A类赛事有哪些？'],
+    },
+    tools: {
+        title: '🔧 数据操作',
+        desc: '查询、统计、导出奖状数据，含白名单赛事查询。请给出具体条件。',
+        placeholder: '如：哪些是白名单赛事？',
+        hint: '数据操作',
+        examples: ['哪些是白名单赛事？', '哪些竞赛贡献的奖状最多？'],
+    },
+};
+
+// 根据模式渲染说明面板、输入提示，并绑定示例点击
+function renderModePanel(mode) {
+    const m = MODE_META[mode] || MODE_META.auto;
+    document.getElementById('modePanelTitle').textContent = m.title;
+    document.getElementById('modePanelDesc').textContent = m.desc;
+    chatInput.placeholder = m.placeholder;
+    document.getElementById('modeHint').textContent = '当前模式：' + m.hint;
+    const exBox = document.getElementById('modePanelExamples');
+    exBox.innerHTML = '';
+    m.examples.forEach(text => {
+        const chip = document.createElement('span');
+        chip.className = 'example-chip';
+        chip.textContent = '💬 ' + text;
+        chip.title = '点击发送';
+        chip.addEventListener('click', () => {
+            chatInput.value = text;
+            sendMessage();
+        });
+        exBox.appendChild(chip);
+    });
+}
+
+// 模式切换：更新面板与输入提示
 document.querySelectorAll('.mode-tabs .nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         document.querySelectorAll('.mode-tabs .nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
         currentMode = link.dataset.mode;
+        renderModePanel(currentMode);
     });
 });
 
-function appendMessage(role, text, extraHtml = '') {
+// 清空对话
+document.getElementById('clearBtn').addEventListener('click', () => {
+    chatMessages.innerHTML = '';
+    appendMessage('assistant', '对话已清空，继续提问吧。上方示例可直接点击使用。');
+});
+
+function appendMessage(role, text, extraHtml = '', raw = false) {
     const avatar = role === 'user' ? '👤' : '🤖';
     const div = document.createElement('div');
     div.className = `message ${role}`;
+    const body = raw ? text : escapeHtml(text);
     div.innerHTML = `
         <div class="message-avatar">${avatar}</div>
-        <div class="message-bubble">${escapeHtml(text)}${extraHtml}</div>
+        <div class="message-bubble">${body}${extraHtml}</div>
     `;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -193,23 +397,116 @@ function escapeHtml(text) {
 
 function showTyping() {
     const bubble = appendMessage('assistant',
-        '<span class="typing-indicator"><span></span><span></span><span></span></span>');
+        '<span class="typing-indicator"><span></span><span></span><span></span></span>', '', true);
     bubble.parentElement.dataset.typing = 'true';
     return bubble;
 }
 
-function formatSteps(steps) {
+// Agent 配色与图标映射
+const AGENT_META = {
+    supervisor: { icon: '🧭', label: 'Supervisor 主管' },
+    extraction: { icon: '📄', label: '抽取 Agent' },
+    review:     { icon: '🔍', label: '审核 Agent' },
+    qa:         { icon: '💬', label: '问答 Agent' },
+};
+
+// 协作时间线：把后端 steps（异构结构）渲染成竖向节点流
+function formatTimeline(steps) {
     if (!steps || !steps.length) return '';
-    let html = '<div class="mt-2">';
+    let html = '<div class="mt-2"><div class="agent-timeline">';
     steps.forEach(s => {
-        const agent = s.agent || s.tool || '?';
-        const status = s.status || s.input || '';
-        const detail = s.error || s.decision || (s.output ? String(s.output).substring(0, 80) : '');
-        html += `<div class="step-trace"><span class="tool-name">▸ ${escapeHtml(agent)}</span>`;
-        if (status) html += ` · ${escapeHtml(String(status))}`;
-        if (detail) html += `<br><small>${escapeHtml(String(detail))}</small>`;
+        const key = String(s.agent || s.tool || '').toLowerCase();
+        const meta = AGENT_META[key] || { icon: '🔧', label: s.agent || s.tool || '步骤' };
+        const cls = AGENT_META[key] ? key : '';
+        // 状态/决策 → 徽章
+        let badge = '';
+        const d = s.decision, st = s.status;
+        if (d === 'pass' || st === 'done' || st === 'ok') badge = '<span class="tl-badge ok">✓</span>';
+        else if (d === 'need_manual') badge = '<span class="tl-badge warn">需复核</span>';
+        else if (d === 'reject' || s.error) badge = '<span class="tl-badge err">✗</span>';
+        else if (d) badge = `<span class="tl-badge warn">${escapeHtml(String(d))}</span>`;
+        // 详情（兼容各节点写入的异构字段）
+        let detail = '';
+        if (s.error) detail = s.error;
+        else if (s.doc_type) detail = `文档类型：${s.doc_type}`;
+        else if (s.issue_count != null) detail = `发现问题 ${s.issue_count} 项`;
+        else if (s.sources_count != null) detail = `引用来源 ${s.sources_count} 条`;
+        else if (s.output) detail = String(s.output).substring(0, 120);
+        else if (s.input) detail = `输入：${String(s.input).substring(0, 80)}`;
+
+        html += `<div class="tl-item ${cls}"><span class="tl-dot"></span>`;
+        html += `<span class="tl-name">${meta.icon} ${escapeHtml(meta.label)}</span>`;
+        if (st && st !== 'done') html += `<span class="tl-meta"> · ${escapeHtml(String(st))}</span>`;
+        html += badge;
+        if (detail) html += `<span class="tl-detail">${escapeHtml(String(detail))}</span>`;
         html += '</div>';
     });
+    html += '</div></div>';
+    return html;
+}
+
+// 审核结果卡：决策徽章 + 问题清单 + 建议
+const DECISION_META = {
+    pass:        { cls: 'pass',        icon: '✓', text: '审核通过' },
+    need_manual: { cls: 'need_manual', icon: '⚠', text: '需人工复核' },
+    reject:      { cls: 'reject',      icon: '✗', text: '不通过' },
+};
+const SEV_LABEL = { high: '高', medium: '中', low: '低', info: '提示' };
+
+function formatReview(review) {
+    if (!review || !review.decision) return '';
+    const dm = DECISION_META[review.decision] || { cls: 'need_manual', icon: '?', text: review.decision };
+    let html = '<div class="agent-result-card review-card mt-2">';
+    html += '<div class="card-title">🔍 智能审核结果</div>';
+    html += `<span class="decision-badge ${dm.cls}">${dm.icon} ${escapeHtml(dm.text)}</span>`;
+    const issues = review.issues || [];
+    if (issues.length) {
+        html += '<ul class="issue-list">';
+        issues.forEach(it => {
+            const sev = String(it.severity || 'info').toLowerCase();
+            html += `<li class="issue-item ${sev}">`;
+            if (it.field) html += `<span class="issue-field">${escapeHtml(String(it.field))}</span>: `;
+            html += escapeHtml(String(it.issue || ''));
+            html += `<span class="sev-tag ${sev}">${SEV_LABEL[sev] || sev}</span></li>`;
+        });
+        html += '</ul>';
+    } else {
+        html += '<div class="tl-meta" style="margin-top:.4rem">未发现校验问题 🎉</div>';
+    }
+    if (review.suggestion) {
+        html += `<div class="review-suggestion">💡 ${escapeHtml(String(review.suggestion))}</div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+// 抽取结果卡：文档类型 + 置信度进度条 + 字段表
+function formatExtraction(extraction) {
+    if (!extraction) return '';
+    let html = '<div class="agent-result-card extraction-card mt-2">';
+    html += '<div class="card-title">📄 信息抽取结果</div>';
+    if (extraction.doc_type) {
+        html += `<span class="badge bg-light text-dark border mb-2">${escapeHtml(String(extraction.doc_type))}</span> `;
+    }
+    const conf = extraction.confidence;
+    if (typeof conf === 'number') {
+        const pct = Math.round(conf * 100);
+        const color = conf > 0.9 ? '#52c41a' : conf > 0.7 ? '#1890ff' : '#faad14';
+        html += `<div class="confidence-row">
+            <span class="tl-meta">置信度</span>
+            <div class="confidence-bar"><span style="width:${pct}%;background:${color}"></span></div>
+            <span class="tl-meta" style="min-width:38px;text-align:right">${pct}%</span>
+        </div>`;
+    }
+    const data = extraction.data || {};
+    const keys = Object.keys(data);
+    if (keys.length) {
+        html += '<dl class="row extract-fields mt-1">';
+        keys.forEach(k => {
+            html += `<dt class="col-sm-4">${escapeHtml(k)}</dt><dd class="col-sm-8">${escapeHtml(String(data[k] ?? ''))}</dd>`;
+        });
+        html += '</dl>';
+    }
     html += '</div>';
     return html;
 }
@@ -250,7 +547,8 @@ async function sendMessage() {
             appendMessage('assistant', '❌ ' + data.error);
             return;
         }
-        const extra = formatSteps(data.steps) + formatSources(data.sources);
+        const extra = formatReview(data.review) + formatExtraction(data.extraction)
+            + formatTimeline(data.steps) + formatSources(data.sources);
         const modeTag = data.mode_used ? `<div class="mt-1"><small class="text-muted">模式：${escapeHtml(data.mode_used)}</small></div>` : '';
         appendMessage('assistant', data.answer, extra + modeTag);
     } catch (err) {
@@ -269,5 +567,51 @@ chatInput.addEventListener('keydown', (e) => {
         sendMessage();
     }
 });
+
+// 上传奖状 → 多智能体抽取 + 审核（让 extraction/review Agent 串联跑起来）
+const uploadBtn = document.getElementById('uploadBtn');
+const awardFile = document.getElementById('awardFile');
+uploadBtn.addEventListener('click', () => awardFile.click());
+awardFile.addEventListener('change', () => {
+    if (awardFile.files && awardFile.files[0]) {
+        const f = awardFile.files[0];
+        awardFile.value = '';  // 重置，允许重复选同一文件
+        uploadAndExtract(f);
+    }
+});
+
+async function uploadAndExtract(file) {
+    appendMessage('user', `📎 上传奖状：${file.name}`);
+    sendBtn.disabled = true;
+    uploadBtn.disabled = true;
+    const typingBubble = showTyping();
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+        const resp = await fetch('/assistant/extract', { method: 'POST', body: fd });
+        const data = await resp.json();
+        typingBubble.parentElement.remove();
+        if (data.error) {
+            appendMessage('assistant', '❌ ' + data.error);
+            return;
+        }
+        const hasResult = data.extraction || data.review;
+        const answer = hasResult ? '已完成奖状抽取与智能审核，结果如下：'
+                                 : '未能完成抽取，请查看下方协作过程。';
+        const extra = formatReview(data.review) + formatExtraction(data.extraction)
+            + formatTimeline(data.steps);
+        const modeTag = '<div class="mt-1"><small class="text-muted">模式：抽取 + 审核</small></div>';
+        appendMessage('assistant', answer, extra + modeTag);
+    } catch (err) {
+        typingBubble.parentElement.remove();
+        appendMessage('assistant', '❌ 上传失败：' + err.message);
+    } finally {
+        sendBtn.disabled = false;
+        uploadBtn.disabled = false;
+    }
+}
+
+// 初始化默认模式面板
+renderModePanel(currentMode);
 </script>
 {% endblock %}

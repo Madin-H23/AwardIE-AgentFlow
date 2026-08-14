@@ -467,10 +467,24 @@ class ReviewService:
 
                 use_async = False  # 配置文件模式不使用异步
 
-        # 3. 构造系统审核人
+        # 3. Agent 智能把关：即将自动归档的成果先过 AI 复核（语义 + 知识库交叉校验）
+        #    决策为 reject / need_manual → 转人工审核；pass 或 Agent 异常 → 保持自动归档
+        agent_review = None
+        if should_auto_archive:
+            blocked, agent_review = self._run_agent_gate(pending_item)
+            if blocked:
+                logger.info(
+                    f"[apply_review_policy] Agent 把关拦截，转人工审核: pending={pending_item.id}, "
+                    f"decision={agent_review.get('decision') if agent_review else '?'}"
+                )
+                should_auto_archive = False
+            if agent_review:
+                self._save_agent_review(pending_item, agent_review)
+
+        # 4. 构造系统审核人
         reviewer = Reviewer(reviewer_type='system', reviewer_id=0)
 
-        # 4. 执行策略
+        # 5. 执行策略
         if should_auto_archive:
             # 应该自动归档
             if use_async:
@@ -498,6 +512,60 @@ class ReviewService:
                 action='pending_review',
                 error=None
             )
+
+    # ============================================================
+    # Agent 智能把关（P1：决策层接入）
+    # ============================================================
+
+    def _run_agent_gate(self, pending_item):
+        """对即将自动归档的成果跑 Agent 复核（规则 + RAG 知识库交叉校验）。
+
+        Returns:
+            (blocked, review_result)
+            - blocked: decision in (reject, need_manual) 时为 True（拦截自动归档）
+            - review_result: {decision, issues, suggestion, rag_reference}；失败为 None
+        任何异常都降级为 (False, None)，绝不阻塞业务（可用性优先）。
+        """
+        try:
+            from backend.agent.review_api import review_extraction
+            from config.loader import get_config as _get_config
+            from backend.rag.embeddings import build_embeddings
+            from backend.rag.vectorstore import build_vectorstore
+
+            config_loader = _get_config()
+            data = pending_item.get_achievement_data() or {}
+
+            # 向量库可选：构造失败则只做规则校验，跳过 RAG 交叉校验
+            vectorstore = None
+            try:
+                emb = build_embeddings(config_loader)
+                vectorstore = build_vectorstore(config_loader, emb)
+            except Exception as e:
+                logger.warning("Agent 把关：向量库不可用，跳过 RAG 交叉校验: %s", e)
+
+            review = review_extraction(
+                config_loader,
+                {
+                    "data": data,
+                    "doc_type": getattr(pending_item, "achievement_type", None),
+                },
+                vectorstore,
+            )
+            blocked = review.get("decision") in ("reject", "need_manual")
+            logger.info(f"[Agent把关] pending={pending_item.id}, decision={review.get('decision')}, blocked={blocked}")
+            return blocked, review
+        except Exception as e:
+            logger.warning(f"Agent 把关失败，降级为原策略: {e}")
+            return False, None
+
+    def _save_agent_review(self, pending_item, agent_review: dict):
+        """把 Agent 审核结论存入 pending.ext_info.agent_review（供审核页展示）。"""
+        try:
+            ext_info = pending_item.get_ext_info() or {}
+            ext_info["agent_review"] = agent_review
+            self.pending_manager.update(pending_item, ext_info=ext_info)
+        except Exception as e:
+            logger.warning(f"保存 agent_review 失败: {e}")
 
     # ============================================================
     # 异步自动归档
