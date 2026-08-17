@@ -549,6 +549,11 @@ async function sendMessage() {
     appendMessage('user', text);
     chatInput.value = '';
     sendBtn.disabled = true;
+
+    // FR-UI-04：流式优先（SSE 逐 token），失败自动回退同步 fetch
+    const streamed = await sendStreamed(text);
+    if (streamed) { sendBtn.disabled = false; chatInput.focus(); return; }
+
     const typingBubble = showTyping();
 
     try {
@@ -577,6 +582,51 @@ async function sendMessage() {
         sendBtn.disabled = false;
         chatInput.focus();
     }
+}
+
+// ── SSE 流式发送（FR-UI-04）：qa 模式逐 token 打字机；其他模式后端发整段 delta，同一消费逻辑 ──
+async function sendStreamed(text) {
+    return new Promise((resolve) => {
+        let es;
+        try {
+            es = new EventSource('/assistant/chat/stream?message='
+                + encodeURIComponent(text) + '&mode=' + currentMode);
+        } catch (e) { resolve(false); return; }
+
+        const contentEl = appendMessage('assistant', '');   // 空气泡逐 token 填充（返回 bubble 元素）
+
+        let acc = '', gotAny = false;
+        const bail = () => { try { contentEl.closest('.message').remove(); } catch (_) {} };
+        const failTimer = setTimeout(() => {
+            if (!gotAny) { es.close(); bail(); resolve(false); }
+        }, 15000);
+
+        es.addEventListener('delta', (e) => {
+            gotAny = true; clearTimeout(failTimer);
+            try { acc += JSON.parse(e.data).text; } catch (_) {}
+            contentEl.innerHTML = escapeHtml(acc) + '<span style="opacity:.6">▍</span>';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        es.addEventListener('done', (e) => {
+            let d = null; try { d = JSON.parse(e.data); } catch (_) {}
+            es.close(); clearTimeout(failTimer);
+            const modeTag = d && d.mode_used
+                ? `<div class="mt-1"><small class="text-muted">模式：${escapeHtml(d.mode_used)}</small></div>` : '';
+            const srcs = (d && d.sources && d.sources.length) ? formatSources(d.sources) : '';
+            contentEl.innerHTML = escapeHtml((d && d.answer) || acc) + srcs + modeTag;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            resolve(true);
+        });
+        es.addEventListener('error', () => {
+            es.close(); clearTimeout(failTimer);
+            if (!gotAny) { bail(); resolve(false); }      // 连接失败回退同步路径
+            else {
+                contentEl.innerHTML = escapeHtml(acc)
+                    + '<div class="mt-1 text-danger small">⚠ 连接中断，以上为部分回答</div>';
+                resolve(true);
+            }
+        });
+    });
 }
 
 sendBtn.addEventListener('click', sendMessage);
