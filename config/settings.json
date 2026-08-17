@@ -3,7 +3,7 @@
   "flask": {
     "env": "production",
     "log_level": "INFO",
-    "max_content_length_mb": 2048
+    "max_content_length_mb": 100
   },
   "ocr": {
     "default_provider": "baidu",
