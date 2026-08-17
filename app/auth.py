@@ -54,17 +54,9 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
         
         if student and student['user_activated']:
             ph = student['password_hash']
-            pwd_ok = False
-            if ph and check_password_hash(ph, password):
-                pwd_ok = True
-            elif not ph:
-                # password_hash 为空时，使用默认密码兜底（便于导入/批量添加的学生首次登录）
-                try:
-                    from app.utils import get_default_password
-                    if password == get_default_password():
-                        pwd_ok = True
-                except Exception:
-                    pass
+            # P1-2：已移除默认密码兜底（原空 hash 可用明文 P@ss301 登录=批量弱凭证）。
+            # 空 hash 一律拒绝登录；存量空 hash 已由迁移脚本生成随机初始密码（管理员线下分发）。
+            pwd_ok = bool(ph) and check_password_hash(ph, password)
             if pwd_ok:
                 return {
                     'user_id': student['student_id'],
@@ -81,17 +73,8 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
         
         if teacher and teacher['user_activated']:
             ph = teacher['password_hash']
-            pwd_ok = False
-            if ph and check_password_hash(ph, password):
-                pwd_ok = True
-            elif not ph:
-                # password_hash 为空时，使用默认密码兜底（便于导入/批量添加的教师首次登录）
-                try:
-                    from app.utils import get_default_password
-                    if password == get_default_password():
-                        pwd_ok = True
-                except Exception:
-                    pass
+            # P1-2：同学生侧——默认密码兜底已移除，空 hash 拒绝登录
+            pwd_ok = bool(ph) and check_password_hash(ph, password)
             if pwd_ok:
                 return {
                     'user_id': teacher['teacher_id'],
