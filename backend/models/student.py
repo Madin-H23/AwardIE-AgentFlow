@@ -82,8 +82,9 @@ class StudentManager:
         self._load_all_from_db()
     
     def _get_db_connection(self):
-        """获取数据库连接"""
-        return sqlite3.connect(self.db_path)
+        """获取数据库连接（统一工厂：外键/WAL/busy_timeout 强制契约，P0-4/5/7）"""
+        from backend.utils.db_connection import get_connection
+        return get_connection(self.db_path)
     
     def _load_all_from_db(self):
         """从数据库加载所有学生"""
