@@ -45,7 +45,7 @@ def _login(client):
 
 def test_sse_event_sequence(client):
     _login(client)
-    r = client.get("/assistant/chat/stream?message=hi&mode=qa")
+    r = client.get("/assistant/chat/stream?message=hi&mode=tools")   # tools 仍走 _dispatch 路径（qa 已切真流式，见 test_true_stream）
     assert r.status_code == 200
     assert r.mimetype == "text/event-stream"
     assert r.headers.get("Cache-Control") == "no-cache"
@@ -54,7 +54,7 @@ def test_sse_event_sequence(client):
     assert names[0] == "open" and names[-1] == "done"         # 协议首尾
     assert "source" in names and "delta" in names
     done = [e for e in events if e[0] == "done"][0][1]
-    assert done["answer"] == "测试回答" and done["mode_used"] == "qa"
+    assert done["answer"] == "测试回答" and done["mode_used"] == "tools"
 
 
 def test_empty_message_400(client):
