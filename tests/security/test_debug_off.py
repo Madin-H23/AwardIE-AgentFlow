@@ -65,8 +65,8 @@ def test_debug_disabled_by_default(env, expected):
 
 def test_settings_default_env_is_production():
     """settings.json 默认 env 必须为 production（防误配回退）。
-    注：settings.json 某字符串值含控制字符（既有瑕疵，TODO T20 治理），strict=False 容错。"""
-    import json
-    raw = (PROJECT_ROOT / 'config' / 'settings.json').read_text(encoding='utf-8')
-    stripped = re.sub(r'//.*|/\*[\s\S]*?\*/', '', raw)
-    assert json.loads(stripped, strict=False)['flask']['env'] == 'production'
+    用项目 ConfigLoader 的正规注释剥离器（简陋正则会误删字符串内 URL 的 //）。"""
+    import sys
+    sys.path.insert(0, str(PROJECT_ROOT))
+    from config.loader import ConfigLoader
+    assert ConfigLoader().load_config()['flask']['env'] == 'production'
