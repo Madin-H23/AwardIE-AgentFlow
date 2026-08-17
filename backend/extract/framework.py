@@ -33,9 +33,11 @@ class ExtractFramework:
         other_notes: Dict[str, str],
         llm_max_text_length: int = 4000,
         llm_selector_prompt_template: str = None,
+        raw_config: Optional[Dict] = None,
     ):
         self.ocr_engine = ocr_engine
         self.llm_engine = llm_engine
+        self._raw_config = raw_config or {}   # P2-7：抽取行为配置（use_precise_ocr 等）
         self._image_extensions = [e.lower() if e.startswith(".") else f".{e}".lower() for e in image_extensions]
         self._extractors: List[Extractor] = []
         # LLM选择抽取器的配置
@@ -80,6 +82,7 @@ class ExtractFramework:
             other_notes=other_notes,
             llm_max_text_length=llm_max_text_length,
             llm_selector_prompt_template=llm_selector_prompt_template,
+            raw_config=config,
         )
 
     def register(self, extractor: Extractor) -> "ExtractFramework":
@@ -287,8 +290,14 @@ class ExtractFramework:
         return self._extract_with_multiple(chosen, matched, file_path, text, ocr_cached, use_ocr_cache, use_llm_cache)
 
     def _ocr_image(self, file_path: str, use_cache: bool) -> tuple[Optional[str], bool]:
-        """OCR识别图片。异常不在此处捕获，由 _extract_image 统一转为带 note 的 ExtractResult。"""
-        text, ocr_cached = self.ocr_engine.get_text(file_path, use_cache=use_cache, is_precise=False)
+        """OCR识别图片。异常不在此处捕获，由 _extract_image 统一转为带 note 的 ExtractResult。
+
+        P2-7：精度可配置（extract.use_precise_ocr，默认 True）——奖状场景精度敏感，
+        原硬编码低精度浪费高精度 Provider 链。
+        """
+        text, ocr_cached = self.ocr_engine.get_text(
+            file_path, use_cache=use_cache,
+            is_precise=bool(self._raw_config.get("extract", {}).get("use_precise_ocr", True)))
         return text, ocr_cached
 
     def _other_result(

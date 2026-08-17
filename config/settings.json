@@ -229,6 +229,7 @@
     "config_dir": "backend/extract/config"
   },
   "extract": {
+    "use_precise_ocr": true,
     "image_extensions": [
       ".jpg",
       ".jpeg",

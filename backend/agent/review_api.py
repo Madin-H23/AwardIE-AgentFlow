@@ -77,16 +77,9 @@ def review_extraction(
                 "severity": "info",
             })
 
-    # 决策聚合（与 review_agent.review_node 一致）
-    # 仅 high/medium/low 影响决策；info 只是知识库附加提示，不触发拦截
-    real_issues = [i for i in issues if i.get("severity") in ("high", "medium", "low")]
-    high_count = sum(1 for i in real_issues if i.get("severity") == "high")
-    if high_count >= 2:
-        decision = "reject"
-    elif real_issues:
-        decision = "need_manual"
-    else:
-        decision = "pass"
+    # 决策聚合（P2-5：公共模块单一数据源，消除与 review_agent 的双实现）
+    from backend.agent.decision import aggregate_decision
+    decision = aggregate_decision(issues)
 
     return {
         "decision": decision,

@@ -106,16 +106,9 @@ def make_review_node(config_loader, vectorstore=None):
                     "severity": "info",
                 })
 
-        # 决策
-        # 仅 high/medium/low 影响决策；info 只是知识库附加提示，不触发拦截
-        real_issues = [i for i in issues if i.get("severity") in ("high", "medium", "low")]
-        high_count = sum(1 for i in real_issues if i.get("severity") == "high")
-        if high_count >= 2:
-            decision = "reject"
-        elif real_issues:
-            decision = "need_manual"
-        else:
-            decision = "pass"
+        # 决策（P2-5：公共模块单一数据源）
+        from backend.agent.decision import aggregate_decision
+        decision = aggregate_decision(issues)
 
         suggestion = _build_suggestion(decision, issues)
 
@@ -182,14 +175,17 @@ def _rag_cross_check(vectorstore, competition_name: str) -> Optional[Dict[str, A
     """
     用 RAG 检索竞赛知识库，返回该竞赛的等级/白名单参考。
 
-    用于交叉校验抽取结果与官方规则是否一致。
+    P2-6：改走统一 retrieve_with_scores()（原绕过检索器直连 k=1 无门槛，
+    可能误匹配不相关竞赛产生误导 info）；top_k=3 给容错，threshold 拦截无关结果。
     """
     try:
-        from langchain_core.documents import Document
-        results = vectorstore.similarity_search_with_score(competition_name, k=1)
-        if not results:
+        from config.loader import get_config
+        from backend.rag.retriever import retrieve_with_scores
+        hits = retrieve_with_scores(get_config(), vectorstore,
+                                    competition_name, top_k=3)
+        if not hits:
             return None
-        doc, score = results[0]
+        doc, score = hits[0]
         return {
             "matched_name": doc.metadata.get("name"),
             "level": doc.metadata.get("level"),
