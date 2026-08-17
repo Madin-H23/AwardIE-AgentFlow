@@ -198,7 +198,6 @@ class CompetitionManager:
         from backend.utils.db_connection import get_connection
 
         return get_connection(self.db_path)
-        return conn
 
     def _load_data(self):
         """从数据库加载数据"""
