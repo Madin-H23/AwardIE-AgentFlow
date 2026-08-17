@@ -78,15 +78,21 @@ config = get_config()
 # 创建应用
 app = create_app(config)
 
+
+def _should_enable_debug() -> bool:
+    """P0-3 安全判定：仅 development 环境 + 显式 FLASK_DEBUG=1 才允许调试器。"""
+    return os.environ.get('FLASK_ENV') == 'development' and os.environ.get('FLASK_DEBUG') == '1'
+
+
 if __name__ == '__main__':
     # 从环境变量获取端口，默认5000
     port = int(os.environ.get('PORT', 5001))
-    debug = os.environ.get('FLASK_ENV') == 'development' or config.DEBUG
+    debug = _should_enable_debug()  # 安全硬约束 (P0-3)：调试器=RCE，禁止配置文件隐式开启
 
     app.run(
         host='0.0.0.0',
         port=port,
         debug=debug,
-        use_reloader=True  # 启用自动重载，代码修改后自动重启
+        use_reloader=debug
     )
 
