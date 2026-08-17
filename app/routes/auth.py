@@ -146,3 +146,48 @@ def laboratory_static_access(relative_path):
     """提供实验室静态文件访问（兼容旧的/static路径）"""
     return laboratory_file_access(relative_path)
 
+
+@bp.route('/files/achievements/<int:pending_id>')
+@require_login
+def achievement_file_access(pending_id):
+    """成果文件安全访问（P1-4/设计 API §6：按 ID 查库防路径猜解 + 归属校验 + 强制下载）。
+
+    归属规则：提交人本人 或 管理员 可访问（教师经既有 teacher 审核路由访问，该路由自带
+    get_pending_for_teacher 过滤）。旧路径式接口（/student|teacher/achievement-submit/file/<path>）
+    已标记废弃，本端点运行一个迭代后由前端统一切换并移除旧路由。
+    """
+    from flask import abort, session, send_file as _send
+    from werkzeug.exceptions import HTTPException
+    try:
+        from app.utils import get_app_context_instance
+        pm = get_app_context_instance().get_pending_achievement_manager()
+        pending = pm.get_pending_by_id(pending_id)
+        if not pending or not pending.file_path:
+            abort(404)
+
+        utype, uid = session.get('user_type'), str(session.get('user_id', ''))
+        is_owner = (utype == pending.submitter_type and uid == str(pending.submitter_id))
+        if not (is_owner or utype == 'admin'):
+            abort(403)   # IDOR：他人成果文件一律拒绝
+
+        from pathlib import Path, PurePath
+        from backend.services.unified_file_manager import get_unified_file_manager
+        root = Path(get_unified_file_manager().files_root).resolve()
+        fp = Path(pending.file_path)
+        fp = fp.resolve() if fp.is_absolute() else (root / pending.file_path).resolve()
+        if root not in fp.parents:   # 路径穿越兜底（历史绝对路径数据也受约束）
+            abort(404)
+
+        SAFE = {'.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+                '.pdf': 'application/pdf', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                '.zip': 'application/zip', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+        ext = fp.suffix.lower()
+        mimetype = SAFE.get(ext)
+        if mimetype is None:
+            abort(415)
+        return _send(str(fp), mimetype=mimetype, as_attachment=True, download_name=fp.name)
+    except HTTPException:
+        raise                      # 403/404/415 等业务拒绝码原样抛出，不被兜底吞掉
+    except Exception:
+        abort(404)
+
