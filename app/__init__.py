@@ -31,6 +31,19 @@ def create_app(config_class=None):
     from flask_wtf.csrf import CSRFProtect
     CSRFProtect(app)
 
+    # T4 统一异常契约：业务异常 -> 统一包装（设计 API §1.4），业务侧不再自行 jsonify 错误
+    from flask import jsonify
+    from backend.utils.app_error import AppError, BreakerOpenError
+
+    @app.errorhandler(AppError)
+    def _handle_app_error(e: AppError):
+        payload = jsonify({"trace_id": getattr(app, '_current_trace_id', None),
+                           "code": e.code, "message": e.message, "data": None})
+        resp = app.make_response((payload, e.http_status))
+        if isinstance(e, BreakerOpenError):
+            resp.headers["Retry-After"] = str(e.retry_after)
+        return resp
+
     # 确保必要的目录存在
     _ensure_directories(app)
     
