@@ -481,9 +481,9 @@ def student_edit(student_id=None):
                         return render_template('admin/students/edit.html', student=None)
                     
                     from werkzeug.security import generate_password_hash
-                    from app.utils import get_default_password
-                    default_password = get_default_password()
-                    password_hash = generate_password_hash(default_password)
+                    from app.password_policy import generate_strong_password
+                    initial_password = generate_strong_password()
+                    password_hash = generate_password_hash(initial_password)
                     student = student_manager.add_student(
                         student_id=student_id_str,
                         name=name,
@@ -491,8 +491,10 @@ def student_edit(student_id=None):
                         grade=grade,
                         phone=phone,
                         user_activated=user_activated,
-                        password_hash=password_hash
+                        password_hash=password_hash,
+                        needs_password_change=1
                     )
+                    flash(f'学生创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
                 
                 flash('学生保存成功', 'success')
                 return redirect(url_for('admin.students_list'))
@@ -534,7 +536,6 @@ def student_reset_password(student_id):
     """重置学生密码"""
     try:
         from werkzeug.security import generate_password_hash
-        from app.utils import get_default_password
         
         app_context = get_app_context_instance()
         student_manager = app_context.get_student_manager()
@@ -543,16 +544,16 @@ def student_reset_password(student_id):
         if not student:
             return jsonify({'success': False, 'message': '学生不存在'}), 404
         
-        # 获取默认密码并生成哈希
-        default_password = get_default_password()
-        password_hash = generate_password_hash(default_password)
+        # 随机强密码 + 强制改密标记（P1-2/T22：废除默认密码重置）
+        from app.password_policy import generate_strong_password
+        initial_password = generate_strong_password()
+        password_hash = generate_password_hash(initial_password)
         
-        # 更新密码
-        student_manager.update_student(student_id, password_hash=password_hash)
+        student_manager.update_student(student_id, password_hash=password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
-            'message': f'密码已重置为默认密码: {default_password}'
+            'message': f'密码已重置，初始密码（仅此一次展示）：{initial_password}'
         })
     except Exception as e:
         import traceback
@@ -691,9 +692,9 @@ def teacher_edit(teacher_id=None):
                     # 创建（设置默认密码，确保新教师可登录）
                     try:
                         from werkzeug.security import generate_password_hash
-                        from app.utils import get_default_password
-                        default_password = get_default_password()
-                        password_hash = generate_password_hash(default_password)
+                        from app.password_policy import generate_strong_password
+                        initial_password = generate_strong_password()
+                        password_hash = generate_password_hash(initial_password)
                         teacher = teacher_manager.add_teacher(
                             teacher_id=teacher_id_str,
                             name=name,
@@ -701,8 +702,10 @@ def teacher_edit(teacher_id=None):
                             title=title,
                             phone=phone,
                             user_activated=user_activated,
-                            password_hash=password_hash
+                            password_hash=password_hash,
+                            needs_password_change=1
                         )
+                        flash(f'教师创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
                     except ValueError as e:
                         # 处理重名或工号重复的错误
                         flash(str(e), 'error')
@@ -748,7 +751,6 @@ def teacher_reset_password(teacher_id):
     """重置教师密码"""
     try:
         from werkzeug.security import generate_password_hash
-        from app.utils import get_default_password
         
         app_context = get_app_context_instance()
         teacher_manager = app_context.get_teacher_manager()
@@ -757,16 +759,15 @@ def teacher_reset_password(teacher_id):
         if not teacher:
             return jsonify({'success': False, 'message': '教师不存在'}), 404
         
-        # 获取默认密码并生成哈希
-        default_password = get_default_password()
-        password_hash = generate_password_hash(default_password)
+        from app.password_policy import generate_strong_password
+        initial_password = generate_strong_password()
+        password_hash = generate_password_hash(initial_password)
         
-        # 更新密码
-        teacher_manager.update_teacher(teacher_id, password_hash=password_hash)
+        teacher_manager.update_teacher(teacher_id, password_hash=password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
-            'message': f'密码已重置为默认密码: {default_password}'
+            'message': f'密码已重置，初始密码（仅此一次展示）：{initial_password}'
         })
     except Exception as e:
         import traceback

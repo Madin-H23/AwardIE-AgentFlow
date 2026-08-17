@@ -27,14 +27,19 @@ def _load_debug_fn():
 
 
 def _debug_flag_with(env: dict) -> bool:
+    """环境完全自持：先把 FLASK_ENV/FLASK_DEBUG 全部清空，再设置参数给定值。
+
+    修复隔离缺陷：其他测试模块 import 链会触发 load_dotenv 把 .env 的
+    FLASK_ENV=development 注入进程，未显式清理的用例会继承泄漏值。
+    """
     fn = _load_debug_fn()
-    saved = {k: os.environ.get(k) for k in ('FLASK_ENV', 'FLASK_DEBUG')}
+    keys = ('FLASK_ENV', 'FLASK_DEBUG')
+    saved = {k: os.environ.get(k) for k in keys}
     try:
+        for k in keys:          # 全清空——参数即完整环境
+            os.environ.pop(k, None)
         for k, v in env.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
+            os.environ[k] = v
         return fn()
     finally:
         for k, v in saved.items():

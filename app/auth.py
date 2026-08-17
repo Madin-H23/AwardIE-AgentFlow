@@ -30,7 +30,7 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
         # 先查管理员表（如果表存在）
         try:
             admin = conn.execute(
-                'SELECT username, name, password_hash, user_activated FROM admins WHERE username = ?',
+                'SELECT username, name, password_hash, user_activated, needs_password_change FROM admins WHERE username = ?',
                 (username,)
             ).fetchone()
             
@@ -40,7 +40,7 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
                         'user_id': admin['username'],
                         'user_type': 'admin',
                         'name': admin['name'] or '管理员',
-                        'role': 'admin'
+                        'role': 'admin', 'needs_password_change': bool(admin['needs_password_change'])
                     }
         except sqlite3.OperationalError:
             # 如果admins表不存在，继续查询其他表
@@ -48,7 +48,7 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
         
         # 再查学生表
         student = conn.execute(
-            'SELECT student_id, name, password_hash, role, user_activated FROM students WHERE student_id = ?',
+            'SELECT student_id, name, password_hash, role, user_activated, needs_password_change FROM students WHERE student_id = ?',
             (username,)
         ).fetchone()
         
@@ -62,12 +62,13 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
                     'user_id': student['student_id'],
                     'user_type': 'student',
                     'name': student['name'],
-                    'role': student['role'] or 'student'
+                    'role': student['role'] or 'student',
+                    'needs_password_change': bool(student['needs_password_change'])
                 }
         
         # 最后查教师表
         teacher = conn.execute(
-            'SELECT teacher_id, name, password_hash, role, user_activated FROM teachers WHERE teacher_id = ?',
+            'SELECT teacher_id, name, password_hash, role, user_activated, needs_password_change FROM teachers WHERE teacher_id = ?',
             (username,)
         ).fetchone()
         
@@ -80,7 +81,8 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
                     'user_id': teacher['teacher_id'],
                     'user_type': 'teacher',
                     'name': teacher['name'],
-                    'role': teacher['role'] or 'teacher'
+                    'role': teacher['role'] or 'teacher',
+                    'needs_password_change': bool(teacher['needs_password_change'])
                 }
         
         return None

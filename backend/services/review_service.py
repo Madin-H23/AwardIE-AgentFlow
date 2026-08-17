@@ -694,6 +694,12 @@ class ReviewService:
             if pending.achievement_type == 'other':
                 return self.handle_other_type(pending, lab_id, reviewer)
             else:
+                # P1-8 防重闸先行：先软归档（条件更新 submit→archived，rowcount=0 说明已被并发处理）
+                if not self.pending_manager.archive(pending_id):
+                    logger.warning(f"[approve_single] 并发防重拦截：记录已不在 submit 态 pending_id={pending_id}")
+                    return ReviewResult(
+                        success=False, pending_id=pending_id, action='approved',
+                        error="记录状态已变化，可能已被他人处理")
                 # 提交到主数据库
                 success, target_id, error, submitted_count = self.submit_to_main_db(pending, lab_id, reviewer)
 
@@ -715,10 +721,6 @@ class ReviewService:
                         audit_log(8, target_id, pending.achievement_type, operator=op, remark="入库")
                     except Exception:
                         pass
-                    # 软归档（8.6.4）：不再物理删除——保留 pending 行/文件/AI 结论(ext_info.agent_review)，
-                    # 审核轨迹可还原；submissions 页经 exclude_archived 过滤不可见
-                    if not self.pending_manager.archive(pending_id):
-                        logger.warning(f"[approve_single] 软归档失败(状态已变或不存在): pending_id={pending_id}")
                     return ReviewResult(
                         success=True,
                         pending_id=pending_id,
@@ -730,6 +732,9 @@ class ReviewService:
                         submitted_count=submitted_count
                     )
                 else:
+                    # P1-8 入库失败补偿：回滚归档，恢复 submit 供修复后重审
+                    if self.pending_manager.unarchive(pending_id):
+                        logger.warning(f"[approve_single] 入库失败，已回滚归档: pending_id={pending_id}")
                     return ReviewResult(
                         success=False,
                         pending_id=pending_id,

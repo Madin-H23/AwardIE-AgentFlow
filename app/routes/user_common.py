@@ -31,7 +31,7 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
         def dashboard():
             """用户首页（参考网站风格）"""
             # 检查是否需要强制修改密码
-            if session.get('needs_password_change') and user_type == 'student':
+            if session.get('needs_password_change'):
                 return redirect(url_for(f'{user_type}.profile', tab='password'))
             return render_template(f'{user_type}/dashboard_ref.html')
     
@@ -41,7 +41,7 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
         def activities():
             """用户活动页面（参考网站风格，假数据）"""
             # 检查是否需要强制修改密码
-            if session.get('needs_password_change') and user_type == 'student':
+            if session.get('needs_password_change'):
                 return redirect(url_for(f'{user_type}.profile', tab='password'))
             return render_template(f'{user_type}/activities_ref.html')
     
@@ -51,7 +51,7 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
         def achievements():
             """用户成果页面（参考网站风格，假数据）"""
             # 检查是否需要强制修改密码
-            if session.get('needs_password_change') and user_type == 'student':
+            if session.get('needs_password_change'):
                 return redirect(url_for(f'{user_type}.profile', tab='password'))
             return render_template(f'{user_type}/achievements_ref.html')
     
@@ -108,9 +108,9 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
                 new_password_hash = generate_password_hash(new_password)
                 
                 if user_type == 'student':
-                    manager.update_student(user.id, password_hash=new_password_hash)
+                    manager.update_student(user.id, password_hash=new_password_hash, needs_password_change=0)
                 else:
-                    manager.update_teacher(user.id, password_hash=new_password_hash)
+                    manager.update_teacher(user.id, password_hash=new_password_hash, needs_password_change=0)
                 
                 # 如果有强制修改密码标记，清除它
                 if session.get('needs_password_change'):

@@ -140,7 +140,8 @@ class StudentManager:
                 skills TEXT,
                 user_activated INTEGER DEFAULT 1,
                 password_hash TEXT,
-                role TEXT DEFAULT 'student'
+                role TEXT DEFAULT 'student',
+                needs_password_change INTEGER NOT NULL DEFAULT 0
             )
         ''')
         

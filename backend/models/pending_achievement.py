@@ -616,6 +616,28 @@ class PendingAchievementManager:
         finally:
             conn.close()
 
+    def unarchive(self, pending_id: int) -> bool:
+        """入库失败补偿（P1-8）：archived -> submit 回滚，供修复后重审。
+
+        条件更新：仅 archived 态可回滚。
+        Returns:
+            是否回滚成功。
+        """
+        conn = self._get_db_connection()
+        try:
+            cur = conn.execute(
+                "UPDATE pending_achievements SET status='submit', version=version+1 "
+                "WHERE id=? AND status='archived'",
+                (pending_id,),
+            )
+            conn.commit()
+            ok = cur.rowcount > 0
+            if ok:
+                self._load_all_from_db()
+            return ok
+        finally:
+            conn.close()
+
     def reject(self, pending_id: int, reviewer_type: str, reviewer_id: int, reason: str) -> bool:
         """驳回打回（FR-APPROVE-07）：submit -> rejected，留驳回原因供提交人修改后重交。
 
