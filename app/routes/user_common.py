@@ -111,6 +111,11 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
                     manager.update_student(user.id, password_hash=new_password_hash, needs_password_change=0)
                 else:
                     manager.update_teacher(user.id, password_hash=new_password_hash, needs_password_change=0)
+                # 8.5 渐进：双写 users（旧表真源期防漂移）
+                from backend.utils.users_sync import sync_user_row
+                from config.loader import get_config
+                sync_user_row(str(get_config().get_path('database', 'competitions_db')),
+                              str(user_id), password_hash=new_password_hash, needs_password_change=0)
                 
                 # 如果有强制修改密码标记，清除它
                 if session.get('needs_password_change'):
