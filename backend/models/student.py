@@ -149,22 +149,47 @@ class StudentManager:
         conn.close()
     
     def get_student_by_id(self, student_id: int) -> Optional[Student]:
-        """根据ID获取学生"""
+        """根据ID获取学生（P0-6：内存 miss 时单行回源 DB，read-through 缓解多 worker 一致性）"""
         for student in self.students:
             if student.id == student_id:
                 return student
-        return None
-    
+        return self._fetch_one_from_db('id', student_id)
+
     def get_student_by_pk(self, pk: int) -> Optional[Student]:
         """根据主键ID获取学生（别名方法）"""
         return self.get_student_by_id(pk)
-    
+
     def get_student_by_student_id(self, student_id: str) -> Optional[Student]:
-        """根据学号获取学生"""
+        """根据学号获取学生（P0-6：miss 回源）"""
         for student in self.students:
             if student.student_id == student_id:
                 return student
-        return None
+        return self._fetch_one_from_db('student_id', student_id)
+
+    def _fetch_one_from_db(self, column: str, value) -> Optional[Student]:
+        """单行回源查询（替代写后全表重载的读路径伙伴；命中即入内存缓存）。"""
+        try:
+            conn = self._get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                f'''SELECT id, student_id, name, major, grade, phone, qq, skills,
+                           user_activated, password_hash, role
+                    FROM students WHERE {column} = ?''', (value,))
+            row = cursor.fetchone()
+            conn.close()
+            if not row:
+                return None
+            student = Student(
+                id=row[0], student_id=row[1], name=row[2], major=row[3], grade=row[4],
+                phone=row[5], qq=row[6] if len(row) > 6 else None,
+                skills=row[7] if len(row) > 7 else None,
+                user_activated=bool(row[8]) if len(row) > 8 and row[8] is not None else True,
+                password_hash=row[9] if len(row) > 9 else None,
+                role=row[10] if len(row) > 10 and row[10] else 'student')
+            self.students.append(student)   # 回填缓存
+            return student
+        except sqlite3.Error:
+            return None
     
     def find_students_by_name(self, name: str) -> List[Student]:
         """根据姓名查找学生（支持重名，使用精确匹配）。用于重名检测、按姓名解析等。"""
@@ -211,24 +236,26 @@ class StudentManager:
         new_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        
-        self._load_all_from_db()
-        
-        return self.get_student_by_id(new_id)
-    
+
+        # P0-6：写后定向维护（单行回查入缓存），替代原 _load_all_from_db 全表重载
+        obj = self._fetch_one_from_db('id', new_id)
+        return obj or self.get_student_by_id(new_id)
+
     def update_student(self, student_id: int, **kwargs):
         """更新学生信息"""
         conn = self._get_db_connection()
         cursor = conn.cursor()
-        
+
         updates = []
         values = []
-        
-        for key in ['student_id', 'name', 'major', 'grade', 'phone', 'qq', 'skills', 'user_activated', 'password_hash', 'role']:
+
+        # 白名单含 needs_password_change（P1-2 配套——阶段二曾因缺失被静默忽略）
+        for key in ['student_id', 'name', 'major', 'grade', 'phone', 'qq', 'skills',
+                    'user_activated', 'password_hash', 'role', 'needs_password_change']:
             if key in kwargs:
                 updates.append(f'{key} = ?')
                 values.append(kwargs[key])
-        
+
         if updates:
             values.append(student_id)
             cursor.execute(f'''
@@ -236,21 +263,28 @@ class StudentManager:
                 SET {', '.join(updates)}
                 WHERE id = ?
             ''', values)
-            
+
             conn.commit()
             conn.close()
-            
-            self._load_all_from_db()
-    
+
+            # P0-6：定向刷新该行缓存（原全表重载）
+            self._refresh_one(student_id)
+
     def delete_student(self, student_id: int):
         """删除学生"""
         conn = self._get_db_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute('DELETE FROM students WHERE id = ?', (student_id,))
-        
+
         conn.commit()
         conn.close()
-        
-        self._load_all_from_db()
+
+        # P0-6：定向移除（原全表重载）
+        self.students = [s for s in self.students if s.id != student_id]
+
+    def _refresh_one(self, student_id: int) -> None:
+        """单行刷新缓存：先移除旧行，再回源（fetch 自带回填），避免重复入缓存。"""
+        self.students = [s for s in self.students if s.id != student_id]
+        self._fetch_one_from_db('id', student_id)
 

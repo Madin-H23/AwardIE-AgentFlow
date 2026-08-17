@@ -107,22 +107,47 @@ class TeacherManager:
         conn.close()
     
     def get_teacher_by_id(self, teacher_id: int) -> Optional[Teacher]:
-        """根据ID获取教师"""
+        """根据ID获取教师（P0-6：miss 回源 DB）"""
         for teacher in self.teachers:
             if teacher.id == teacher_id:
                 return teacher
-        return None
-    
+        return self._fetch_one_from_db('id', teacher_id)
+
     def get_teacher_by_pk(self, pk: int) -> Optional[Teacher]:
         """根据主键ID获取教师（别名方法）"""
         return self.get_teacher_by_id(pk)
-    
+
     def get_teacher_by_teacher_id(self, teacher_id: str) -> Optional[Teacher]:
-        """根据工号获取教师"""
+        """根据工号获取教师（P0-6：miss 回源）"""
         for teacher in self.teachers:
             if teacher.teacher_id == teacher_id:
                 return teacher
-        return None
+        return self._fetch_one_from_db('teacher_id', teacher_id)
+
+    def _fetch_one_from_db(self, column: str, value) -> Optional[Teacher]:
+        """单行回源（P0-6：读路径伙伴，命中回填缓存）。"""
+        try:
+            conn = self._get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                f'''SELECT id, teacher_id, name, department, title, phone, id_number, qq, skills,
+                           user_activated, password_hash, role FROM teachers WHERE {column} = ?''',
+                (value,))
+            row = cursor.fetchone()
+            conn.close()
+            if not row:
+                return None
+            teacher = Teacher(
+                id=row[0], teacher_id=row[1], name=row[2],
+                department=row[3] or '未设置', title=row[4], phone=row[5], id_number=row[6],
+                qq=row[7] if len(row) > 7 else None, skills=row[8] if len(row) > 8 else None,
+                user_activated=bool(row[9]) if len(row) > 9 and row[9] is not None else True,
+                password_hash=row[10] if len(row) > 10 else None,
+                role=row[11] if len(row) > 11 and row[11] else 'teacher')
+            self.teachers.append(teacher)
+            return teacher
+        except sqlite3.Error:
+            return None
     
     def find_teachers_by_name(self, name: str) -> List[Teacher]:
         """根据姓名查找教师（支持重名，使用精确匹配）"""
@@ -188,10 +213,10 @@ class TeacherManager:
         new_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        
-        self._load_all_from_db()
-        
-        return self.get_teacher_by_id(new_id)
+
+        # P0-6：定向维护替代全表重载
+        obj = self._fetch_one_from_db('id', new_id)
+        return obj or self.get_teacher_by_id(new_id)
     
     def update_teacher(self, teacher_id: int, **kwargs):
         """更新教师信息"""
@@ -201,8 +226,9 @@ class TeacherManager:
         updates = []
         values = []
         
-        # 允许更新的字段列表（包括teacher_id）
-        allowed_keys = ['teacher_id', 'name', 'department', 'title', 'phone', 'id_number', 'qq', 'skills', 'user_activated', 'password_hash', 'role']
+        # 允许更新的字段列表（含 needs_password_change——P1-2 配套，阶段二曾缺失被静默忽略）
+        allowed_keys = ['teacher_id', 'name', 'department', 'title', 'phone', 'id_number', 'qq', 'skills',
+                        'user_activated', 'password_hash', 'role', 'needs_password_change']
         for key in allowed_keys:
             if key in kwargs:
                 updates.append(f'{key} = ?')
@@ -224,7 +250,8 @@ class TeacherManager:
                 conn.commit()
                 conn.close()
                 
-                self._load_all_from_db()
+                # P0-6：定向刷新该行缓存
+                self._refresh_one(teacher_id)
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 conn.close()
@@ -249,5 +276,11 @@ class TeacherManager:
         conn.commit()
         conn.close()
         
-        self._load_all_from_db()
+        # P0-6：定向移除（原全表重载）
+        self.teachers = [t for t in self.teachers if t.id != teacher_id]
 
+
+    def _refresh_one(self, teacher_id: int) -> None:
+        """单行刷新缓存：先移除旧行，再回源（fetch 自带回填），避免重复入缓存。"""
+        self.teachers = [t for t in self.teachers if t.id != teacher_id]
+        self._fetch_one_from_db('id', teacher_id)
