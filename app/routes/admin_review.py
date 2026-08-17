@@ -12,6 +12,7 @@ import json
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, session
 from pathlib import Path
 from app.auth import require_role, require_role_api
+from backend.utils.idempotency import idempotent
 from app.utils import get_app_context_instance
 from app.routes.review_helpers import (
     render_review_page,
@@ -378,8 +379,9 @@ def api_validate_with_data(pending_id):
 
 @bp.route('/api/achievement-review/batch-approve', methods=['POST'])
 @require_role('admin')
+@idempotent(ttl=600)
 def api_batch_approve():
-    """批量审核通过（AJAX）- 使用 ReviewService 统一逻辑"""
+    """批量审核通过（AJAX，幂等防双击）- 使用 ReviewService 统一逻辑"""
     try:
         data = request.get_json()
         pending_ids = data.get('pending_ids', [])

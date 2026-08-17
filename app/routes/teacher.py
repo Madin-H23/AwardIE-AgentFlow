@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from app.auth import require_user_type
+from backend.utils.idempotency import idempotent
 from app.utils import get_app_context_instance
 from app.routes.user_common import register_common_routes, get_profile_data_common, _parse_skills
 from app.routes.file_import_helpers import get_data_import_types
@@ -2882,8 +2883,9 @@ def api_achievement_review_reject(pending_id):
 
 @bp.route('/api/achievement-review/batch-approve', methods=['POST'])
 @require_user_type('teacher')
+@idempotent(ttl=600)
 def api_achievement_review_batch_approve():
-    """批量审核通过（AJAX）- 教师版本"""
+    """批量审核通过（AJAX）- 教师版本（幂等：同 Idempotency-Key 10 分钟窗口复用结果，防双击重复入库）"""
     try:
         app_context = get_app_context_instance()
         pending_manager = app_context.get_pending_achievement_manager()
