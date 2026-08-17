@@ -120,7 +120,8 @@
                                         {% else %}其他{% endif %}
                                     </span>
                                     <span class="status-badge status-{{ submission.status }}">
-                                        {% if submission.status == 'pending' %}待审核
+                                        {% if submission.status == 'pending' %}待提交
+                                        {% elif submission.status == 'submit' %}待审核
                                         {% elif submission.status == 'approved' %}已通过
                                         {% elif submission.status == 'rejected' %}已拒绝
                                         {% else %}未知{% endif %}
@@ -199,12 +200,35 @@
 
                             <div class="ml-4 flex flex-col items-end space-y-2">
                                 {% if submission.status == 'pending' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    待提交
+                                </span>
+                                {% if submission.session_id %}
+                                <a href="{{ url_for('student.achievement_submit_results', session_id=submission.session_id, tab=submission.achievement_type) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500 text-white hover:bg-orange-600 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    继续编辑并提交
+                                </a>
+                                {% endif %}
+                                {% elif submission.status == 'submit' %}
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     等待审核
                                 </span>
+                                <form method="post" action="{{ url_for('student.withdraw_submission', pending_id=submission.id) }}" class="inline-block" onsubmit="return confirm('撤回后可重新编辑并提交，确认撤回？')">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500 text-white hover:bg-orange-600 transition-colors border-0 cursor-pointer">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        撤回并编辑
+                                    </button>
+                                </form>
                                 {% elif submission.status == 'approved' %}
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,12 +236,16 @@
                                     </svg>
                                     审核通过
                                 </span>
-                                {% else %}
+                                {% elif submission.status == 'rejected' %}
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                     审核拒绝
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                    {{ submission.status }}
                                 </span>
                                 {% endif %}
                             </div>

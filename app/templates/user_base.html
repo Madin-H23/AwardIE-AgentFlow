@@ -180,6 +180,7 @@
                         {% if current_user and current_user.type == 'teacher' %}
                         <a href="{{ url_for('teacher.achievement_review_list') }}" class="{% block nav_review %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果审核</a>
                         {% endif %}
+                        <a href="{{ url_for('chat.assistant') }}" class="{% block nav_assistant %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">🤖 AI 助手</a>
                         <a href="{{ user_route('profile') }}" class="{% block nav_profile %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">个人资料</a>
                     </div>
                 </div>

@@ -315,24 +315,24 @@ let currentMode = 'auto';
 const MODE_META = {
     auto: {
         title: '🧭 智能路由',
-        desc: 'AI 自动判断你的意图，选择合适的处理方式。不确定用哪个功能时选它。',
+        desc: '✅ 推荐首选。AI 自动判断你的意图（查知识 / 查数据 / 列清单），无需纠结选哪个。',
         placeholder: '描述你的需求，AI 会自动判断…',
         hint: '智能路由',
         examples: ['帮我梳理一下今年的获奖情况', '挑战杯是什么级别的比赛？'],
     },
     qa: {
         title: '💬 知识问答',
-        desc: '查询竞赛的等级分类（A/B/C类）、级别（国家/省/校）等规则知识，回答会附引用来源。',
-        placeholder: '问竞赛等级/类别，如：挑战杯是几类竞赛？',
+        desc: '查询某个竞赛的等级类别（如"挑战杯是 A 类吗"），基于规则文档回答并附引用。⚠️ 不适合列清单（列清单请用数据操作）。',
+        placeholder: '问单个竞赛，如：挑战杯是 A 类吗？',
         hint: '知识问答',
-        examples: ['挑战杯是几类竞赛？', 'A类赛事有哪些？'],
+        examples: ['挑战杯是 A 类吗？', '蓝桥杯是什么级别？'],
     },
     tools: {
         title: '🔧 数据操作',
-        desc: '查询、统计、导出奖状数据，含白名单赛事查询。请给出具体条件。',
-        placeholder: '如：哪些是白名单赛事？',
+        desc: '查询、统计、导出数据，或列出赛事清单（白名单 / A 类 / B 类）。请给具体条件。',
+        placeholder: '如：A 类赛事有哪些？',
         hint: '数据操作',
-        examples: ['哪些是白名单赛事？', '哪些竞赛贡献的奖状最多？'],
+        examples: ['A 类赛事有哪些？', '哪些是白名单赛事？', '哪些竞赛贡献的奖状最多？'],
     },
 };
 
@@ -452,6 +452,18 @@ const DECISION_META = {
     reject:      { cls: 'reject',      icon: '✗', text: '不通过' },
 };
 const SEV_LABEL = { high: '高', medium: '中', low: '低', info: '提示' };
+// 字段中文名映射（抽取结果字段 + 审核问题字段）
+const FIELD_LABELS = {
+    competition_name: '竞赛名称', award_level: '奖项等级', competition_level: '竞赛级别',
+    winner_name: '获奖人', winner: '获奖人', supervisor_name: '指导教师',
+    certificate_id: '证书编号', date: '日期', year: '年份', track: '赛道',
+    issuer: '颁发机构', province: '省份', group_name: '组别', granted_role: '授予角色',
+    project_title: '项目名称', edition: '届别', related_student: '相关学生',
+    related_student_name: '相关学生', is_valid_certificate: '证书有效',
+    competition_category: '竞赛类别', winner_role: '获奖角色', supervisor_role: '指导教师角色',
+    ocr_text: 'OCR 原文',
+};
+const DOC_TYPE_LABELS = { award: '奖状', patent: '专利', software: '软著', innovation: '大创', other: '其他' };
 
 function formatReview(review) {
     if (!review || !review.decision) return '';
@@ -464,8 +476,9 @@ function formatReview(review) {
         html += '<ul class="issue-list">';
         issues.forEach(it => {
             const sev = String(it.severity || 'info').toLowerCase();
+            const field = it.field ? (FIELD_LABELS[it.field] || it.field) : '';
             html += `<li class="issue-item ${sev}">`;
-            if (it.field) html += `<span class="issue-field">${escapeHtml(String(it.field))}</span>: `;
+            if (field) html += `<span class="issue-field">${escapeHtml(field)}</span>: `;
             html += escapeHtml(String(it.issue || ''));
             html += `<span class="sev-tag ${sev}">${SEV_LABEL[sev] || sev}</span></li>`;
         });
@@ -480,13 +493,14 @@ function formatReview(review) {
     return html;
 }
 
-// 抽取结果卡：文档类型 + 置信度进度条 + 字段表
+// 抽取结果卡：文档类型 + 置信度进度条 + 字段表（字段名中文化、跳过空值）
 function formatExtraction(extraction) {
     if (!extraction) return '';
     let html = '<div class="agent-result-card extraction-card mt-2">';
     html += '<div class="card-title">📄 信息抽取结果</div>';
     if (extraction.doc_type) {
-        html += `<span class="badge bg-light text-dark border mb-2">${escapeHtml(String(extraction.doc_type))}</span> `;
+        const dt = DOC_TYPE_LABELS[extraction.doc_type] || extraction.doc_type;
+        html += `<span class="badge bg-light text-dark border mb-2">${escapeHtml(String(dt))}</span> `;
     }
     const conf = extraction.confidence;
     if (typeof conf === 'number') {
@@ -499,11 +513,16 @@ function formatExtraction(extraction) {
         </div>`;
     }
     const data = extraction.data || {};
-    const keys = Object.keys(data);
+    const keys = Object.keys(data).filter(k => {
+        const v = data[k];
+        return v !== null && v !== undefined && v !== '' && v !== false;
+    });
     if (keys.length) {
         html += '<dl class="row extract-fields mt-1">';
         keys.forEach(k => {
-            html += `<dt class="col-sm-4">${escapeHtml(k)}</dt><dd class="col-sm-8">${escapeHtml(String(data[k] ?? ''))}</dd>`;
+            let v = data[k];
+            if (v === true) v = '是';
+            html += `<dt class="col-sm-4">${escapeHtml(FIELD_LABELS[k] || k)}</dt><dd class="col-sm-8">${escapeHtml(String(v))}</dd>`;
         });
         html += '</dl>';
     }

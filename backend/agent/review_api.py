@@ -73,7 +73,7 @@ def review_extraction(
         if rag_ref and rag_ref.get("category"):
             issues.append({
                 "field": "competition_category",
-                "issue": f"知识库记录该竞赛为 {rag_ref.get('category')}类赛事",
+                "issue": f"知识库记录该竞赛为 {str(rag_ref.get('category', '')).rstrip('类')}类赛事",
                 "severity": "info",
             })
 

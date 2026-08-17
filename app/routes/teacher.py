@@ -2514,6 +2514,37 @@ def achievement_review_file(file_path):
         abort(404)
 
 
+@bp.route('/achievement-submit/withdraw/<int:pending_id>', methods=['POST'])
+@require_user_type('teacher')
+def withdraw_submission(pending_id):
+    """教师撤回已提交记录（submit→pending），重新编辑。"""
+    try:
+        app_context = get_app_context_instance()
+        pending_manager = app_context.get_pending_achievement_manager()
+        teacher_manager = app_context.get_teacher_manager()
+        user_id = session.get('user_id')
+        teacher = teacher_manager.get_teacher_by_teacher_id(user_id) if user_id else None
+        pending = pending_manager.get_by_id(pending_id) if pending_id else None
+        if not pending or not teacher:
+            flash('记录不存在', 'error')
+            return redirect(url_for('teacher.dashboard'))
+        if not (pending.submitter_type == 'teacher' and pending.submitter_id == teacher.id):
+            flash('无权操作该记录', 'error')
+            return redirect(url_for('teacher.dashboard'))
+        if pending.status != 'submit':
+            flash('仅"等待审核"的记录可撤回', 'error')
+            return redirect(url_for('teacher.dashboard'))
+        session_id = getattr(pending, 'session_id', None) or (pending.get_achievement_data() or {}).get('import_session_id')
+        tab_type = pending.achievement_type or 'award'
+        pending_manager.update(pending, status='pending')
+        flash('已撤回，可重新编辑并提交', 'success')
+        return redirect(url_for('teacher.achievement_submit_results', session_id=session_id, tab=tab_type))
+    except Exception as e:
+        logger.error(f"撤回提交失败: {e}", exc_info=True)
+        flash(f'撤回失败: {str(e)}', 'error')
+        return redirect(url_for('teacher.dashboard'))
+
+
 @bp.route('/api/competitions')
 @require_user_type('teacher')
 def api_competitions():
