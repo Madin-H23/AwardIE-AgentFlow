@@ -55,6 +55,9 @@ class PendingAchievement:
     # 实验室关联字段
     laboratory_id: Optional[int] = None  # 关联的实验室ID
 
+    # 乐观锁版本号（迁移§1.5 加列；P1-15 服务层条件更新的前置字段）
+    version: int = 1
+
     def get_achievement_data(self) -> Dict[str, Any]:
         """
         解析 achievement_data JSON
