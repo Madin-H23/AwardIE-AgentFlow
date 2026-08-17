@@ -80,17 +80,51 @@ def retrieve(
         top_k: 覆盖默认 top_k
 
     Returns:
-        Document 列表
+        Document 列表（**低于 score_threshold 的结果已过滤——P2-23 根治**）
     """
-    search_kwargs: Dict[str, Any] = {}
+    hits = retrieve_with_scores(config_loader, vectorstore, query,
+                                filter=filter, top_k=top_k)
+    return [d for d, _s in hits]
+
+
+def retrieve_with_scores(
+    config_loader,
+    vectorstore,
+    query: str,
+    *,
+    filter: Optional[Dict[str, Any]] = None,
+    top_k: Optional[int] = None,
+) -> List[tuple]:
+    """
+    带分数检索（P2-6/P2-23：review_agent 交叉校验统一入口）。
+
+    与 retrieve() 走同一 MMR 配置与 score_threshold 过滤；
+    返回 [(Document, score)]，score 越高越相关（Chroma 语义）。
+    低于 threshold 的结果直接丢弃——**无关查询返回空**，不再强行关联（P2-23）。
+    """
+    cfg = resolve_retrieval_config(config_loader)
+    search_kwargs: Dict[str, Any] = {"k": top_k or cfg["top_k"]}
+    if cfg["search_type"] == "mmr":
+        search_kwargs["fetch_k"] = max(search_kwargs["k"] * 2, 8)
+        search_kwargs["lambda_mult"] = cfg["mmr_lambda"]
     if filter:
         search_kwargs["filter"] = filter
-    if top_k is not None:
-        search_kwargs["k"] = top_k
-    retriever = build_retriever(config_loader, vectorstore, search_kwargs=search_kwargs)
+    retriever = vectorstore.as_retriever(
+        search_type=cfg["search_type"], search_kwargs=search_kwargs)
     docs = retriever.invoke(query)
-    logger.debug("检索 query=%r 命中 %d 条", query, len(docs))
-    return docs
+    # LangChain retriever 不回传 score；对命中集补一次底层相似度取分（成本可控）
+    scored = []
+    if docs:
+        raw = vectorstore.similarity_search_with_score(query, k=len(docs) * 2)
+        score_map = {d.page_content: s for d, s in raw}
+        for d in docs:
+            s = float(score_map.get(d.page_content, 0.0))
+            if s >= cfg["score_threshold"]:
+                scored.append((d, s))
+    scored.sort(key=lambda x: -x[1])
+    logger.debug("检索(带分) query=%r 命中 %d/%d 条（threshold=%.2f）",
+                 query, len(scored), len(docs), cfg["score_threshold"])
+    return scored
 
 
 def format_context(docs: List[Any]) -> str:
