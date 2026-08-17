@@ -82,12 +82,11 @@ class OCRProvider(ABC):
         
         try:
             with Image.open(image_path) as img:
+                # 仅依据 EXIF Orientation 校正方向 (P0-8)。
+                # 已删除"高宽比>1.5 且宽<2000 则强制旋转90°"的启发式——它会把手机竖拍证书
+                # (1080x1920) 横置导致 OCR 乱码；方向只应由元数据决定，不由宽高比猜测。
                 img = ImageOps.exif_transpose(img)
-                # Simple orientation correction
-                width, height = img.size
-                if width > 0 and height / width > 1.5 and width < 2000:
-                    img = img.rotate(90, expand=True)
-                
+
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
