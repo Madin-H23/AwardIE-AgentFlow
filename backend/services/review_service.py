@@ -398,6 +398,15 @@ class ReviewService:
         else:
             logger.info(f"[submit_achievement] 管理员提交，跳过权限验证")
 
+        # P1-13 留痕：动作1=提交（best-effort，失败不阻塞）
+        try:
+            from backend.utils.audit_logger import audit_log
+            audit_log(1, pending_id, getattr(pending, 'achievement_type', None),
+                      operator={"id": submitter_id, "code": str(submitter_id),
+                                "user_type": submitter_type})
+        except Exception:
+            pass
+
         # 2. 更新状态为 submit
         old_status = pending.status
         if pending.status != 'submit':
@@ -560,6 +569,15 @@ class ReviewService:
 
     def _save_agent_review(self, pending_item, agent_review: dict):
         """把 Agent 审核结论存入 pending.ext_info.agent_review（供审核页展示）。"""
+        # P1-13 留痕：动作2=AI审核（operator=AI，决策快照入 change_detail，双保险防随 pending 删除丢失）
+        try:
+            from backend.utils.audit_logger import audit_log
+            decision = agent_review.get("decision") if isinstance(agent_review, dict) else None
+            audit_log(2, getattr(pending_item, 'id', None), getattr(pending_item, 'achievement_type', None),
+                      operator="AI", action_result={"pass": 1, "need_manual": 0, "reject": 2}.get(decision, 0),
+                      change_detail=agent_review)
+        except Exception:
+            pass
         try:
             ext_info = pending_item.get_ext_info() or {}
             ext_info["agent_review"] = agent_review
@@ -687,6 +705,16 @@ class ReviewService:
                         result_type=pending.achievement_type,
                         result_id=target_id
                     )
+                    # P1-13 留痕：动作6=审核通过 + 动作8=入库（同一原子动作，两条时间线记录）
+                    try:
+                        from backend.utils.audit_logger import audit_log
+                        op = {"id": reviewer.reviewer_id, "code": str(reviewer.reviewer_id),
+                              "user_type": reviewer.reviewer_type}
+                        audit_log(6, pending_id, pending.achievement_type, operator=op,
+                                  change_detail={"target_table": pending.achievement_type, "target_id": target_id})
+                        audit_log(8, target_id, pending.achievement_type, operator=op, remark="入库")
+                    except Exception:
+                        pass
                     self.pending_manager.safe_delete_with_file(pending_id)
                     return ReviewResult(
                         success=True,
