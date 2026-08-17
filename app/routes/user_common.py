@@ -93,7 +93,17 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
                 # 验证旧密码
                 if not check_password_hash(user.password_hash, old_password):
                     return jsonify({'success': False, 'message': '旧密码错误'}), 400
-                
+
+                # P2-28 密码策略校验（长度/四类三种/键盘连续）+ 常识项（不得同旧密码、不得含登录号）
+                from app.password_policy import validate_password_strength
+                ok, msg = validate_password_strength(new_password)
+                if not ok:
+                    return jsonify({'success': False, 'message': msg}), 400
+                if new_password == old_password:
+                    return jsonify({'success': False, 'message': '新密码不能与旧密码相同'}), 400
+                if user_id and user_id.lower() in new_password.lower():
+                    return jsonify({'success': False, 'message': '密码不能包含学号/工号'}), 400
+
                 # 更新新密码
                 new_password_hash = generate_password_hash(new_password)
                 
