@@ -132,7 +132,7 @@ def extract():
         from backend.agent.graph.workflow import MultiAgentWorkflow
         from config.loader import get_config
         config_loader = get_config()
-        wf = MultiAgentWorkflow.from_config(config_loader)
+        wf = MultiAgentWorkflow.get_default(config_loader)
         state = wf.run(
             task_type="extract_and_review",
             file_path=str(file_path),
@@ -214,7 +214,7 @@ def _run_workflow(config_loader, message: str, user_context: dict) -> dict:
     """
     from backend.agent.graph.workflow import MultiAgentWorkflow
 
-    wf = MultiAgentWorkflow.from_config(config_loader)
+    wf = MultiAgentWorkflow.get_default(config_loader)
     state = wf.run(task_type="auto", message=message, user_context=user_context)
     qa = state.get("qa_context") or {}
     review = state.get("review_result")

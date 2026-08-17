@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any, Dict, Optional
 
 from backend.agent.state import AgentState
@@ -179,6 +180,27 @@ class MultiAgentWorkflow:
         return final_state
 
 
+    @classmethod
+    def get_default(cls, config_loader) -> "MultiAgentWorkflow":
+        """进程级单例（P1-5/设计 AI 层 §3 WorkflowRegistry）。
+
+        编译 StateGraph + 装配工具代价高（~300ms+），每次请求重建是性能痛点；
+        双检锁保证并发下只编译一次。仅缓存默认参数（无自定义 vectorstore/llm_provider/
+        checkpoint）的实例；自定义参数路径仍走 from_config 新建（罕见调用）。
+        配置热更新：管理端改配置后调用 cls.reset_default() 失效重建。
+        """
+        if cls._default is None:
+            with cls._default_lock:
+                if cls._default is None:
+                    cls._default = cls.from_config(config_loader)
+        return cls._default
+
+    @classmethod
+    def reset_default(cls) -> None:
+        """配置变更后失效单例（管理页改 LLM/RAG 配置时调用）。"""
+        cls._default = None
+
+
 def _make_tools_node(config_loader, llm):
     """
     构造"工具"节点：复用单 Agent 的 Function Calling 能力。
@@ -238,4 +260,8 @@ def _extract_last_user_message(messages) -> str:
     return ""
 
 
+
+
 __all__ = ["MultiAgentWorkflow"]
+MultiAgentWorkflow._default = None
+MultiAgentWorkflow._default_lock = threading.Lock()
