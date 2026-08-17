@@ -34,6 +34,35 @@ class FileUploadService:
         """初始化上传服务"""
         self.file_manager = get_unified_file_manager()
 
+    # P0-10 上传安全：扩展名白名单 + 魔术字节映射 + 单文件大小上限
+    ALLOWED_EXTS = {'.jpg', '.jpeg', '.png', '.pdf', '.xlsx', '.zip', '.docx'}
+    MAGIC_BYTES = {
+        '.jpg': b'\xff\xd8\xff',
+        '.jpeg': b'\xff\xd8\xff',
+        '.png': b'\x89PNG',
+        '.pdf': b'%PDF',
+        '.xlsx': b'PK\x03\x04',
+        '.zip': b'PK\x03\x04',
+        '.docx': b'PK\x03\x04',
+    }
+    MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 与 settings max_content_length_mb=100 对齐（双层限制）
+
+    def _validate_upload(self, uploaded_file, file_ext: str) -> None:
+        """上传三重校验：白名单 / 真实大小 / 魔术字节（防伪造扩展名）。"""
+        if file_ext not in self.ALLOWED_EXTS:
+            raise ValueError(f"不支持的文件类型: {file_ext}（允许: {', '.join(sorted(self.ALLOWED_EXTS))}）")
+        stream = uploaded_file.stream
+        stream.seek(0, 2)
+        size = stream.tell()
+        stream.seek(0)
+        if size > self.MAX_UPLOAD_BYTES:
+            raise ValueError(f"文件超过大小上限 {self.MAX_UPLOAD_BYTES // (1024 * 1024)}MB")
+        expected = self.MAGIC_BYTES[file_ext]
+        head = stream.read(len(expected))
+        stream.seek(0)
+        if not head.startswith(expected):
+            raise ValueError(f"文件内容与扩展名 {file_ext} 不符（魔术字节校验失败）")
+
     def upload_file(self, uploaded_file) -> UploadResult:
         """
         上传文件到临时会话目录
@@ -46,11 +75,13 @@ class FileUploadService:
             if not hasattr(uploaded_file, 'filename') or not uploaded_file.filename:
                 raise ValueError("无效的文件对象或文件名")
 
-            # 获取文件扩展名
+            # 获取文件扩展名（P0-10：无扩展名不再默认 .jpg，一律拒绝）
             original_name = uploaded_file.filename
             file_ext = Path(original_name).suffix.lower()
             if not file_ext:
-                file_ext = '.jpg'  # 默认扩展名
+                raise ValueError("文件缺少扩展名，无法校验类型")
+
+            self._validate_upload(uploaded_file, file_ext)
 
             # 计算文件hash（这会重置文件指针）
             file_hash = self._calculate_file_hash(uploaded_file)
