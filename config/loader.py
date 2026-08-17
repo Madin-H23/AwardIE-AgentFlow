@@ -117,8 +117,11 @@ class ConfigLoader:
                     os.environ[env_var] = user_key
                     
                 # 处理 secret_key (如百度)
+                # 兼容 apikey.json 中的多种 secret 键名写法（ocr.baidu_secret / ocr.baidu_secret_key），
+                # 避免键名不匹配导致 secret 静默注入失败（P0-1 修复：2026-08-17）
                 secret_env = provider_conf.get('secret_key_env')
-                user_secret = user_keys.get('ocr', {}).get(f"{name}_secret")
+                ocr_keys = user_keys.get('ocr', {})
+                user_secret = ocr_keys.get(f"{name}_secret") or ocr_keys.get(f"{name}_secret_key")
                 if secret_env and user_secret:
                     os.environ[secret_env] = user_secret
 
