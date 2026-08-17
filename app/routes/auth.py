@@ -3,7 +3,7 @@
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file, current_app
 from pathlib import Path
-from app.auth import verify_user, login_user, logout_user, is_logged_in
+from app.auth import verify_user, login_user, logout_user, is_logged_in, require_login
 from config.flask import get_config
 
 bp = Blueprint('auth', __name__)
@@ -102,8 +102,9 @@ def index():
         return render_template('index.html', labs_data=[], is_logged_in=is_logged_in(), error=str(e))
 
 @bp.route('/files/laboratories/<path:relative_path>')
+@require_login
 def laboratory_file_access(relative_path):
-    """提供实验室文件访问（公开访问，无需登录）"""
+    """提供实验室文件访问（P0-10/D1 整改：登录可见 + 强制下载 + mimetype 白名单，杜绝 inline 渲染 XSS）"""
     try:
         from backend.services.unified_file_manager import get_unified_file_manager
         file_manager = get_unified_file_manager()
@@ -114,7 +115,20 @@ def laboratory_file_access(relative_path):
         # 使用统一文件管理器查找文件
         file_path = file_manager.find_file_by_path(full_relative_path)
 
-        return send_file(str(file_path))
+        # P0-10：mimetype 白名单 + 强制 attachment（任何用户上传文件禁止 inline 渲染）
+        from pathlib import PurePath
+        SAFE_MIMETYPES = {
+            '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+            '.pdf': 'application/pdf', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            '.zip': 'application/zip', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        }
+        ext = PurePath(str(file_path)).suffix.lower()
+        mimetype = SAFE_MIMETYPES.get(ext)
+        if mimetype is None:
+            from flask import abort
+            abort(415)
+        download_name = PurePath(relative_path).name
+        return send_file(str(file_path), mimetype=mimetype, as_attachment=True, download_name=download_name)
 
     except FileNotFoundError:
         from flask import abort
@@ -127,6 +141,7 @@ def laboratory_file_access(relative_path):
         abort(404)
 
 @bp.route('/static/laboratories/<path:relative_path>')
+@require_login
 def laboratory_static_access(relative_path):
     """提供实验室静态文件访问（兼容旧的/static路径）"""
     return laboratory_file_access(relative_path)
