@@ -495,6 +495,10 @@ def student_edit(student_id=None):
                         needs_password_change=1
                     )
                     flash(f'学生创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
+                    from backend.utils.users_sync import insert_user_row
+                    from config.loader import get_config as _gc
+                    insert_user_row(str(_gc().get_path('database', 'competitions_db')),
+                                    student_id_str, name, 'student', password_hash, 1, major=major, grade=grade, phone=phone)
                 
                 flash('学生保存成功', 'success')
                 return redirect(url_for('admin.students_list'))
@@ -550,6 +554,10 @@ def student_reset_password(student_id):
         password_hash = generate_password_hash(initial_password)
         
         student_manager.update_student(student_id, password_hash=password_hash, needs_password_change=1)
+        from backend.utils.users_sync import sync_user_row
+        from config.loader import get_config as _gc
+        sync_user_row(str(_gc().get_path('database', 'competitions_db')),
+                      student.student_id, password_hash=password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
@@ -706,6 +714,11 @@ def teacher_edit(teacher_id=None):
                             needs_password_change=1
                         )
                         flash(f'教师创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
+                        from backend.utils.users_sync import insert_user_row
+                        from config.loader import get_config as _gc
+                        insert_user_row(str(_gc().get_path('database', 'competitions_db')),
+                                        teacher_id_str, name, 'teacher', password_hash, 1,
+                                        department=department, title=title, phone=phone)
                     except ValueError as e:
                         # 处理重名或工号重复的错误
                         flash(str(e), 'error')
@@ -764,6 +777,10 @@ def teacher_reset_password(teacher_id):
         password_hash = generate_password_hash(initial_password)
         
         teacher_manager.update_teacher(teacher_id, password_hash=password_hash, needs_password_change=1)
+        from backend.utils.users_sync import sync_user_row
+        from config.loader import get_config as _gc
+        sync_user_row(str(_gc().get_path('database', 'competitions_db')),
+                      teacher.teacher_id, password_hash=password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
