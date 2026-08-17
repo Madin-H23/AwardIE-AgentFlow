@@ -111,3 +111,4 @@ backend/document_extract.rar
 
 # 数据库迁移脚本（可选保留，体积小但非面试重点）
 # database/migrations/
+database/*.db.bak.*
