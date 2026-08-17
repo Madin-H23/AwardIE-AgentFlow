@@ -321,6 +321,7 @@ class BaiduOCRProvider(OCRProvider):
 
     def __init__(self, config: Dict[str, Any], logger: logging.Logger):
         super().__init__(config, logger)
+        self._token_cache = ""       # 百度 token 有效期 30 天，进程内缓存复用（原每次调用重新获取）
         # 从配置中读取 Baidu 特定参数
         # 支持 api_key 或 api_key_env
         self.api_key = config.get('api_key', '')
@@ -341,6 +342,18 @@ class BaiduOCRProvider(OCRProvider):
     
     def ocr_image(self, image_path: str) -> str:
         self._log(f"Calling Baidu OCR: {image_path}")
+        # P1-10 熔断守卫（OCR 维度单例）：open 时直接抛错，走引擎降级链
+        from backend.utils.circuit_breaker import CircuitBreaker, is_service_failure
+        breaker = CircuitBreaker.get("ocr")
+        breaker.guard()
+        try:
+            return self._ocr_image_inner(image_path)
+        except Exception as e:
+            if is_service_failure(e):
+                breaker.record_failure()
+            raise
+
+    def _ocr_image_inner(self, image_path: str) -> str:
         access_token = self._get_access_token()
         if not access_token:
             raise OCRAPIServiceError("Failed to get Baidu Access Token")
@@ -364,7 +377,7 @@ class BaiduOCRProvider(OCRProvider):
                 'probability': 'false'
             }
             
-            resp = requests.post(url, headers=headers, data=payload)
+            resp = requests.post(url, headers=headers, data=payload, timeout=30)
             resp.encoding = "utf-8"
             result = resp.json()
             
@@ -377,6 +390,8 @@ class BaiduOCRProvider(OCRProvider):
             raise OCRAPIServiceError(f"Baidu OCR failed: {e}")
     
     def _get_access_token(self) -> Optional[str]:
+        if self._token_cache:
+            return self._token_cache
         url = "https://aip.baidubce.com/oauth/2.0/token"
         params = {
             "grant_type": "client_credentials",
@@ -384,8 +399,12 @@ class BaiduOCRProvider(OCRProvider):
             "client_secret": self.secret_key
         }
         try:
-            resp = requests.post(url, params=params).json()
-            return str(resp.get("access_token"))
+            # P1-20：补 timeout（原无超时可能无限挂起）
+            resp = requests.post(url, params=params, timeout=30).json()
+            token = str(resp.get("access_token"))
+            if token and token != "None":
+                self._token_cache = token
+            return token
         except Exception as e:
             self.logger.error(f"Failed to get Baidu Token: {e}")
             return None

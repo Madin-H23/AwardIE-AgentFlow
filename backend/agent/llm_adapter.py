@@ -230,6 +230,9 @@ def build_chat_model(
         "api_key": cfg["api_key"],
         "temperature": cfg["temperature"],
         "streaming": streaming,
+        # P1-6：LLM 调用必须带超时与重试上限（原缺失——网络抖动会让 worker 无限阻塞）
+        "timeout": int(cfg.get("timeout", 30)),
+        "max_retries": int(cfg.get("max_retries", 3)),
     }
     if extra_kwargs:
         kwargs.update(extra_kwargs)
