@@ -17,6 +17,50 @@ def health():
     return jsonify({'status': 'ok', 'message': 'API is running'})
 
 
+@bp.route('/audit/timeline/<kind>/<int:entity_id>')
+@require_role_api('admin', 'teacher')
+def audit_timeline(kind, entity_id):
+    """成果审核轨迹时间线（FR-AUDIT-03 / FR-UI-01 数据源 / 设计 API §2）。
+
+    kind ∈ award|patent|software|innovation|other；返回按时间正序的留痕列表
+    （动作类型/操作人含 AI/时间/变更摘要），供时间轴组件渲染。
+    学生侧本人轨迹可后续按需开放（当前管理员+教师）。
+    """
+    if kind not in ('award', 'patent', 'software', 'innovation', 'other'):
+        return jsonify({'success': False, 'message': f'无效成果类型: {kind}'}), 400
+    try:
+        from backend.utils.db_connection import get_connection
+        from config.loader import get_config
+        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        rows = conn.execute(
+            """SELECT id, action_type, action_result, operator_code, operator_name, operator_role,
+                      trace_id, change_detail, remark, created_at
+               FROM achievement_audit_log
+               WHERE achievement_kind = ? AND achievement_id = ?
+               ORDER BY created_at ASC, id ASC""",
+            (kind, entity_id)).fetchall()
+        conn.close()
+        ROLE_LABELS = {1: '学生', 2: '教师', 3: 'AI', 4: '管理员'}
+        ACTION_LABELS = {1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
+                         6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回'}
+        timeline = [{
+            'id': r['id'],
+            'action': ACTION_LABELS.get(r['action_type'], str(r['action_type'])),
+            'action_type': r['action_type'],
+            'operator': r['operator_name'],
+            'operator_role': ROLE_LABELS.get(r['operator_role'], ''),
+            'is_ai': r['operator_role'] == 3,
+            'trace_id': r['trace_id'],
+            'remark': r['remark'],
+            'change_detail': r['change_detail'],
+            'created_at': r['created_at'],
+        } for r in rows]
+        return jsonify({'success': True, 'kind': kind, 'entity_id': entity_id,
+                        'timeline': timeline, 'count': len(timeline)})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @bp.route('/user/info')
 @require_login
 def user_info():
