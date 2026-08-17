@@ -2837,6 +2837,49 @@ def api_achievement_review_approve_with_data(pending_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+@bp.route('/api/achievement-review/<int:pending_id>/reject', methods=['POST'])
+@require_user_type('teacher')
+def api_achievement_review_reject(pending_id):
+    """驳回打回（FR-APPROVE-07）：submit→rejected，提交人可见原因并修改后重交。
+
+    越权防护：仅可驳回 get_pending_for_teacher 范围内的记录（同 approve 路由）。
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        reason = (data.get('reason') or '').strip()
+        if not reason:
+            return jsonify({'success': False, 'message': '请填写驳回原因'}), 400
+
+        app_context = get_app_context_instance()
+        pending_manager = app_context.get_pending_achievement_manager()
+        teacher_manager = app_context.get_teacher_manager()
+
+        teacher = None
+        user_id = session.get('user_id')
+        try:
+            teacher = teacher_manager.get_teacher_by_teacher_id(user_id)
+        except Exception:
+            pass
+
+        # 越权校验：该记录必须在教师可审范围内
+        allowed_ids = [p.id for p in pending_manager.get_pending_for_teacher(
+            teacher.id if teacher else 0, teacher_manager=teacher_manager,
+            teacher_name=teacher.name if teacher else None)]
+        if pending_id not in allowed_ids:
+            return jsonify({'success': False, 'message': '无权操作该记录'}), 403
+
+        reviewer_id = session.get('user_id')
+        if pending_manager.reject(pending_id, 'teacher', reviewer_id, reason):
+            from backend.utils.audit_logger import audit_log
+            audit_log(7, pending_id, None, operator={"id": reviewer_id, "code": str(reviewer_id), "user_type": "teacher"},
+                      action_result=2, remark=reason[:200])
+            return jsonify({'success': True, 'message': '已驳回，提交人可查看原因并修改后重新提交'})
+        return jsonify({'success': False, 'message': '驳回失败：记录不存在或状态已变化'}), 409
+    except Exception as e:
+        logger.error(f"api_achievement_review_reject 失败: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @bp.route('/api/achievement-review/batch-approve', methods=['POST'])
 @require_user_type('teacher')
 def api_achievement_review_batch_approve():

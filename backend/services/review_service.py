@@ -715,7 +715,10 @@ class ReviewService:
                         audit_log(8, target_id, pending.achievement_type, operator=op, remark="入库")
                     except Exception:
                         pass
-                    self.pending_manager.safe_delete_with_file(pending_id)
+                    # 软归档（8.6.4）：不再物理删除——保留 pending 行/文件/AI 结论(ext_info.agent_review)，
+                    # 审核轨迹可还原；submissions 页经 exclude_archived 过滤不可见
+                    if not self.pending_manager.archive(pending_id):
+                        logger.warning(f"[approve_single] 软归档失败(状态已变或不存在): pending_id={pending_id}")
                     return ReviewResult(
                         success=True,
                         pending_id=pending_id,

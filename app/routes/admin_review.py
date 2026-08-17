@@ -190,13 +190,37 @@ def review_approve(pending_id):
         return redirect(url_for('admin_review.review_view', pending_id=pending_id))
 
 
-@bp.route('/achievement-review/<int:pending_id>/reject', methods=['POST'])
-@require_role('admin')
-def review_reject(pending_id):
-    """拒绝待审核成果 - 已废弃，保留兼容性但重定向"""
-    # 审核拒绝功能已废弃，直接删除即可
-    flash('审核拒绝功能已废弃，请使用删除功能', 'warning')
-    return redirect(url_for('admin_review.review_list'))
+@bp.route('/api/achievement-review/<int:pending_id>/reject', methods=['POST'])
+@require_role_api('admin')
+def api_reject(pending_id):
+    """驳回打回（FR-APPROVE-07，原废弃路由重开）：submit→rejected + 留痕。
+
+    管理员对全量待审记录有权限（get_pending_for_admin 校验）。
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        reason = (data.get('reason') or '').strip()
+        if not reason:
+            return jsonify({'success': False, 'message': '请填写驳回原因'}), 400
+
+        from app.utils import get_app_context_instance
+        app_context = get_app_context_instance()
+        pending_manager = app_context.get_pending_achievement_manager()
+
+        if pending_id not in [p.id for p in pending_manager.get_pending_for_admin()]:
+            return jsonify({'success': False, 'message': '无权操作该记录'}), 403
+
+        from flask import session
+        reviewer_id = session.get('user_id')
+        if pending_manager.reject(pending_id, 'admin', reviewer_id, reason):
+            from backend.utils.audit_logger import audit_log
+            audit_log(7, pending_id, None,
+                      operator={"id": reviewer_id, "code": str(reviewer_id), "user_type": "admin"},
+                      action_result=2, remark=reason[:200])
+            return jsonify({'success': True, 'message': '已驳回，提交人可查看原因并修改后重新提交'})
+        return jsonify({'success': False, 'message': '驳回失败：记录不存在或状态已变化'}), 409
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @bp.route('/api/achievement-review/<int:pending_id>/approve-with-data', methods=['POST'])

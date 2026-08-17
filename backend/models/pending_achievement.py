@@ -575,14 +575,69 @@ class PendingAchievementManager:
 
     def get_pending_by_submitter(self, submitter_type: str,
                                   submitter_id: int,
-                                  status: Optional[str] = None) -> List[PendingAchievement]:
-        """按提交人查询 pending_achievements 表；status 为 None 时不过滤状态，返回本人全部记录。"""
+                                  status: Optional[str] = None,
+                                  exclude_archived: bool = True) -> List[PendingAchievement]:
+        """按提交人查询 pending_achievements 表。
+
+        Args:
+            status: 指定状态；None 时不过滤
+            exclude_archived: True（默认）排除 archived——软归档(8.6.4)后已入库记录不再出现在
+                提交人 submissions 页；显式查历史时传 False。
+        """
         filter_obj = PendingAchievementFilter(
             submitter_type=submitter_type,
             submitter_id=submitter_id,
             status=status
         )
-        return self.query_pending(filter_obj)
+        result = self.query_pending(filter_obj)
+        if exclude_archived:
+            result = [p for p in result if p.status != 'archived']
+        return result
+
+    def archive(self, pending_id: int) -> bool:
+        """approve 软归档（8.6.4）：submit -> archived，保留行/文件/AI 结论。
+
+        条件更新（乐观锁语义）：仅 status='submit' 时成功，防撤回/并发竞态（P1-15）。
+        Returns:
+            是否归档成功（False=状态已变或不存在）。
+        """
+        conn = self._get_db_connection()
+        try:
+            cur = conn.execute(
+                "UPDATE pending_achievements SET status='archived', version=version+1, "
+                "review_time=CURRENT_TIMESTAMP WHERE id=? AND status='submit'",
+                (pending_id,),
+            )
+            conn.commit()
+            ok = cur.rowcount > 0
+            if ok:
+                self._load_all_from_db()
+            return ok
+        finally:
+            conn.close()
+
+    def reject(self, pending_id: int, reviewer_type: str, reviewer_id: int, reason: str) -> bool:
+        """驳回打回（FR-APPROVE-07）：submit -> rejected，留驳回原因供提交人修改后重交。
+
+        条件更新：仅 status='submit' 时成功（防重复驳回/并发）。
+        Returns:
+            是否驳回成功。
+        """
+        conn = self._get_db_connection()
+        try:
+            cur = conn.execute(
+                "UPDATE pending_achievements SET status='rejected', version=version+1, "
+                "reviewer_type=?, reviewer_id=?, review_comment=?, review_time=CURRENT_TIMESTAMP "
+                "WHERE id=? AND status='submit'",
+                (reviewer_type, reviewer_id, reason, pending_id),
+            )
+            conn.commit()
+            ok = cur.rowcount > 0
+            if ok:
+                self._load_all_from_db()
+            return ok
+        finally:
+            conn.close()
 
     def get_by_id(self, pending_id: int) -> Optional[PendingAchievement]:
         """Alias for get_pending_by_id for compatibility"""
