@@ -170,16 +170,31 @@ class SimpleOpenAIEmbeddings:
     def _get_client(self):
         if self._client is None:
             from openai import OpenAI
-            self._client = OpenAI(api_key=self._api_key, base_url=self._base_url)
+            # P2-21：补 timeout（原无超时，embedding 慢响应会长时间阻塞 QA/审核节点）
+            self._client = OpenAI(api_key=self._api_key, base_url=self._base_url, timeout=30)
         return self._client
 
     def _embed(self, texts: List[str]) -> List[List[float]]:
-        """批量向量化（内部统一入口，query/document 完全对称）。"""
-        client = self._get_client()
-        kwargs = {"model": self.model, "input": texts}
-        if self.dimensions:
-            kwargs["dimensions"] = self.dimensions
-        resp = client.embeddings.create(**kwargs)
+        """批量向量化（内部统一入口，query/document 完全对称）。
+
+        P2-21：指数退避重试 3 次（仅网络/5xx 类失败重试；4xx 参数错直接抛）。
+        """
+        from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
+        import requests
+
+        def _retryable(exc):
+            return isinstance(exc, (requests.Timeout, requests.ConnectionError, requests.HTTPError))
+
+        @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, max=4),
+               retry=retry_if_exception(_retryable), reraise=True)
+        def _call():
+            client = self._get_client()
+            kwargs = {"model": self.model, "input": texts}
+            if self.dimensions:
+                kwargs["dimensions"] = self.dimensions
+            return client.embeddings.create(**kwargs)
+
+        resp = _call()
         # 按 index 排序保证顺序正确
         sorted_data = sorted(resp.data, key=lambda x: x.index)
         return [d.embedding for d in sorted_data]
