@@ -98,7 +98,8 @@ class TeacherManager:
                 skills TEXT,
                 user_activated INTEGER DEFAULT 1,
                 password_hash TEXT,
-                role TEXT DEFAULT 'teacher'
+                role TEXT DEFAULT 'teacher',
+                needs_password_change INTEGER NOT NULL DEFAULT 0
             )
         ''')
         

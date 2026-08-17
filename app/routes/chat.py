@@ -157,8 +157,29 @@ def chat_stream():
 
 @bp.route('/assistant/health')
 def health():
-    """健康检查：Agent 能力是否就绪。"""
-    return jsonify(_check_capability())
+    """健康检查：依赖安装 + 数据层可达 + 熔断状态（P2 假绿修复）。"""
+    result = _check_capability()
+    # 数据层：主库可读
+    try:
+        from config.loader import get_config
+        from backend.utils.db_connection import get_connection
+        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+        result["db"] = True
+    except Exception:
+        result["db"] = False
+    # 熔断状态（不主动拨测外部服务，避免产生费用——以熔断器状态为准）
+    try:
+        from backend.utils.circuit_breaker import CircuitBreaker
+        result["breaker"] = {
+            "llm": CircuitBreaker.get("llm").state,
+            "ocr": CircuitBreaker.get("ocr").state,
+        }
+    except Exception:
+        result["breaker"] = {"llm": "unknown", "ocr": "unknown"}
+    result["status"] = "down" if not result.get("db") else "ok"
+    return jsonify(result)
 
 
 @bp.route('/assistant/extract', methods=['POST'])

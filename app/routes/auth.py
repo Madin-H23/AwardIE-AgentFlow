@@ -26,20 +26,17 @@ def login():
         if user_info:
             login_user(user_info)
             
-            # 检查是否需要强制修改密码（学生且使用初始密码）
-            from app.utils import get_default_password
-            try:
-                default_password = get_default_password()
-                if user_info['user_type'] == 'student' and password == default_password:
-                    session['needs_password_change'] = True
-                    flash('为了您的账号安全，请先修改初始密码', 'warning')
-                    return redirect(url_for('student.profile', tab='password'))
-            except Exception as e:
-                # 如果无法获取默认密码配置，记录错误但不影响登录流程
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f'无法获取默认密码配置: {e}')
-            
+            # 首登强制改密（P1-2 全角色）：管理员重置密码时置 needs_password_change 标记，
+            # 登录即拦截至改密页（取代旧"学生+默认密码"判定——默认密码已移除）
+            if user_info.get('needs_password_change'):
+                session['needs_password_change'] = True
+                flash('为了您的账号安全，请先修改初始密码', 'warning')
+                profile_route = {
+                    'student': 'student.profile', 'teacher': 'teacher.profile',
+                    'admin': 'admin.profile',
+                }.get(user_info['user_type'], 'student.profile')
+                return redirect(url_for(profile_route, tab='password'))
+
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
