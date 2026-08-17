@@ -477,6 +477,11 @@
         <!-- 提交和删除按钮 -->
         <div class="toolbar-section action-buttons">
             {% if current_item %}
+                {% if route_prefix in ('teacher_review', 'admin_review') and current_item.status == 'submit' %}
+                <button type="button" class="btn btn-danger btn-sm" onclick="rejectAward({{ current_item.id }})" title="驳回打回，提交人可查看原因并修改后重新提交">
+                    <i class="bi bi-x-circle"></i> 驳回
+                </button>
+                {% endif %}
                 {% if tab_type == 'award' %}
                 <button type="submit" form="awardForm" class="btn btn-success btn-sm" {% if (session_id and (route_prefix == 'student' or route_prefix == 'teacher')) %}title="提交后将进入审核流程"{% endif %}>
                     <i class="bi bi-check-circle"></i> {% if session_id and (route_prefix == 'student' or route_prefix == 'teacher') %}提交审核{% else %}提交{% endif %}
@@ -2681,6 +2686,31 @@ function confirmAwardSubmitForFileImport(event) {
         buttonIcon: 'bi-check-circle'
     });
     return false;
+}
+
+// 驳回打回（FR-APPROVE-07）：原因必填，提交人可见并修改后重交；csrf.js 自动注入 Token
+function rejectAward(pendingId) {
+    if (!pendingId) { return; }
+    const reason = window.prompt('请输入驳回原因（提交人将看到此原因并修改后重新提交）：');
+    if (reason === null) { return; }               // 取消
+    const reasonText = String(reason).trim();
+    if (!reasonText) { alert('驳回原因不能为空'); return; }
+
+    const url = "{% if route_prefix == 'teacher_review' %}{{ url_for('teacher.api_achievement_review_reject', pending_id=0)|safe }}{% else %}{{ url_for('admin_review.api_reject', pending_id=0)|safe }}{% endif %}".replace(/\/0\//, `/${pendingId}/`);
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reasonText })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showSuccessMessage('已驳回，提交人可查看原因并修改后重新提交', function () { window.location.reload(); });
+        } else {
+            alert(result.message || '驳回失败');
+        }
+    })
+    .catch(() => alert('驳回失败，请稍后再试'));
 }
 
 // AJAX 提交奖状表单（用于全局审核模式，没有 session_id）
