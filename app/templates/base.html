@@ -18,7 +18,8 @@
     
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
-    
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -68,6 +69,7 @@
 
     <!-- 通用JavaScript -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
     
     {% block extra_scripts %}{% endblock %}
 </body>

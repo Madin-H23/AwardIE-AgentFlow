@@ -63,3 +63,4 @@ pydantic>=2.0.0
 
 # PaddleOCR 额外依赖（通过 paddleocr[all] 自动安装）
 # 包括：shapely, scikit-image, imgaug, lmdb, natsort
+flask-wtf>=1.2.0

@@ -25,7 +25,12 @@ def create_app(config_class=None):
         from config.flask import get_config
         config_class = get_config()
     app.config.from_object(config_class)
-    
+
+    # P1-1 CSRF 全局防护：所有写请求须携带 Token（前端经 csrf.js 统一注入：
+    # fetch/XHR 自动加头 + POST 表单动态补 hidden；模板经 csrf_token() 输出 meta）
+    from flask_wtf.csrf import CSRFProtect
+    CSRFProtect(app)
+
     # 确保必要的目录存在
     _ensure_directories(app)
     
