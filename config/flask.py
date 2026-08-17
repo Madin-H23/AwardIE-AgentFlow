@@ -36,6 +36,36 @@ def _get_paths_from_config():
 # 从配置文件加载路径
 _paths = _get_paths_from_config()
 
+_WEAK_SECRET_MARKERS = ('dev-secret', 'change-in-production', 'for-agent', 'secret-key', '123456')
+
+
+def _is_weak_secret_key(key: str) -> bool:
+    """P1-3：可预测签名密钥=可伪造任意用户 session。弱 key 判定（过短/含已知占位词）。"""
+    if not key or len(key) < 32:
+        return True
+    lowered = key.lower()
+    return any(marker in lowered for marker in _WEAK_SECRET_MARKERS)
+
+
+def validate_secret_key(key) -> None:
+    """启动期校验：生产环境弱 SECRET_KEY 直接拒绝启动（fail-fast，防带病上线）。
+
+    Dev/Test 环境允许弱 key（本地便利），但会打告警日志。
+    Raises:
+        RuntimeError: 弱密钥且环境为生产
+    """
+    import logging
+    env = os.environ.get('FLASK_ENV', '')
+    key = key or ''
+    if _is_weak_secret_key(key):
+        if env == 'production':
+            raise RuntimeError(
+                "SECRET_KEY 不安全（过短或含占位词）。"
+                "请执行 python -c \"import secrets;print(secrets.token_hex(32))\" 生成后写入 .env 的 SECRET_KEY"
+            )
+        logging.getLogger(__name__).warning("SECRET_KEY 为弱值（仅开发/测试可容忍），生产将拒绝启动")
+
+
 class Config:
     """基础配置"""
     # Flask配置
@@ -100,4 +130,8 @@ def get_config():
         pass
     if not env:
         env = os.environ.get('FLASK_ENV', 'default')
-    return config_map.get(env, DevelopmentConfig)
+    cls = config_map.get(env, DevelopmentConfig)
+    # P1-3：生产环境弱 SECRET_KEY 拒绝启动（fail-fast）
+    if cls is ProductionConfig:
+        validate_secret_key(getattr(cls, 'SECRET_KEY', ''))
+    return cls
