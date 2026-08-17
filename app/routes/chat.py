@@ -19,6 +19,9 @@ from flask import Blueprint, render_template, request, jsonify, session, current
 
 from app.auth import require_user_type
 
+# CR-6 SSE 连接计数（进程级近似；多 worker 精确计数待 Redis 限流 T2）
+_ACTIVE_SSE: dict = {}
+
 bp = Blueprint('chat', __name__)
 logger = logging.getLogger(__name__)
 
@@ -88,6 +91,68 @@ def chat():
     except Exception as e:
         logger.exception("对话处理失败: %s", e)
         return jsonify({"error": f"处理失败: {e}"}), 500
+
+
+@bp.route('/assistant/chat/stream')
+@require_user_type('admin', 'teacher', 'student')
+def chat_stream():
+    """SSE 流式对话（P2-4/设计 API §5；FR-CHAT-05/FR-UI-04）。
+
+    请求：GET /assistant/chat/stream?message=...&mode=auto
+    事件：open{trace_id} → source{引用} → delta{text} → done{完整结果}
+        | error{code, retry_after}
+    连接限制：每用户同时 ≤2（计费 GET，防滥用占满 SSE worker，CR-6）。
+    诚实边界：delta 当前先发完整结果，逐 token 增量依赖 workflow 流式化（TODO T23）。
+    """
+    from flask import Response, stream_with_context
+    message = (request.args.get("message") or "").strip()
+    mode = request.args.get("mode", "auto")
+    if not message:
+        return jsonify({"error": "消息不能为空"}), 400
+
+    user_key = f"{session.get('user_type')}:{session.get('user_id')}"
+    if _ACTIVE_SSE.get(user_key, 0) >= 2:
+        return jsonify({"error": "同时进行的对话过多，请稍后再试"}), 429
+    _ACTIVE_SSE[user_key] = _ACTIVE_SSE.get(user_key, 0) + 1
+
+    import uuid
+    trace_id = uuid.uuid4().hex[:12]
+
+    def gen():
+        import json as _json
+
+        def sse(event, data):
+            yield f"event: {event}\ndata: {_json.dumps(data, ensure_ascii=False)}\n\n"
+
+        try:
+            yield from sse("open", {"trace_id": trace_id})
+            from backend.utils.circuit_breaker import CircuitBreaker
+            breaker = CircuitBreaker.get("llm")
+            if breaker.state == "open":
+                yield from sse("error", {"code": 4003, "retry_after": breaker.remaining()})
+                return
+            user_context = {
+                "role": session.get("role"), "name": session.get("user_name"),
+                "user_id": session.get("user_id"), "user_type": session.get("user_type"),
+            }
+            result = _dispatch(message, mode, user_context)     # 同步处理（流式化见 T23）
+            if result.get("sources"):
+                yield from sse("source", {"docs": result["sources"]})
+            yield from sse("delta", {"text": result.get("answer", "")})
+            yield from sse("done", result)
+        except ImportError as e:
+            yield from sse("error", {"code": 503, "message": f"AI 助手依赖未安装: {e}"})
+        except Exception:
+            logger.exception("SSE 对话失败")
+            yield from sse("error", {"code": 500, "message": "处理失败"})
+        finally:
+            _ACTIVE_SSE[user_key] = max(0, _ACTIVE_SSE.get(user_key, 1) - 1)
+
+    resp = Response(stream_with_context(gen()), mimetype="text/event-stream")
+    resp.headers["Cache-Control"] = "no-cache"
+    resp.headers["X-Accel-Buffering"] = "no"
+    resp.headers["X-Trace-Id"] = trace_id
+    return resp
 
 
 @bp.route('/assistant/health')

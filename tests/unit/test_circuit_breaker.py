@@ -82,15 +82,19 @@ class TestProviderIntegration:
 
         p = mod.LLMProvider({})
         p._api_config = {"url": "http://x", "timeout": 1, "max_retries": 2, "model": "m"}
-        with pytest.raises(requests.HTTPError):
-            p._chat_with_api([{"role": "user", "content": "hi"}], 0.1)
-        assert calls["n"] == 2                    # max_retries=2 次尝试
-        assert breaker.state == "closed"          # 2 次 < 阈值 5
+        try:
+            with pytest.raises(requests.HTTPError):
+                p._chat_with_api([{"role": "user", "content": "hi"}], 0.1)
+            assert calls["n"] == 2                    # max_retries=2 次尝试
+            assert breaker.state == "closed"          # 2 次 < 阈值 5
 
-        for _ in range(2):                        # 再失败 3 次到阈值
+            for _ in range(2):                        # 再失败 3 次到阈值
+                try: p._chat_with_api([{"role": "user", "content": "x"}], 0.1)
+                except Exception: pass
             try: p._chat_with_api([{"role": "user", "content": "x"}], 0.1)
-            except Exception: pass
-        try: p._chat_with_api([{"role": "user", "content": "x"}], 0.1)
-        except Exception as e:
-            assert getattr(e, 'code', None) == 4003   # 熔断开启直接拒
-        assert breaker.state == "open"
+            except Exception as e:
+                assert getattr(e, 'code', None) == 4003   # 熔断开启直接拒
+            assert breaker.state == "open"
+        finally:
+            # 恢复注册表单例（防跨用例污染：SSE 等用例依赖 llm breaker 默认 closed）
+            breaker._state = "closed"; breaker._fails = []; breaker._half_ok = 0
