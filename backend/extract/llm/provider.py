@@ -85,19 +85,37 @@ class LLMProvider:
         if not url:
             raise ValueError("api_config 中未指定 url")
 
-        # 从配置获取timeout，默认60秒
+        # 从配置获取timeout，默认60秒；重试次数默认3（P1-6/P1-20 韧性）
         timeout = config.get("timeout", 60)
+        max_retries = int(config.get("max_retries", 3))
 
-        logger.debug(f"调用LLM API: {url}, model={payload['model']}, timeout={timeout}")
+        logger.debug(f"调用LLM API: {url}, model={payload['model']}, timeout={timeout}, retries={max_retries}")
 
-        resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
-        resp.raise_for_status()
+        # P1-10 熔断守卫（LLM 维度单例）：open 时直接抛 4003（不发起调用）
+        from backend.utils.circuit_breaker import CircuitBreaker, is_service_failure
+        breaker = CircuitBreaker.get("llm")
+        breaker.guard()
 
-        data = resp.json()
-        content = data["choices"][0]["message"]["content"]
-
-        logger.debug(f"LLM响应长度: {len(content)}")
-        return content
+        last_exc = None
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                resp.raise_for_status()
+                breaker.record_success()
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"]
+                logger.debug(f"LLM响应长度: {len(content)}")
+                return content
+            except Exception as e:
+                last_exc = e
+                if is_service_failure(e):
+                    breaker.record_failure()
+                    if attempt < max_retries - 1:      # 指数退避：1/2/4s + 抖动
+                        import time as _t, random
+                        _t.sleep(min(2 ** attempt, 4) + random.uniform(0, 0.5))
+                        continue
+                raise
+        raise last_exc  # 理论上不可达（最后一次循环内已 raise）
 
     # ==================== 工厂方法 ====================
 
