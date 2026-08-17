@@ -1010,8 +1010,7 @@ class AwardManager:
         
     def _init_db(self):
         from backend.utils.db_connection import get_connection
-
-        return get_connection(self.db_path)
+        conn = get_connection(self.db_path)
         cursor = conn.cursor()
         
         # 主表
@@ -1073,12 +1072,11 @@ class AwardManager:
         
         conn.commit()
         conn.close()
-    
     def _load_all_from_db(self):
         """从数据库加载所有奖状到内存列表"""
         from backend.utils.db_connection import get_connection
-
-        return get_connection(self.db_path)
+        conn = get_connection(self.db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
         cursor.execute("SELECT * FROM awards ORDER BY id DESC")
@@ -1090,7 +1088,6 @@ class AwardManager:
         # 设置图片目录
         for award in self.awards:
             award.set_images_dir(self.images_dir)
-
     def add_award(self,
                   image_path: str,
                   ocr_text: str,
