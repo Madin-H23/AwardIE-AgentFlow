@@ -1,4 +1,5 @@
 import sqlite3
+import contextlib
 import json
 import logging
 import re
@@ -1008,7 +1009,9 @@ class AwardManager:
         
         
     def _init_db(self):
-        conn = sqlite3.connect(self.db_path)
+        from backend.utils.db_connection import get_connection
+
+        return get_connection(self.db_path)
         cursor = conn.cursor()
         
         # 主表
@@ -1073,8 +1076,9 @@ class AwardManager:
     
     def _load_all_from_db(self):
         """从数据库加载所有奖状到内存列表"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        from backend.utils.db_connection import get_connection
+
+        return get_connection(self.db_path)
         cursor = conn.cursor()
         
         cursor.execute("SELECT * FROM awards ORDER BY id DESC")
@@ -1364,7 +1368,7 @@ class AwardManager:
             llm_prompt: LLM 提示词（可选，用于调试）
             llm_response: LLM 响应（可选，用于调试）
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with contextlib.closing(get_connection(self.db_path)) as conn:
             cursor = conn.cursor()
             
             try:
@@ -1516,7 +1520,7 @@ class AwardManager:
             validation_result: 验证结果（JSON字符串），如果为None则清空
         """
         import sqlite3
-        with sqlite3.connect(self.db_path) as conn:
+        with contextlib.closing(get_connection(self.db_path)) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 'UPDATE awards SET is_abnormal = ?, validation_result = ? WHERE id = ?',
@@ -1870,7 +1874,10 @@ class AwardManager:
         award_map = {a.id: a for a in awards}
         placeholders = ",".join("?" for _ in award_ids)
         
-        conn = sqlite3.connect(self.db_path)
+        from backend.utils.db_connection import get_connection
+
+        
+        return get_connection(self.db_path)
         cursor = conn.cursor()
         
         # 1. Competitions (不需要批量查中间表，直接查 CompetitionManager)
@@ -1956,7 +1963,7 @@ class AwardManager:
                                         logger.info(f"[_eager_load_associations] ⚠️ 奖状 ID={award_obj.id} 从 winner_name 重新匹配到学生: student_id={cached_student.id}, name={cached_student.name}")
                                         # 保存到数据库
                                         try:
-                                            with sqlite3.connect(self.db_path) as save_conn:
+                                            with contextlib.closing(get_connection(self.db_path)) as save_conn:
                                                 save_cursor = save_conn.cursor()
                                                 save_cursor.execute("INSERT OR IGNORE INTO award_student_winners (award_id, student_id) VALUES (?, ?)", 
                                                                   (award_obj.id, cached_student.id))
@@ -2034,7 +2041,7 @@ class AwardManager:
                     if cached:
                         new_teacher_winners.append(cached)
                         try:
-                            with sqlite3.connect(self.db_path) as save_conn:
+                            with contextlib.closing(get_connection(self.db_path)) as save_conn:
                                 save_cursor = save_conn.cursor()
                                 save_cursor.execute(
                                     "INSERT OR IGNORE INTO award_teacher_winners (award_id, teacher_id) VALUES (?, ?)",
@@ -2129,7 +2136,9 @@ class AwardManager:
             self.awards.remove(award_to_delete)
         
         # 同步到数据库
-        conn = sqlite3.connect(self.db_path)
+        from backend.utils.db_connection import get_connection
+
+        return get_connection(self.db_path)
         cursor = conn.cursor()
         try:
             # 1. Delete associations

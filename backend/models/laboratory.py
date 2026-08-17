@@ -79,8 +79,9 @@ class LaboratoryManager:
     
     def _get_db_connection(self):
         """获取数据库连接"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        from backend.utils.db_connection import get_connection
+
+        return get_connection(self.db_path)
         return conn
     
     def _init_db(self):
