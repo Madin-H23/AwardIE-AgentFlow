@@ -7,6 +7,13 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def _require_real_db():
+    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
+    import pytest
+    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+        pytest.skip("CI 环境无真实库文件")
+
+
 
 class TestFrontendStream:
     def test_eventsource_wired(self):
@@ -45,6 +52,7 @@ class TestTimelineEndpoint:
         assert c.get("/api/audit/timeline/hack/1").status_code == 400
 
     def test_valid_kind_returns_timeline(self):
+        _require_real_db()
         from config.flask import TestingConfig
         from app import create_app
         app = create_app(TestingConfig)

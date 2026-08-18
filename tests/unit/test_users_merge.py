@@ -9,6 +9,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def _require_real_db():
+    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
+    import pytest
+    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+        pytest.skip("CI 环境无真实库文件")
+
+from tests.fixtures.schemas import USERS_DDL
+
 
 @pytest.fixture()
 def migrated_db(tmp_path):
@@ -18,11 +26,7 @@ def migrated_db(tmp_path):
     conn.execute("CREATE TABLE admins(username TEXT PRIMARY KEY, name TEXT, password_hash TEXT, user_activated INTEGER DEFAULT 1, needs_password_change INTEGER DEFAULT 0)")
     conn.execute("CREATE TABLE students(student_id TEXT PRIMARY KEY, name TEXT, password_hash TEXT, role TEXT DEFAULT 'student', user_activated INTEGER DEFAULT 1, needs_password_change INTEGER DEFAULT 0)")
     conn.execute("CREATE TABLE teachers(teacher_id TEXT PRIMARY KEY, name TEXT, password_hash TEXT, role TEXT DEFAULT 'teacher', user_activated INTEGER DEFAULT 1, needs_password_change INTEGER DEFAULT 0)")
-    # users DDL 从真实库反射（保证与双写函数全列对齐）
-    real = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
-    users_ddl = real.execute("SELECT sql FROM sqlite_master WHERE name='users'").fetchone()[0]
-    real.close()
-    conn.execute(users_ddl)
+    conn.execute(USERS_DDL)   # 共享 schema（CI 无真实库文件，不得反射）
     conn.execute("INSERT INTO students VALUES ('s1','张三',?,'student',1,0)", (generate_password_hash('GoodPass123'),))
     conn.execute("INSERT INTO users(login_code,name,role,password_hash) VALUES ('s1','张三','student',?)",
                  (generate_password_hash('GoodPass123'),))
@@ -87,7 +91,8 @@ class TestDualWrite:
 
 class TestMigrationIntegrity:
     def test_real_db_counts(self):
-        """真实库对账：users 总数 == 三表之和；映射无空。"""
+        """真实库对账：users 总数 == 三表之和；映射无空（CI 无库则跳过）。"""
+        _require_real_db()
         conn = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
         n_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         n_old = sum(conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]

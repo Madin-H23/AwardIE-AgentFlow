@@ -10,25 +10,13 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
-
-PENDING_DDL = """CREATE TABLE pending_achievements (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    achievement_type TEXT, achievement_data TEXT,
-    submitter_type TEXT, submitter_id INTEGER,
-    status TEXT DEFAULT 'pending', version INTEGER DEFAULT 1,
-    reviewer_type TEXT, reviewer_id INTEGER, review_comment TEXT, review_time TEXT,
-    ext_info TEXT)"""
-
+from tests.fixtures.schemas import PENDING_ACHIEVEMENTS_DDL as PENDING_DDL
 
 @pytest.fixture()
 def pm(tmp_path):
     db = tmp_path / "t.db"
-    # 从真实库反射建表 DDL（保证与 manager SELECT * 全列对齐，永不漂移）
-    real = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
-    ddl = real.execute("SELECT sql FROM sqlite_master WHERE name='pending_achievements'").fetchone()[0]
-    real.close()
     conn = sqlite3.connect(str(db))
-    conn.execute(ddl)
+    conn.execute(PENDING_DDL)   # 共享 schema（CI 无真实库文件，不得反射）
     conn.execute("INSERT INTO pending_achievements (achievement_type, achievement_data, submitter_type, submitter_id, status, ext_info) "
                  "VALUES ('award','{}','student',7,'submit','{\"agent_review\":{\"decision\":\"pass\"}}')")
     conn.execute("INSERT INTO pending_achievements (achievement_type, achievement_data, submitter_type, submitter_id, status) "

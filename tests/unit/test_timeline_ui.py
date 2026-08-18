@@ -5,6 +5,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def _require_real_db():
+    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
+    import pytest
+    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+        pytest.skip("CI 环境无真实库文件")
+
+
 SRC = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "results.html").read_text(encoding="utf-8")
 
 
@@ -29,6 +36,7 @@ class TestTimelineUI:
         assert "rejectAward(" in SRC
 
     def test_endpoint_feeds_ui_format(self):
+        _require_real_db()
         """端点返回字段与 UI 消费对齐（action/operator_role/is_ai/created_at/remark）。"""
         from config.flask import TestingConfig
         from app import create_app

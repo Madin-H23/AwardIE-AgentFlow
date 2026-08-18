@@ -7,17 +7,22 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def _require_real_db():
+    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
+    import pytest
+    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+        pytest.skip("CI 环境无真实库文件")
+
+from tests.fixtures.schemas import PENDING_ACHIEVEMENTS_DDL as PENDING_DDL
+
 
 # ---------- P1-8 ----------
 @pytest.fixture()
 def pm(tmp_path):
     import sqlite3
     db = tmp_path / "t.db"
-    real = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
-    ddl = real.execute("SELECT sql FROM sqlite_master WHERE name='pending_achievements'").fetchone()[0]
-    real.close()
     conn = sqlite3.connect(str(db))
-    conn.execute(ddl)
+    conn.execute(PENDING_DDL)   # 共享 schema（CI 无真实库文件，不得反射）
     conn.execute("INSERT INTO pending_achievements (achievement_type, achievement_data, submitter_type, submitter_id, status) "
                  "VALUES ('award','{}','student',7,'submit')")
     conn.commit()
@@ -73,7 +78,8 @@ class TestForcedPasswordChange:
 
 class TestHealth:
     def test_health_includes_db_and_breaker(self):
-        """health 返回 db 探活 + 熔断状态（P2 假绿修复）。"""
+        """health 返回 db 探活 + 熔断状态（P2 假绿修复）；db=True 依赖真实库。"""
+        _require_real_db()
         from config.flask import TestingConfig
         from app import create_app
         app = create_app(TestingConfig)

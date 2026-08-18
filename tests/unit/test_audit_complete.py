@@ -7,6 +7,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
+from tests.fixtures.schemas import PENDING_ACHIEVEMENTS_DDL as PENDING_DDL, AUDIT_LOG_DDL
 
 
 class TestWiring:
@@ -29,13 +30,9 @@ class TestEndToEnd:
     def test_withdraw_writes_audit(self, tmp_path, monkeypatch):
         """端到端：撤回动作落 audit_log（临时库）。"""
         db = tmp_path / "a.db"
-        real = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
-        ddl_p = real.execute("SELECT sql FROM sqlite_master WHERE name='pending_achievements'").fetchone()[0]
-        ddl_a = real.execute("SELECT sql FROM sqlite_master WHERE name='achievement_audit_log'").fetchone()[0]
-        real.close()
         conn = sqlite3.connect(str(db))
-        conn.execute(ddl_p)
-        conn.execute(ddl_a)
+        conn.execute(PENDING_DDL)
+        conn.execute(AUDIT_LOG_DDL)
         conn.execute("INSERT INTO pending_achievements (achievement_type, achievement_data, submitter_type, submitter_id, status) "
                      "VALUES ('award','{}','student',7,'submit')")
         conn.commit()
@@ -56,11 +53,8 @@ class TestEndToEnd:
         """动作9 的 change_detail 结构（field/old/new）。"""
         import json
         db = tmp_path / "b.db"
-        real = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
-        ddl_a = real.execute("SELECT sql FROM sqlite_master WHERE name='achievement_audit_log'").fetchone()[0]
-        real.close()
         conn = sqlite3.connect(str(db))
-        conn.execute(ddl_a)
+        conn.execute(AUDIT_LOG_DDL)
         conn.commit()
         conn.close()
         from backend.utils.audit_logger import AuditLogger

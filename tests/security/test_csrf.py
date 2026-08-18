@@ -8,6 +8,13 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+def _require_real_db():
+    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
+    import pytest
+    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+        pytest.skip("CI 环境无真实库文件")
+
+
 LOGIN = "/login"   # auth 蓝图无 url_prefix
 
 
@@ -34,6 +41,7 @@ def test_post_without_token_rejected(client):
 
 
 def test_post_with_token_passes_csrf_layer(client):
+    _require_real_db()
     """带合法 Token 的 POST 穿过 CSRF 层（到达业务层，凭据错非 400）。"""
     token = _meta_token(client)
     assert token, "登录页未输出 meta token"

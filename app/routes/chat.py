@@ -229,14 +229,19 @@ def chat_stream():
 def health():
     """健康检查：依赖安装 + 数据层可达 + 熔断状态（P2 假绿修复）。"""
     result = _check_capability()
-    # 数据层：主库可读
+    # 数据层：主库可读（存在性预检——sqlite3.connect 对不存在文件会创建空库，探活不得有副作用）
     try:
+        from pathlib import Path as _P
         from config.loader import get_config
-        from backend.utils.db_connection import get_connection
-        conn = get_connection(get_config().get_path('database', 'competitions_db'))
-        conn.execute("SELECT 1").fetchone()
-        conn.close()
-        result["db"] = True
+        db_path = get_config().get_path('database', 'competitions_db')
+        if not _P(db_path).exists():
+            result["db"] = False
+        else:
+            from backend.utils.db_connection import get_connection
+            conn = get_connection(db_path)
+            conn.execute("SELECT 1").fetchone()
+            conn.close()
+            result["db"] = True
     except Exception:
         result["db"] = False
     # 熔断状态（不主动拨测外部服务，避免产生费用——以熔断器状态为准）
