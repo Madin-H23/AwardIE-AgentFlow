@@ -233,6 +233,8 @@ def build_chat_model(
         # P1-6：LLM 调用必须带超时与重试上限（原缺失——网络抖动会让 worker 无限阻塞）
         "timeout": int(cfg.get("timeout", 30)),
         "max_retries": int(cfg.get("max_retries", 3)),
+        # M1：单请求输出上限（防滥用长生成失控成本；AI 层设计 §8，默认 1024）
+        "max_tokens": int(cfg.get("max_tokens", 1024)),
     }
     if extra_kwargs:
         kwargs.update(extra_kwargs)

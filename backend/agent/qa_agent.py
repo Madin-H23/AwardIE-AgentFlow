@@ -102,4 +102,40 @@ def answer_question(
     }
 
 
-__all__ = ["answer_question", "QA_SYSTEM_PROMPT"]
+def stream_answer(config_loader, vectorstore, llm, question: str,
+                  *, filter=None, top_k=None):
+    """流式 RAG 问答（T23）：逐 token yield，结束后 yield {'__sources__': [...]} 收尾标记。
+
+    用法:
+        for chunk in stream_answer(...):
+            if isinstance(chunk, str):      # 增量文本
+            else:                           # {'__sources__': [...]} 引用来源
+    """
+    docs = retrieve(config_loader, vectorstore, question, filter=filter, top_k=top_k)
+    context = format_context(docs)
+    sources = [
+        {"name": d.metadata.get("name", ""), "level": d.metadata.get("level", ""),
+         "category": d.metadata.get("category", "")}
+        for d in docs
+    ]
+    # M1 输入截断：防超长 prompt 失控成本
+    question = question[:4000]
+    messages = [
+        {"role": "system", "content": QA_SYSTEM_PROMPT.format(context=context)},
+        {"role": "user", "content": question},
+    ]
+    logger.info("QA Agent 流式回答: %r（检索 %d 条）", question, len(docs))
+    try:
+        for chunk in llm.stream(messages):
+            text = chunk.content if hasattr(chunk, "content") else str(chunk)
+            if text:
+                yield text
+    except Exception as e:
+        logger.warning("流式输出异常，降级为完整调用: %s", e)
+        response = llm.invoke(messages)
+        answer = response.content if hasattr(response, "content") else str(response)
+        yield answer
+    yield {"__sources__": sources}
+
+
+__all__ = ["answer_question", "stream_answer", "QA_SYSTEM_PROMPT"]
