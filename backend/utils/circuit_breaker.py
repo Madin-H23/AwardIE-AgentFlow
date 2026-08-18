@@ -39,6 +39,8 @@ class CircuitBreaker:
         """open 冷却期过 -> half_open（惰性转换；供 state 读取与记录函数共用）。"""
         if self._state == "open" and time.time() - self._opened_at >= self.cooldown:
             self._state = "half_open"
+            from backend.utils.metrics import set_breaker
+            set_breaker(self.name, "half_open")
 
     def remaining(self) -> int:
         with self._mutex:
@@ -61,6 +63,8 @@ class CircuitBreaker:
                     self._fails = []
                     self._half_ok = 0
                     logger.info("[breaker] %s 恢复 closed", self.name)
+                    from backend.utils.metrics import set_breaker
+                    set_breaker(self.name, "closed")
             else:
                 self._fails = []          # closed 态成功清失败窗口；半开计数只在复位时清
 
@@ -80,6 +84,8 @@ class CircuitBreaker:
         self._opened_at = time.time()
         self._half_ok = 0
         logger.warning("[breaker] %s 熔断开启（cooldown=%ss）", self.name, self.cooldown)
+        from backend.utils.metrics import set_breaker
+        set_breaker(self.name, "open")
 
     # ---------- 守卫上下文 ----------
     def guard(self):

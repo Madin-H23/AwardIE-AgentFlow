@@ -17,6 +17,14 @@ def health():
     return jsonify({'status': 'ok', 'message': 'API is running'})
 
 
+@bp.route('/metrics')
+def metrics_export():
+    """Prometheus 指标暴露（4.7/部署 §3——仅内网访问，nginx 侧可加白名单）。"""
+    from backend.utils.metrics import exporter_response
+    body, code, headers = exporter_response()
+    return body, code, headers
+
+
 @bp.route('/audit/timeline/<kind>/<int:entity_id>')
 @require_role_api('admin', 'teacher')
 def audit_timeline(kind, entity_id):

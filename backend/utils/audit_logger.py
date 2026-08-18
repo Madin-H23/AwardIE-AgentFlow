@@ -83,12 +83,16 @@ class AuditLogger:
                      ai_batch_id, detail, remark),
                 )
                 conn.commit()
+                from backend.utils.metrics import inc_audit
+                inc_audit(True)
                 return True
             finally:
                 conn.close()
         except Exception as e:  # noqa: BLE001 —— 契约：留痕失败不阻塞主业务
             logger.warning("[audit] 留痕写入失败（已吞掉，不影响主流程）: action=%s achievement=%s err=%s",
                            action_type, achievement_id, e)
+            from backend.utils.metrics import inc_audit
+            inc_audit(False)
             return False
 
 
