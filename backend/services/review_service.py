@@ -969,6 +969,15 @@ class ReviewService:
                 achievement_data=data
             )
             
+            # P1-13 留痕：动作9=修改字段（before/after diff 入 change_detail）
+            try:
+                from backend.utils.audit_logger import audit_log
+                audit_log(9, pending.id, pending.achievement_type,
+                          operator={"id": modifier.reviewer_id, "code": str(modifier.reviewer_id),
+                                    "user_type": modifier.reviewer_type},
+                          change_detail={"field": field_name, "old": old_value, "new": new_value})
+            except Exception:
+                pass
             # 记录修改
             modification = {
                 'field': field_name,

@@ -2538,6 +2538,13 @@ def withdraw_submission(pending_id):
         session_id = getattr(pending, 'session_id', None) or (pending.get_achievement_data() or {}).get('import_session_id')
         tab_type = pending.achievement_type or 'award'
         pending_manager.update(pending, status='pending')
+        # P1-13 留痕：动作11=撤回
+        try:
+            from backend.utils.audit_logger import audit_log
+            audit_log(11, pending_id, pending.achievement_type,
+                      operator={"id": teacher.id, "code": str(teacher.teacher_id), "user_type": "teacher"})
+        except Exception:
+            pass
         flash('已撤回，可重新编辑并提交', 'success')
         return redirect(url_for('teacher.achievement_submit_results', session_id=session_id, tab=tab_type))
     except Exception as e:
@@ -2985,6 +2992,13 @@ def api_achievement_review_batch_discard():
                 count += project_count
                 if result.get('file_deleted'):
                     files_deleted += 1
+                # P1-13 留痕：动作10=放弃（教师审核侧）
+                try:
+                    from backend.utils.audit_logger import audit_log
+                    audit_log(10, pid, item.achievement_type,
+                              operator={"id": user_id, "code": str(user_id), "user_type": "teacher"})
+                except Exception:
+                    pass
 
         return jsonify({
             'success': True,
