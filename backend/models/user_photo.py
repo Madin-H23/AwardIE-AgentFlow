@@ -225,8 +225,8 @@ class UserPhotoManager:
                 relative_thumbnail,
                 photo_data.get('photo_type', 'personal_gallery'),
                 photo_data.get('description'),
-                submitter_type,
-                submitter_id,
+                photo_data.get('submitter_type', 'student'),
+                photo_data.get('submitter_id', 0),
                 photo_data.get('laboratory_id'),
                 1 if photo_data.get('is_public', True) else 0,
                 photo_data.get('display_order', 0)
