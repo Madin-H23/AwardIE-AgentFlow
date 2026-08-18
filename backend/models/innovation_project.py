@@ -392,11 +392,9 @@ class InnovationProjectManager:
             conn.close()
 
     def _get_db_connection(self):
-        """Get database connection"""
+        """Get database connection（含外键 pragma——L3 曾把 conn= 误改 return 致其成死码）"""
         from backend.utils.db_connection import get_connection
-
-        return get_connection(self.db_path)
-        # 启用外键约束
+        conn = get_connection(self.db_path)
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
 

@@ -1,5 +1,6 @@
 import sqlite3
 import contextlib
+from backend.utils.db_connection import get_connection
 import json
 import logging
 import re
@@ -1872,9 +1873,7 @@ class AwardManager:
         placeholders = ",".join("?" for _ in award_ids)
         
         from backend.utils.db_connection import get_connection
-
-        
-        return get_connection(self.db_path)
+        conn = get_connection(self.db_path)
         cursor = conn.cursor()
         
         # 1. Competitions (不需要批量查中间表，直接查 CompetitionManager)
@@ -2135,7 +2134,7 @@ class AwardManager:
         # 同步到数据库
         from backend.utils.db_connection import get_connection
 
-        return get_connection(self.db_path)
+        conn = get_connection(self.db_path)
         cursor = conn.cursor()
         try:
             # 1. Delete associations

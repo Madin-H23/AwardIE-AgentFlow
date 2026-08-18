@@ -2,6 +2,7 @@
 实验室管理模块
 支持实验室的创建、查询、更新、删除，以及学生和教师的关联管理
 """
+from __future__ import annotations
 import sqlite3
 import logging
 from typing import List, Optional, Dict, Set
@@ -11,8 +12,8 @@ from pathlib import Path
 # 导入类型提示（避免循环导入）
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from backend.models.student import Student
-    from backend.models.teacher import Teacher
+    from backend.models.student import Student, StudentManager
+    from backend.models.teacher import Teacher, TeacherManager
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,8 @@ class LaboratoryManager:
     """实验室管理器：内存缓存、CRUD操作、数据库同步"""
     
     def __init__(self, db_path: str, 
-                 student_manager: Optional['StudentManager'] = None,
-                 teacher_manager: Optional['TeacherManager'] = None):
+                 student_manager: Optional[StudentManager] = None,
+                 teacher_manager: Optional[TeacherManager] = None):
         """
         初始化实验室管理器
         
@@ -82,7 +83,6 @@ class LaboratoryManager:
         from backend.utils.db_connection import get_connection
 
         return get_connection(self.db_path)
-        return conn
     
     def _init_db(self):
         """初始化数据库表"""

@@ -671,8 +671,8 @@ class AwardExtractor(Extractor):
             template = None
             default_prompt = None
             template_default_fields = {}
-            matched_template_id = None
-            matched_template_name = None
+            template_id = None
+            template_name = None
 
             use_default_prompt_only = getattr(ctx, 'use_default_prompt_only', None)
             if use_default_prompt_only and self._template_manager:
@@ -694,11 +694,11 @@ class AwardExtractor(Extractor):
                 
                 # 保存模板信息（即使为None也要保存）
                 if template:
-                    matched_template_id = template.template_id
-                    matched_template_name = template.get_display_name()
+                    template_id = template.template_id
+                    template_name = template.get_display_name()
                 else:
-                    matched_template_id = None
-                    matched_template_name = None
+                    template_id = None
+                    template_name = None
 
             # 5. 生成提示词
             if template:
@@ -726,7 +726,7 @@ class AwardExtractor(Extractor):
 
             # 6. 调用LLM抽取结构化数据
             if not ctx.llm_engine:
-                return self._other_result("LLM引擎未配置", template_id=matched_template_id, template_name=matched_template_name)
+                return self._other_result("LLM引擎未配置", template_id=template_id, template_name=template_name)
 
             try:
                 llm_content, llm_cache_hit = ctx.llm_engine.chat(
@@ -736,17 +736,17 @@ class AwardExtractor(Extractor):
                 )
 
                 if not llm_content:
-                    return self._other_result("LLM调用失败", template_id=matched_template_id, template_name=matched_template_name)
+                    return self._other_result("LLM调用失败", template_id=template_id, template_name=template_name)
 
             except Exception as e:
                 logger.error(f"LLM调用异常: {e}")
-                return self._other_result(user_facing_message(e), template_id=matched_template_id, template_name=matched_template_name)
+                return self._other_result(user_facing_message(e), template_id=template_id, template_name=template_name)
 
             # 7. 解析LLM响应
             data = self._parse_llm_response(llm_content)
 
             if not data:
-                return self._other_result("LLM响应解析失败", template_id=matched_template_id, template_name=matched_template_name)
+                return self._other_result("LLM响应解析失败", template_id=template_id, template_name=template_name)
 
             # 7.1 如果year为空，尝试从date或edition字段提取年份
             year = data.get('year')
@@ -791,7 +791,7 @@ class AwardExtractor(Extractor):
             # 9. 检查奖状有效性（手动导入/创建模板时跳过，直接使用抽取结果）
             force_type = getattr(ctx, 'force_type', None)
             if not force_type and not self._check_valid_certificate(data):
-                return self._other_result("不是真实的奖状证书（可能是获奖通知、空白模板等）", template_id=matched_template_id, template_name=matched_template_name)
+                return self._other_result("不是真实的奖状证书（可能是获奖通知、空白模板等）", template_id=template_id, template_name=template_name)
 
             # 10. 清理数据
             #data = self._clean_data(data)
@@ -799,13 +799,13 @@ class AwardExtractor(Extractor):
             # 11. 补丁：如果 competition_name 为空，尝试从模板关联的竞赛中获取
             competition_name = data.get("competition_name")
             if not competition_name or not str(competition_name).strip():
-                if matched_template and hasattr(matched_template, 'competition_id') and matched_template.competition_id:
+                if template and hasattr(template, 'competition_id') and template.competition_id:
                     # 尝试从模板管理器中获取竞赛信息
                     try:
                         from backend.extract.template.manager import get_template_manager
                         template_manager = get_template_manager()
                         if hasattr(template_manager, 'competition_manager'):
-                            competition = template_manager.competition_manager.get_competition_by_id(matched_template.competition_id)
+                            competition = template_manager.competition_manager.get_competition_by_id(template.competition_id)
                             if competition and hasattr(competition, 'competition_name') and competition.competition_name:
                                 data["competition_name"] = competition.competition_name
                                 competition_name = competition.competition_name
@@ -828,13 +828,13 @@ class AwardExtractor(Extractor):
             if not force_type:
                 # 自动模式：检查三个关键字段是否都非空
                 if not competition_name or not str(competition_name).strip():
-                    return self._other_result("缺少竞赛名称（competition_name），无法识别为有效奖状", template_id=matched_template_id, template_name=matched_template_name)
+                    return self._other_result("缺少竞赛名称（competition_name），无法识别为有效奖状", template_id=template_id, template_name=template_name)
 
                 if not winner_name or not str(winner_name).strip():
-                    return self._other_result("缺少获奖者信息（winner_name），无法识别为有效奖状", template_id=matched_template_id, template_name=matched_template_name)
+                    return self._other_result("缺少获奖者信息（winner_name），无法识别为有效奖状", template_id=template_id, template_name=template_name)
 
                 if not award_level or not str(award_level).strip():
-                    return self._other_result("缺少获奖等级（award_level），无法识别为有效奖状", template_id=matched_template_id, template_name=matched_template_name)
+                    return self._other_result("缺少获奖等级（award_level），无法识别为有效奖状", template_id=template_id, template_name=template_name)
             else:
                 # 手动导入模式：记录警告，但继续处理
                 logger.info(f"[手动导入] 跳过严格验证，允许字段为空")
@@ -843,8 +843,8 @@ class AwardExtractor(Extractor):
             is_english = self._is_english_certificate(ocr_text)
             metadata = {
                 "is_english": is_english,
-                "template_id": matched_template_id,
-                "template_name": matched_template_name
+                "template_id": template_id,
+                "template_name": template_name
             }
             ocr_warning = getattr(ctx.ocr_engine, "last_ocr_warning", None)
             if ocr_warning:

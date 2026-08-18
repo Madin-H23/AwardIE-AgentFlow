@@ -4,6 +4,12 @@ Pending Achievement Management Module
 Handles pending achievements awaiting review (待审核成果).
 Supports the review workflow for student/teacher submissions.
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.extract.types import ExtractResult
+    from backend.models.laboratory import LaboratoryManager
 import sqlite3
 import logging
 import json
@@ -936,7 +942,7 @@ class PendingAchievementManager:
 
     def create_from_extract_result(
         self,
-        extract_result: 'ExtractResult',  # 避免循环导入，使用字符串引用
+        extract_result: ExtractResult,  # 避免循环导入，使用字符串引用
         submitter_type: str,
         submitter_id: int,
         file_path: str,
@@ -1032,7 +1038,7 @@ class PendingAchievementManager:
     def update_from_extract_result(
         self,
         pending_id: int,
-        extract_result: 'ExtractResult',
+        extract_result: ExtractResult,
         file_path: str,
         file_hash: str,
         submitter_type: Optional[str] = None,
@@ -1110,7 +1116,7 @@ class PendingAchievementManager:
                 getattr(extract_result, 'llm_prompt', None),
                 getattr(extract_result, 'llm_response', None),
                 ext_info_json,
-                ext_info.get('session_id') if isinstance(ext_info, dict) else None,
+                (json.loads(ext_info_json).get('session_id') if isinstance(ext_info_json, str) else None),
                 pending_id
             ))
             
@@ -1135,7 +1141,7 @@ class PendingAchievementManager:
         self,
         submitter_type: str,
         submitter_id: int,
-        laboratory_manager: Optional['LaboratoryManager'] = None
+        laboratory_manager: Optional[LaboratoryManager] = None
     ) -> str:
         """
         确定审核人类型
@@ -1365,7 +1371,7 @@ class PendingAchievementManager:
         self,
         teacher_id: int,
         pending_id: int,
-        laboratory_manager: Optional['LaboratoryManager'] = None
+        laboratory_manager: Optional[LaboratoryManager] = None
     ) -> bool:
         """
         验证教师是否可以审核指定记录

@@ -122,7 +122,6 @@ class UserPhotoManager:
         from backend.utils.db_connection import get_connection
 
         return get_connection(self.db_path)
-        return conn
 
     def _load_all_from_db(self):
         """Load all user photos from database"""
@@ -199,8 +198,7 @@ class UserPhotoManager:
             target_path, relative_path = file_manager.save_business_file_from_path(
                 FileType.OTHER, source, target_filename, delete_source=False
             )
-
-            # Create thumbnail if requested
+            target_dir = Path(target_path).parent   # 补定义（D4 半成品断码：thumbnail 用）
             thumbnail_path = None
             if create_thumbnail:
                 try:
@@ -209,8 +207,10 @@ class UserPhotoManager:
                     logger.warning(f"Failed to create thumbnail: {e}")
 
             # Prepare fields
-            relative_path = f"users/{submitter_type}/{submitter_id}/photos/{target_filename}"
-            relative_thumbnail = f"users/{submitter_type}/{submitter_id}/photos/{thumbnail_path}" if thumbnail_path else None
+            _st = photo_data.get('submitter_type', 'student')
+            _sid = photo_data.get('submitter_id', 0)
+            relative_path = f"users/{_st}/{_sid}/photos/{target_filename}"
+            relative_thumbnail = f"users/{_st}/{_sid}/photos/{thumbnail_path}" if thumbnail_path else None
 
             fields = [
                 "file_name", "file_path", "file_hash", "thumbnail_path",

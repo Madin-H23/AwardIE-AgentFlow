@@ -107,7 +107,6 @@ class PatentManager:
         from backend.utils.db_connection import get_connection
 
         return get_connection(self.db_path)
-        return conn
 
     def _load_all_from_db(self):
         """Load all patents from database"""
