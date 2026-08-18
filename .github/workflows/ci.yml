@@ -44,8 +44,10 @@ jobs:
             tests/unit/test_audit_complete.py tests/unit/test_workflow_progress.py tests/unit/test_stage3_batchA.py \
             tests/unit/test_cache_targeted.py tests/unit/test_frontend_timeline.py tests/unit/test_stage2_finish.py \
             tests/unit/test_reject_button_embedding.py tests/unit/test_ci_assets.py tests/unit/test_metrics_backup.py \
-            # 覆盖率门禁统计本重构新增的核心模块（实测 86%）；存量代码全量覆盖为二期趋势（T24）
-            --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics             --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error             --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision             --cov-report=term --cov-fail-under=70
+            --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics \
+            --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error \
+            --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision \
+            --cov-report=term --cov-fail-under=70
 
       - name: Audit（依赖漏洞扫描，高危阻断）
         run: |
