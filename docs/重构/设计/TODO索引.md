@@ -39,3 +39,4 @@
 | T21 | 存量测试环境隔离修复（test_llm_adapter 依赖本机无 key 假设、test_data_analysis 依赖真实库数据；基线即挂 5 例，与本批无关） | 全量回归 2026-08-17 发现 | 阶段二 |
 | T22 | admin.py 4 处"重置为默认密码"改造为随机强密码一次性下发（配合 password_policy.generate_strong_password，涉及 UI 文案） | P2-28 配套 | 阶段二 |
 | T23 | 存量 F821 未定义名清账（38 处，条件分支才触发的隐患；已修必炸两处：auth.jsonify/user_photo；其余含 extract 模板路径等） | ruff 全量 CI 抓出 2026-08-18 | 二期 |
+| T24 | 存量代码全量覆盖率提升（当前 12.85%；核心模块已 86%——存量路由/服务测试补齐后逐步提升全量指标） | CI cov 收窄 2026-08-18 | 二期 |
