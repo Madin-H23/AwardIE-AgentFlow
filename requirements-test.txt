@@ -1,0 +1,21 @@
+# CI 测试专用最小依赖集（生产全量见 requirements-cpu.txt——含 paddle 189MB，CI 不需要）
+# 覆盖 tests/ 实际 import 面；新增测试若引入新第三方依赖，须在此补充
+flask>=3.0.0
+flask-wtf>=1.2.0
+werkzeug>=3.0.6
+jinja2>=3.1.0
+pyyaml>=6.0.0
+python-dotenv>=1.0.0
+requests>=2.32.0
+pydantic>=2.0.0
+prometheus-client>=0.20.0
+openai>=1.0.0
+langchain>=0.3.0
+langchain-core>=0.3.81
+langchain-openai>=0.2.0
+langgraph>=0.2.0
+pillow>=10.0.0
+pytest>=7.0.0
+pytest-cov>=4.0.0
+iniconfig>=2.0.0
+openpyxl>=3.1.0

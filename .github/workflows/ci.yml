@@ -18,8 +18,8 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: 安装依赖
-        run: pip install -r requirements-cpu.txt ruff pip-audit pytest pytest-cov -i https://pypi.tuna.tsinghua.edu.cn/simple
+      - name: 安装依赖（测试最小集——CI 不装 paddle/OCR 生产全量，避免大包安装被取消）
+        run: pip install -r requirements-test.txt ruff pip-audit -i https://pypi.tuna.tsinghua.edu.cn/simple
 
       - name: Lint（ruff 语法级 + 静态门禁）
         run: |
@@ -33,7 +33,8 @@ jobs:
 
       - name: Test（含覆盖率门禁 70%，CR-3）
         run: |
-          pytest tests/security/ tests/unit/test_db_connection.py tests/unit/test_no_rotate_heuristic.py \
+          # -p no:langsmith：langchain 生态拉入的 langsmith pytest 插件在最小依赖集下会污染 collection
+          pytest -p no:langsmith tests/security/ tests/unit/test_db_connection.py tests/unit/test_no_rotate_heuristic.py \
             tests/unit/test_password_policy.py tests/unit/test_seed.py tests/unit/test_audit_logger.py \
             tests/unit/test_reject_archive.py tests/unit/test_idempotency.py tests/unit/test_app_error.py \
             tests/unit/test_circuit_breaker.py tests/unit/test_workflow_singleton.py tests/unit/test_sse_stream.py \
