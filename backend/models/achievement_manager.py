@@ -54,10 +54,9 @@ class AchievementManager:
         self._load_all_from_db()
     
     def _get_db_connection(self):
-        """获取数据库连接"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        """获取数据库连接（已废弃类；仍走统一工厂满足 CI 静态门禁 P0-4/5/7）"""
+        from backend.utils.db_connection import get_connection
+        return get_connection(self.db_path)
     
     def _load_all_from_db(self):
         """从数据库加载所有成果"""
