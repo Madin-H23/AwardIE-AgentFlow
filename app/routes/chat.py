@@ -135,7 +135,77 @@ def chat_stream():
                 "role": session.get("role"), "name": session.get("user_name"),
                 "user_id": session.get("user_id"), "user_type": session.get("user_type"),
             }
-            result = _dispatch(message, mode, user_context)     # 同步处理（流式化见 T23）
+            # T23：qa 模式真流式（逐 token delta）；auto/tools 仍整段（workflow 流式化另行）
+            if mode == "qa":
+                try:
+                    from config.loader import get_config
+                    from backend.agent.llm_adapter import build_chat_model
+                    from backend.rag.embeddings import build_embeddings
+                    from backend.rag.vectorstore import build_vectorstore
+                    from backend.agent.qa_agent import stream_answer
+                    cl = get_config()
+                    llm = build_chat_model(cl, streaming=True)
+                    vs = build_vectorstore(cl, build_embeddings(cl))
+                    if vs is None:
+                        yield from sse("delta", {"text": "知识库未初始化，无法回答竞赛规则问题"})
+                        yield from sse("done", {"answer": "知识库未初始化", "sources": [],
+                                                "steps": [], "mode_used": "rag_qa"})
+                        return
+                    answer_parts = []
+                    sources = []
+                    for chunk in stream_answer(cl, vs, llm, message):
+                        if isinstance(chunk, str):
+                            answer_parts.append(chunk)
+                            yield from sse("delta", {"text": chunk})
+                        else:
+                            sources = chunk.get("__sources__", [])
+                    if sources:
+                        yield from sse("source", {"docs": sources})
+                    yield from sse("done", {"answer": "".join(answer_parts), "sources": sources,
+                                            "steps": [{"agent": "qa", "status": "done"}],
+                                            "mode_used": "rag_qa"})
+                    return
+                except ImportError as e:
+                    yield from sse("error", {"code": 503, "message": f"依赖未安装: {e}"})
+                    return
+            # T23 auto 模式：节点级 progress 流（AI 正在抽取/审核…）+ 最终整段结果
+            if mode == "auto":
+                try:
+                    from backend.agent.graph.workflow import MultiAgentWorkflow
+                    from config.loader import get_config
+                    wf = MultiAgentWorkflow.get_default(get_config())
+                    NODE_LABELS = {"supervisor": "路由决策", "extraction": "AI 抽取中",
+                                   "review": "AI 审核中", "qa": "知识检索中", "tools": "数据操作中"}
+                    final = None
+                    for ev in wf.run_stream(task_type="auto", message=message,
+                                            user_context=user_context):
+                        if "__final__" in ev:
+                            final = ev["__final__"]
+                        else:
+                            yield from sse("progress", {"node": ev.get("node", ""),
+                                                        "label": NODE_LABELS.get(ev.get("node", ""), ev.get("node", ""))})
+                    if final is not None:
+                        qa = final.get("qa_context") or {}
+                        review = final.get("review_result")
+                        extraction = final.get("extraction_result")
+                        answer = qa.get("answer")
+                        if not answer and (review or extraction):
+                            answer = "已完成材料抽取与智能审核，详见下方结果卡片。"
+                        result = {"answer": answer or "(工作流未产生回答)",
+                                  "sources": qa.get("sources", []),
+                                  "steps": final.get("steps", []),
+                                  "mode_used": "multi_agent",
+                                  "review": review, "extraction": extraction}
+                        if result.get("sources"):
+                            yield from sse("source", {"docs": result["sources"]})
+                        yield from sse("delta", {"text": result["answer"]})
+                        yield from sse("done", result)
+                        return
+                except ImportError:
+                    pass   # 回退 _dispatch
+                except Exception:
+                    logger.exception("auto 流式执行异常，回退 _dispatch")
+            result = _dispatch(message, mode, user_context)     # tools / auto 回退路径
             if result.get("sources"):
                 yield from sse("source", {"docs": result["sources"]})
             yield from sse("delta", {"text": result.get("answer", "")})

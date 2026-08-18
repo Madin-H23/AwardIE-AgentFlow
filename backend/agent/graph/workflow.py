@@ -179,6 +179,43 @@ class MultiAgentWorkflow:
         final_state = self.graph.invoke(initial_state, config=run_config)
         return final_state
 
+    def run_stream(self, *, task_type: str = "qa", message: Optional[str] = None,
+                   file_path: Optional[str] = None,
+                   user_context: Optional[Dict[str, Any]] = None,
+                   thread_id: Optional[str] = None):
+        """流式执行（T23 auto 模式）：逐节点 yield 进度，最终 yield 完整 state。
+
+        yield：{"node": "supervisor"} / {"node": "extraction"} / ... / {"__final__": state}
+        节点级进度——多智能体场景用户要看"AI 正在抽取/审核"的过程；
+        诚实标注：LangGraph updates 模式不回传最终态，末尾补一次 invoke 取全量结果
+        （单机课程项目双跑成本可接受；生产可改 values 模式或状态累积）。
+        """
+        from langchain_core.messages import HumanMessage
+
+        initial_state: Dict[str, Any] = {
+            "task_type": task_type,
+            "file_path": file_path or "",
+            "user_context": user_context or {},
+            "steps": [],
+        }
+        if message:
+            initial_state["messages"] = [HumanMessage(content=message)]
+
+        run_config = {"recursion_limit": 50}
+        if thread_id:
+            run_config["configurable"] = {"thread_id": thread_id}
+
+        try:
+            for chunk in self.graph.stream(initial_state, config=run_config,
+                                           stream_mode="updates"):
+                for node_name in chunk:
+                    yield {"node": node_name}
+        except Exception as e:
+            logger.warning("stream 执行异常（进度事件中断，结果走 invoke 兜底）: %s", e)
+
+        final_state = self.graph.invoke(initial_state, config=run_config)
+        yield {"__final__": final_state}
+
 
     @classmethod
     def get_default(cls, config_loader) -> "MultiAgentWorkflow":
