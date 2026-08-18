@@ -2,7 +2,7 @@
 认证相关功能：登录验证、权限检查装饰器
 """
 from functools import wraps
-from flask import session, redirect, url_for, request, flash
+from flask import session, redirect, url_for, request, flash, jsonify
 from werkzeug.security import check_password_hash
 import sqlite3
 from pathlib import Path
