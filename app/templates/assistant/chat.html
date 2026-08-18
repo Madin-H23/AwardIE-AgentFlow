@@ -601,6 +601,15 @@ async function sendStreamed(text) {
             if (!gotAny) { es.close(); bail(); resolve(false); }
         }, 15000);
 
+        es.addEventListener('progress', (e) => {
+            gotAny = true; clearTimeout(failTimer);
+            try {
+                const d = JSON.parse(e.data);
+                if (d.label) contentEl.innerHTML = '<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>'
+                    + escapeHtml(d.label) + '…</div>';
+            } catch (_) {}
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
         es.addEventListener('delta', (e) => {
             gotAny = true; clearTimeout(failTimer);
             try { acc += JSON.parse(e.data).text; } catch (_) {}
