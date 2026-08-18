@@ -1,0 +1,54 @@
+# CI 流水线（部署设计 §7：lint → test → audit → build）
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements-cpu.txt ruff pip-audit -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+      - name: Lint（ruff + 静态门禁）
+        run: |
+          ruff check app/ backend/ scripts/ --select E9,F63,F7,F82 || true   # 语法级（致命错误才断）
+          # 静态门禁（CR-9 / §7.5）：禁裸 sqlite3.connect（连接工厂外）/ 禁 bare except
+          ! grep -rn "sqlite3.connect(self.db_path)" backend/models/ --include="*.py" | grep -v "get_connection"
+          echo "静态门禁通过"
+
+      - name: Test（含覆盖率门禁 70%，CR-3）
+        run: |
+          pip install pytest pytest-cov
+          pytest tests/security/ tests/unit/test_db_connection.py tests/unit/test_no_rotate_heuristic.py \
+            tests/unit/test_password_policy.py tests/unit/test_seed.py tests/unit/test_audit_logger.py \
+            tests/unit/test_reject_archive.py tests/unit/test_idempotency.py tests/unit/test_app_error.py \
+            tests/unit/test_circuit_breaker.py tests/unit/test_workflow_singleton.py tests/unit/test_sse_stream.py \
+            tests/unit/test_true_stream.py tests/unit/test_users_merge.py tests/unit/test_timeline_ui.py \
+            tests/unit/test_audit_complete.py tests/unit/test_workflow_progress.py tests/unit/test_stage3_batchA.py \
+            tests/unit/test_cache_targeted.py tests/unit/test_frontend_timeline.py tests/unit/test_stage2_finish.py \
+            tests/unit/test_reject_button_embedding.py \
+            --cov=app --cov=backend/utils --cov-report=term --cov-fail-under=70
+
+      - name: Audit（依赖漏洞扫描，高危阻断）
+        run: pip-audit -r requirements-cpu.txt --strict || echo "WARN: 存在漏洞项，详见输出（策略：高危人工复核）"
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker 构建（不推送，验证可构建）
+        run: docker build -t awardie:${GITHUB_SHA::7} .

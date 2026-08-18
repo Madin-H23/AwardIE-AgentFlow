@@ -1,0 +1,46 @@
+# docker-compose（部署设计 §1 v1.3：app-api/app-sse 双实例 + Redis + scheduler）
+services:
+  app-api:
+    build: .
+    container_name: awardie-api
+    restart: unless-stopped
+    volumes:
+      - ./database:/app/database
+      - ./files:/app/files
+      - ./logs:/app/logs
+    ports:
+      - "5001:5001"
+
+  app-sse:
+    build: .
+    container_name: awardie-sse
+    command: gunicorn -w 2 -b 0.0.0.0:5002 --timeout 300 run:app   # SSE 长连接池
+    restart: unless-stopped
+    volumes:
+      - ./database:/app/database
+      - ./files:/app/files
+      - ./logs:/app/logs
+
+  redis:
+    image: redis:7-alpine
+    container_name: awardie-redis
+    restart: unless-stopped
+    # 阶段四：限流计数/幂等键共享存储（T2）；阶段一遗留 memory:// 在单容器时仍可用
+
+  scheduler:
+    build: .
+    container_name: awardie-scheduler
+    command: python scripts/cleanup_files.py --apply   # 定时任务入口（cron 外置或后续 APScheduler 化，见 TODO §6）
+    restart: "no"
+
+  nginx:
+    image: nginx:alpine
+    container_name: awardie-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app-api
+      - app-sse
