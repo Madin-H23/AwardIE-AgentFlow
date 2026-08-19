@@ -19,3 +19,5 @@ pytest>=7.0.0
 pytest-cov>=4.0.0
 iniconfig>=2.0.0
 openpyxl>=3.1.0
+sqlalchemy>=2.0
+flask-migrate>=4.0

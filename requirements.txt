@@ -65,3 +65,5 @@ pydantic>=2.0.0
 # 包括：shapely, scikit-image, imgaug, lmdb, natsort
 flask-wtf>=1.2.0
 prometheus-client>=0.20.0
+sqlalchemy>=2.0
+flask-migrate>=4.0
