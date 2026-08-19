@@ -395,9 +395,10 @@ def update_profile():
             else:
                 update_data['skills'] = skills
 
-        # 执行更新
+        # 执行更新（M1 后半②：视图化后旧表不可写，直写 users 真源）
         if update_data:
-            student_manager.update_student(student.id, **update_data)
+            from backend.orm.repositories import UserRepository
+            UserRepository.update_profile(student.student_id, **update_data)
             logger.info(f"学生信息更新成功: ID={student.id}")
 
         return jsonify({

@@ -963,10 +963,11 @@ def update_profile():
             except Exception as e:
                 return jsonify({'success': False, 'message': f'技能标签格式错误: {str(e)}'}), 400
         
-        # 执行更新（通过 TeacherManager，确保数据库与内存一致）
+        # 执行更新（M1 后半②：视图化后旧表不可写，直写 users 真源）
         if update_data:
             try:
-                teacher_manager.update_teacher(teacher.id, **update_data)
+                from backend.orm.repositories import UserRepository
+                UserRepository.update_profile(teacher.teacher_id, **update_data)
                 current_app.logger.info(f"教师信息更新成功: ID={teacher.id}")
                 if 'teacher_id' in update_data:
                     session['user_id'] = update_data['teacher_id']

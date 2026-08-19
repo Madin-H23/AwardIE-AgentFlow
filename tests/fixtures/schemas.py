@@ -27,6 +27,25 @@ PENDING_ACHIEVEMENTS_DDL = """CREATE TABLE pending_achievements (
              ELSE CAST(json_extract(validation_result, '$.is_valid') AS INTEGER) END
     ) VIRTUAL)"""
 
+# 旧三表视图（M1 后半②：与 migrations/versions/0002_legacy_tables_to_views.py 定义同步，
+# 测试 fixture 用视图模拟视图化后的库——视图是唯一读路径数据源）
+STUDENTS_VIEW_DDL = """CREATE VIEW students AS
+SELECT u.id, u.login_code AS student_id, u.name, u.major, u.grade, u.phone,
+       u.user_activated, u.created_at, u.updated_at, u.password_hash, u.role,
+       u.qq, u.skills, u.profile_is_public, u.needs_password_change
+FROM users u WHERE u.role = 'student'"""
+
+TEACHERS_VIEW_DDL = """CREATE VIEW teachers AS
+SELECT u.id, u.login_code AS teacher_id, u.name, u.title, u.department, u.phone,
+       u.id_number, u.user_activated, u.created_at, u.updated_at, u.password_hash,
+       u.role, u.qq, u.skills, u.profile_is_public, u.needs_password_change
+FROM users u WHERE u.role = 'teacher'"""
+
+ADMINS_VIEW_DDL = """CREATE VIEW admins AS
+SELECT u.id, u.login_code AS username, u.password_hash, u.name, u.user_activated,
+       u.created_at, u.needs_password_change
+FROM users u WHERE u.role = 'admin'"""
+
 USERS_DDL = """CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     login_code TEXT UNIQUE, name TEXT NOT NULL,

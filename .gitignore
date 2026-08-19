@@ -113,3 +113,4 @@ backend/document_extract.rar
 # database/migrations/
 database/*.db.bak.*
 database/*.txt
+pyrightconfig.json

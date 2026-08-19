@@ -181,8 +181,9 @@ class TestAlembicBaseline:
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
         n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
         conn.close()
-        assert ver == [("0001_orm_baseline",)]
-        assert n_tables >= 26   # 未删表（原 26 业务表 + 系统表）
+        # M1 后半②：head 已推进到 0002（视图化——students/teachers/admins 变视图，表数-3 属预期）
+        assert ver == [("0002_legacy_tables_to_views",)]
+        assert n_tables >= 23   # 视图化后业务表 -3（原 26 业务表 + 系统表）
 
     def test_no_autogenerate_in_versions(self):
         """禁用 autogenerate：versions/ 里不得出现 drop_table（防灾难性迁移）。"""

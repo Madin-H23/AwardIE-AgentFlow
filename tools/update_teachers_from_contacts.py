@@ -150,26 +150,18 @@ def update_teacher_info(teacher_manager, teacher, data: Dict) -> bool:
         # 所以需要特殊处理 teacher_id 字段的更新
         updates = {}
 
-        # 收集需要更新的字段
+        # M1 后半②：视图化后旧表不可写——更新直写 users 真源
+        from backend.orm.repositories import UserRepository
+        updates = {}
         if data.get('phone') is not None:
             updates['phone'] = data.get('phone')
         if data.get('title') is not None:
             updates['title'] = data.get('title')
-
-        # 先更新其他字段
         if updates:
-            teacher_manager.update_teacher(teacher.id, **updates)
-
-        # 单独更新 teacher_id 字段（工号），避免参数名冲突
-        if data.get('teacher_id') is not None:
-            conn = teacher_manager._get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                'UPDATE teachers SET teacher_id = ? WHERE id = ?',
-                (data.get('teacher_id'), teacher.id)
-            )
-            conn.commit()
-            conn.close()
+            UserRepository.update_profile(teacher.teacher_id, **updates)
+        # 工号变更 = users.login_code 变更（id 不变，历史引用安全）
+        if data.get('teacher_id') is not None and data['teacher_id'] != teacher.teacher_id:
+            UserRepository.update_login_code(teacher.teacher_id, data['teacher_id'])
 
         logger.info(f"✓ 更新: {teacher.name} (工号: {data.get('teacher_id')}, 手机: {data.get('phone')}, 职称: {data.get('title')})")
         return True
@@ -191,17 +183,16 @@ def insert_new_teacher(teacher_manager, data: Dict) -> bool:
     """
     try:
         from werkzeug.security import generate_password_hash
-        from app.utils import get_default_password
-        default_password = get_default_password()
-        password_hash = generate_password_hash(default_password)
-        teacher_manager.add_teacher(
-            teacher_id=data.get('teacher_id'),
-            name=data.get('name'),
-            phone=data.get('phone'),
-            title=data.get('title'),
-            department='计算机工程系',  # 默认部门
-            password_hash=password_hash
-        )
+        from app.password_policy import generate_strong_password
+        initial_password = generate_strong_password()   # P1-2：随机强密码，无默认密码
+        password_hash = generate_password_hash(initial_password)
+        # M1 后半②：视图化后旧表不可写——新增直写 users 真源
+        from backend.orm.repositories import UserRepository
+        UserRepository.create_user(
+            data.get('teacher_id'), data.get('name'), 'teacher',
+            password_hash, needs_password_change=1,
+            phone=data.get('phone'), title=data.get('title'),
+            department='计算机工程系')   # 默认部门
         logger.info(f"✓ 新增: {data.get('name')} (工号: {data.get('teacher_id')}, 手机: {data.get('phone')}, 职称: {data.get('title')})")
         return True
     except Exception as e:

@@ -460,17 +460,12 @@ def student_edit(student_id=None):
                     # 学号不允许修改
                     current_app.logger.info(f"正在更新学生信息: ID={student.id}, 学号={student.student_id}")
                     
-                    student.name = name
-                    student.major = major
-                    student.grade = grade
-                    student.phone = phone
-                    student.user_activated = user_activated
-                    student_manager.update_student(student.id, 
-                                                   name=name,
-                                                   major=major,
-                                                   grade=grade,
-                                                   phone=phone,
-                                                   user_activated=user_activated)
+                    # M1 后半②：视图化后旧表不可写，基本信息直写 users 真源
+                    from backend.orm.repositories import UserRepository
+                    UserRepository.update_profile(
+                        student.student_id,
+                        name=name, major=major, grade=grade,
+                        phone=phone, user_activated=user_activated)
                     current_app.logger.info(f"学生信息更新成功: ID={student.id}")
                 else:
                     # 创建
@@ -484,22 +479,12 @@ def student_edit(student_id=None):
                     from app.password_policy import generate_strong_password
                     initial_password = generate_strong_password()
                     password_hash = generate_password_hash(initial_password)
-                    student = student_manager.add_student(
-                        student_id=student_id_str,
-                        name=name,
-                        major=major,
-                        grade=grade,
-                        phone=phone,
-                        user_activated=user_activated,
-                        password_hash=password_hash,
-                        needs_password_change=1
-                    )
-                    flash(f'学生创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
-                    # M1 后半①：users 写真源（旧表 add_student 保留为视图化前镜像）
+                    # M1 后半②：视图化后旧表不可写，创建直写 users 真源
                     from backend.orm.repositories import UserRepository
                     UserRepository.create_user(
                         student_id_str, name, 'student', password_hash, needs_password_change=1,
                         major=major, grade=grade, phone=phone, user_activated=user_activated)
+                    flash(f'学生创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
                 
                 flash('学生保存成功', 'success')
                 return redirect(url_for('admin.students_list'))
@@ -526,10 +511,11 @@ def student_delete(student_id):
         if not student:
             return jsonify({'success': False, 'message': '学生不存在'}), 404
         
-        # 删除学生
+        # 删除学生（M1 后半②：视图化后软删 users，防历史引用悬空）
         try:
-            student_manager.delete_student(student_id)
-            return jsonify({'success': True, 'message': '删除成功'})
+            from backend.orm.repositories import UserRepository
+            UserRepository.deactivate(student.student_id)
+            return jsonify({'success': True, 'message': '已禁用（软删除）'})
         except Exception as e:
             return jsonify({'success': False, 'message': f'删除失败: {str(e)}'}), 500
     except Exception as e:
@@ -554,8 +540,7 @@ def student_reset_password(student_id):
         initial_password = generate_strong_password()
         password_hash = generate_password_hash(initial_password)
         
-        # M1 后半①：users 写真源（旧表 update_student 保留为视图化前镜像）
-        student_manager.update_student(student_id, password_hash=password_hash, needs_password_change=1)
+        # M1 后半②：视图化后旧表不可写，重置密码直写 users 真源
         from backend.orm.repositories import UserRepository
         UserRepository.update_password(student.student_id, password_hash, needs_password_change=1)
         
@@ -684,17 +669,12 @@ def teacher_edit(teacher_id=None):
                     # 工号不允许修改
                     current_app.logger.info(f"正在更新教师信息: ID={teacher.id}, 工号={teacher.teacher_id}")
                     
-                    teacher.name = name
-                    teacher.department = department
-                    teacher.title = title
-                    teacher.phone = phone
-                    teacher.user_activated = user_activated
-                    teacher_manager.update_teacher(teacher.id,
-                                                   name=name,
-                                                   department=department,
-                                                   title=title,
-                                                   phone=phone,
-                                                   user_activated=user_activated)
+                    # M1 后半②：视图化后旧表不可写，基本信息直写 users 真源
+                    from backend.orm.repositories import UserRepository
+                    UserRepository.update_profile(
+                        teacher.teacher_id,
+                        name=name, department=department, title=title,
+                        phone=phone, user_activated=user_activated)
                     current_app.logger.info(f"教师信息更新成功: ID={teacher.id}")
                 else:
                     # 创建（设置默认密码，确保新教师可登录）
@@ -703,23 +683,13 @@ def teacher_edit(teacher_id=None):
                         from app.password_policy import generate_strong_password
                         initial_password = generate_strong_password()
                         password_hash = generate_password_hash(initial_password)
-                        teacher = teacher_manager.add_teacher(
-                            teacher_id=teacher_id_str,
-                            name=name,
-                            department=department,
-                            title=title,
-                            phone=phone,
-                            user_activated=user_activated,
-                            password_hash=password_hash,
-                            needs_password_change=1
-                        )
-                        flash(f'教师创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
-                        # M1 后半①：users 写真源（旧表 add_teacher 保留为视图化前镜像）
+                        # M1 后半②：视图化后旧表不可写，创建直写 users 真源
                         from backend.orm.repositories import UserRepository
                         UserRepository.create_user(
                             teacher_id_str, name, 'teacher', password_hash, needs_password_change=1,
                             department=department, title=title, phone=phone,
                             user_activated=user_activated)
+                        flash(f'教师创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
                     except ValueError as e:
                         # 处理重名或工号重复的错误
                         flash(str(e), 'error')
@@ -750,10 +720,11 @@ def teacher_delete(teacher_id):
         if not teacher:
             return jsonify({'success': False, 'message': '教师不存在'}), 404
         
-        # 删除教师
+        # 删除教师（M1 后半②：视图化后软删 users，防历史引用悬空）
         try:
-            teacher_manager.delete_teacher(teacher_id)
-            return jsonify({'success': True, 'message': '删除成功'})
+            from backend.orm.repositories import UserRepository
+            UserRepository.deactivate(teacher.teacher_id)
+            return jsonify({'success': True, 'message': '已禁用（软删除）'})
         except Exception as e:
             return jsonify({'success': False, 'message': f'删除失败: {str(e)}'}), 500
     except Exception as e:
@@ -777,8 +748,7 @@ def teacher_reset_password(teacher_id):
         initial_password = generate_strong_password()
         password_hash = generate_password_hash(initial_password)
         
-        # M1 后半①：users 写真源（旧表 update_teacher 保留为视图化前镜像）
-        teacher_manager.update_teacher(teacher_id, password_hash=password_hash, needs_password_change=1)
+        # M1 后半②：视图化后旧表不可写，重置密码直写 users 真源
         from backend.orm.repositories import UserRepository
         UserRepository.update_password(teacher.teacher_id, password_hash, needs_password_change=1)
         

@@ -117,3 +117,41 @@ class UserRepository:
             return 1
         finally:
             s.close()
+
+    @staticmethod
+    def deactivate(login_code: str) -> int:
+        """软删用户（user_activated=0，保留历史引用），返回受影响行数（0=无此用户）。
+
+        视图化后旧表不可写，管理员删除走 users 软删；物理删除会悬空
+        pending/awards 等表的 submitter_id 引用（无 FK 约束），故不物理删。
+        """
+        s = get_session()
+        try:
+            u = s.execute(select(User).where(User.login_code == login_code)).scalar_one_or_none()
+            if u is None:
+                return 0
+            u.user_activated = 0
+            u.updated_at = func.strftime('%Y-%m-%d %H:%M:%S', 'now')
+            s.commit()
+            return 1
+        finally:
+            s.close()
+
+    @staticmethod
+    def update_login_code(old_code: str, new_code: str) -> int:
+        """变更登录号（学号/工号/用户名），返回受影响行数（0=无此用户）。
+
+        users.id 不变——业务表引用（submitter_id 等）不受影响；login_code 有 UNIQUE 约束，
+        新号已存在时 SQLite 抛 IntegrityError 由调用方捕获。
+        """
+        s = get_session()
+        try:
+            u = s.execute(select(User).where(User.login_code == old_code)).scalar_one_or_none()
+            if u is None:
+                return 0
+            u.login_code = new_code
+            u.updated_at = func.strftime('%Y-%m-%d %H:%M:%S', 'now')
+            s.commit()
+            return 1
+        finally:
+            s.close()

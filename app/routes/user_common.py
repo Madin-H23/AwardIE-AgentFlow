@@ -104,14 +104,8 @@ def register_common_routes(blueprint: Blueprint, user_type: str, skip_routes: li
                 if user_id and user_id.lower() in new_password.lower():
                     return jsonify({'success': False, 'message': '密码不能包含学号/工号'}), 400
 
-                # 更新新密码
+                # 更新新密码（M1 后半②：视图化后旧表不可写，直写 users 真源）
                 new_password_hash = generate_password_hash(new_password)
-                
-                if user_type == 'student':
-                    manager.update_student(user.id, password_hash=new_password_hash, needs_password_change=0)
-                else:
-                    manager.update_teacher(user.id, password_hash=new_password_hash, needs_password_change=0)
-                # M1 后半①：users 写真源（旧表 Manager 更新保留为视图化前镜像）
                 from backend.orm.repositories import UserRepository
                 UserRepository.update_password(str(user_id), new_password_hash, needs_password_change=0)
                 
