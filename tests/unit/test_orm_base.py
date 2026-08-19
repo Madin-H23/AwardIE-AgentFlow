@@ -70,3 +70,39 @@ class TestUserModel:
         roles = dict(s.execute(select(User.role, func.count()).group_by(User.role)).all())
         assert roles.get('student') == 1793 and roles.get('teacher') == 38 and roles.get('admin') == 1
         s.close()
+
+
+class TestCoreModels:
+    def test_pending_model_matches(self):
+        """pending ORM：行数/状态分布/生成列与现库一致。"""
+        if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+            pytest.skip("CI 无真实库")
+        from backend.orm.base import get_session
+        from backend.orm.pending import PendingAchievement
+        from sqlalchemy import func, select
+        s = get_session()
+        assert s.scalar(select(func.count()).select_from(PendingAchievement)) == 40
+        # is_valid 生成列 ORM 可读
+        row = s.execute(select(PendingAchievement.is_valid).limit(1)).first()
+        assert row is not None
+        s.close()
+
+    def test_audit_log_model(self):
+        from backend.orm.base import get_session
+        from backend.orm.audit_log import AuditLog
+        from sqlalchemy import func, select
+        s = get_session()
+        n = s.scalar(select(func.count()).select_from(AuditLog))
+        assert n == 0
+        s.close()
+
+    def test_pending_type_spec(self):
+        """类型规范：status VARCHAR20 / file_path VARCHAR500 / achievement_data 长文本。"""
+        from backend.orm.pending import PendingAchievement
+        from sqlalchemy import String
+        t = PendingAchievement.__table__
+        assert t.c.status.type.length == 20
+        assert t.c.file_path.type.length == 500
+        assert t.c.achievement_data.type.length is None      # Text
+        # is_valid 为计算列（生成列保留）
+        assert t.c.is_valid.computed is not None
