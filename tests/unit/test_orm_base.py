@@ -167,3 +167,27 @@ class TestUserRepository:
         assert len(admins) == 1
         students = UserRepository.list_by_role('student')
         assert len(students) == 1793
+
+
+class TestAlembicBaseline:
+    """M1 后半③③：Alembic baseline 交接点（CR-8）。"""
+
+    def test_baseline_stamped(self):
+        """alembic_version 表记录 baseline，且未破坏现库（表数不变）。"""
+        if not (PROJECT_ROOT / "database" / "competitions.db").exists():
+            pytest.skip("CI 无真实库")
+        import sqlite3
+        conn = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
+        ver = conn.execute("SELECT * FROM alembic_version").fetchall()
+        n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
+        conn.close()
+        assert ver == [("0001_orm_baseline",)]
+        assert n_tables >= 26   # 未删表（原 26 业务表 + 系统表）
+
+    def test_no_autogenerate_in_versions(self):
+        """禁用 autogenerate：versions/ 里不得出现 drop_table（防灾难性迁移）。"""
+        import re
+        versions = PROJECT_ROOT / "migrations" / "versions"
+        for f in versions.glob("*.py"):
+            src = f.read_text(encoding="utf-8")
+            assert "drop_table" not in src, f"{f.name} 含 drop_table（autogenerate 陷阱）"
