@@ -21,7 +21,11 @@ PENDING_ACHIEVEMENTS_DDL = """CREATE TABLE pending_achievements (
     file_hash TEXT NOT NULL DEFAULT '',
     ocr_text TEXT, llm_prompt TEXT, llm_response TEXT, ext_info TEXT,
     session_id TEXT, laboratory_id INTEGER,
-    version INTEGER NOT NULL DEFAULT 1)"""
+    version INTEGER NOT NULL DEFAULT 1,
+    is_valid INTEGER GENERATED ALWAYS AS (
+        CASE WHEN json_extract(validation_result, '$.is_valid') IS NULL THEN NULL
+             ELSE CAST(json_extract(validation_result, '$.is_valid') AS INTEGER) END
+    ) VIRTUAL)"""
 
 USERS_DDL = """CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

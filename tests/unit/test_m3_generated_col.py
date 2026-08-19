@@ -47,10 +47,7 @@ class TestGeneratedColumn:
         from tests.fixtures.schemas import PENDING_ACHIEVEMENTS_DDL as DDL
         db = tmp_path / "g.db"
         conn = sqlite3.connect(str(db))
-        conn.execute(DDL)
-        conn.execute("ALTER TABLE pending_achievements ADD COLUMN is_valid INTEGER "
-                     "GENERATED ALWAYS AS (CASE WHEN json_extract(validation_result,'$.is_valid') IS NULL "
-                     "THEN NULL ELSE CAST(json_extract(validation_result,'$.is_valid') AS INTEGER) END) VIRTUAL")
+        conn.execute(DDL)   # 共享 DDL 已含 is_valid 生成列（2026-08-19 同步）
         conn.execute("INSERT INTO pending_achievements (achievement_type, achievement_data, validation_result, status) "
                      "VALUES ('award','{}','{\"is_valid\": false}','pending')")
         conn.commit()

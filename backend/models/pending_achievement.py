@@ -370,7 +370,7 @@ class PendingAchievementManager:
 
     def _update_status(self, pending_id: int, status: str,
                        reviewer_id: int, comment: Optional[str]) -> bool:
-        """Update status of pending achievement"""
+        """Update status of pending achievement（M1 后半①：ORM 写路径）"""
         pending = self.get_pending_by_id(pending_id)
         if not pending:
             return False
@@ -379,25 +379,27 @@ class PendingAchievementManager:
             logger.warning(f"Pending achievement {pending_id} is not in pending status")
             return False
 
-        conn = self._get_db_connection()
-        cursor = conn.cursor()
-
         try:
-            cursor.execute("""
-                UPDATE pending_achievements
-                SET status = ?, reviewer_id = ?, review_time = CURRENT_TIMESTAMP, review_comment = ?
-                WHERE id = ?
-            """, (status, reviewer_id, comment, pending_id))
-
-            conn.commit()
-            conn.close()
+            from sqlalchemy import func
+            from backend.orm.base import get_session
+            from backend.orm.pending import PendingAchievement as OrmPending
+            s = get_session()
+            try:
+                obj = s.get(OrmPending, pending_id)
+                if obj is None:
+                    return False
+                obj.status = status
+                obj.reviewer_id = reviewer_id
+                obj.review_time = func.strftime('%Y-%m-%d %H:%M:%S', 'now')
+                obj.review_comment = comment
+                s.commit()
+            finally:
+                s.close()
 
             self._load_all_from_db()
             return True
 
         except Exception as e:
-            conn.rollback()
-            conn.close()
             logger.error(f"Failed to update pending achievement status: {e}")
             return False
 
@@ -1465,7 +1467,7 @@ class PendingAchievementManager:
         review_comment: Optional[str] = None
     ) -> bool:
         """
-        审核通过（原子事务）
+        审核通过（原子事务；M1 后半①：ORM 写路径）
 
         注意：此方法只处理 pending 记录的状态和审核人信息，
         创建成果记录和文件移动需要由调用方处理。
@@ -1488,29 +1490,28 @@ class PendingAchievementManager:
             logger.warning(f"记录状态不是 submit，无法审核: {pending_id}, status={pending.status}")
             return False
 
-        conn = self._get_db_connection()
-        cursor = conn.cursor()
-
         try:
-            conn.execute('BEGIN TRANSACTION')
-
-            # 更新审核人信息
-            cursor.execute("""
-                UPDATE pending_achievements
-                SET reviewer_type = ?, reviewer_id = ?, review_time = CURRENT_TIMESTAMP, review_comment = ?
-                WHERE id = ?
-            """, (reviewer_type, reviewer_id, review_comment, pending_id))
-
-            conn.commit()
-            conn.close()
+            from sqlalchemy import func
+            from backend.orm.base import get_session
+            from backend.orm.pending import PendingAchievement as OrmPending
+            s = get_session()
+            try:
+                obj = s.get(OrmPending, pending_id)
+                if obj is None:
+                    return False
+                obj.reviewer_type = reviewer_type
+                obj.reviewer_id = reviewer_id
+                obj.review_time = func.strftime('%Y-%m-%d %H:%M:%S', 'now')
+                obj.review_comment = review_comment
+                s.commit()
+            finally:
+                s.close()
 
             # 重新加载数据
             self._load_all_from_db()
             return True
 
         except Exception as e:
-            conn.rollback()
-            conn.close()
             logger.error(f"审核通过失败: {e}")
             return False
 
@@ -1522,7 +1523,7 @@ class PendingAchievementManager:
         review_comment: str
     ) -> bool:
         """
-        审核拒绝（原子事务）
+        审核拒绝（原子事务；M1 后半①：ORM 写路径）
 
         注意：此方法只处理 pending 记录的状态和审核人信息，
         文件删除需要由调用方处理。
@@ -1549,21 +1550,22 @@ class PendingAchievementManager:
             logger.warning(f"记录状态不是 submit，无法审核: {pending_id}, status={pending.status}")
             return False
 
-        conn = self._get_db_connection()
-        cursor = conn.cursor()
-
         try:
-            conn.execute('BEGIN TRANSACTION')
-
-            # 更新审核人信息
-            cursor.execute("""
-                UPDATE pending_achievements
-                SET reviewer_type = ?, reviewer_id = ?, review_time = CURRENT_TIMESTAMP, review_comment = ?
-                WHERE id = ?
-            """, (reviewer_type, reviewer_id, review_comment, pending_id))
-
-            conn.commit()
-            conn.close()
+            from sqlalchemy import func
+            from backend.orm.base import get_session
+            from backend.orm.pending import PendingAchievement as OrmPending
+            s = get_session()
+            try:
+                obj = s.get(OrmPending, pending_id)
+                if obj is None:
+                    return False
+                obj.reviewer_type = reviewer_type
+                obj.reviewer_id = reviewer_id
+                obj.review_time = func.strftime('%Y-%m-%d %H:%M:%S', 'now')
+                obj.review_comment = review_comment
+                s.commit()
+            finally:
+                s.close()
 
             # 重新加载数据
             self._load_all_from_db()
@@ -1571,8 +1573,6 @@ class PendingAchievementManager:
             return True
 
         except Exception as e:
-            conn.rollback()
-            conn.close()
             logger.error(f"审核拒绝失败: {e}")
             return False
 
