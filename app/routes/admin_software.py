@@ -139,6 +139,8 @@ def software_view(copyright_id):
 @require_role('admin')
 def software_create():
     """创建新软著"""
+    from backend.utils.users_sync import to_users_id
+    from config.loader import get_config
     if request.method == 'GET':
         # Get laboratories for dropdown
         try:
@@ -168,7 +170,7 @@ def software_create():
             'registration_date': request.form.get('registration_date', '').strip() or None,
             'copyright_owner': request.form.get('copyright_owner', '').strip() or None,
             'submitter_type': 'admin',
-            'submitter_id': session.get('user_id'),
+            'submitter_id': to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             'laboratory_id': request.form.get('laboratory_id', type=int) or None,
         }
 

@@ -45,7 +45,7 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
             if u and u['user_activated']:
                 if u['password_hash'] and check_password_hash(u['password_hash'], password):
                     return {
-                        'user_id': u['login_code'], 'user_type': u['role'],
+                        'user_id': u['login_code'], 'user_type': u['role'],   # 业务号（存量路由兼容；写入时经映射转 users.id）
                         'name': u['name'], 'role': u['role'],
                         'needs_password_change': bool(u['needs_password_change']),
                     }

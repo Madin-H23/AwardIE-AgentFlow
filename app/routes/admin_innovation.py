@@ -122,6 +122,8 @@ def innovation_view(project_id):
 @require_role('admin')
 def innovation_create():
     """创建新大创项目"""
+    from backend.utils.users_sync import to_users_id
+    from config.loader import get_config
     if request.method == 'GET':
         # Get laboratories for dropdown
         try:
@@ -161,7 +163,7 @@ def innovation_create():
             'funding_amount': request.form.get('funding_amount', type=float) or None,
             'status': request.form.get('status', '进行中'),
             'submitter_type': 'admin',
-            'submitter_id': session.get('user_id'),
+            'submitter_id': to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             'laboratory_id': laboratory_id,
         }
 

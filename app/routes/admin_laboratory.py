@@ -7,6 +7,8 @@ from pathlib import Path
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, current_app, session
 
 from app.auth import require_role, require_role_api, require_login, require_can_edit_laboratory, require_can_edit_laboratory_api
+from backend.utils.users_sync import to_users_id
+from config.loader import get_config
 from app.utils import get_app_context_instance
 
 logger = logging.getLogger(__name__)
@@ -929,7 +931,7 @@ def laboratory_downloads_upload(lab_id):
             file_name=original_filename,
             file_size=file_size,
             submitter_type='admin',
-            submitter_id=session.get('user_id'),
+            submitter_id=to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             is_public=True
         )
 

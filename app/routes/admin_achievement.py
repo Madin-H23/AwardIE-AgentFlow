@@ -8,6 +8,8 @@ import shutil
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, current_app, session
 from pathlib import Path
 from app.auth import require_role, require_role_api, require_admin_or_lab_view_api
+from backend.utils.users_sync import to_users_id
+from config.loader import get_config
 from app.utils import get_app_context_instance
 from app.routes.review_helpers import normalize_related_student_from_ids
 from app.routes.file_import_helpers import (
@@ -328,7 +330,7 @@ def file_import_manual_parse():
             pending_item = pending_manager.create_from_extract_result(
                 result,
                 submitter_type='admin',
-                submitter_id=session.get('user_id') or 0,
+                submitter_id=to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin') or 0,
                 file_path=path_for_db,
                 file_hash=file_hash,
                 status='pending'
@@ -626,7 +628,8 @@ def file_import_upload():
             'other': {'valid': 0, 'invalid': 0}
         }
 
-        submitter_id = session.get('user_id')
+        submitter_id = to_users_id(str(get_config().get_path('database', 'competitions_db')),
+                                  session.get('user_id'), 'admin')   # 业务号→users.id（路径A）
         submitter_type = 'admin'
 
         from backend.services.unified_file_manager import get_unified_file_manager

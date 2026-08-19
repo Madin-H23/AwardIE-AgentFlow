@@ -60,3 +60,25 @@ def insert_user_row(db_path, login_code: str, name: str, role: str,
     except sqlite3.Error as e:
         logger.warning("[users_sync] 插入失败(已吞): login_code=%s err=%s", login_code, e)
         return False
+
+
+def to_users_id(db_path, business_code: str, user_type: str):
+    """业务号(学号/工号/用户名)→users.id（路径 A 桥接：session 业务号写入时映射）。
+
+    user_type: 'student'|'teacher'|'admin'。查不到返回 None（调用方降级）。
+    """
+    if not business_code:
+        return None
+    try:
+        from backend.utils.db_connection import get_connection
+        conn = get_connection(db_path)
+        try:
+            row = conn.execute(
+                "SELECT id FROM users WHERE login_code=? AND role=?",
+                (business_code, user_type)).fetchone()
+            return row[0] if row else None
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.warning("[users_sync] to_users_id 失败(已吞): code=%s err=%s", business_code, e)
+        return None
