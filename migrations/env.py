@@ -22,12 +22,24 @@ import backend.orm.audit_log  # noqa: F401
 target_metadata = Base.metadata
 
 
-def _db_url():
-    """主库 URL（Windows 路径正斜杠）。"""
+def _resolve_db_path():
+    """主库路径。
+
+    覆盖优先级：ALEMBIC_DB 环境变量 > -x db=<path> > config 默认路径
+    （-x 在部分 alembic 子命令下解析不稳定，测试优先用环境变量）。
+    """
     from config.loader import get_config
     from pathlib import Path
-    db = get_config().get_path('database', 'competitions_db')
-    return f"sqlite:///{str(Path(db).resolve()).replace(chr(92), '/')}"
+    import os
+    x_arg = os.environ.get("ALEMBIC_DB") or context.get_x_argument(as_dictionary=True).get("db")
+    if x_arg:
+        return Path(x_arg)
+    return get_config().get_path('database', 'competitions_db')
+
+
+def _db_url():
+    """主库 URL（Windows 路径正斜杠）。"""
+    return f"sqlite:///{str(_resolve_db_path().resolve()).replace(chr(92), '/')}"
 
 
 def run_migrations_offline() -> None:
@@ -44,9 +56,13 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode（复用 G1 契约：外键/WAL/busy_timeout）。"""
+    """Run migrations in 'online' mode（复用 G1 契约：外键/WAL/busy_timeout）。
+
+    库路径必须经 _resolve_db_path（ALEMBIC_DB/-x 可指向测试库）——不得直接
+    build_engine() 走默认库，否则测试迁移会误跑生产库（曾致真实库被反复迁移）。
+    """
     from backend.orm.base import build_engine
-    connectable = build_engine()   # 复用 ORM engine（含 PRAGMA 事件监听）
+    connectable = build_engine(str(_resolve_db_path()))   # 复用 ORM engine（含 PRAGMA 事件监听）
 
     with connectable.connect() as connection:
         context.configure(
