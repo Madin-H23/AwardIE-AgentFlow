@@ -495,10 +495,11 @@ def student_edit(student_id=None):
                         needs_password_change=1
                     )
                     flash(f'学生创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
-                    from backend.utils.users_sync import insert_user_row
-                    from config.loader import get_config as _gc
-                    insert_user_row(str(_gc().get_path('database', 'competitions_db')),
-                                    student_id_str, name, 'student', password_hash, 1, major=major, grade=grade, phone=phone)
+                    # M1 后半①：users 写真源（旧表 add_student 保留为视图化前镜像）
+                    from backend.orm.repositories import UserRepository
+                    UserRepository.create_user(
+                        student_id_str, name, 'student', password_hash, needs_password_change=1,
+                        major=major, grade=grade, phone=phone, user_activated=user_activated)
                 
                 flash('学生保存成功', 'success')
                 return redirect(url_for('admin.students_list'))
@@ -553,11 +554,10 @@ def student_reset_password(student_id):
         initial_password = generate_strong_password()
         password_hash = generate_password_hash(initial_password)
         
+        # M1 后半①：users 写真源（旧表 update_student 保留为视图化前镜像）
         student_manager.update_student(student_id, password_hash=password_hash, needs_password_change=1)
-        from backend.utils.users_sync import sync_user_row
-        from config.loader import get_config as _gc
-        sync_user_row(str(_gc().get_path('database', 'competitions_db')),
-                      student.student_id, password_hash=password_hash, needs_password_change=1)
+        from backend.orm.repositories import UserRepository
+        UserRepository.update_password(student.student_id, password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
@@ -714,11 +714,12 @@ def teacher_edit(teacher_id=None):
                             needs_password_change=1
                         )
                         flash(f'教师创建成功，初始密码（仅此一次展示）：{initial_password}', 'warning')
-                        from backend.utils.users_sync import insert_user_row
-                        from config.loader import get_config as _gc
-                        insert_user_row(str(_gc().get_path('database', 'competitions_db')),
-                                        teacher_id_str, name, 'teacher', password_hash, 1,
-                                        department=department, title=title, phone=phone)
+                        # M1 后半①：users 写真源（旧表 add_teacher 保留为视图化前镜像）
+                        from backend.orm.repositories import UserRepository
+                        UserRepository.create_user(
+                            teacher_id_str, name, 'teacher', password_hash, needs_password_change=1,
+                            department=department, title=title, phone=phone,
+                            user_activated=user_activated)
                     except ValueError as e:
                         # 处理重名或工号重复的错误
                         flash(str(e), 'error')
@@ -776,11 +777,10 @@ def teacher_reset_password(teacher_id):
         initial_password = generate_strong_password()
         password_hash = generate_password_hash(initial_password)
         
+        # M1 后半①：users 写真源（旧表 update_teacher 保留为视图化前镜像）
         teacher_manager.update_teacher(teacher_id, password_hash=password_hash, needs_password_change=1)
-        from backend.utils.users_sync import sync_user_row
-        from config.loader import get_config as _gc
-        sync_user_row(str(_gc().get_path('database', 'competitions_db')),
-                      teacher.teacher_id, password_hash=password_hash, needs_password_change=1)
+        from backend.orm.repositories import UserRepository
+        UserRepository.update_password(teacher.teacher_id, password_hash, needs_password_change=1)
         
         return jsonify({
             'success': True, 
