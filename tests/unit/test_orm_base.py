@@ -106,3 +106,42 @@ class TestCoreModels:
         assert t.c.achievement_data.type.length is None      # Text
         # is_valid 为计算列（生成列保留）
         assert t.c.is_valid.computed is not None
+
+
+class TestAuthOrmProbe:
+    """M1 后半③：认证 users 分支 ORM 读试点（完整登录链路）。"""
+
+    def test_orm_login_full_flow(self, tmp_path):
+        """ORM 完整登录：正确密码成功/错误密码拒绝（完整 users DDL）。"""
+        import sqlite3
+        from werkzeug.security import generate_password_hash
+        from tests.fixtures.schemas import USERS_DDL
+        db = tmp_path / "auth.db"
+        conn = sqlite3.connect(str(db))
+        conn.execute(USERS_DDL)
+        conn.execute("INSERT INTO users (login_code, name, role, password_hash) VALUES ('t1','测试','student',?)",
+                     (generate_password_hash('GoodPass123'),))
+        for t, pk in (("students","student_id"),("teachers","teacher_id"),("admins","username")):
+            conn.execute(f"CREATE TABLE {t} ({pk} TEXT PRIMARY KEY, name TEXT, password_hash TEXT, role TEXT, user_activated INTEGER DEFAULT 1, needs_password_change INTEGER DEFAULT 0)")
+        conn.commit(); conn.close()
+
+        import backend.orm.base as b
+        b._engine = b.build_engine(str(db)); b._SessionLocal = None
+        from app.auth import verify_user
+        r = verify_user('t1', 'GoodPass123', str(db))
+        assert r is not None and r['user_type'] == 'student' and r['name'] == '测试'
+        assert verify_user('t1', 'wrong', str(db)) is None
+        b._engine.dispose(); b.reset_engine()
+
+    def test_auth_falls_back_without_orm(self, tmp_path):
+        """ORM 不可用时（无 users 表库）回退旧三表——未迁移库仍可登录。"""
+        import sqlite3
+        from werkzeug.security import generate_password_hash
+        db = tmp_path / "old.db"
+        conn = sqlite3.connect(str(db))
+        conn.execute("CREATE TABLE students (student_id TEXT PRIMARY KEY, name TEXT, password_hash TEXT, role TEXT, user_activated INTEGER DEFAULT 1, needs_password_change INTEGER DEFAULT 0)")
+        conn.execute("INSERT INTO students VALUES ('s1','旧生',?,'student',1,0)", (generate_password_hash('OldPass123'),))
+        conn.commit(); conn.close()
+        from app.auth import verify_user
+        r = verify_user('s1', 'OldPass123', str(db))
+        assert r is not None and r['user_type'] == 'student'

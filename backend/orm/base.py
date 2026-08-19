@@ -23,7 +23,9 @@ def build_engine(db_path=None):
     if db_path is None:
         from config.loader import get_config
         db_path = get_config().get_path('database', 'competitions_db')
-    engine = create_engine(f"sqlite:///{Path(db_path)}", future=True)
+    # Windows 路径须正斜杠（反斜杠在 sqlite URL 中解析错误）
+    db_abs = str(Path(db_path).resolve()).replace("\\", "/")
+    engine = create_engine(f"sqlite:///{db_abs}", future=True)
 
     @event.listens_for(engine, "connect")
     def _set_pragmas(dbapi_conn, _):

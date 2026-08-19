@@ -39,20 +39,25 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
     try:
         # ── users 单表优先（合并核心收益：一条 SQL 替代三表逐查）──
         try:
-            u = conn.execute(
-                'SELECT login_code, name, role, password_hash, user_activated, needs_password_change '
-                'FROM users WHERE login_code = ?', (username,)).fetchone()
-            if u and u['user_activated']:
-                if u['password_hash'] and check_password_hash(u['password_hash'], password):
+            from backend.orm.base import get_session
+            from backend.orm.users import User
+            from sqlalchemy import select
+            s = get_session()
+            try:
+                u = s.execute(select(User).where(User.login_code == username)).scalar_one_or_none()
+            finally:
+                s.close()
+            if u and u.user_activated:
+                if u.password_hash and check_password_hash(u.password_hash, password):
                     return {
-                        'user_id': u['login_code'], 'user_type': u['role'],   # 业务号（存量路由兼容；写入时经映射转 users.id）
-                        'name': u['name'], 'role': u['role'],
-                        'needs_password_change': bool(u['needs_password_change']),
+                        'user_id': u.login_code, 'user_type': u.role,   # 业务号（存量路由兼容；写入时经映射转 users.id）
+                        'name': u.name, 'role': u.role,
+                        'needs_password_change': bool(u.needs_password_change),
                     }
                 # users 密码不匹配 → 落入旧表路径：旧表验成功则自愈同步新密码进 users
                 # （过渡期旧表是写路径真源，防漂移；自愈后下次登录走 users 快路径）
-        except sqlite3.OperationalError:
-            pass   # users 表不存在（未迁移库）——回退旧三表
+        except Exception:
+            pass   # ORM 不可用/未迁移库——回退原生 users + 旧三表
 
         # ── 旧三表回退（过渡兼容，随引用重写下批移除）──
         # 先查管理员表（如果表存在）
