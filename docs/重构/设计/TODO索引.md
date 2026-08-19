@@ -36,7 +36,7 @@
 | T16 | 数据库迁移 MySQL/PostgreSQL | 非目标 N7 / 架构 D-2 | 阶段四后并发或数据量超 SQLite 边界 |
 | T17 | 等保定级 / 告知同意等上线合规事项 | 需求 4.9 说明 | 正式上线前 |
 | T18 | 移动端适配解冻（FR-UI-03，恢复响应式/相机调用设计） | 取舍 D6（v1.6 拍板：只做 Web 端） | 二期移动使用占比明确 |
-| T21 | 存量测试环境隔离修复（test_llm_adapter 依赖本机无 key 假设、test_data_analysis 依赖真实库数据；基线即挂 5 例，与本批无关） | 全量回归 2026-08-17 发现 | 阶段二 |
+| T21 | ~~存量测试环境隔离修复~~ **已完成（2026-08-19）**：test_llm_adapter fixture 隔离 apikey.json（load_config 会注入真实 key 覆盖 patch env，且真实 key 曾泄漏进失败输出）；test_data_analysis temp_db 补 4 张关联表（award_teacher_winners/award_supervisors/teachers/laboratories）。5 例存量失败清零，311 全绿 | 全量回归 2026-08-17 发现 | ✅ |
 | T22 | admin.py 4 处"重置为默认密码"改造为随机强密码一次性下发（配合 password_policy.generate_strong_password，涉及 UI 文案） | P2-28 配套 | 阶段二 |
 | T23 | ~~存量 F821 未定义名清账~~ **已完成（2026-08-18）**：38 处全清——其中 20+ 处是 L3 批量替换事故残留真 bug（conn 未定义/return 短路/外键 pragma 死码）+ 2 处笔误 bug（ext_info/matched_template）+ 6 处字符串注解误报（TYPE_CHECKING 根治）；CI 豁免已转正 | ruff 全量 CI 抓出 2026-08-18 | ✅ |
 | T24 | 存量代码全量覆盖率提升（当前 12.85%；核心模块已 86%——存量路由/服务测试补齐后逐步提升全量指标） | CI cov 收窄 2026-08-18 | 二期 |

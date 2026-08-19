@@ -107,6 +107,13 @@ def temp_db(tmp_path):
         (5, 2023, '2023-11', '金奖', '区域赛', '楚二', '蒋老师', 'ACM')
     """)
 
+    # data_analysis_manager 引用的关联表（T21：贡献度查询用 award_teacher_winners 排除教师奖状、
+    # 实验室类查询用 laboratories/award_supervisors/teachers——缺失致 no such table）
+    conn.execute("CREATE TABLE award_teacher_winners (award_id INTEGER, teacher_id INTEGER)")
+    conn.execute("CREATE TABLE award_supervisors (award_id INTEGER, teacher_id INTEGER)")
+    conn.execute("CREATE TABLE teachers (id INTEGER PRIMARY KEY, teacher_id TEXT, name TEXT)")
+    conn.execute("CREATE TABLE laboratories (id INTEGER PRIMARY KEY, name TEXT)")
+
     conn.commit()
     conn.close()
     return str(db_path)

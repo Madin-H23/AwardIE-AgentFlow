@@ -71,9 +71,16 @@ class TestEnsureV1Path:
 # ==================== resolve_provider_config ====================
 
 @pytest.fixture
-def config_loader():
-    """真实 ConfigLoader（读项目 config/settings.json）。"""
-    return ConfigLoader()
+def config_loader(tmp_path):
+    """真实 ConfigLoader（读项目 config/settings.json），但隔离真实 apikey.json。
+
+    load_config() 每次会从 apikey.json 注入真实 key 到 os.environ，覆盖测试的
+    patch env（T21：测试曾依赖"本机无 key"假设而失败，且真实 key 会泄漏进失败输出）。
+    将 apikey_path 指向不存在的文件，使 load_config 跳过注入，env 完全由测试控制。
+    """
+    loader = ConfigLoader()
+    loader.apikey_path = tmp_path / "no_apikey.json"
+    return loader
 
 
 class TestResolveProviderConfig:
