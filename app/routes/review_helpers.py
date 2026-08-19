@@ -200,10 +200,10 @@ def query_pending_items(pending_manager, tab_type, status, session_id=None):
         # 根据 status 参数过滤验证结果
         if status == 'valid':
             # 只返回验证通过的记录
-            return [item for item in items if item.is_valid()]
+            return [item for item in items if item.validation_passed()]
         else:
             # 只返回验证失败的记录
-            return [item for item in items if not item.is_valid()]
+            return [item for item in items if not item.validation_passed()]
     else:
         # 全局审核：查询 submit 状态的记录（已提交等待审核）
         # 同样需要区分识别成功和待修订
@@ -217,10 +217,10 @@ def query_pending_items(pending_manager, tab_type, status, session_id=None):
         # 根据验证结果分类
         if status == 'valid':
             # 只返回验证通过的记录
-            return [item for item in items if item.is_valid()]
+            return [item for item in items if item.validation_passed()]
         elif status == 'invalid':
             # 只返回验证失败的记录
-            return [item for item in items if not item.is_valid()]
+            return [item for item in items if not item.validation_passed()]
         else:
             # 返回所有记录
             return items
@@ -739,8 +739,8 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
                 )
                 all_items = pending_manager.query_pending(filter_pending)
                 # 根据验证结果分类
-                valid_items = [item for item in all_items if item.is_valid()]
-                invalid_items = [item for item in all_items if not item.is_valid()]
+                valid_items = [item for item in all_items if item.validation_passed()]
+                invalid_items = [item for item in all_items if not item.validation_passed()]
                 valid_count = len(valid_items)
                 invalid_count = len(invalid_items)
             else:
@@ -751,8 +751,8 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
                     limit=1000
                 )
                 submit_items = pending_manager.query_pending(filter_submit)
-                valid_items = [item for item in submit_items if item.is_valid()]
-                invalid_items = [item for item in submit_items if not item.is_valid()]
+                valid_items = [item for item in submit_items if item.validation_passed()]
+                invalid_items = [item for item in submit_items if not item.validation_passed()]
                 valid_count = len(valid_items)
                 invalid_count = len(invalid_items)
 

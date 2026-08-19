@@ -1295,15 +1295,15 @@ def achievement_submit_api_batch_discard():
             items = [i for i in items if _same_submitter(i, submitter_type, submitter_id)]
             for item in items:
                 if session_id:
-                    if validation_status == 'valid' and not item.is_valid():
+                    if validation_status == 'valid' and not item.validation_passed():
                         continue
-                    if validation_status == 'invalid' and item.is_valid():
+                    if validation_status == 'invalid' and item.validation_passed():
                         continue
                 else:
                     if achievement_type not in ('other', 'innovation'):
-                        if validation_status == 'valid' and not item.is_valid():
+                        if validation_status == 'valid' and not item.validation_passed():
                             continue
-                        if validation_status == 'invalid' and item.is_valid():
+                        if validation_status == 'invalid' and item.validation_passed():
                             continue
                     elif achievement_type == 'other' and validation_status in ('image', 'file'):
                         from pathlib import Path

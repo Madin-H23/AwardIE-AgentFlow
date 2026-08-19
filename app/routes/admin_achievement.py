@@ -1716,8 +1716,8 @@ def file_import_api_stats():
             )
             all_items = pending_manager.query_pending(filter_pending)
             # 根据验证结果分类
-            valid_items = [item for item in all_items if item.is_valid()]
-            invalid_items = [item for item in all_items if not item.is_valid()]
+            valid_items = [item for item in all_items if item.validation_passed()]
+            invalid_items = [item for item in all_items if not item.validation_passed()]
             valid_count = len(valid_items)
             invalid_count = len(invalid_items)
 
@@ -2284,9 +2284,9 @@ def file_import_api_delete():
             all_items = pending_manager.query_pending(filter_obj)
             # 根据 status 参数过滤验证结果
             if status == 'valid':
-                items = [item for item in all_items if item.is_valid()]
+                items = [item for item in all_items if item.validation_passed()]
             else:
-                items = [item for item in all_items if not item.is_valid()]
+                items = [item for item in all_items if not item.validation_passed()]
 
             # 检查索引是否有效
             if items and 0 <= index < len(items):
@@ -2582,9 +2582,9 @@ def file_import_api_batch_import():
             else:
                 # award/patent/software: valid / invalid
                 if sub_tab == 'valid':
-                    items = [i for i in items if i.is_valid()]
+                    items = [i for i in items if i.validation_passed()]
                 elif sub_tab == 'invalid':
-                    items = [i for i in items if not i.is_valid()]
+                    items = [i for i in items if not i.validation_passed()]
 
         # 非 admin 仅处理本人提交的 pending（规范化类型比较，避免 DB 与 session 类型不一致）
         if submitter_type != 'admin':
@@ -2752,19 +2752,19 @@ def file_import_api_batch_discard():
             if session_id:
                 # 文件导入审核：按验证状态筛选
                 if validation_status == 'valid':
-                    if not item.is_valid():
+                    if not item.validation_passed():
                         continue
                 elif validation_status == 'invalid':
-                    if item.is_valid():
+                    if item.validation_passed():
                         continue
             else:
                 # 成果审核（全局）：只放弃当前子TAB 下的记录
                 if achievement_type not in ('other', 'innovation'):
                     if validation_status == 'valid':
-                        if not item.is_valid():
+                        if not item.validation_passed():
                             continue
                     elif validation_status == 'invalid':
-                        if item.is_valid():
+                        if item.validation_passed():
                             continue
                 elif achievement_type == 'other' and validation_status in ('image', 'file'):
                     from pathlib import Path

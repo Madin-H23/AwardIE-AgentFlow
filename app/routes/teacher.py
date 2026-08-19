@@ -1981,9 +1981,9 @@ def achievement_review_single(type, sub_tab, index):
         else:
             # 其他类型：按验证结果分类
             if sub_tab == 'valid':
-                items = [item for item in filtered_by_type if item.is_valid()]
+                items = [item for item in filtered_by_type if item.validation_passed()]
             else:
-                items = [item for item in filtered_by_type if not item.is_valid()]
+                items = [item for item in filtered_by_type if not item.validation_passed()]
         
         count = len(items)
         
@@ -2002,7 +2002,7 @@ def achievement_review_single(type, sub_tab, index):
             elif t == 'innovation':
                 type_stats[t] = {'total': len(type_pendings)}
             else:
-                valid_count = sum(1 for p in type_pendings if p.is_valid())
+                valid_count = sum(1 for p in type_pendings if p.validation_passed())
                 invalid_count = len(type_pendings) - valid_count
                 type_stats[t] = {
                     'total': len(type_pendings),
@@ -2034,9 +2034,9 @@ def achievement_review_single(type, sub_tab, index):
                             items.append(item)
             else:
                 if sub_tab == 'valid':
-                    items = [item for item in filtered_by_type if item.is_valid()]
+                    items = [item for item in filtered_by_type if item.validation_passed()]
                 else:
-                    items = [item for item in filtered_by_type if not item.is_valid()]
+                    items = [item for item in filtered_by_type if not item.validation_passed()]
             count = len(items)
         
         # 当前 Tab 的 pending ID 列表（「全部提交」批量审核时使用）

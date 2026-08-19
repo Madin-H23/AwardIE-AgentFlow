@@ -125,8 +125,8 @@ def calculate_type_stats(session_id, pending_manager):
                 limit=1000
             )
             all_items = pending_manager.query_pending(filter_pending)
-            valid_items = [item for item in all_items if item.is_valid()]
-            invalid_items = [item for item in all_items if not item.is_valid()]
+            valid_items = [item for item in all_items if item.validation_passed()]
+            invalid_items = [item for item in all_items if not item.validation_passed()]
             valid_count = len(valid_items)
             invalid_count = len(invalid_items)
             type_stats[t] = {
@@ -201,9 +201,9 @@ def query_pending_items(tab_type, status, session_id, pending_manager):
         )
         all_items = pending_manager.query_pending(filter_obj)
         if status == 'valid':
-            items = [item for item in all_items if item.is_valid()]
+            items = [item for item in all_items if item.validation_passed()]
         else:
-            items = [item for item in all_items if not item.is_valid()]
+            items = [item for item in all_items if not item.validation_passed()]
         count = len(items)
 
     return items, count

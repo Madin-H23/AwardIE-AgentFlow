@@ -674,7 +674,7 @@ class CoreBusinessTester:
                                    not has_supervisor, "info")
 
                     # 检查是否标记为待修订
-                    is_valid = pending_item.is_valid()
+                    is_valid = pending_item.validation_passed()
                     self._add_step(project, "验证结果", "标记为待修订（有警告）",
                                    f"{'识别成功' if is_valid else '待修订'}", not is_valid, "warning")
 
@@ -861,7 +861,7 @@ class CoreBusinessTester:
                                software_count == 1)
 
                 # 统计识别成功和待修订
-                valid_count = sum(1 for item in all_items if item.is_valid())
+                valid_count = sum(1 for item in all_items if item.validation_passed())
                 invalid_count = len(all_items) - valid_count
 
                 self._add_step(project, "识别结果-识别成功", f"识别成功={valid_count}",
@@ -983,12 +983,12 @@ class CoreBusinessTester:
                     )
                 )
 
-                invalid_count = len([item for item in invalid_items if not item.is_valid()])
+                invalid_count = len([item for item in invalid_items if not item.validation_passed()])
 
                 # 找到睿抗奖状（年份不一致）
                 ruikang_item = None
                 for item in invalid_items:
-                    if not item.is_valid():
+                    if not item.validation_passed():
                         achievement_data = item.get_achievement_data()
                         if isinstance(achievement_data, dict):
                             comp_name = achievement_data.get('competition_name', '')

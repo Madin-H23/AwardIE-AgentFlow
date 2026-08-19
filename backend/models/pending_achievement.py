@@ -96,8 +96,8 @@ class PendingAchievement:
         except:
             return {}
 
-    def is_valid(self) -> bool:
-        """Check if validation passed"""
+    def validation_passed(self) -> bool:
+        """Check if validation passed（改名规避与 is_valid 生成列字段同名遮蔽——同名时方法被字段覆盖致调用崩溃）"""
         validation = self.get_validation_result()
         return validation.get('is_valid', False)
 
@@ -538,7 +538,7 @@ class PendingAchievementManager:
                         stats[achievement_type] = {'valid': 0, 'invalid': 0, 'total': 0}
                     
                     stats[achievement_type]['total'] += 1
-                    if pending.is_valid():
+                    if pending.validation_passed():
                         stats[achievement_type]['valid'] += 1
                     else:
                         stats[achievement_type]['invalid'] += 1
@@ -573,7 +573,7 @@ class PendingAchievementManager:
                     if achievement_type not in stats:
                         stats[achievement_type] = {'valid': 0, 'invalid': 0, 'total': 0}
                     stats[achievement_type]['total'] += 1
-                    if pending.is_valid():
+                    if pending.validation_passed():
                         stats[achievement_type]['valid'] += 1
                     else:
                         stats[achievement_type]['invalid'] += 1

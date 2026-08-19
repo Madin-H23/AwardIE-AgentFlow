@@ -112,3 +112,36 @@ class TestUpdateStatusOrm:
     def test_update_status_missing_pending(self, pending_db):
         mgr = _make_manager(pending_db)
         assert mgr._update_status(999, 'submit', reviewer_id=3, comment='x') is False
+
+class TestIsValidFieldMethod:
+    """字段/方法同名遮蔽回归（pyright 暴露的真 bug）：
+
+    is_valid 生成列字段（SELECT * 解包位）与方法同名时，方法被字段默认值覆盖，
+    `pending.is_valid()` 运行时抛 missing self 且被 try/except 静默吞掉。
+    方法已改名 validation_passed；字段位保持。
+    """
+
+    def test_validation_passed_method_works(self):
+        from backend.models.pending_achievement import PendingAchievement
+        p = PendingAchievement(achievement_type='award', achievement_data='{}',
+                               submitter_type='student',
+                               validation_result='{"is_valid": true}')
+        assert p.validation_passed() is True
+        assert p.is_valid is None            # 字段位（生成列解包）保持，不可调用
+
+    def test_validation_passed_false_and_missing(self):
+        from backend.models.pending_achievement import PendingAchievement
+        p = PendingAchievement(achievement_type='award', achievement_data='{}',
+                               submitter_type='student',
+                               validation_result='{"is_valid": false}')
+        assert p.validation_passed() is False
+        p2 = PendingAchievement(achievement_type='award', achievement_data='{}',
+                                submitter_type='student')
+        assert p2.validation_passed() is False   # 无 validation_result 兜底 False
+
+    def test_is_valid_field_not_callable_guard(self):
+        """守卫：is_valid 字段不可再当方法调用（防回归）。"""
+        from backend.models.pending_achievement import PendingAchievement
+        p = PendingAchievement(achievement_type='award', achievement_data='{}',
+                               submitter_type='student')
+        assert not callable(p.is_valid)

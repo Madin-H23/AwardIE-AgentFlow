@@ -434,7 +434,7 @@ class ReviewService:
         策略在用户提交时触发（status='submit'）。
         教师和管理员提交一律自动归档；学生提交由本页配置（奖状/专利/软著、大创/其他）决定是否自动归档。
         """
-        logger.info(f"[apply_review_policy] 开始: pending_id={pending_item.id}, type={pending_item.achievement_type}, is_valid={pending_item.is_valid()}, submitter_type={getattr(pending_item, 'submitter_type', None)}, auto_archive_config_manager={self.auto_archive_config_manager is not None}")
+        logger.info(f"[apply_review_policy] 开始: pending_id={pending_item.id}, type={pending_item.achievement_type}, is_valid={pending_item.validation_passed()}, submitter_type={getattr(pending_item, 'submitter_type', None)}, auto_archive_config_manager={self.auto_archive_config_manager is not None}")
 
         # 1. 教师/管理员提交一律自动归档，不查配置
         submitter_type = getattr(pending_item, 'submitter_type', None)
@@ -452,7 +452,7 @@ class ReviewService:
             if self.auto_archive_config_manager:
                 should_auto_archive = self.auto_archive_config_manager.should_auto_archive(
                     achievement_type=pending_item.achievement_type,
-                    is_valid=pending_item.is_valid()
+                    is_valid=pending_item.validation_passed()
                 )
                 use_async = True
                 logger.info(f"数据库配置判断: pending={pending_item.id}, auto_archive={should_auto_archive}")
@@ -469,10 +469,10 @@ class ReviewService:
                 if mode == "allow_all":
                     should_auto_archive = True
                 elif mode == "allow_qualified":
-                    should_auto_archive = pending_item.is_valid()
+                    should_auto_archive = pending_item.validation_passed()
                 elif mode == "manual_review":
                     if pending_item.achievement_type not in manual_types:
-                        should_auto_archive = pending_item.is_valid()
+                        should_auto_archive = pending_item.validation_passed()
 
                 use_async = False  # 配置文件模式不使用异步
 
@@ -1371,7 +1371,7 @@ class ReviewService:
             # 确定是否异常（基于验证结果）
             is_abnormal = False
             if hasattr(pending, 'is_valid'):
-                is_abnormal = not pending.is_valid()
+                is_abnormal = not pending.validation_passed()
             elif hasattr(pending, 'validation_result') and pending.validation_result:
                 validation = pending.get_validation_result() if hasattr(pending, 'get_validation_result') else {}
                 is_abnormal = not validation.get('is_valid', True)
