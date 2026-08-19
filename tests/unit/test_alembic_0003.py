@@ -49,7 +49,8 @@ def schema_db(tmp_path):
 
 class TestUpgrade0003:
     def test_types_indexes_views_preserved(self, schema_db):
-        _alembic(schema_db, "upgrade", "head")
+        # 显式升级到 0003（head 已到 0004，本测试聚焦 0003 迁移）
+        _alembic(schema_db, "upgrade", "0003_typization_rebuild")
         conn = sqlite3.connect(str(schema_db))
         cols = {r[1]: r[2] for r in conn.execute("PRAGMA table_info(users)")}
         assert cols["login_code"] == "VARCHAR(50)"
@@ -67,7 +68,7 @@ class TestUpgrade0003:
 
     def test_views_dropped_and_recreated_on_users_rebuild(self, schema_db):
         """重建 users（被视图引用）不破坏视图：DROP 前删视图、完成后重建。"""
-        _alembic(schema_db, "upgrade", "head")
+        _alembic(schema_db, "upgrade", "0003_typization_rebuild")
         conn = sqlite3.connect(str(schema_db))
         assert conn.execute("SELECT type FROM sqlite_master WHERE name='students'").fetchone()[0] == "view"
         conn.close()
