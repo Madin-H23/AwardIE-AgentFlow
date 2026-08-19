@@ -54,7 +54,8 @@ def legacy_db(tmp_path):
 
 class TestUpgrade0002:
     def test_upgrade_views_and_relinks(self, legacy_db):
-        _alembic(legacy_db, "upgrade", "head")
+        # 升级到 0002（显式目标 rev——head 已到 0003，本测试聚焦 0002 迁移）
+        _alembic(legacy_db, "upgrade", "0002_legacy_tables_to_views")
         conn = sqlite3.connect(str(legacy_db))
         # 视图化
         for t in ("students", "teachers", "admins"):
@@ -71,13 +72,13 @@ class TestUpgrade0002:
 
     def test_roundtrip_downgrade_upgrade(self, legacy_db):
         """往返：0002 → 0001（视图还原实体表+数据回拷）→ 0002（幂等重做）。"""
-        _alembic(legacy_db, "upgrade", "head")
+        _alembic(legacy_db, "upgrade", "0002_legacy_tables_to_views")
         _alembic(legacy_db, "downgrade", "0001_orm_baseline")
         conn = sqlite3.connect(str(legacy_db))
         assert conn.execute("SELECT type FROM sqlite_master WHERE name='students'").fetchone()[0] == "table"
         assert conn.execute("SELECT student_id FROM students").fetchone()[0] == "s1"
         conn.close()
-        _alembic(legacy_db, "upgrade", "head")
+        _alembic(legacy_db, "upgrade", "0002_legacy_tables_to_views")
         conn = sqlite3.connect(str(legacy_db))
         assert conn.execute("SELECT type FROM sqlite_master WHERE name='students'").fetchone()[0] == "view"
         conn.close()

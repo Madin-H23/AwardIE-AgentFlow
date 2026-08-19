@@ -181,8 +181,8 @@ class TestAlembicBaseline:
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
         n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
         conn.close()
-        # M1 后半②：head 已推进到 0002（视图化——students/teachers/admins 变视图，表数-3 属预期）
-        assert ver == [("0002_legacy_tables_to_views",)]
+        # M1 后半②③：head 已推进到 0003（视图化+类型重建——业务表数不变 23）
+        assert ver == [("0003_typization_rebuild",)]
         assert n_tables >= 23   # 视图化后业务表 -3（原 26 业务表 + 系统表）
 
     def test_no_autogenerate_in_versions(self):
