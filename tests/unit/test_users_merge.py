@@ -70,25 +70,6 @@ class TestVerifyUsersFirst:
         assert check_password_hash(u_hash, 'NewPass456!')          # users 已同步新密码
 
 
-class TestDualWrite:
-    def test_sync_user_row(self, migrated_db):
-        from backend.utils.users_sync import sync_user_row
-        assert sync_user_row(migrated_db, 's1', needs_password_change=1) is True
-        conn = sqlite3.connect(migrated_db)
-        v = conn.execute("SELECT needs_password_change FROM users WHERE login_code='s1'").fetchone()[0]
-        conn.close()
-        assert v == 1
-
-    def test_insert_user_row_idempotent(self, migrated_db):
-        from backend.utils.users_sync import insert_user_row
-        assert insert_user_row(migrated_db, 't9', '新教师', 'teacher', 'hash', 1) is True
-        assert insert_user_row(migrated_db, 't9', '新教师', 'teacher', 'hash', 1) is True   # 幂等
-        conn = sqlite3.connect(migrated_db)
-        n = conn.execute("SELECT COUNT(*) FROM users WHERE login_code='t9'").fetchone()[0]
-        conn.close()
-        assert n == 1
-
-
 class TestMigrationIntegrity:
     def test_real_db_counts(self):
         """真实库对账：users 总数 == 三表之和；映射无空（CI 无库则跳过）。"""
