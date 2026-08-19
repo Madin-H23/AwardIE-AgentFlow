@@ -64,6 +64,9 @@ class PendingAchievement:
     # 乐观锁版本号（迁移§1.5 加列；P1-15 服务层条件更新的前置字段）
     version: int = 1
 
+    # M3 生成列（SELECT * 解包需字段；VIRTUAL 只读，由 validation_result 自动推导）
+    is_valid: Optional[int] = None
+
     def get_achievement_data(self) -> Dict[str, Any]:
         """
         解析 achievement_data JSON
