@@ -114,3 +114,4 @@ backend/document_extract.rar
 database/*.db.bak.*
 database/*.txt
 pyrightconfig.json
+.playwright-mcp/
