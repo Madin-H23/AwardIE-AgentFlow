@@ -39,14 +39,8 @@ def verify_user(username: str, password: str, db_path: str) -> dict | None:
     try:
         # ── users 单表优先（合并核心收益：一条 SQL 替代三表逐查）──
         try:
-            from backend.orm.base import get_session
-            from backend.orm.users import User
-            from sqlalchemy import select
-            s = get_session()
-            try:
-                u = s.execute(select(User).where(User.login_code == username)).scalar_one_or_none()
-            finally:
-                s.close()
+            from backend.orm.repositories import UserRepository
+            u = UserRepository.get_by_login_code(username)
             if u and u.user_activated:
                 if u.password_hash and check_password_hash(u.password_hash, password):
                     return {

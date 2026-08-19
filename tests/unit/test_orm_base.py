@@ -145,3 +145,25 @@ class TestAuthOrmProbe:
         from app.auth import verify_user
         r = verify_user('s1', 'OldPass123', str(db))
         assert r is not None and r['user_type'] == 'student'
+
+
+class TestUserRepository:
+    """M1 后半③②：UserRepository ORM 读仓储。"""
+
+    def test_get_by_login_code(self):
+        from backend.orm.repositories import UserRepository
+        u = UserRepository.get_by_login_code('admin')
+        assert u is not None and u.role == 'admin' and u.id == 1832
+        assert UserRepository.get_by_login_code('不存在') is None
+
+    def test_get_by_id(self):
+        from backend.orm.repositories import UserRepository
+        assert UserRepository.get_by_id(1832).login_code == 'admin'
+        assert UserRepository.get_by_id(999999) is None
+
+    def test_list_by_role(self):
+        from backend.orm.repositories import UserRepository
+        admins = UserRepository.list_by_role('admin')
+        assert len(admins) == 1
+        students = UserRepository.list_by_role('student')
+        assert len(students) == 1793
