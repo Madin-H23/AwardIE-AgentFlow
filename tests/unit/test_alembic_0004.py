@@ -48,7 +48,8 @@ def schema_db(tmp_path):
 
 class TestUpgrade0004:
     def test_teacher_fk_relink_and_check_empty(self, schema_db):
-        _alembic(schema_db, "upgrade", "head")
+        # 显式升级到 0004（head 已到 0005，本测试聚焦 0004 迁移）
+        _alembic(schema_db, "upgrade", "0004_teacher_fk_relink")
         conn = sqlite3.connect(str(schema_db))
         # FK 改指 users
         for t in ("laboratory_instructors", "award_teacher_winners", "award_supervisors"):

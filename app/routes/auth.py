@@ -19,11 +19,20 @@ def login():
             flash('请输入用户名和密码', 'error')
             return render_template('auth/login.html')
         
-        # 验证用户
+        # P2-25 登录失败锁定：先查锁定态（统一提示，不区分账号是否存在，防枚举）
         config = get_config()
+        client_ip = request.remote_addr or ''
+        from backend.utils.login_guard import check_login_allowed, record_login_failure, record_login_success
+        allowed, retry_after = check_login_allowed(str(config.DATABASE_PATH), username, client_ip)
+        if not allowed:
+            flash(f'尝试过于频繁，请 {retry_after} 秒后再试', 'error')
+            return render_template('auth/login.html')
+        
+        # 验证用户
         user_info = verify_user(username, password, str(config.DATABASE_PATH))
         
         if user_info:
+            record_login_success(str(config.DATABASE_PATH), username, client_ip)
             login_user(user_info)
             
             # 首登强制改密（P1-2 全角色）：管理员重置密码时置 needs_password_change 标记，
@@ -52,6 +61,7 @@ def login():
             else:
                 return redirect(url_for('student.dashboard'))
         else:
+            record_login_failure(str(config.DATABASE_PATH), username, client_ip)
             flash('用户名或密码错误', 'error')
     
     # GET请求或登录失败，显示登录页面
