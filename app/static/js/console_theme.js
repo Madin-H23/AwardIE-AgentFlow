@@ -3,9 +3,22 @@
  * 初值：localStorage > 系统偏好。持久化 key: console-theme。 */
 (function () {
   var KEY = 'console-theme';
+  function syncToggle(theme) {
+    var dark = theme === 'dark';
+    document.querySelectorAll('[data-console-theme-toggle]').forEach(function (btn) {
+      btn.setAttribute('aria-label', dark ? '切换为浅色模式' : '切换为深色模式');
+      btn.setAttribute('title', dark ? '切换为浅色模式' : '切换为深色模式');
+      btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+      var moon = btn.querySelector('.theme-icon-moon');
+      var sun = btn.querySelector('.theme-icon-sun');
+      if (moon) moon.style.display = dark ? 'none' : 'block';
+      if (sun) sun.style.display = dark ? 'block' : 'none';
+    });
+  }
   function apply(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-bs-theme', theme);
+    syncToggle(theme);
   }
   var saved = null;
   try { saved = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
@@ -27,5 +40,8 @@
         title.closest('.sb-group').classList.toggle('collapsed');
       });
     });
+
+    // 双图标初始态（内联 style 的 sun 默认隐藏，但首帧保险）
+    syncToggle(document.documentElement.getAttribute('data-theme') || 'light');
   });
 })();

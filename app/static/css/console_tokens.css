@@ -116,8 +116,10 @@
 .console-shell .console-topbar .theme-toggle {
   margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--ink-2);
   border-radius: 6px; width: 34px; height: 30px; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .console-shell .console-topbar .theme-toggle:hover { color: var(--brand); border-color: var(--brand); }
+.console-shell .console-topbar .theme-icon { width: 15px; height: 15px; display: block; }
 
 /* ---------- 顶栏用户下拉（控制台风格：头像+用户名+菜单） ---------- */
 .console-shell .console-topbar .topbar-user { margin-left: 4px; }

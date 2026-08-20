@@ -28,8 +28,10 @@
     {# 顶栏 #}
     <header class="console-topbar">
         <span class="topbar-title">{% block topbar_title %}控制台{% endblock %}</span>
-        <button type="button" class="theme-toggle" data-console-theme-toggle title="切换亮/暗主题"
-                aria-label="切换亮暗主题"><i class="bi bi-circle-half"></i></button>
+        <button type="button" class="theme-toggle" data-console-theme-toggle aria-label="切换为深色模式" title="切换为深色模式" aria-pressed="false">
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 14.1A8.3 8.3 0 0 1 9.9 3.6a8.3 8.3 0 1 0 10.5 10.5Z"></path></svg>
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"></path></svg>
+        </button>
         {% if current_user.id %}
         <div class="dropdown topbar-user">
             <button class="dropdown-toggle topbar-user-btn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
