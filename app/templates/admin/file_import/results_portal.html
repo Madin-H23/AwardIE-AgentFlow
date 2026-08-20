@@ -298,3 +298,8 @@
 {% block content %}
 {% include 'admin/file_import/partials/_results_content.html' %}
 {% endblock %}
+
+{% block extra_scripts %}
+<!-- 审核工作台 Bootstrap JS 组件（Bootstrap 下拉/模态；user_base 不含 bundle） -->
+<script src="https://unpkg.com/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
