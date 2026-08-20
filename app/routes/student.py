@@ -862,7 +862,7 @@ def achievement_submit_results():
                             preview_image_path = None
             preview_image_url = url_for('student.achievement_submit_file', file_path=preview_image_path.replace('\\', '/')) if preview_image_path else None
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,
@@ -903,7 +903,7 @@ def achievement_submit_results():
                 file_url = url_for('student.achievement_submit_file', file_path=file_path.replace('\\', '/'))
                 non_award_data['file_url'] = file_url
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,

@@ -11,7 +11,7 @@ def _require_real_db():
     require_real_db()
 
 
-SRC = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "results.html").read_text(encoding="utf-8")
+SRC = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "partials" / "_results_content.html").read_text(encoding="utf-8")
 
 
 class TestTimelineUI:

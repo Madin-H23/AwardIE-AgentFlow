@@ -11,7 +11,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 class TestRejectButton:
     def test_button_and_js_present(self):
         """审核页模板：驳回按钮 + rejectAward JS（含 teacher/admin 双 API 路由）。"""
-        src = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "results.html").read_text(encoding='utf-8')
+        src = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "partials" / "_results_content.html").read_text(encoding='utf-8')
         assert "驳回" in src and "rejectAward(" in src
         assert "api_achievement_review_reject" in src      # teacher API
         assert "admin_review.api_reject" in src            # admin API
@@ -19,7 +19,7 @@ class TestRejectButton:
 
     def test_reject_only_in_review_routes(self):
         """驳回按钮仅审核场景渲染（teacher_review/admin_review + submit 态）。"""
-        src = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "results.html").read_text(encoding='utf-8')
+        src = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "partials" / "_results_content.html").read_text(encoding='utf-8')
         assert "route_prefix in ('teacher_review', 'admin_review')" in src
         assert "current_item.status == 'submit'" in src
 

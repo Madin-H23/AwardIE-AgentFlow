@@ -1493,7 +1493,7 @@ def achievement_submit_results():
                             preview_image_path = None
             preview_image_url = url_for('teacher.achievement_submit_file', file_path=preview_image_path.replace('\\', '/')) if preview_image_path else None
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,
@@ -1534,7 +1534,7 @@ def achievement_submit_results():
                 file_url = url_for('teacher.achievement_submit_file', file_path=file_path.replace('\\', '/'))
                 non_award_data['file_url'] = file_url
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,
@@ -1887,7 +1887,7 @@ def achievement_review_list():
         if not teacher_pendings:
             from app.routes.file_import_helpers import get_type_names
             return render_template(
-                'admin/file_import/results.html',
+                'admin/file_import/results_portal.html',
                 session_id=None,
                 route_prefix='teacher_review',
                 available_types=[],
@@ -2075,7 +2075,7 @@ def achievement_review_single(type, sub_tab, index):
             preview_image_path = data.get('preview_image_path') if isinstance(data, dict) else None
             preview_image_url = url_for('teacher.achievement_review_file', file_path=preview_image_path.replace('\\', '/')) if preview_image_path else None
             
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=None,
                                   tab_type=type,
                                   status=sub_tab,
@@ -2118,7 +2118,7 @@ def achievement_review_single(type, sub_tab, index):
                 file_url = url_for('teacher.achievement_review_file', file_path=file_path.replace('\\', '/'))
                 non_award_data['file_url'] = file_url
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_portal.html',
                                   session_id=None,
                                   tab_type=type,
                                   status=sub_tab,

@@ -1074,7 +1074,7 @@ def file_import_results():
             preview_image_path = award_data.get('preview_image_path')
             preview_image_url = url_for('admin_achievement.file_import_file', file_path=preview_image_path.replace('\\', '/')) if preview_image_path else None
 
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_console.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,
@@ -1108,7 +1108,7 @@ def file_import_results():
             validation_result = current_item.get_validation_result() if current_item else None
             field_errors, is_valid = process_validation_result(validation_result)
             
-            return render_template('admin/file_import/results.html',
+            return render_template('admin/file_import/results_console.html',
                                   session_id=session_id,
                                   tab_type=tab_type,
                                   status=status,

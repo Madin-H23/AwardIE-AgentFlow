@@ -103,11 +103,11 @@
            href="{{ url_for('teacher.dashboard') }}">
             <i class="bi bi-house sb-ic"></i>教师首页
         </a>
-        <a class="nav-link" href="#">
-            <i class="bi bi-folder2 sb-ic"></i>我的成果
+        <a class="nav-link" href="{{ url_for('teacher.achievements') }}">
+            <i class="bi bi-folder2 sb-ic"></i>成果展示
         </a>
-        <a class="nav-link" href="#">
-            <i class="bi bi-award sb-ic"></i>奖状管理
+        <a class="nav-link" href="{{ url_for('teacher.achievement_review_list') }}">
+            <i class="bi bi-clipboard-check sb-ic"></i>成果审核
         </a>
     {% else %}
         <a class="nav-link {% if request.endpoint and request.endpoint.startswith('student') %}active{% endif %}" 

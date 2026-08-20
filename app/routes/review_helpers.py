@@ -19,6 +19,12 @@ from backend.models.pending_achievement import PendingAchievementFilter
 logger = logging.getLogger(__name__)
 
 
+def _results_template(route_prefix):
+    """按身份选壳：admin 用控制台，师生用门户外壳（按身份定体系）。"""
+    return ('admin/file_import/results_portal.html'
+            if route_prefix in ('teacher', 'student', 'teacher_review', 'student_review')
+            else 'admin/file_import/results_console.html')
+
 def normalize_laboratory_id(value):
     """将 laboratory_id 规范为 int，便于存储与模板比较。"""
     if value is None or value == '':
@@ -1072,7 +1078,7 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
             'agent_review': _get_stored_agent_review(current_item),
         }
 
-        return render_template('admin/file_import/results.html', **template_context)
+        return render_template(_results_template(route_prefix), **template_context)
     
     # 获取当前项（非 innovation 类型）
     current_item = None
@@ -1203,4 +1209,4 @@ def render_review_page(session_id, tab_type, status, index, app_context, title_p
             except:
                 template_context['file_url'] = None
 
-    return render_template('admin/file_import/results.html', **template_context)
+    return render_template(_results_template(route_prefix), **template_context)
