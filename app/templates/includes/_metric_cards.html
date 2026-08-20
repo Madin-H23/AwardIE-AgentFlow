@@ -1,0 +1,16 @@
+{# console 组件：Metrics 卡片（前端重构方案 Phase 2）
+   用法：{% from 'includes/_metric_cards.html' import vital %}
+         {{ vital(id='auditToday', label='今日审核量', value=12, sub='环比 +3') }}
+   JS 经 #vital-<id> 定位卡片、#vital-<id>-value 填数值、-sub 填副文、-dot 切换圆点状态。
+   dot='ok' 呼吸圆点（teal）；dot='down' 红色急促脉动；alarming=True 数值脉动。 #}
+
+{% macro vital(label, value, sub='', dot=None, alarming=False, id=None) %}
+<div class="vital-card" {% if id %}id="vital-{{ id }}"{% endif %}>
+    <span class="vital-label">
+        {% if dot %}<span class="pulse-dot {{ 'down' if dot == 'down' else '' }}" {% if id %}id="vital-{{ id }}-dot"{% endif %}></span>{% endif %}
+        {{ label }}
+    </span>
+    <span class="vital-value mono-data {{ 'alarming' if alarming else '' }}" {% if id %}id="vital-{{ id }}-value"{% endif %}>{{ value }}</span>
+    {% if sub %}<span class="vital-sub" {% if id %}id="vital-{{ id }}-sub"{% endif %}>{{ sub }}</span>{% endif %}
+</div>
+{% endmacro %}

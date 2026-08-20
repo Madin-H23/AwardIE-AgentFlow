@@ -1,0 +1,164 @@
+/* ============================================================
+   console_tokens.css —— 控制台新体系 Design Tokens（前端重构方案 §3）
+   作用域：全部选择器挂在 .console-shell 下，旧页面（base.html 体系）零影响。
+   铁律：所有颜色必须亮/暗成对定义（:root 亮 / [data-theme="dark"] 暗），
+         暗黑禁止纯黑 #000 / 纯白 #fff 背景（用 #141414 / #1f1f1f）。
+   ============================================================ */
+
+/* ---------- 主题 Token ---------- */
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --line: #e6e8eb;
+  --brand: #1677ff;
+  --brand-hover: #4096ff;
+  --ink: #1f2329;
+  --ink-2: #646a73;
+  --sb-bg: #141414;
+  --sb-ink: rgba(255, 255, 255, .78);
+  --ok: #0f766e;
+  /* severity 五级阶（亮） */
+  --sev-debug: #94a3b8;
+  --sev-info: #2563eb;      --sev-info-bg: #eff6ff;
+  --sev-warning: #d97706;   --sev-warning-bg: #fffbeb;
+  --sev-error: #dc2626;     --sev-error-bg: #fef2f2;
+  --sev-critical: #7f1d1d;  --sev-critical-bg: #fee2e2;
+}
+[data-theme="dark"] {
+  --bg: #141414;
+  --panel: #1f1f1f;
+  --line: #303030;
+  --ink: rgba(255, 255, 255, .85);
+  --ink-2: rgba(255, 255, 255, .55);
+  --sev-info: #60a5fa;      --sev-info-bg: rgba(37, 99, 235, .15);
+  --sev-warning: #fbbf24;   --sev-warning-bg: rgba(217, 119, 6, .15);
+  --sev-error: #f87171;     --sev-error-bg: rgba(220, 38, 38, .15);
+  --sev-critical: #fca5a5;  --sev-critical-bg: rgba(127, 29, 29, .25);
+}
+
+/* ---------- 控制台骨架（侧边栏 240px 固定 + 顶栏 + 内容区） ---------- */
+.console-shell { min-height: 100vh; background: var(--bg); color: var(--ink); }
+
+.console-shell .console-sidebar {
+  position: fixed; inset: 0 auto 0 0; width: 240px;
+  background: var(--sb-bg); overflow-y: auto; padding: 16px 10px; z-index: 1030;
+}
+.console-shell .console-sidebar .sidebar-section-title {
+  color: rgba(255, 255, 255, .38); font-size: .72rem; letter-spacing: .08em;
+  padding: 14px 12px 6px; margin: 0;
+}
+.console-shell .console-sidebar .sidebar-divider { border-color: rgba(255, 255, 255, .1); margin: 10px 8px; opacity: 1; }
+.console-shell .console-sidebar .nav-link {
+  color: var(--sb-ink); border-radius: 6px; padding: 8px 12px; margin: 1px 0; font-size: .88rem;
+}
+.console-shell .console-sidebar .nav-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.console-shell .console-sidebar .nav-link.active { background: var(--brand); color: #fff; }
+
+.console-shell .console-topbar {
+  position: fixed; top: 0; right: 0; left: 240px; height: 52px; z-index: 1020;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 12px; padding: 0 20px;
+}
+.console-shell .console-topbar .topbar-title { font-weight: 600; font-size: .95rem; }
+.console-shell .console-topbar .theme-toggle {
+  margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--ink-2);
+  border-radius: 6px; width: 34px; height: 30px; line-height: 1; cursor: pointer;
+}
+.console-shell .console-topbar .theme-toggle:hover { color: var(--brand); border-color: var(--brand); }
+
+.console-shell .console-main { margin-left: 240px; padding: 72px 24px 32px; }
+
+/* ---------- 通用面板 / 按钮 ---------- */
+.console-shell .c-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+}
+.console-shell .c-btn {
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 6px; padding: 5px 14px; font-size: .85rem; cursor: pointer;
+}
+.console-shell .c-btn:hover { border-color: var(--brand); color: var(--brand); }
+.console-shell .c-btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.console-shell .c-btn-primary:hover { background: var(--brand-hover); color: #fff; }
+.console-shell .c-text-btn { background: none; border: none; color: var(--brand); padding: 2px 6px; cursor: pointer; font-size: .85rem; }
+.console-shell .c-text-btn.danger { color: var(--sev-error); }
+
+/* ---------- 数据等宽 ---------- */
+.mono-data {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Severity 级别（左竖条 + 同色文字；行内色阶） ---------- */
+.console-shell .severity-bar {
+  display: inline-flex; align-items: center; padding-left: 8px; font-size: .78rem; font-weight: 600;
+  border-left: 3px solid currentColor; line-height: 1.4;
+}
+.console-shell .sev-debug    { color: var(--sev-debug); }
+.console-shell .sev-info     { color: var(--sev-info); }
+.console-shell .sev-warning  { color: var(--sev-warning); }
+.console-shell .sev-error    { color: var(--sev-error); }
+.console-shell .sev-critical { color: var(--sev-critical); }
+.console-shell .sev-chip {
+  display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: .75rem; font-weight: 600;
+}
+.console-shell .sev-chip.sev-info     { background: var(--sev-info-bg); color: var(--sev-info); }
+.console-shell .sev-chip.sev-warning  { background: var(--sev-warning-bg); color: var(--sev-warning); }
+.console-shell .sev-chip.sev-error    { background: var(--sev-error-bg); color: var(--sev-error); }
+.console-shell .sev-chip.sev-critical { background: var(--sev-critical-bg); color: var(--sev-critical); }
+
+/* ---------- 日志流（行式，等宽，悬停高亮，选中左边条） ---------- */
+.console-shell .log-stream { font-size: .8rem; }
+.console-shell .log-row {
+  display: flex; gap: 10px; padding: 5px 10px; border-bottom: 1px solid var(--line);
+  cursor: pointer; align-items: baseline;
+}
+.console-shell .log-row:hover { background: color-mix(in srgb, var(--brand) 6%, transparent); }
+.console-shell .log-row .log-ts { color: var(--ink-2); white-space: nowrap; }
+.console-shell .log-row .log-msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- 生命体征带（Vitals Strip，方案 §3.4 签名元素） ---------- */
+.console-shell .vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.console-shell .vital-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;
+}
+.console-shell .vital-label { font-size: .78rem; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+.console-shell .vital-value { font-size: 1.7rem; font-weight: 700; }
+.console-shell .vital-sub { font-size: .74rem; color: var(--ink-2); }
+.console-shell .pulse-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--ok); display: inline-block;
+  animation: console-breathe 2.6s ease-in-out infinite;
+}
+.console-shell .pulse-dot.down { background: var(--sev-error); animation-duration: .9s; }
+.console-shell .vital-value.alarming { color: var(--sev-error); animation: console-pulse 1.2s ease-in-out infinite; }
+
+@keyframes console-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, .45); }
+  50% { box-shadow: 0 0 0 6px rgba(15, 118, 110, 0); }
+}
+@keyframes console-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .console-shell .pulse-dot, .console-shell .vital-value.alarming { animation: none; }
+}
+
+/* ---------- 筛选栏（Filter Bar） ---------- */
+.console-shell .filter-bar {
+  background: color-mix(in srgb, var(--ink) 4%, var(--panel));
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+}
+.console-shell .filter-bar input, .console-shell .filter-bar select {
+  background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+  border-radius: 6px; padding: 4px 10px; font-size: .84rem;
+}
+.console-shell .filter-bar input:focus, .console-shell .filter-bar select:focus {
+  outline: none; border-color: var(--brand);
+}
+
+/* ---------- 空态 ---------- */
+.console-shell .empty-state {
+  padding: 40px 20px; text-align: center; color: var(--ink-2); font-size: .88rem;
+}

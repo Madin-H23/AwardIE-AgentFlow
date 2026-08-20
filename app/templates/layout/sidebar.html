@@ -50,6 +50,10 @@
            href="{{ url_for('admin_export.data_export') }}">
             数据导出
         </a>
+        <a class="nav-link {% if request.endpoint and 'admin_log' in request.endpoint %}active{% endif %}"
+           href="{{ url_for('admin_log.index') }}">
+            日志管理
+        </a>
         <hr class="sidebar-divider">
         <div class="sidebar-section-title">系统设置</div>
         <a class="nav-link {% if request.endpoint and 'settings' in request.endpoint %}active{% endif %}"

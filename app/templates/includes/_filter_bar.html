@@ -1,0 +1,29 @@
+{# console 组件：筛选栏（前端重构方案 Phase 2）
+   用法：{% from 'includes/_filter_bar.html' import filter_bar %}
+         {{ filter_bar(fields=[
+              {'name':'keyword','type':'text','placeholder':'关键词','label':'关键词'},
+              {'name':'level','type':'select','options':[['','全部级别'],['error','error']]},
+            ]) }}
+   vanilla JS 经 getFormData() 收集参数（见 admin_logs.js）。 #}
+
+{% macro filter_bar(fields=(), on_search='onFilterSearch') %}
+<form class="filter-bar" data-console-filter onsubmit="event.preventDefault(); (window.{{ on_search }} || function(){})();">
+    {% for f in fields %}
+        {% if f.type == 'select' %}
+            <select name="{{ f.name }}" aria-label="{{ f.label or f.name }}">
+                {% for val, text in f.options %}
+                    <option value="{{ val }}">{{ text }}</option>
+                {% endfor %}
+            </select>
+        {% elif f.type == 'date' %}
+            <input type="date" name="{{ f.name }}" aria-label="{{ f.label or f.name }}">
+        {% else %}
+            <input type="{{ f.type or 'text' }}" name="{{ f.name }}"
+                   placeholder="{{ f.placeholder or f.label or f.name }}"
+                   aria-label="{{ f.label or f.name }}">
+        {% endif %}
+    {% endfor %}
+    <button type="submit" class="c-btn">查询</button>
+    <button type="reset" class="c-btn" data-console-filter-reset>重置</button>
+</form>
+{% endmacro %}

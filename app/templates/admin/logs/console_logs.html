@@ -1,0 +1,90 @@
+{% extends "layout/base_console.html" %}
+{% from "includes/_metric_cards.html" import vital %}
+{% from "includes/_filter_bar.html" import filter_bar %}
+
+{% block title %}日志管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}日志管理{% endblock %}
+
+{% block extra_head %}
+<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
+        onerror="this.onerror=null;document.write('<script src=\'https://unpkg.com/echarts@5.4.3/dist/echarts.min.js\'><\/script>')"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs mb-3" id="logTabs" role="tablist" style="border-bottom-color: var(--line);">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-viewer" type="button">日志查看</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dashboard" type="button" id="tab-btn-dashboard">分析看板</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-plan" type="button" id="tab-btn-plan">行动计划</button></li>
+</ul>
+
+{# ==================== Tab 1 日志查看 ==================== #}
+<div class="tab-content">
+<div class="tab-pane fade show active" id="tab-viewer" role="tabpanel">
+
+    {{ filter_bar(fields=[
+        {'name':'level','type':'select','label':'级别','options':[
+            ['','全部级别'],['debug','debug'],['info','info'],['warning','warning'],['error','error'],['critical','critical']]},
+        {'name':'keyword','type':'text','placeholder':'关键词 / trace_id'},
+        {'name':'start_date','type':'date','label':'开始日期'},
+        {'name':'end_date','type':'date','label':'结束日期'},
+    ]) }}
+
+    <ul class="nav nav-pills mt-3 mb-2" id="srcTabs" style="font-size:.84rem;">
+        <li class="nav-item"><button class="nav-link active" data-log-source="audit" type="button">审核留痕</button></li>
+        <li class="nav-item"><button class="nav-link" data-log-source="system" type="button">系统事件</button></li>
+        <li class="nav-item"><button class="nav-link" data-log-source="app" type="button">应用日志</button></li>
+        <li class="nav-item"><button class="nav-link" data-log-source="stream" type="button">实时流</button></li>
+    </ul>
+
+    <div class="c-panel">
+        <div class="log-stream mono-data" id="logStream" style="min-height:200px;">
+            <div class="empty-state">选择日志源后展示记录</div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-2" style="border-top:1px solid var(--line);">
+            <span style="font-size:.78rem;color:var(--ink-2)" id="logStreamStatus"></span>
+            <div>
+                <button class="c-btn btn-sm" id="logPrevPage">上一页</button>
+                <span class="mono-data" style="font-size:.78rem;margin:0 8px;" id="logPageInfo">1 / 1</span>
+                <button class="c-btn btn-sm" id="logNextPage">下一页</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ==================== Tab 2 分析看板 ==================== #}
+<div class="tab-pane fade" id="tab-dashboard" role="tabpanel">
+    <div class="vitals mb-3">
+        {{ vital(id='auditToday', label='今日审核量', value='—') }}
+        {{ vital(id='backlog', label='待审积压', value='—') }}
+        {{ vital(id='aiState', label='AI 服务状态', value='—', dot='ok') }}
+        {{ vital(id='alertCount', label='活跃告警', value='—') }}
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartActions" style="height:100%"></div></div></div>
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartErrors" style="height:100%"></div></div></div>
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartAi" style="height:100%"></div></div></div>
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartBottleneck" style="height:100%"></div></div></div>
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartActivity" style="height:100%"></div></div></div>
+        <div class="col-md-4"><div class="c-panel" style="height:260px"><div class="chart" id="chartAuditRate" style="height:100%"></div></div></div>
+    </div>
+
+    <div class="c-panel p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>当前告警</strong>
+            <span style="font-size:.78rem;color:var(--ink-2)" id="alertSummary"></span>
+        </div>
+        <div id="alertList"><div class="empty-state">暂无告警——系统安静运行中</div></div>
+    </div>
+</div>
+
+{# ==================== Tab 3 行动计划 ==================== #}
+<div class="tab-pane fade" id="tab-plan" role="tabpanel">
+    <div id="planList"><div class="empty-state">暂无待办计划——没有需要处理的事项</div></div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin_logs.js') }}"></script>
+{% endblock %}

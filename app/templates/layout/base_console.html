@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+{# base_console.html —— 控制台新体系基类（前端重构方案 Phase 1）
+   布局：左固定侧边栏 240px（include 现有 sidebar，导航单一真源）+ 顶栏（标题/主题切换/用户）+ 内容区。
+   主题：console_tokens.css（CSS 变量双主题）+ console_theme.js（与 data-bs-theme 双轨同步）。
+   块结构对齐 base.html（title/extra_head/content/extra_scripts）便于旧页未来迁移。 #}
+<html lang="zh-CN" data-theme="light" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}成果管理系统{% endblock %}</title>
+
+    <link href="https://unpkg.com/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/console_tokens.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="console-shell">
+
+    {# 左侧固定侧边栏（深色，240px）——include 现有 sidebar（单一真源），样式由 tokens 作用域覆盖 #}
+    <aside class="console-sidebar">
+        {% include 'layout/sidebar.html' %}
+    </aside>
+
+    {# 顶栏 #}
+    <header class="console-topbar">
+        <span class="topbar-title">{% block topbar_title %}控制台{% endblock %}</span>
+        <button type="button" class="theme-toggle" data-console-theme-toggle title="切换亮/暗主题"
+                aria-label="切换亮暗主题"><i class="bi bi-circle-half"></i></button>
+        {% if current_user.id %}
+        <span class="mono-data" style="font-size:.82rem;color:var(--ink-2)">{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="c-text-btn" style="font-size:.82rem">退出</a>
+        {% endif %}
+    </header>
+
+    {# 主内容区 #}
+    <main class="console-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="https://unpkg.com/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/console_theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -14,6 +14,14 @@ from app.auth import require_role_api_json
 bp = Blueprint('admin_log', __name__)
 
 
+@bp.route('/logs')
+@require_role_api_json('admin')
+def index():
+    """日志管理页面（阶段六 L5，控制台新体系首个页面）。"""
+    from flask import render_template
+    return render_template('admin/logs/console_logs.html')
+
+
 def _ok(data=None, message="ok"):
     from flask import current_app
     return jsonify({"trace_id": current_app._current_trace_id(),
