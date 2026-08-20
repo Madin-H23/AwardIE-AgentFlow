@@ -16,6 +16,14 @@
 <style>
     /* 门户壳说明：portal-shell 复用整套 tokens 组件（双前缀），但背景交给 user_base 的门户渐变（覆盖 tokens 的 min-height/background） */
     .portal-shell { background: transparent; min-height: auto; }
+
+    /* 门户风对齐：审核内容与教师门户一致（字体/卡片质感）——Bootstrap 引入覆盖了 user_base 的 Noto，此处强置；卡片加浅阴影弱边框贴近门户白卡 */
+    body { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif !important; }
+    .portal-shell .c-panel {
+        border-radius: 0.625rem;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 0 0 0 rgba(0,0,0,0);
+        border-color: color-mix(in srgb, var(--line) 80%, transparent);
+    }
     /* 主TAB导航样式 */
     .main-tabs {
         border-bottom: 2px solid color-mix(in srgb, var(--ink) 6%, transparent);
