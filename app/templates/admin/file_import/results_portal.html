@@ -8,21 +8,14 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-{{ super() }}
-%s
 
-<!-- jQuery (Select2依赖) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Select2 CSS -->
-<link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/console_tokens.css') }}?v=3">
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
 <style>
+    /* 门户壳说明：portal-shell 复用整套 tokens 组件（双前缀），但背景交给 user_base 的门户渐变（覆盖 tokens 的 min-height/background） */
+    .portal-shell { background: transparent; min-height: auto; }
     /* 主TAB导航样式 */
     .main-tabs {
         border-bottom: 2px solid color-mix(in srgb, var(--ink) 6%, transparent);
@@ -298,7 +291,9 @@
 
 {% block content %}
 <div class="portal-shell">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 {% include 'admin/file_import/partials/_results_content.html' %}
+    </div>
 </div>
 {% endblock %}
 
