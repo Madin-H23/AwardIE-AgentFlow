@@ -57,7 +57,7 @@ class TestEndpointAndFrontend:
         assert "回退 _dispatch" in src                    # 失败回退
 
     def test_frontend_consumes_progress(self):
-        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "chat.html").read_text(encoding='utf-8')
+        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "partials" / "_chat_scripts.html").read_text(encoding='utf-8')
         assert "addEventListener('progress'" in src
         assert "spinner-border" in src                    # 阶段提示 spinner
 
