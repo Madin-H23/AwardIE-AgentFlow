@@ -7,5 +7,10 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.2",
+    "bootstrap-icons": "^1.11.3",
+    "echarts": "^5.4.3"
   }
 }

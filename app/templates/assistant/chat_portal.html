@@ -4,8 +4,8 @@
 
 {% block extra_head %}
 <!-- 门户壳工作台依赖（user_base 未含 bootstrap；chat 内容用 bootstrap 类） -->
-<link href="https://unpkg.com/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
 {% include 'assistant/partials/_chat_head.html' %}
 {% endblock %}
 
@@ -16,6 +16,6 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://unpkg.com/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 {% include 'assistant/partials/_chat_scripts.html' %}
 {% endblock %}
