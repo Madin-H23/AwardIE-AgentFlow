@@ -33,10 +33,16 @@
             el.style.display = 'block';
             el.textContent = '⚠ ' + msg;
         }
-        window.addEventListener('error', function (ev) { show('页面脚本异常: ' + ((ev && ev.message) || '未知') + ' （详见控制台）'); });
+        window.addEventListener('error', function (ev) {
+            var m = (ev && ev.message) || '未知';
+            console.error('boot-error:', ev && ev.error && ev.error.stack ? ev.error.stack : m);
+            show('页面脚本异常: ' + m + ' — 已记录控制台');
+        });
         window.addEventListener('unhandledrejection', function (ev) {
-            var m = (ev && ev.reason && ev.reason.message) || 'unknown';
-            show('异步异常: ' + m + ' （详见控制台）');
+            var r = (ev && ev.reason) || {};
+            var detail = r.stack || r.message || String(r) || 'unknown';
+            console.error('boot-unhandledrejection:', detail);
+            show('异步异常: ' + String(detail).slice(0, 220) + ' — 已记录控制台');
         });
         setTimeout(function () {
             if (!document.querySelector('.console-shell')) {
