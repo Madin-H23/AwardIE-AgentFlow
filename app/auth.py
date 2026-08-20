@@ -270,7 +270,9 @@ def require_role_api_json(*allowed_roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # 检查是否是API请求（通过请求头或路径判断）
-            is_api = request.path.startswith('/api/') or \
+            # /admin/api/ 前缀补入（阶段六 L4：admin_log 蓝图挂 /admin 下，
+            # 原判定漏掉该前缀致未登录返回 302 而非 401——实测踩坑）
+            is_api = request.path.startswith('/api/') or request.path.startswith('/admin/api/') or \
                     request.headers.get('Accept') == 'application/json' or \
                     request.headers.get('Content-Type') == 'application/json'
 

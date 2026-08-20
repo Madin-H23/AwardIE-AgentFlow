@@ -115,6 +115,7 @@ def _register_blueprints(app):
     from app.routes import admin_achievement, admin_awards, admin_export, admin_laboratory, admin_templates
     from app.routes import admin_patents, admin_software, admin_innovation, admin_review, admin_other_files
     from app.routes import admin_data_analysis
+    from app.routes import admin_log
     from app.routes import chat
 
     # Main role blueprints
@@ -140,6 +141,7 @@ def _register_blueprints(app):
     app.register_blueprint(admin_other_files.bp, url_prefix='/admin')
     # Admin data analysis blueprint
     app.register_blueprint(admin_data_analysis.bp, url_prefix='/admin')
+    app.register_blueprint(admin_log.bp, url_prefix='/admin')
 
 def _register_context_processors(app):
     """注册上下文处理器"""
