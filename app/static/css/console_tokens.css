@@ -57,6 +57,13 @@
 /* ---------- 侧边栏百度云化（T9 后续批）：分组标题可折叠 + 图标行 + 底部账户栏 ---------- */
 .console-shell .console-sidebar .nav-link { display: flex; align-items: center; gap: 10px; }
 .console-shell .console-sidebar .sb-ic { font-size: .92rem; opacity: .92; width: 16px; text-align: center; }
+/* 数据总览置顶入口（百度云"总览"样式：略高、粗体、选中实心蓝） */
+.console-shell .console-sidebar .nav-overview {
+  margin-top: 2px; font-weight: 600; letter-spacing: .02em;
+  padding: 9px 12px; border: 1px solid rgba(255, 255, 255, .1);
+}
+.console-shell .console-sidebar .nav-overview .sb-ic { color: var(--brand); }
+.console-shell .console-sidebar .nav-overview.active .sb-ic { color: #fff; }
 .console-shell .console-sidebar .sb-group-title {
   color: rgba(255, 255, 255, .42); font-size: .7rem; letter-spacing: .1em; font-weight: 600;
   padding: 14px 12px 6px; margin: 0;

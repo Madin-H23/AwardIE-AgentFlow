@@ -1,5 +1,12 @@
 <nav class="sidebar-nav">
     {% if current_user.role == 'admin' %}
+        <!-- 数据总览（映射百度云侧栏"总览"置顶入口） -->
+        <a class="nav-link nav-overview {% if request.endpoint and request.endpoint == 'admin.dashboard' %}active{% endif %}"
+           href="{{ url_for('admin.dashboard') }}">
+            <i class="bi bi-speedometer2 sb-ic"></i>数据总览
+        </a>
+        <hr class="sidebar-divider">
+
         <!-- 常用（映射百度云"我的收藏"：高频入口置顶） -->
         <div class="sb-group">
             <div class="sb-group-title">常用<i class="bi bi-chevron-down sb-chevron"></i></div>
