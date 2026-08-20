@@ -48,8 +48,12 @@ def api_dashboard_overview():
             r = cur.execute(sql, args).fetchone()
             return r[0] if r else 0
 
+        # 口径对齐成果管理页：奖状统计排除教师证书（granted_role='教师'，含 NULL 保留——三值逻辑注意），
+        # 分类集合与成果管理五类一致（奖状/专利/软著/大创/其他）
+        award_scope = "(granted_role IS NULL OR granted_role <> '教师')"
+
         summary = {
-            'total_awards': one("SELECT COUNT(*) FROM awards"),
+            'total_awards': one(f"SELECT COUNT(*) FROM awards WHERE {award_scope}"),
             'pending': one("SELECT COUNT(*) FROM pending_achievements WHERE status='pending'"),
             'whitelist': one("SELECT COUNT(*) FROM competitions WHERE white_list=1"),
             'competitions': one("SELECT COUNT(*) FROM competitions"),
@@ -58,6 +62,7 @@ def api_dashboard_overview():
             'award': summary['total_awards'],
             'patent': one("SELECT COUNT(*) FROM patents"),
             'software': one("SELECT COUNT(*) FROM software_copyrights"),
+            'innovation': one("SELECT COUNT(*) FROM innovation_projects"),
             'other': one("SELECT COUNT(*) FROM other_files"),
         }
 
@@ -71,7 +76,7 @@ def api_dashboard_overview():
             start_month = start.strftime('%Y-%m')
 
         trend_sql = ("SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS count "
-                     "FROM awards WHERE created_at IS NOT NULL")
+                     f"FROM awards WHERE created_at IS NOT NULL AND {award_scope}")
         trend_args = []
         if start_month:
             trend_sql += " AND strftime('%Y-%m', created_at) >= ?"
@@ -82,8 +87,8 @@ def api_dashboard_overview():
         # 环比：本月 vs 上月奖状新增（映射百度云"消费环比"）
         this_m = date.today().strftime('%Y-%m')
         last_m = (date.today().replace(day=1) - timedelta(days=1)).strftime('%Y-%m')
-        this_n = one("SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=?", this_m)
-        last_n = one("SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=?", last_m)
+        this_n = one(f"SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=? AND {award_scope}", this_m)
+        last_n = one(f"SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=? AND {award_scope}", last_m)
         compare = {'period': this_m, 'this': this_n, 'last': last_n}
         if last_n:
             compare['delta_pct'] = round((this_n - last_n) / last_n * 100, 1)
@@ -91,8 +96,9 @@ def api_dashboard_overview():
             compare['delta_pct'] = None
 
         by_comp = [dict(r) for r in cur.execute(
-            "SELECT COALESCE(c.competition_name, '未关联') AS name, COUNT(*) AS total "
-            "FROM awards a LEFT JOIN competitions c ON a.competition_id = c.id "
+            f"SELECT COALESCE(c.competition_name, '未关联') AS name, COUNT(*) AS total "
+            f"FROM awards a LEFT JOIN competitions c ON a.competition_id = c.id "
+            f"WHERE {award_scope.replace('granted_role', 'a.granted_role')} "
             "GROUP BY COALESCE(c.competition_name, '未关联') ORDER BY total DESC LIMIT 12").fetchall()]
         recent = [dict(r) for r in cur.execute(
             "SELECT a.id, a.date, COALESCE(c.competition_name, '-') AS competition, "

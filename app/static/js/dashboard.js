@@ -24,10 +24,10 @@
     function renderSummary(d) {
         const s = d.summary || {};
         const cat = d.category || {};
-        const total = (s.total_awards || 0) + (cat.patent || 0) + (cat.software || 0) + (cat.other || 0);
+        const total = (s.total_awards || 0) + (cat.patent || 0) + (cat.software || 0) + (cat.innovation || 0) + (cat.other || 0);
 
         $('cTotal').textContent = fmt(total);
-        $('sTotal').textContent = `奖状 ${s.total_awards || 0} · 专利 ${cat.patent || 0} · 软著 ${cat.software || 0} · 其他 ${cat.other || 0}`;
+        $('sTotal').textContent = `奖状 ${s.total_awards || 0} · 专利 ${cat.patent || 0} · 软著 ${cat.software || 0} · 大创 ${cat.innovation || 0} · 其他 ${cat.other || 0}`;
 
         $('cPending').textContent = fmt(s.pending);
         $('sPending').textContent = s.pending > 0 ? '需人工处理' : '无积压';
@@ -52,6 +52,7 @@
         $('catAward').textContent = fmt(s.total_awards);
         $('catPatent').textContent = fmt(cat.patent || 0);
         $('catSoftware').textContent = fmt(cat.software || 0);
+        $('catInnovation').textContent = fmt(cat.innovation || 0);
         $('catOther').textContent = fmt(cat.other || 0);
     }
 
