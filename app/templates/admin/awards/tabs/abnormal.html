@@ -4,8 +4,8 @@
 </div>
 
 <!-- 奖状列表 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <span class="text-muted">共找到 {{ total_count }} 条异常记录</span>
@@ -124,14 +124,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                            <button type="button" class="c-text-btn" disabled
                                     title="检测规则功能已废弃">
                                 查看异常
                             </button>
                         </td>
                         <td>
                             <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
-                               class="btn btn-sm btn-outline-primary">编辑</a>
+                               class="c-text-btn">编辑</a>
                         </td>
                     </tr>
                     {% endfor %}

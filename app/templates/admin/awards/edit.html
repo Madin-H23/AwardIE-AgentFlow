@@ -1,18 +1,19 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}奖状详情/编辑 - 成果管理系统{% endblock %}
+{% block topbar_title %}奖状详情/编辑{% endblock %}
 
 {% block content %}
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">奖状详情/编辑 #{{ award.id }}</h1>
         <div class="d-flex gap-2">
-            <button type="submit" form="awardForm" class="btn btn-primary">保存</button>
-            <button type="button" class="btn btn-primary" onclick="deleteAward({{ award.id }})">删除</button>
+            <button type="submit" form="awardForm" class="c-btn c-btn-primary">保存</button>
+            <button type="button" class="c-btn c-btn-primary" onclick="deleteAward({{ award.id }})">删除</button>
             {% if return_url %}
-                <a href="{{ return_url }}" class="btn btn-outline-secondary">返回列表</a>
+                <a href="{{ return_url }}" class="c-btn">返回列表</a>
             {% else %}
-                <a href="{{ url_for('admin_awards.awards_list') }}" class="btn btn-outline-secondary">返回列表</a>
+                <a href="{{ url_for('admin_awards.awards_list') }}" class="c-btn">返回列表</a>
             {% endif %}
         </div>
     </div>
@@ -27,13 +28,9 @@
             background-color: #40a9ff;
             border-color: #40a9ff;
         }
-        /* 紧凑布局 */
-        .card-header {
-            padding: 0.5rem 1rem;
-        }
-        .card-body {
-            padding: 0.75rem 1rem;
-        }
+        /* 紧凑布局（面板节头节体，已由 console_tokens 的 .panel-head 接管）
+        .card-header { padding: 0.5rem 1rem; }
+        .card-body { padding: 0.75rem 1rem; }
         .form-label.small {
             font-size: 0.875rem;
             margin-bottom: 0.25rem;
@@ -141,11 +138,11 @@
         <div class="row g-3 mb-3">
             <!-- 第一栏：基本信息 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-header py-2">
+                <div class="c-panel h-100">
+                    <div class="panel-head">
                         <h6 class="mb-0">基本信息</h6>
                     </div>
-                    <div class="card-body p-3">
+                    <div class="p-3">
                         <div class="mb-2">
                             <label for="competition_id" class="form-label small">竞赛 <span class="text-danger">*</span></label>
                             <select class="form-select form-select-sm" id="competition_id" name="competition_id">
@@ -208,11 +205,11 @@
             
             <!-- 第二栏：其他信息 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-header py-2">
+                <div class="c-panel h-100">
+                    <div class="panel-head">
                         <h6 class="mb-0">其他信息</h6>
                     </div>
-                    <div class="card-body p-3">
+                    <div class="p-3">
                         <div class="mb-2">
                             <label for="project_title" class="form-label small">项目名称</label>
                             <input type="text" class="form-control form-control-sm" id="project_title" name="project_title" 
@@ -254,11 +251,11 @@
             
             <!-- 第三栏：图片 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-header py-2">
+                <div class="c-panel h-100">
+                    <div class="panel-head">
                         <h6 class="mb-0">奖状图片</h6>
                     </div>
-                    <div class="card-body text-center p-3">
+                    <div class="text-center p-3">
                         {% if award.image_hash %}
                             <img src="{{ url_for('admin_awards.award_image', award_id=award.id) }}?v={{ award.id }}" 
                                  alt="奖状图片" 
@@ -280,22 +277,22 @@
         <div class="row g-3">
             <!-- 左侧：关联信息 -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header py-2">
+                <div class="c-panel">
+                    <div class="panel-head">
                         <h6 class="mb-0">关联信息</h6>
                     </div>
-                    <div class="card-body p-3">
+                    <div class="p-3">
                         <!-- 证书类型选择 -->
                         <div class="mb-3 pb-3 border-bottom">
                             <label class="form-label small d-block mb-2">证书类型 <span class="text-danger">*</span></label>
                             <div class="btn-group w-100" role="group" aria-label="证书类型">
                                 <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_student" value="student" 
                                        {% if not award.granted_role or "教师" not in award.granted_role %}checked{% endif %}>
-                                <label class="btn btn-outline-primary" for="certificate_type_student">学生证书</label>
+                                <label class="c-btn" for="certificate_type_student">学生证书</label>
                                 
                                 <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_teacher" value="teacher" 
                                        {% if award.granted_role and "教师" in award.granted_role %}checked{% endif %}>
-                                <label class="btn btn-outline-primary" for="certificate_type_teacher">教师证书</label>
+                                <label class="c-btn" for="certificate_type_teacher">教师证书</label>
                             </div>
                             <small class="form-text text-muted mt-1 d-block">选择证书类型后，相关字段将自动调整</small>
                         </div>
@@ -478,9 +475,9 @@
             <!-- 右侧：OCR和LLM应答 -->
             <div class="col-md-6">
                 {% if award.ocr_result %}
-                <div class="card">
-                    <div class="card-header py-2">
-                        <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button" 
+                <div class="c-panel">
+                    <div class="panel-head">
+                        <button class="c-text-btn p-0 text-decoration-none w-100 text-start" type="button" 
                                 data-bs-toggle="collapse" data-bs-target="#ocrCollapse" aria-expanded="false">
                             <h6 class="mb-0 d-inline">OCR和LLM应答</h6>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="float-end" style="margin-top: 2px;">
@@ -489,7 +486,7 @@
                         </button>
                     </div>
                     <div class="collapse" id="ocrCollapse">
-                        <div class="card-body p-3">
+                        <div class="p-3">
                             <!-- OCR和LLM开关按钮 -->
                             <div class="mb-3 pb-3 border-bottom">
                                 <div class="form-check form-switch mb-2">
@@ -514,11 +511,11 @@
                     </div>
                 </div>
                 {% else %}
-                <div class="card">
-                    <div class="card-header py-2">
+                <div class="c-panel">
+                    <div class="panel-head">
                         <h6 class="mb-0">OCR和LLM应答</h6>
                     </div>
-                    <div class="card-body p-3">
+                    <div class="p-3">
                         <!-- OCR和LLM开关按钮 -->
                         <div class="mb-3 pb-3 border-bottom">
                             <div class="form-check form-switch mb-2">

@@ -1,20 +1,21 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}其他文件管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}其他文件管理{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">其他文件管理</h1>
     <div>
-        <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="btn btn-primary">
+        <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="c-btn c-btn-primary">
             <i class="bi bi-upload"></i> 上传文件
         </a>
     </div>
 </div>
 
 <!-- 筛选卡片 -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="c-panel mb-4">
+    <div class="p-3">
         <form method="get" class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">文件类型</label>
@@ -38,16 +39,16 @@
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">搜索</button>
-                <a href="{{ url_for('admin_other_files.other_files_list') }}" class="btn btn-outline-secondary">重置</a>
+                <button type="submit" class="c-btn c-btn-primary me-2">搜索</button>
+                <a href="{{ url_for('admin_other_files.other_files_list') }}" class="c-btn">重置</a>
             </div>
         </form>
     </div>
 </div>
 
 <!-- 文件列表 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         {% if files %}
         <div class="table-responsive">
             <table class="table table-hover">
@@ -96,8 +97,8 @@
                         <td>{{ file.submit_time or '-' }}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('admin_other_files.other_files_view', file_id=file.id) }}" class="btn btn-outline-primary">查看</a>
-                                <a href="{{ url_for('admin_other_files.other_files_download', file_id=file.id) }}" class="btn btn-outline-secondary">下载</a>
+                                <a href="{{ url_for('admin_other_files.other_files_view', file_id=file.id) }}" class="c-btn">查看</a>
+                                <a href="{{ url_for('admin_other_files.other_files_download', file_id=file.id) }}" class="c-btn">下载</a>
                             </div>
                         </td>
                     </tr>
@@ -130,7 +131,7 @@
         {% else %}
         <div class="text-center py-5">
             <p class="text-muted">暂无文件数据</p>
-            <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="btn btn-primary">上传第一个文件</a>
+            <a href="{{ url_for('admin_other_files.other_files_upload') }}" class="c-btn c-btn-primary">上传第一个文件</a>
         </div>
         {% endif %}
     </div>

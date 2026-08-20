@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}系统设置 - 成果管理系统{% endblock %}
+{% block topbar_title %}系统设置{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -149,7 +150,7 @@
                                 <label class="form-label">当前默认密码</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" value="{{ default_password }}" readonly>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="copyPassword()">
+                                    <button class="c-btn" type="button" onclick="copyPassword()">
                                         <i class="bi bi-clipboard"></i> 复制
                                     </button>
                                 </div>
@@ -171,7 +172,7 @@
                         </div>
                         <div class="row align-items-end">
                             <div class="col-auto">
-                                <button type="button" class="btn btn-outline-primary" id="cacheCleanupBtn" onclick="runCacheCleanup()">
+                                <button type="button" class="c-btn" id="cacheCleanupBtn" onclick="runCacheCleanup()">
                                     <i class="bi bi-trash"></i> 执行缓存清理
                                 </button>
                             </div>
@@ -248,13 +249,13 @@
                                             </td>
                                             <td>
                                                 {% if p.disabled %}
-                                                <button type="button" class="btn btn-sm btn-outline-primary ocr-reenable" data-provider="{{ p.name }}">重新启用</button>
+                                                <button type="button" class="c-text-btn ocr-reenable" data-provider="{{ p.name }}">重新启用</button>
                                                 {% else %}
                                                 {% if p.is_precise %}
-                                                <button type="button" class="btn btn-sm btn-outline-primary ocr-set-current" data-provider="{{ p.name }}">设为当前</button>
-                                                <button type="button" class="btn btn-sm btn-outline-warning ocr-disable ms-1" data-provider="{{ p.name }}">禁用</button>
+                                                <button type="button" class="c-text-btn ocr-set-current" data-provider="{{ p.name }}">设为当前</button>
+                                                <button type="button" class="c-text-btn danger ocr-disable ms-1" data-provider="{{ p.name }}">禁用</button>
                                                 {% else %}
-                                                <button type="button" class="btn btn-sm btn-outline-warning ocr-disable" data-provider="{{ p.name }}">禁用</button>
+                                                <button type="button" class="c-text-btn danger ocr-disable" data-provider="{{ p.name }}">禁用</button>
                                                 {% endif %}
                                                 {% endif %}
                                             </td>
@@ -292,7 +293,7 @@
 
                         <!-- 保存按钮 -->
                         <div class="text-center">
-                            <button type="submit" class="btn btn-primary btn-lg save-btn">保存供应商设置</button>
+                            <button type="submit" class="c-btn c-btn-primary btn-lg save-btn">保存供应商设置</button>
                         </div>
                     </form>
                 </div>
@@ -446,8 +447,8 @@
 
                         <!-- 操作按钮 -->
                         <div class="text-center">
-                            <button type="button" class="btn btn-outline-secondary me-3" onclick="resetAutoArchiveConfig()">重置为默认</button>
-                            <button type="submit" class="btn btn-primary btn-lg save-btn">保存自动归档设置</button>
+                            <button type="button" class="c-btn me-3" onclick="resetAutoArchiveConfig()">重置为默认</button>
+                            <button type="submit" class="c-btn c-btn-primary btn-lg save-btn">保存自动归档设置</button>
                         </div>
                     </form>
                 </div>
@@ -602,10 +603,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     let reason = p.disabled ? '<span class="text-muted small">' + (p.disabled_reason || '') + '</span>' + (p.disabled_at ? '<br><span class="text-muted small">' + p.disabled_at + '</span>' : '') : '—';
                     let actions = '';
                     if (p.disabled) {
-                        actions += '<button type="button" class="btn btn-sm btn-outline-primary ocr-reenable" data-provider="' + p.name + '">重新启用</button>';
+                        actions += '<button type="button" class="c-text-btn ocr-reenable" data-provider="' + p.name + '">重新启用</button>';
                     } else {
-                        if (p.is_precise) actions += '<button type="button" class="btn btn-sm btn-outline-primary ocr-set-current" data-provider="' + p.name + '">设为当前</button>';
-                        actions += ' <button type="button" class="btn btn-sm btn-outline-warning ocr-disable ms-1" data-provider="' + p.name + '">禁用</button>';
+                        if (p.is_precise) actions += '<button type="button" class="c-text-btn ocr-set-current" data-provider="' + p.name + '">设为当前</button>';
+                        actions += ' <button type="button" class="c-text-btn danger ocr-disable ms-1" data-provider="' + p.name + '">禁用</button>';
                     }
                     return '<tr data-provider="' + p.name + '"><td>' + nameCell + '</td><td>' + (p.is_precise ? '高精度' : '低精度') + '</td><td>' + statusBadge + '</td><td>' + reason + '</td><td>' + actions + '</td></tr>';
                 }).join('');

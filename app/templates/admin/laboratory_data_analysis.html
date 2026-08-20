@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}实验室数据分析 - 管理员{% endblock %}
+{% block topbar_title %}实验室数据分析 - 管理员{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -112,8 +113,8 @@
         <div class="tab-pane fade show active" id="tab1" role="tabpanel">
             <div class="row">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                    <div class="c-panel shadow-sm">
+                        <div class="p-3">
                             <div id="timelineChart" style="height: 400px;"></div>
                         </div>
                     </div>
@@ -121,8 +122,8 @@
             </div>
             <div class="row mt-4">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                    <div class="c-panel shadow-sm">
+                        <div class="p-3">
                             <div class="table-responsive">
                                 <table class="table table-hover" id="competitionsTable">
                                     <thead>
@@ -149,8 +150,8 @@
             <!-- 筛选条件 -->
             <div class="row mb-3">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                    <div class="c-panel shadow-sm">
+                        <div class="p-3">
                             <div class="row align-items-center">
                                 <div class="col-auto">
                                     <label class="form-label mb-2 me-2">年份筛选</label>
@@ -180,8 +181,8 @@
             <!-- 竞赛贡献度 -->
             <div class="row mb-3">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                    <div class="c-panel shadow-sm">
+                        <div class="p-3">
                             <h6 class="card-title">竞赛贡献度</h6>
                             <div id="contributionChart" style="height: 500px;"></div>
                         </div>
@@ -191,8 +192,8 @@
             <!-- 竞赛×实验室 获奖数量热力图：占满页面剩余空间 -->
             <div class="row">
                 <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                    <div class="c-panel shadow-sm">
+                        <div class="p-3">
                             <h6 class="card-title">竞赛×实验室 获奖数量热力图</h6>
                             <div id="labCompetitionHeatmap" style="height: calc(100vh - 520px); min-height: 650px;"></div>
                         </div>
@@ -666,7 +667,7 @@ class LaboratoryDataAnalysis {
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
                 link.textContent = '访问';
-                link.className = 'btn btn-sm btn-outline-primary';
+                link.className = 'c-text-btn';
                 websiteCell.appendChild(link);
             } else {
                 websiteCell.textContent = '-';

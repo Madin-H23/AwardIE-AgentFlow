@@ -1,6 +1,6 @@
 <!-- 软著筛选 -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="c-panel mb-4">
+    <div class="p-3">
         <form id="softwareFilterForm" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">软件名称</label>
@@ -27,16 +27,16 @@
             </div>
             {% endif %}
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">搜索</button>
-                <button type="button" class="btn btn-outline-secondary" onclick="resetSoftwareFilter()">重置</button>
+                <button type="submit" class="c-btn c-btn-primary me-2">搜索</button>
+                <button type="button" class="c-btn" onclick="resetSoftwareFilter()">重置</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- 软著列表 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         {% if software_list %}
         <div class="table-responsive">
             <table class="table table-hover">
@@ -73,13 +73,13 @@
                         <td>
                             {% if is_readonly %}
                             <div class="action-buttons">
-                                <a href="/admin/software/{{ software.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                <a href="/admin/software/{{ software.id }}" class="c-text-btn">查看</a>
                             </div>
                             {% else %}
                             <div class="action-buttons">
-                                <a href="/admin/software/{{ software.id }}" class="btn btn-sm btn-outline-primary">查看</a>
-                                <a href="/admin/software/{{ software.id }}/edit" class="btn btn-sm btn-outline-secondary">编辑</a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSoftware({{ software.id }})">删除</button>
+                                <a href="/admin/software/{{ software.id }}" class="c-text-btn">查看</a>
+                                <a href="/admin/software/{{ software.id }}/edit" class="c-text-btn">编辑</a>
+                                <button type="button" class="c-text-btn danger" onclick="deleteSoftware({{ software.id }})">删除</button>
                             </div>
                             {% endif %}
                         </td>
@@ -113,7 +113,7 @@
         {% else %}
         <div class="text-center py-5">
             <p class="text-muted mb-3">暂无软著数据</p>
-            <a href="/admin/software/create" class="btn btn-primary">添加第一个软著</a>
+            <a href="/admin/software/create" class="c-btn c-btn-primary">添加第一个软著</a>
         </div>
         {% endif %}
     </div>

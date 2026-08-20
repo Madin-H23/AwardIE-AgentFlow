@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{% if laboratory_id %}{{ laboratory_name }} - 成果展示{% else %}成果管理{% endif %} - 成果管理系统{% endblock %}
+{% block topbar_title %}成果管理{% endblock %}
 
 {% block extra_head %}
 <style>

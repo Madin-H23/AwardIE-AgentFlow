@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}成果/文件导入 - 成果管理系统{% endblock %}
+{% block topbar_title %}成果/文件导入{% endblock %}
 
 {% block extra_head %}
 <!-- Bootstrap Icons -->
@@ -114,8 +115,8 @@
             <!-- 自动导入内容区 -->
             <div class="tab-content">
             <div id="autoImportContent" class="tab-pane fade show active import-mode-content">
-            <div class="card">
-                <div class="card-body">
+            <div class="c-panel">
+                <div class="p-3">
                     <h5 class="card-title mb-3">成果/文件导入</h5>
 
                     <!-- 导入模式选择 -->
@@ -123,12 +124,12 @@
                         <div class="col-12">
                             <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="importMode" id="modeFile" value="file" checked>
-                                <label class="btn btn-outline-primary" for="modeFile">
+                                <label class="c-btn" for="modeFile">
                                     <i class="bi bi-file-earmark"></i> 文件上传
                                 </label>
 
                                 <input type="radio" class="btn-check" name="importMode" id="modeDirectory" value="directory">
-                                <label class="btn btn-outline-primary" for="modeDirectory">
+                                <label class="c-btn" for="modeDirectory">
                                     <i class="bi bi-folder"></i> 目录扫描
                                 </label>
                             </div>
@@ -252,7 +253,7 @@
 
                     <!-- 上传按钮 -->
                     <div class="upload-btn text-center">
-                        <button class="btn btn-primary btn-lg" id="uploadBtn" disabled>
+                        <button class="c-btn c-btn-primary btn-lg" id="uploadBtn" disabled>
                             开始上传并识别
                         </button>
                     </div>
@@ -272,8 +273,8 @@
             </div>
 
             <!-- 说明信息 -->
-            <div class="card mt-4">
-                <div class="card-body">
+            <div class="c-panel mt-4">
+                <div class="p-3">
                     <h6 class="card-title">功能说明</h6>
                     <ul class="mb-0">
                         <li><strong>文件上传模式：</strong>支持批量上传多个文件，或拖拽文件到上传区域</li>
@@ -291,16 +292,16 @@
 
 <!-- 手动导入内容区 -->
 <div id="manualImportContent" class="tab-pane fade import-mode-content">
-    <div class="card mb-3">
-        <div class="card-body">
+    <div class="c-panel mb-3">
+        <div class="p-3">
             <h5 class="card-title"><i class="bi bi-trophy"></i> 奖状手动导入</h5>
             <p class="text-muted mb-0">上传奖状证书图片，系统将自动解析并填充信息</p>
         </div>
     </div>
 
     <!-- 奖状上传+解析区 -->
-    <div id="manualUploadSection" class="card mb-3">
-        <div class="card-body">
+    <div id="manualUploadSection" class="c-panel mb-3">
+        <div class="p-3">
             <h5 class="card-title">上传文件</h5>
             <p class="text-muted">上传奖状证书图片，系统将自动解析并填充信息</p>
 
@@ -309,17 +310,17 @@
                 <label class="form-label fw-bold">成果类型 <span class="text-danger">*</span></label>
                 <div class="btn-group w-100" role="group" aria-label="成果类型">
                     <input type="radio" class="btn-check" name="manualType" id="manualTypeAward" value="award" checked>
-                    <label class="btn btn-outline-primary" for="manualTypeAward">
+                    <label class="c-btn" for="manualTypeAward">
                         <i class="bi bi-trophy"></i> 奖状
                     </label>
 
                     <input type="radio" class="btn-check" name="manualType" id="manualTypePatent" value="patent">
-                    <label class="btn btn-outline-primary" for="manualTypePatent">
+                    <label class="c-btn" for="manualTypePatent">
                         <i class="bi bi-file-earmark-text"></i> 专利
                     </label>
 
                     <input type="radio" class="btn-check" name="manualType" id="manualTypeSoftware" value="software">
-                    <label class="btn btn-outline-primary" for="manualTypeSoftware">
+                    <label class="c-btn" for="manualTypeSoftware">
                         <i class="bi bi-file-code"></i> 软著
                     </label>
                 </div>
@@ -370,8 +371,8 @@
     </div>
 
     <!-- 编辑表单区 -->
-    <div id="manualFormSection" class="card mb-3" style="display: none;">
-        <div class="card-body">
+    <div id="manualFormSection" class="c-panel mb-3" style="display: none;">
+        <div class="p-3">
             <h5 class="card-title">编辑信息</h5>
             <p class="text-muted">请核对并修正以下信息</p>
 
@@ -387,10 +388,10 @@
                 </div>
 
                 <div class="mt-4">
-                    <button type="submit" class="btn btn-primary" id="btnSubmitManual">
+                    <button type="submit" class="c-btn c-btn-primary" id="btnSubmitManual">
                         <i class="bi bi-check-lg"></i> 提交审核
                     </button>
-                    <button type="button" class="btn btn-secondary" id="btnCancelManual">
+                    <button type="button" class="c-btn" id="btnCancelManual">
                         <i class="bi bi-x-lg"></i> 取消
                     </button>
                 </div>
@@ -412,7 +413,7 @@
                 <!-- 动态内容 -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="confirmModalConfirmBtn">确定</button>
+                <button type="button" class="c-btn c-btn-primary" id="confirmModalConfirmBtn">确定</button>
             </div>
         </div>
     </div>
@@ -1631,11 +1632,11 @@ function loadFormByType(type, data, ocrText, parseData = null) {
             <div class="row g-3 mb-3">
                 <!-- 第一栏：基本信息 -->
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-header py-2">
+                    <div class="c-panel h-100">
+                        <div class="panel-head" py-2">
                             <h6 class="mb-0">基本信息</h6>
                         </div>
-                        <div class="card-body p-3">
+                        <div class=" p-3">
                             <div class="mb-2">
                                 <label for="competition_id" class="form-label small">竞赛 <span class="text-danger">*</span></label>
                                 <input type="hidden" id="original_competition_name" value="${data.competition_name || ''}">
@@ -1694,11 +1695,11 @@ function loadFormByType(type, data, ocrText, parseData = null) {
 
                 <!-- 第二栏：其他信息 -->
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-header py-2">
+                    <div class="c-panel h-100">
+                        <div class="panel-head" py-2">
                             <h6 class="mb-0">其他信息</h6>
                         </div>
-                        <div class="card-body p-3">
+                        <div class=" p-3">
                             <div class="mb-2">
                                 <label for="project_title" class="form-label small">项目名称</label>
                                 <input type="text" class="form-control form-control-sm" id="project_title" name="project_title"
@@ -1735,11 +1736,11 @@ function loadFormByType(type, data, ocrText, parseData = null) {
 
                 <!-- 第三栏：图片 -->
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-header py-2">
+                    <div class="c-panel h-100">
+                        <div class="panel-head" py-2">
                             <h6 class="mb-0">奖状图片</h6>
                         </div>
-                        <div class="card-body text-center p-3" id="manualImageContainer">
+                        <div class=" text-center p-3" id="manualImageContainer">
                             <p class="text-muted">加载中...</p>
                         </div>
                     </div>
@@ -1749,20 +1750,20 @@ function loadFormByType(type, data, ocrText, parseData = null) {
             <!-- 第二行：关联信息 -->
             <div class="row g-3">
                 <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header py-2">
+                    <div class="c-panel">
+                        <div class="panel-head" py-2">
                             <h6 class="mb-0">关联信息</h6>
                         </div>
-                        <div class="card-body p-3">
+                        <div class=" p-3">
                             <!-- 证书类型选择 -->
                             <div class="mb-3 pb-3 border-bottom">
                                 <label class="form-label small d-block mb-2">证书类型 <span class="text-danger">*</span></label>
                                 <div class="btn-group w-100" role="group" aria-label="证书类型">
                                     <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_student" value="student" checked>
-                                    <label class="btn btn-outline-primary" for="certificate_type_student">学生证书</label>
+                                    <label class="c-btn" for="certificate_type_student">学生证书</label>
 
                                     <input type="radio" class="btn-check" name="certificate_type" id="certificate_type_teacher" value="teacher">
-                                    <label class="btn btn-outline-primary" for="certificate_type_teacher">教师证书</label>
+                                    <label class="c-btn" for="certificate_type_teacher">教师证书</label>
                                 </div>
                                 <small class="form-text text-muted mt-1 d-block">选择证书类型后，相关字段将自动调整</small>
                             </div>

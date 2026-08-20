@@ -4,14 +4,14 @@
 {% set total_templates = templates|length %}
 
 <!-- 详细视图 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         <!-- 导航栏 -->
         <div class="row mb-4">
             <div class="col-md-4 text-start">
                 {% if template_index > 0 %}
                 <a href="{{ url_for('admin_templates.templates_list', tab='detail', template_id=templates[template_index - 1].id, competition_id=competition_id, granted_role=granted_role) }}" 
-                   class="btn btn-outline-primary">
+                   class="c-btn">
                     ◀ 上一个
                 </a>
                 {% endif %}
@@ -22,7 +22,7 @@
             <div class="col-md-4 text-end">
                 {% if template_index < total_templates - 1 %}
                 <a href="{{ url_for('admin_templates.templates_list', tab='detail', template_id=templates[template_index + 1].id, competition_id=competition_id, granted_role=granted_role) }}" 
-                   class="btn btn-outline-primary">
+                   class="c-btn">
                     下一个 ▶
                 </a>
                 {% endif %}
@@ -35,8 +35,8 @@
         <div class="row mb-3 g-2">
             <!-- 基本信息 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body p-2">
+                <div class="c-panel h-100">
+                    <div class=" p-2">
                         <h6 class="card-title mb-2">基本信息</h6>
                         <div class="row g-1">
                             <div class="col-6">
@@ -70,11 +70,11 @@
                                 <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="languageGroup">
                                     <input type="radio" class="btn-check" name="language" id="lang_zh"
                                            value="zh" {% if template._template.language == 'zh' or not template._template.language %}checked{% endif %}>
-                                    <label class="btn btn-outline-secondary" for="lang_zh">🇨🇳 中文</label>
+                                    <label class="c-btn" for="lang_zh">🇨🇳 中文</label>
 
                                     <input type="radio" class="btn-check" name="language" id="lang_en"
                                            value="en" {% if template._template.language == 'en' %}checked{% endif %}>
-                                    <label class="btn btn-outline-secondary" for="lang_en">🇺🇸 英文</label>
+                                    <label class="c-btn" for="lang_en">🇺🇸 英文</label>
                                 </div>
                             </div>
                             <div class="col-12 mt-1" id="translateOption" style="{% if template._template.language != 'en' %}display: none;{% endif %}">
@@ -104,18 +104,18 @@
 
             <!-- 授予角色 + 关键词 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body p-2">
+                <div class="c-panel h-100">
+                    <div class=" p-2">
                         <h6 class="card-title mb-1">角色 & 关键词 <small class="text-muted">(多个关键词用换行分隔)</small></h6>
                         {% set current_role = template.granted_role or '学生' %}
                         <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="grantedRoleGroup">
                             <input type="radio" class="btn-check" name="granted_role" id="role_student"
                                    value="学生" {% if current_role == '学生' %}checked{% endif %}>
-                            <label class="btn btn-outline-primary" for="role_student">🎓 学生</label>
+                            <label class="c-btn" for="role_student">🎓 学生</label>
 
                             <input type="radio" class="btn-check" name="granted_role" id="role_teacher"
                                    value="教师" {% if current_role == '教师' %}checked{% endif %}>
-                            <label class="btn btn-outline-primary" for="role_teacher">👨‍🏫 教师</label>
+                            <label class="c-btn" for="role_teacher">👨‍🏫 教师</label>
                         </div>
                         <textarea class="form-control form-control-sm mb-1" id="keywordsInput" rows="2"
                                   placeholder="关键词（每行一个，多个关键词用换行分隔）">{% for kw in template.competition_keywords %}{{ kw }}
@@ -126,8 +126,8 @@
 
             <!-- 样本图片 -->
             <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body text-center p-2">
+                <div class="c-panel h-100">
+                    <div class=" text-center p-2">
                         <h6 class="card-title mb-1">样本图片</h6>
                         <div id="sampleImageContainer">
                             {% if template.get_sample_image_bytes() %}
@@ -148,8 +148,8 @@
         <!-- OCR识别结果（可折叠） -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
+                <div class="c-panel">
+                    <div class="panel-head">
                         <h6 class="mb-0">
                             <a class="text-decoration-none text-reset" data-bs-toggle="collapse" href="#ocrResult" role="button">
                                 📄 OCR识别结果
@@ -157,7 +157,7 @@
                         </h6>
                     </div>
                     <div class="collapse" id="ocrResult">
-                        <div class="card-body">
+                        <div class="p-3">
                             {% if template.sample_text %}
                             <textarea class="form-control form-control-sm" rows="5" readonly>{{ template.sample_text }}</textarea>
                             {% else %}
@@ -174,8 +174,8 @@
         <!-- 字段管理 + 验证规则 -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-body p-2">
+                <div class="c-panel">
+                    <div class=" p-2">
                         <h6 class="card-title mb-2">
                             字段管理
                             <small class="text-muted fw-normal">|</small>
@@ -239,12 +239,12 @@
         <!-- 提示词生成和测试 -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
+                <div class="c-panel">
+                    <div class="panel-head">
                         <h5 class="mb-0">生成的提示词模板</h5>
                     </div>
-                    <div class="card-body">
-                        <button type="button" class="btn btn-primary mb-3" id="generatePromptBtn" data-template-id="{{ template.id }}">
+                    <div class="p-3">
+                        <button type="button" class="c-btn c-btn-primary mb-3" id="generatePromptBtn" data-template-id="{{ template.id }}">
                             🔧 生成专用模板提示词
                         </button>
                         <pre id="generatedPrompt" class="bg-light p-3" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
@@ -253,16 +253,16 @@
             </div>
             
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
+                <div class="c-panel">
+                    <div class="panel-head">
                         <h5 class="mb-0">提示词模板测试</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="p-3">
                         <div class="mb-3">
                             <label for="testImageUpload" class="form-label">上传图片进行测试</label>
                             <input type="file" class="form-control" id="testImageUpload" accept="image/*,.pdf">
                         </div>
-                        <button type="button" class="btn btn-primary" id="testTemplateBtn" data-template-id="{{ template.id }}">
+                        <button type="button" class="c-btn c-btn-primary" id="testTemplateBtn" data-template-id="{{ template.id }}">
                             🧪 开始测试
                         </button>
                         
@@ -316,7 +316,7 @@
     {% endif %}
     <div class="mt-3">
         <a href="{{ url_for('admin_templates.templates_list', tab='list', competition_id=competition_id, granted_role=granted_role) }}" 
-           class="btn btn-primary me-2">
+           class="c-btn c-btn-primary me-2">
             📋 查看列表视图
         </a>
         <a href="{{ url_for('admin_templates.templates_list', tab='create', competition_id=competition_id, granted_role=granted_role) }}" 
@@ -324,7 +324,7 @@
             ➕ 创建新模板
         </a>
         <a href="{{ url_for('admin_templates.templates_list', tab='detail') }}" 
-           class="btn btn-outline-secondary">
+           class="c-btn">
             🔄 清除筛选条件
         </a>
     </div>

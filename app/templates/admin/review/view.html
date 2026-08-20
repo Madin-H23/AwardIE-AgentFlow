@@ -1,11 +1,12 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}审核详情 - #{{ pending.id }} - 成果管理系统{% endblock %}
+{% block topbar_title %}审核详情{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">审核详情 #{{ pending.id }}</h1>
-    <a href="{{ url_for('admin_review.review_list') }}" class="btn btn-outline-secondary">返回列表</a>
+    <a href="{{ url_for('admin_review.review_list') }}" class="c-btn">返回列表</a>
 </div>
 
 <!-- 审核状态提示 -->
@@ -29,11 +30,11 @@
 <div class="row">
     <div class="col-lg-8">
         <!-- 提交信息 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">提交信息</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row">
                     <dt class="col-sm-3">成果类型</dt>
                     <dd class="col-sm-9">
@@ -75,22 +76,22 @@
         </div>
 
         <!-- 成果数据 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">成果数据</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <pre class="bg-light p-3 rounded"><code>{{ achievement_data|tojson(indent=2) }}</code></pre>
             </div>
         </div>
 
         <!-- 验证结果 -->
         {% if validation_result %}
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">验证结果</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 {% if validation_result.is_valid %}
                 <p class="text-success"><i class="bi bi-check-circle"></i> 数据验证通过</p>
                 {% else %}
@@ -126,11 +127,11 @@
     <div class="col-lg-4">
         <!-- 审核操作 -->
         {% if pending.status == 'pending' %}
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">审核操作</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <form method="post" action="{{ url_for('admin_review.review_approve', pending_id=pending.id) }}" class="mb-3">
                     <div class="mb-3">
                         <label for="approve_comment" class="form-label">审核意见（可选）</label>
@@ -158,11 +159,11 @@
 
         <!-- 审核历史 -->
         {% if pending.status != 'pending' %}
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">审核历史</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row mb-0">
                     <dt class="col-5">审核人ID</dt>
                     <dd class="col-7">{{ pending.reviewer_id or '-' }}</dd>
@@ -178,11 +179,11 @@
         {% endif %}
 
         <!-- 系统信息 -->
-        <div class="card">
-            <div class="card-header">
+        <div class="c-panel">
+            <div class="panel-head">
                 <h5 class="mb-0">系统信息</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row mb-0">
                     <dt class="col-5">ID</dt>
                     <dd class="col-7">{{ pending.id }}</dd>

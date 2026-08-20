@@ -1,6 +1,6 @@
 <!-- 创建模板：与详细视图布局一致（基本信息、角色、样本图片、字段管理、生成提示词、提示词测试），底部为「创建」按钮 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         <h5 class="card-title">创建模板</h5>
         <p class="text-muted">选择竞赛与角色，上传一张奖状图片，使用通用模板抽取后编辑并创建（不可覆盖已有模板）</p>
 
@@ -31,7 +31,7 @@
         </div>
 
         <div class="mb-4">
-            <button type="button" class="btn btn-primary" id="createExtractBtn">抽取</button>
+            <button type="button" class="c-btn c-btn-primary" id="createExtractBtn">抽取</button>
             <span id="createExtractStatus" class="ms-2 text-muted small"></span>
         </div>
 
@@ -41,8 +41,8 @@
             <!-- 第一行：三栏（与详细视图一致） -->
             <div class="row mb-3 g-2">
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body p-2">
+                    <div class="c-panel h-100">
+                        <div class=" p-2">
                             <h6 class="card-title mb-2">基本信息</h6>
                             <div class="row g-1">
                                 <div class="col-6">
@@ -61,9 +61,9 @@
                                     <small class="text-muted">语言</small>
                                     <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="createLanguageGroup">
                                         <input type="radio" class="btn-check" name="create_language" id="create_lang_zh" value="zh" checked>
-                                        <label class="btn btn-outline-secondary" for="create_lang_zh">中文</label>
+                                        <label class="c-btn" for="create_lang_zh">中文</label>
                                         <input type="radio" class="btn-check" name="create_language" id="create_lang_en" value="en">
-                                        <label class="btn btn-outline-secondary" for="create_lang_en">英文</label>
+                                        <label class="c-btn" for="create_lang_en">英文</label>
                                     </div>
                                 </div>
                                 <div class="col-12 mt-1" id="createTranslateOption" style="display: none;">
@@ -86,22 +86,22 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body p-2">
+                    <div class="c-panel h-100">
+                        <div class=" p-2">
                             <h6 class="card-title mb-1">角色 & 关键词 <small class="text-muted">(多个关键词用换行分隔)</small></h6>
                             <div class="btn-group btn-group-sm w-100 mb-1" role="group" id="createGrantedRoleGroup">
                                 <input type="radio" class="btn-check" name="create_granted_role" id="create_role_student" value="学生">
-                                <label class="btn btn-outline-primary" for="create_role_student">学生</label>
+                                <label class="c-btn" for="create_role_student">学生</label>
                                 <input type="radio" class="btn-check" name="create_granted_role" id="create_role_teacher" value="教师">
-                                <label class="btn btn-outline-primary" for="create_role_teacher">教师</label>
+                                <label class="c-btn" for="create_role_teacher">教师</label>
                             </div>
                             <textarea class="form-control form-control-sm mb-1" id="createKeywordsInput" rows="2" placeholder="关键词（每行一个）"></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center p-2">
+                    <div class="c-panel h-100">
+                        <div class=" text-center p-2">
                             <h6 class="card-title mb-1">样本图片</h6>
                             <div id="createSampleImageContainer" style="min-height: 240px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
                                 <img id="createSampleImagePreview" alt="样本图片" class="img-fluid" style="max-height: 240px; cursor: pointer; border: 1px solid #dee2e6; border-radius: 4px; display: none;">
@@ -115,14 +115,14 @@
             <!-- OCR 识别结果（可折叠） -->
             <div class="row mb-3">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
+                    <div class="c-panel">
+                        <div class="panel-head">
                             <h6 class="mb-0">
                                 <a class="text-decoration-none text-reset" data-bs-toggle="collapse" href="#createOcrResult" role="button">OCR 识别结果</a>
                             </h6>
                         </div>
                         <div class="collapse" id="createOcrResult">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <textarea class="form-control form-control-sm" id="createOcrText" rows="5" readonly></textarea>
                             </div>
                         </div>
@@ -135,8 +135,8 @@
             <!-- 字段管理（与详细视图一致） -->
             <div class="row mb-3">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-body p-2">
+                    <div class="c-panel">
+                        <div class=" p-2">
                             <h6 class="card-title mb-2">
                                 字段管理
                                 <small class="text-muted fw-normal">|</small>
@@ -189,23 +189,23 @@
             <!-- 生成提示词 + 提示词测试（与详细视图一致） -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header"><h5 class="mb-0">生成的提示词模板</h5></div>
-                        <div class="card-body">
-                            <button type="button" class="btn btn-primary mb-3" id="createGeneratePromptBtn">生成专用模板提示词</button>
+                    <div class="c-panel">
+                        <div class="panel-head"><h5 class="mb-0">生成的提示词模板</h5></div>
+                        <div class="p-3">
+                            <button type="button" class="c-btn c-btn-primary mb-3" id="createGeneratePromptBtn">生成专用模板提示词</button>
                             <pre id="createGeneratedPrompt" class="bg-light p-3" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header"><h5 class="mb-0">提示词模板测试</h5></div>
-                        <div class="card-body">
+                    <div class="c-panel">
+                        <div class="panel-head"><h5 class="mb-0">提示词模板测试</h5></div>
+                        <div class="p-3">
                             <div class="mb-3">
                                 <label for="createTestImageUpload" class="form-label">上传图片进行测试</label>
                                 <input type="file" class="form-control" id="createTestImageUpload" accept="image/*,.pdf">
                             </div>
-                            <button type="button" class="btn btn-primary" id="createTestTemplateBtn">开始测试</button>
+                            <button type="button" class="c-btn c-btn-primary" id="createTestTemplateBtn">开始测试</button>
                             <div id="createTestResults" class="mt-3" style="display: none;">
                                 <hr>
                                 <h6>测试结果</h6>

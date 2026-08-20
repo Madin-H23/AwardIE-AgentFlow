@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}实验室管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}实验室管理{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -123,7 +124,7 @@
 <div class="laboratories-list-page">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>实验室管理</h1>
-        <a href="{{ url_for('admin_laboratory.laboratory_edit') }}" class="btn btn-primary">
+        <a href="{{ url_for('admin_laboratory.laboratory_edit') }}" class="c-btn c-btn-primary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
             </svg>
@@ -136,7 +137,7 @@
         {% for item in labs_data %}
         {% set lab = item.lab %}
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card lab-card" onclick="window.location.href='{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}'">
+            <div class="c-panel lab-card" onclick="window.location.href='{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}'">
                 <!-- 封面图片 -->
                 {% if lab.cover_image %}
                 <img src="{{ url_for('static', filename=lab.cover_image) }}" alt="{{ lab.name }}" class="lab-card-image">
@@ -180,13 +181,13 @@
                 
                 <!-- 操作按钮 -->
                 <div class="lab-card-footer" onclick="event.stopPropagation();">
-                    <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                    <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}" class="c-text-btn flex-fill">
                         查看详情
                     </a>
-                    <a href="{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}" class="btn btn-sm btn-outline-secondary flex-fill">
+                    <a href="{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}" class="c-text-btn flex-fill">
                         编辑
                     </a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLab({{ lab.id }}, '{{ lab.name }}')">
+                    <button type="button" class="c-text-btn danger" onclick="event.stopPropagation(); deleteLab({{ lab.id }}, '{{ lab.name }}')">
                         删除
                     </button>
                 </div>
@@ -195,11 +196,11 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="card">
-        <div class="card-body empty-state">
+    <div class="c-panel">
+        <div class=" empty-state">
             <div class="empty-state-icon">🏢</div>
             <p class="text-muted mb-3">暂无实验室数据</p>
-            <a href="{{ url_for('admin_laboratory.laboratory_edit') }}" class="btn btn-primary">创建第一个实验室</a>
+            <a href="{{ url_for('admin_laboratory.laboratory_edit') }}" class="c-btn c-btn-primary">创建第一个实验室</a>
         </div>
     </div>
     {% endif %}

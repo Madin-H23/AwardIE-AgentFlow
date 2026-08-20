@@ -1,22 +1,23 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}上传文件 - 成果管理系统{% endblock %}
+{% block topbar_title %}上传文件{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">上传文件</h1>
-    <a href="{{ url_for('admin_other_files.other_files_list') }}" class="btn btn-outline-secondary">返回列表</a>
+    <a href="{{ url_for('admin_other_files.other_files_list') }}" class="c-btn">返回列表</a>
 </div>
 
 <div class="row">
     <div class="col-lg-8">
         <form id="uploadForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
             <!-- 文件上传 -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="c-panel mb-4">
+                <div class="panel-head">
                     <h5 class="mb-0">选择文件</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-3">
                     <div class="mb-3">
                         <label for="file" class="form-label">文件 <span class="text-danger">*</span></label>
                         <input type="file" class="form-control" id="file" name="file" required>
@@ -31,17 +32,17 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">上传</button>
+            <button type="submit" class="c-btn c-btn-primary">上传</button>
         </form>
     </div>
 
     <div class="col-lg-4">
         <!-- 关联实验室 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">关联实验室</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <div class="mb-3">
                     <label for="laboratory_id" class="form-label">选择实验室</label>
                     <select class="form-select" id="laboratory_id" name="laboratory_id">
@@ -56,11 +57,11 @@
         </div>
 
         <!-- 上传说明 -->
-        <div class="card">
-            <div class="card-header">
+        <div class="c-panel">
+            <div class="panel-head">
                 <h5 class="mb-0">上传说明</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <ul class="mb-0 small text-muted">
                     <li>支持任意格式文件</li>
                     <li>图片文件会自动识别</li>

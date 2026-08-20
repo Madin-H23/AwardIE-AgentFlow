@@ -1,12 +1,13 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}竞赛管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}竞赛管理{% endblock %}
 
 {% block content %}
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>竞赛管理</h1>
-        <a href="{{ url_for('admin.competition_edit') }}" class="btn btn-primary">
+        <a href="{{ url_for('admin.competition_edit') }}" class="c-btn c-btn-primary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px;">
                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
             </svg>
@@ -15,8 +16,8 @@
     </div>
 
     <!-- 搜索表单 -->
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="c-panel mb-4">
+        <div class="p-3">
             <form method="GET" action="{{ url_for('admin.competitions_list') }}" id="searchForm" class="row g-3">
                 <div class="col-md-12">
                     <label for="searchInput" class="form-label">搜索竞赛名称</label>
@@ -28,8 +29,8 @@
     </div>
 
             <!-- 竞赛列表 -->
-    <div class="card">
-        <div class="card-body">
+    <div class="c-panel">
+        <div class="p-3">
             {% if competitions %}
             <div class="table-responsive">
                 <table class="table table-hover" id="competitionsListTable">
@@ -96,13 +97,13 @@
                             </td>
                             <td>
                                 <a href="{{ url_for('admin.competition_detail', competition_id=comp.id) }}"
-                                   class="btn btn-sm btn-outline-primary">查看</a>
+                                   class="c-text-btn">查看</a>
                                 <a href="{{ url_for('admin.competition_edit', competition_id=comp.id) }}"
-                                   class="btn btn-sm btn-outline-secondary">编辑</a>
+                                   class="c-text-btn">编辑</a>
                                 <form method="POST" action="{{ url_for('admin.competition_delete_post', competition_id=comp.id) }}"
                                       class="d-inline"
                                       onsubmit="return confirm('确定要删除这个竞赛吗？此操作不可恢复！');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                                    <button type="submit" class="c-text-btn danger">删除</button>
                                 </form>
                             </td>
                         </tr>
@@ -144,7 +145,7 @@
             {% else %}
             <div class="text-center py-5">
                 <p class="text-muted">暂无竞赛数据</p>
-                <a href="{{ url_for('admin.competition_edit') }}" class="btn btn-primary">添加第一个竞赛</a>
+                <a href="{{ url_for('admin.competition_edit') }}" class="c-btn c-btn-primary">添加第一个竞赛</a>
             </div>
             {% endif %}
         </div>

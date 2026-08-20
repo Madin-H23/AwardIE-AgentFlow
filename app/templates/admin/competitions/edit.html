@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{% if competition %}编辑竞赛{% else %}添加竞赛{% endif %} - 成果管理系统{% endblock %}
+{% block topbar_title %}竞赛编辑{% endblock %}
 
 {% block content %}
 <div>
@@ -8,9 +9,9 @@
         <h1>{% if competition %}编辑竞赛{% else %}添加竞赛{% endif %}</h1>
         <div>
             {% if competition %}
-                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="btn btn-outline-secondary">取消</a>
+                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="c-btn">取消</a>
             {% else %}
-                <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-outline-secondary">取消</a>
+                <a href="{{ url_for('admin.competitions_list') }}" class="c-btn">取消</a>
             {% endif %}
         </div>
     </div>
@@ -18,11 +19,11 @@
     <form method="POST" action="{% if competition %}{{ url_for('admin.competition_edit', competition_id=competition.id) }}{% else %}{{ url_for('admin.competition_edit') }}{% endif %}">
         <div class="row">
             <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
+                <div class="c-panel mb-4">
+                    <div class="panel-head">
                         <h5 class="mb-0">基本信息</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="p-3">
                         <div class="mb-3">
                             <label for="name" class="form-label">竞赛名称 <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name"
@@ -103,11 +104,11 @@
                     </div>
                 </div>
                 
-                <div class="card mb-4">
-                    <div class="card-header">
+                <div class="c-panel mb-4">
+                    <div class="panel-head">
                         <h5 class="mb-0">别名</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="p-3">
                         <label for="aliases" class="form-label">别名列表（用逗号分隔）</label>
                         <input type="text" class="form-control" id="aliases" name="aliases" 
                                value="{% if competition and competition.aliases %}{{ competition.aliases|join(', ') }}{% endif %}"
@@ -120,11 +121,11 @@
         
         <div class="d-flex justify-content-end gap-2">
             {% if competition %}
-                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="btn btn-outline-secondary">取消</a>
+                <a href="{{ url_for('admin.competition_detail', competition_id=competition.id) }}" class="c-btn">取消</a>
             {% else %}
-                <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-outline-secondary">取消</a>
+                <a href="{{ url_for('admin.competitions_list') }}" class="c-btn">取消</a>
             {% endif %}
-            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="submit" class="c-btn c-btn-primary">保存</button>
         </div>
     </form>
 </div>

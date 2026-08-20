@@ -1,7 +1,7 @@
 <!-- Tab1: 奖状管理 -->
 <!-- 搜索和筛选表单 -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="c-panel mb-4">
+    <div class="p-3">
         <form id="awardFilterForm" method="GET" action="{{ url_for('admin_awards.awards_list') }}" class="row g-3">
             <!-- 隐藏字段：保持 tab 参数 -->
             <input type="hidden" name="tab" value="management">
@@ -118,21 +118,21 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary" id="awardFilterSubmitBtn">
+                <button type="submit" class="c-btn c-btn-primary" id="awardFilterSubmitBtn">
                     <i class="bi bi-funnel"></i> 筛选
                 </button>
-                <button type="button" class="btn btn-outline-secondary" id="awardFilterResetBtn">重置</button>
+                <button type="button" class="c-btn" id="awardFilterResetBtn">重置</button>
             </div>
         </form>
         <!-- 关联师生奖状按钮 -->
         <div class="mt-3 pt-3 border-top">
-            <button type="button" class="btn btn-warning" id="linkTeacherStudentBtn">
+            <button type="button" class="c-btn" id="linkTeacherStudentBtn">
                 <i class="bi bi-link-45deg"></i> 关联师生奖状
             </button>
             <small class="text-muted ms-2">从教师奖状中补充学生奖状的导师信息</small>
             {% if not laboratory_id %}
                 {# 只在管理员模式下显示自动关联实验室按钮 #}
-                <button type="button" class="btn btn-outline-info ms-3" id="autoLinkLaboratoryBtn">
+                <button type="button" class="c-btn ms-3" id="autoLinkLaboratoryBtn">
                     <i class="bi bi-building"></i> 自动关联实验室
                 </button>
                 <small class="text-muted ms-2">将有指导教师但未关联实验室的奖状自动关联到第一指导教师所属实验室</small>
@@ -142,15 +142,15 @@
 </div>
 
 <!-- 奖状列表 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <span class="text-muted">共找到 {{ total_count }} 条记录</span>
             </div>
             {% if not is_readonly %}
             <div>
-                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                <button type="button" class="c-text-btn danger" id="batchDeleteBtn" disabled>
                     批量删除
                 </button>
             </div>
@@ -292,20 +292,20 @@
                             {% if is_readonly %}
                                 {% if laboratory_id %}
                                     <a href="{{ url_for('admin_awards.award_edit', award_id=award.id, laboratory_id=laboratory_id) }}" 
-                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">查看</a>
+                                       class="c-text-btn award-edit-link" data-award-id="{{ award.id }}">查看</a>
                                 {% else %}
                                     <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
-                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">查看</a>
+                                       class="c-text-btn award-edit-link" data-award-id="{{ award.id }}">查看</a>
                                 {% endif %}
                             {% else %}
                                 {% if laboratory_id %}
                                     <a href="{{ url_for('admin_awards.award_edit', award_id=award.id, laboratory_id=laboratory_id) }}" 
-                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">编辑</a>
+                                       class="c-text-btn award-edit-link" data-award-id="{{ award.id }}">编辑</a>
                                 {% else %}
                                     <a href="{{ url_for('admin_awards.award_edit', award_id=award.id) }}" 
-                                       class="btn btn-sm btn-outline-primary award-edit-link" data-award-id="{{ award.id }}">编辑</a>
+                                       class="c-text-btn award-edit-link" data-award-id="{{ award.id }}">编辑</a>
                                 {% endif %}
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                <button type="button" class="c-text-btn danger" 
                                         onclick="deleteAward({{ award.id }})">删除</button>
                             {% endif %}
                             </div>
@@ -347,7 +347,7 @@
         {% else %}
         <div class="text-center py-5">
             <p class="text-muted">暂无奖状数据</p>
-            <button type="button" class="btn btn-primary" onclick="document.getElementById('tab-import').click()">开始导入</button>
+            <button type="button" class="c-btn c-btn-primary" onclick="document.getElementById('tab-import').click()">开始导入</button>
         </div>
         {% endif %}
     </div>

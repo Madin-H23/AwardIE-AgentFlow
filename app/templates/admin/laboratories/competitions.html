@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{{ lab.name }} - 参与竞赛 - 成果管理系统{% endblock %}
+{% block topbar_title %}参与竞赛{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -242,7 +243,7 @@
     <!-- 页面头部 -->
     <div class="page-header">
         <h1><i class="bi bi-trophy"></i> {{ lab.name }} - 参与竞赛</h1>
-        <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ url_for('admin_laboratory.laboratory_detail', lab_id=lab.id) }}" class="c-btn btn-sm">
             <i class="bi bi-arrow-left"></i> 返回实验室
         </a>
     </div>

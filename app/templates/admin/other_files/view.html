@@ -1,24 +1,25 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}文件详情 - {{ file.file_name }} - 成果管理系统{% endblock %}
+{% block topbar_title %}文件详情{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">文件详情</h1>
     <div>
-        <a href="{{ url_for('admin_other_files.other_files_download', file_id=file.id) }}" class="btn btn-primary me-2">下载</a>
-        <a href="{{ url_for('admin_other_files.other_files_list') }}" class="btn btn-outline-secondary">返回列表</a>
+        <a href="{{ url_for('admin_other_files.other_files_download', file_id=file.id) }}" class="c-btn c-btn-primary me-2">下载</a>
+        <a href="{{ url_for('admin_other_files.other_files_list') }}" class="c-btn">返回列表</a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-lg-8">
         <!-- 基本信息 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">基本信息</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row">
                     <dt class="col-sm-3">文件名</dt>
                     <dd class="col-sm-9">{{ file.file_name }}</dd>
@@ -66,11 +67,11 @@
 
         <!-- 图片预览 -->
         {% if file.is_image %}
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">图片预览</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <div id="imagePreview" class="text-center">
                     <p class="text-muted">加载中...</p>
                 </div>
@@ -81,11 +82,11 @@
 
     <div class="col-lg-4">
         <!-- 关联实验室 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">关联实验室</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 {% if laboratory %}
                 <p class="mb-1"><strong>{{ laboratory.name }}</strong></p>
                 <p class="text-muted small mb-0">{{ laboratory.description or '-' }}</p>
@@ -96,11 +97,11 @@
         </div>
 
         <!-- 提交信息 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">提交信息</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row mb-0">
                     <dt class="col-6">提交人类型</dt>
                     <dd class="col-6">{{ file.submitter_type or '-' }}</dd>
@@ -115,11 +116,11 @@
         </div>
 
         <!-- 系统信息 -->
-        <div class="card">
-            <div class="card-header">
+        <div class="c-panel">
+            <div class="panel-head">
                 <h5 class="mb-0">系统信息</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <dl class="row mb-0">
                     <dt class="col-6">ID</dt>
                     <dd class="col-6">{{ file.id }}</dd>

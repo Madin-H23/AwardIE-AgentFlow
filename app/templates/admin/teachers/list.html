@@ -1,17 +1,18 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}教师管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}教师管理{% endblock %}
 
 {% block content %}
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>教师管理</h1>
-        <a href="{{ url_for('admin.teacher_edit') }}" class="btn btn-primary">添加教师</a>
+        <a href="{{ url_for('admin.teacher_edit') }}" class="c-btn c-btn-primary">添加教师</a>
     </div>
     
     <!-- 搜索表单 -->
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="c-panel mb-4">
+        <div class="p-3">
             <form method="GET" action="{{ url_for('admin.teachers_list') }}" class="row g-3">
                 <div class="col-md-8">
                     <label for="search" class="form-label">搜索</label>
@@ -27,15 +28,15 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">搜索</button>
+                    <button type="submit" class="c-btn c-btn-primary w-100">搜索</button>
                 </div>
             </form>
         </div>
     </div>
     
     <!-- 教师列表 -->
-    <div class="card">
-        <div class="card-body">
+    <div class="c-panel">
+        <div class="p-3">
             <div class="mb-3">
                 <span class="text-muted">共找到 {{ total_count }} 条记录</span>
             </div>
@@ -71,8 +72,8 @@
                             </td>
                             <td>
                                 <a href="{{ url_for('admin.teacher_edit', teacher_id=teacher.id) }}" 
-                                   class="btn btn-sm btn-outline-primary">编辑</a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                   class="c-text-btn">编辑</a>
+                                <button type="button" class="c-text-btn danger" 
                                         onclick="deleteTeacher({{ teacher.id }})">删除</button>
                             </td>
                         </tr>
@@ -112,7 +113,7 @@
             {% else %}
             <div class="text-center py-5">
                 <p class="text-muted">暂无教师数据</p>
-                <a href="{{ url_for('admin.teacher_edit') }}" class="btn btn-primary">添加教师</a>
+                <a href="{{ url_for('admin.teacher_edit') }}" class="c-btn c-btn-primary">添加教师</a>
             </div>
             {% endif %}
         </div>

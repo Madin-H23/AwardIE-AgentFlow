@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{{ lab.name }} - 实验室详情 - 成果管理系统{% endblock %}
+{% block topbar_title %}实验室详情{% endblock %}
 
 {% block extra_head %}
 <!-- Bootstrap Icons -->
@@ -504,12 +505,12 @@
             </div>
             <div class="lab-header-actions d-flex gap-2">
                 {% if can_edit %}
-                <a href="{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}" class="btn btn-light btn-sm">
+                <a href="{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}" class="c-btn btn-sm">
                     <i class="bi bi-pencil"></i> 编辑
                 </a>
                 {% endif %}
                 {% if is_admin %}
-                <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-light btn-sm">
+                <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="c-btn btn-sm">
                     <i class="bi bi-arrow-left"></i> 返回列表
                 </a>
                 {% endif %}
@@ -542,11 +543,11 @@
                     <h6><i class="bi bi-bar-chart-line"></i> 数据分析</h6>
                     <p class="text-muted mb-2 small">查看本实验室获奖与竞赛分析</p>
                     {% if current_user and current_user.id %}
-                    <a href="{{ url_for('admin_laboratory.laboratory_data_analysis', lab_id=lab.id) }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ url_for('admin_laboratory.laboratory_data_analysis', lab_id=lab.id) }}" class="c-btn btn-sm">
                         <i class="bi bi-graph-up"></i> 进入数据分析
                     </a>
                     {% else %}
-                    <a href="{{ url_for('auth.login', next=request.url) }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ url_for('auth.login', next=request.url) }}" class="c-btn btn-sm">
                         <i class="bi bi-box-arrow-in-right"></i> 登录后查看
                     </a>
                     {% endif %}
@@ -731,7 +732,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0"><i class="bi bi-download"></i> 下载专区</h5>
                 {% if lab.downloads|length > 5 %}
-                <a href="{{ url_for('admin_laboratory.laboratory_downloads_list', lab_id=lab.id) }}" class="btn btn-sm btn-outline-primary">
+                <a href="{{ url_for('admin_laboratory.laboratory_downloads_list', lab_id=lab.id) }}" class="c-text-btn">
                     更多 <i class="bi bi-chevron-right"></i>
                 </a>
                 {% endif %}
@@ -770,7 +771,7 @@
                         </div>
                     </div>
                     <a href="{{ url_for('admin_laboratory.laboratory_download_file', lab_id=lab.id, download_id=download.id) }}" 
-                       class="btn btn-sm btn-outline-primary" title="下载文件">
+                       class="c-text-btn" title="下载文件">
                         <i class="bi bi-download"></i>
                     </a>
                 </div>

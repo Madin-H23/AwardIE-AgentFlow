@@ -1,14 +1,15 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}
 {% if project %}编辑大创项目 - {{ project.project_name }}{% else %}添加大创项目{% endif %} - 成果管理系统
 {% endblock %}
+{% block topbar_title %}大创项目编辑{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">{% if project %}编辑大创项目{% else %}添加大创项目{% endif %}</h1>
     <div>
-        <a href="{% if project %}{{ url_for('admin_innovation.innovation_view', project_id=project.id) }}{% else %}{{ url_for('admin_achievement.achievements', tab='innovation') }}{% endif %}" class="btn btn-outline-secondary">
+        <a href="{% if project %}{{ url_for('admin_innovation.innovation_view', project_id=project.id) }}{% else %}{{ url_for('admin_achievement.achievements', tab='innovation') }}{% endif %}" class="c-btn">
             {% if project %}返回详情{% else %}返回列表{% endif %}
         </a>
     </div>
@@ -18,11 +19,11 @@
 <div class="row">
     <div class="col-lg-8">
             <!-- 基本信息 -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="c-panel mb-4">
+                <div class="panel-head">
                     <h5 class="mb-0">基本信息</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-3">
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label for="project_no" class="form-label small">项目编号</label>
@@ -80,11 +81,11 @@
             </div>
 
             <!-- 人员信息 -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="c-panel mb-4">
+                <div class="panel-head">
                     <h5 class="mb-0">人员信息</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-3">
                     <!-- 学生负责人 -->
                     <div class="mb-3">
                         <label class="form-label small">学生负责人</label>
@@ -219,7 +220,7 @@
             </div>
 
             <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="submit" class="c-btn c-btn-primary">保存</button>
                 {% if project %}
                 <button type="button" class="btn btn-danger" onclick="deleteProject({{ project.id }})">删除</button>
                 {% endif %}
@@ -228,11 +229,11 @@
 
     <div class="col-lg-4">
         <!-- 关联实验室 -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="c-panel mb-4">
+            <div class="panel-head">
                 <h5 class="mb-0">关联实验室</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <div class="mb-3">
                     <label for="laboratory_id" class="form-label">选择实验室</label>
                     <select class="form-select" id="laboratory_id" name="laboratory_id">
@@ -247,11 +248,11 @@
         </div>
 
         <!-- 填写提示 -->
-        <div class="card">
-            <div class="card-header">
+        <div class="c-panel">
+            <div class="panel-head">
                 <h5 class="mb-0">填写提示</h5>
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <ul class="mb-0 small text-muted">
                     <li>项目名称为必填项</li>
                     <li>其他成员和指导教师用逗号分隔</li>

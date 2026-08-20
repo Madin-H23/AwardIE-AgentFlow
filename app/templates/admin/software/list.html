@@ -1,20 +1,21 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}软著管理 - 竞赛管理系统{% endblock %}
+{% block topbar_title %}软著管理 - 竞赛管理系统{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">软著管理</h1>
     <div>
-        <a href="{{ url_for('admin_software.software_create') }}" class="btn btn-primary">
+        <a href="{{ url_for('admin_software.software_create') }}" class="c-btn c-btn-primary">
             <i class="bi bi-plus-lg"></i> 添加软著
         </a>
     </div>
 </div>
 
 <!-- 筛选卡片 -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="c-panel mb-4">
+    <div class="p-3">
         <form method="get" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">登记号</label>
@@ -25,23 +26,23 @@
                 <input type="text" name="copyright_owner" class="form-control" value="{{ filter_obj.copyright_owner or '' }}" placeholder="输入著作权人">
             </div>
             <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">搜索</button>
-                <a href="{{ url_for('admin_software.software_list') }}" class="btn btn-outline-secondary">重置</a>
+                <button type="submit" class="c-btn c-btn-primary me-2">搜索</button>
+                <a href="{{ url_for('admin_software.software_list') }}" class="c-btn">重置</a>
             </div>
         </form>
     </div>
 </div>
 
 <!-- 软著列表 -->
-<div class="card">
-    <div class="card-body">
+<div class="c-panel">
+    <div class="p-3">
         {% if copyrights %}
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <span class="text-muted">共 {{ copyrights|length }} 条记录</span>
             </div>
             <div>
-                <button type="button" class="btn btn-sm btn-outline-danger" id="batchDeleteBtn" disabled>
+                <button type="button" class="c-text-btn danger" id="batchDeleteBtn" disabled>
                     批量删除
                 </button>
             </div>
@@ -82,9 +83,9 @@
                         <td>{{ copyright.submit_time or '-' }}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}" class="btn btn-outline-primary">查看</a>
-                                <a href="{{ url_for('admin_software.software_edit', copyright_id=copyright.id) }}" class="btn btn-outline-secondary">编辑</a>
-                                <button type="button" class="btn btn-outline-danger" onclick="deleteCopyright({{ copyright.id }})">删除</button>
+                                <a href="{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}" class="c-btn">查看</a>
+                                <a href="{{ url_for('admin_software.software_edit', copyright_id=copyright.id) }}" class="c-btn">编辑</a>
+                                <button type="button" class="c-text-btn danger" onclick="deleteCopyright({{ copyright.id }})">删除</button>
                             </div>
                         </td>
                     </tr>
@@ -117,7 +118,7 @@
         {% else %}
         <div class="text-center py-5">
             <p class="text-muted">暂无软著数据</p>
-            <a href="{{ url_for('admin_software.software_create') }}" class="btn btn-primary">添加第一个软著</a>
+            <a href="{{ url_for('admin_software.software_create') }}" class="c-btn c-btn-primary">添加第一个软著</a>
         </div>
         {% endif %}
     </div>

@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}
 {% if copyright %}编辑软著 - {{ copyright.software_name }}{% else %}添加软著{% endif %} - 成果管理系统
 {% endblock %}
+{% block topbar_title %}软著编辑{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -62,7 +63,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">{% if copyright %}编辑软著{% else %}添加软著{% endif %}</h1>
-    <a href="{% if copyright %}{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}{% else %}{{ url_for('admin_software.software_list') }}{% endif %}" class="btn btn-outline-secondary">
+    <a href="{% if copyright %}{{ url_for('admin_software.software_view', copyright_id=copyright.id) }}{% else %}{{ url_for('admin_software.software_list') }}{% endif %}" class="c-btn">
         {% if copyright %}返回详情{% else %}返回列表{% endif %}
     </a>
 </div>
@@ -70,17 +71,17 @@
 <div class="row">
     <!-- 左侧：证书图片 -->
     <div class="col-lg-5">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="c-panel mb-4">
+            <div class="panel-head" d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">证书预览</h5>
                 {% if copyright and copyright.certificate_file %}
                 <a href="{{ url_for('admin_software.software_file', copyright_id=copyright.id) }}"
-                   class="btn btn-sm btn-outline-primary" target="_blank">
+                   class="c-text-btn" target="_blank">
                     <i class="bi bi-box-arrow-up-right"></i> 新窗口打开
                 </a>
                 {% endif %}
             </div>
-            <div class="card-body">
+            <div class="p-3">
                 <div class="image-preview-container">
                     {% if copyright and copyright.certificate_file %}
                         {% set file_ext = copyright.certificate_file.split('.')[-1].lower() %}
@@ -109,11 +110,11 @@
     <!-- 右侧：基本信息 -->
     <div class="col-lg-7">
         <form id="softwareForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="c-panel mb-4">
+                <div class="panel-head">
                     <h5 class="mb-0">基本信息</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-3">
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label for="software_name" class="form-label">软件名称 <span class="text-danger">*</span></label>
@@ -170,7 +171,7 @@
             </div>
 
             <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="submit" class="c-btn c-btn-primary">保存</button>
                 {% if copyright %}
                 <button type="button" class="btn btn-danger" onclick="deleteCopyright({{ copyright.id }})">删除</button>
                 {% endif %}

@@ -1,22 +1,23 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{% if lab %}编辑实验室{% else %}添加实验室{% endif %} - 成果管理系统{% endblock %}
+{% block topbar_title %}实验室编辑{% endblock %}
 
 {% block content %}
 <div class="laboratory-edit-page">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>{% if lab %}编辑实验室{% else %}添加实验室{% endif %}</h1>
-        <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-secondary">返回列表</a>
+        <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="c-btn">返回列表</a>
     </div>
     
     <form method="POST" action="{% if lab %}{{ url_for('admin_laboratory.laboratory_edit', lab_id=lab.id) }}{% else %}{{ url_for('admin_laboratory.laboratory_edit') }}{% endif %}" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">基本信息</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <div class="mb-2">
                             <label for="name" class="form-label">实验室名称 <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" 
@@ -51,11 +52,11 @@
             </div>
             
             <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">指导教师</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <p class="text-muted small mb-2">选择一个或多个指导教师。注意：每个教师只能属于一个实验室。</p>
                         <div class="list-group" style="max-height: 250px; overflow-y: auto;">
                             {% for teacher in all_teachers %}
@@ -77,11 +78,11 @@
         
         <div class="row">
             <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">学生成员</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <p class="text-muted small mb-2">输入学生姓名或学号进行搜索，然后选择学生成员。</p>
                         
                         <!-- 搜索输入框 -->
@@ -127,11 +128,11 @@
             <div class="col-md-6">
                 <!-- 实验室图片管理 -->
                 {% if lab %}
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">活动图片</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <div class="mb-2">
                             <label for="labImagesUpload" class="form-label">上传图片</label>
                             <input type="file" class="form-control form-control-sm" id="labImagesUpload" name="lab_images" accept="image/*" multiple>
@@ -162,11 +163,11 @@
                 </div>
 
                 <!-- 成果管理 (未认领成果) -->
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">成果认领</h5>
                     </div>
-                    <div class="card-body" style="padding: 0;">
+                    <div class="p-3" style="padding: 0;">
                         <ul class="nav nav-tabs nav-tabs-sm px-3 pt-2" id="unclaimedTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="unclaimed-award-tab" data-bs-toggle="tab" data-bs-target="#unclaimed-award" type="button" role="tab" aria-controls="unclaimed-award" aria-selected="true">奖状</button>
@@ -214,17 +215,17 @@
                 </div>
                 
                 <!-- 下载专区管理 -->
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">下载专区</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <div class="mb-2">
                             <label for="downloadFileUpload" class="form-label">上传文件</label>
                             <div class="input-group input-group-sm">
                                 <input type="file" class="form-control form-control-sm" id="downloadFileUpload" name="download_file">
                                 <input type="text" class="form-control form-control-sm" id="downloadFileTitle" placeholder="文件标题（可选）">
-                                <button type="button" class="btn btn-outline-primary" onclick="uploadDownloadFile()">
+                                <button type="button" class="c-btn" onclick="uploadDownloadFile()">
                                     <i class="bi bi-upload"></i> 上传
                                 </button>
                             </div>
@@ -251,7 +252,7 @@
                                         <small class="text-muted">{{ download.file_name }}</small>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                <button type="button" class="c-text-btn danger" 
                                         onclick="deleteDownloadFile({{ lab.id }}, {{ download.id }}, '{{ download.file_title or download.file_name }}')">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -268,11 +269,11 @@
                 
                 <!-- 学生助教管理 -->
                 {% if lab %}
-                <div class="card mb-3">
-                    <div class="card-header" style="padding: 0.5rem 1rem;">
+                <div class="c-panel mb-3">
+                    <div class="panel-head" style="padding: 0.5rem 1rem;">
                         <h5 class="mb-0" style="font-size: 1rem;">学生助教管理</h5>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
+                    <div class="p-3" style="padding: 1rem;">
                         <p class="text-muted small mb-2">只能从实验室成员中选择助教，且每个学生只能在一个实验室担任助教。</p>
                         
                         <div class="mb-2">
@@ -313,8 +314,8 @@
         <div class="row mt-3">
             <div class="col-12">
                 <div class="d-flex justify-content-center gap-2">
-                    <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="btn btn-outline-secondary">取消</a>
-                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="{{ url_for('admin_laboratory.laboratories_list') }}" class="c-btn">取消</a>
+                    <button type="submit" class="c-btn c-btn-primary">保存</button>
                 </div>
             </div>
         </div>
@@ -407,7 +408,7 @@ function displaySearchResults(students) {
         
         const addButton = document.createElement('button');
         addButton.type = 'button';
-        addButton.className = 'btn btn-sm btn-primary';
+        addButton.className = 'c-btn c-btn-primary';
         addButton.textContent = '添加';
         addButton.onclick = function() {
             addStudent(student.id, student.name, student.brief_desc || student.display || student.name);
@@ -943,7 +944,7 @@ function renderUnclaimedList(type, container, items) {
                     ${badge}
                     ${content}
                 </div>
-                <a href="${item.edit_url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0">
+                <a href="${item.edit_url}" target="_blank" class="c-text-btn ms-2 flex-shrink-0">
                     <i class="bi bi-pencil-square"></i> 编辑/认领
                 </a>
             </div>
