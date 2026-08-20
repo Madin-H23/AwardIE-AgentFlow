@@ -107,6 +107,15 @@ def create_app(config_class=None):
         from backend.utils.log_scheduler import start as start_log_scheduler
         start_log_scheduler()
 
+    # 本地调试健壮性：每个响应 Connection: close（不复用 keep-alive 连接）。
+    # 本机 127.0.0.1 曾现浏览器连接池按 keep-alive 复用判 busy 导致请求 Stalled；
+    # 独立短连接使每个资源即时完成释放，规避连接层卡死（排障 P17/P18）。
+    if app.config.get('DEBUG', True):
+        @app.after_request
+        def _close_connection(resp):
+            resp.headers.setdefault('Connection', 'close')
+            return resp
+
     return app
 
 def _ensure_directories(app):
