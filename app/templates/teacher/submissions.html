@@ -35,35 +35,35 @@
         border-radius: 9999px;
     }
     .status-pending {
-        background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        background: linear-gradient(135deg, var(--sev-warning-bg) 0%, var(--sev-warning-bg) 100%);
         color: white;
     }
     .status-approved {
-        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        background: linear-gradient(135deg, color-mix(in srgb, var(--ok) 14%, transparent) 0%, color-mix(in srgb, var(--ok) 14%, transparent) 100%);
         color: white;
     }
     .status-rejected {
-        background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+        background: linear-gradient(135deg, var(--sev-error-bg) 0%, var(--sev-error-bg) 100%);
         color: white;
     }
     .type-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.75rem;
         border-radius: 0.375rem;
-        background: #e2e8f0;
-        color: #4a5568;
+        background: var(--line);
+        color: var(--ink);
     }
     .type-award {
-        background: #d1fae5;
-        color: #065f46;
+        background: color-mix(in srgb, var(--ok) 14%, transparent);
+        color: var(--ok);
     }
     .type-patent {
-        background: #dbeafe;
-        color: #1e40af;
+        background: var(--sev-info-bg);
+        color: var(--brand);
     }
     .type-software {
-        background: #fce7f3;
-        color: #9f1239;
+        background: color-mix(in srgb, var(--ai) 14%, transparent);
+        color: var(--sev-error);
     }
     .empty-state {
         padding: 3rem;
@@ -71,12 +71,12 @@
     }
     /* 手动导入表单的卡片样式 */
     #manualFormSection .card {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--line);
         border-radius: 0.375rem;
     }
     #manualFormSection .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
+        background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+        border-bottom: 1px solid var(--line);
         font-weight: 500;
     }
     #manualFormSection .form-label {
@@ -85,11 +85,11 @@
     }
     #manualFormSection .form-control,
     #manualFormSection .form-select {
-        border-color: #ced4da;
+        border-color: var(--line);
     }
     #manualFormSection .form-control:focus,
     #manualFormSection .form-select:focus {
-        border-color: #86b7fe;
+        border-color: color-mix(in srgb, var(--sev-info) 22%, transparent);
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
     /* 上传进度条（与管理员 file_import 一致） */
@@ -101,10 +101,10 @@
         height: 24px;
         border-radius: 12px;
         overflow: hidden;
-        background: #e9ecef;
+        background: color-mix(in srgb, var(--ink) 4%, transparent);
     }
     .upload-progress .progress-bar {
-        background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+        background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 12%, transparent) 0%, var(--brand-hover) 100%);
         font-weight: 600;
         line-height: 24px;
         transition: width 0.3s ease;
@@ -112,7 +112,7 @@
     .upload-status {
         margin-top: 8px;
         font-size: 14px;
-        color: #495057;
+        color: var(--ink);
         text-align: center;
     }
 </style>
@@ -587,7 +587,7 @@
                                 progressBar.style.width = '100%';
                                 progressBar.textContent = '100%';
                                 progressBar.classList.remove('progress-bar-animated');
-                                progressBar.style.background = 'linear-gradient(90deg, #52c41a 0%, #73d13d 100%)';
+                                progressBar.style.background = 'linear-gradient(90deg, var(--ok) 0%, var(--ok) 100%)';
                             }
                             if (uploadStatus) uploadStatus.textContent = '处理完成，即将跳转...';
                             setTimeout(function() {
