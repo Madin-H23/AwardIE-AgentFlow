@@ -260,3 +260,58 @@
 .console-shell .empty-state {
   padding: 40px 20px; text-align: center; color: var(--ink-2); font-size: .88rem;
 }
+
+/* ============================================================
+   页面视觉基因（batch：以 dashboard 看板页为模版同步全站）
+   作用于 .console-main 下既有标记（h1/table/form/badge/alert），
+   T9 已换壳页零模板改动即获得统一观感。
+   ============================================================ */
+
+/* 页面内 h1 标题：统一为看板风格（1.35rem/600/深色），浏览器默认大号 h1 退役 */
+.console-shell .console-main h1 {
+  font-size: 1.35rem; font-weight: 600; color: var(--ink);
+  margin: 0 0 .5rem; letter-spacing: .01em;
+}
+.console-shell .console-main h2 { font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+.console-shell .console-main h3, .console-shell .console-main .card-title { font-size: 1rem; font-weight: 600; color: var(--ink); }
+
+/* 信息提示条（对应百度云 pageHeader 下 info-alert；dashboard 的 .dash-info 通用化） */
+.console-shell .page-alert {
+  display: flex; align-items: center; gap: 8px;
+  background: color-mix(in srgb, var(--brand) 6%, var(--panel));
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 14px; font-size: .82rem; color: var(--ink-2);
+}
+.console-shell .page-alert i { color: var(--brand); }
+
+/* 表格：灰表头 + 细边框（dashboard 的 .dash-table 通用化，作用于现有 .table） */
+.console-shell .console-main .table thead th {
+  font-weight: 600; color: var(--ink-2); font-size: .82rem;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  border-bottom: 1px solid var(--line) !important; white-space: nowrap;
+}
+.console-shell .console-main .table td { vertical-align: middle; }
+.console-shell .console-main .table-hover tbody tr:hover { background: color-mix(in srgb, var(--brand) 5%, transparent); }
+
+/* 表单控件主题化（白底/主题边框/品牌聚焦），覆盖 Bootstrap 默认 */
+.console-shell .console-main .form-control,
+.console-shell .console-main .form-select {
+  background-color: var(--panel); border-color: var(--line); color: var(--ink); font-size: .86rem;
+}
+.console-shell .console-main .form-control:focus,
+.console-shell .console-main .form-select:focus {
+  border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 15%, transparent); background-color: var(--panel); color: var(--ink);
+}
+.console-shell .console-main .form-label { font-size: .85rem; color: var(--ink-2); }
+
+/* 徽章：暗色下 Bootstrap bg-* 自动加深；统一圆角与字号 */
+.console-shell .console-main .badge { font-weight: 600; font-size: .74rem; border-radius: 4px; }
+
+/* 分页：暗色适配 + 圆角统一 */
+.console-shell .console-main .pagination .page-link { background: var(--panel); border-color: var(--line); color: var(--ink); }
+.console-shell .console-main .pagination .page-link:hover { color: var(--brand); border-color: var(--brand); }
+.console-shell .console-main .pagination .page-item.active .page-link { background: var(--brand); border-color: var(--brand); color: #fff; }
+.console-shell .console-main .pagination .page-item.disabled .page-link { background: color-mix(in srgb, var(--ink) 4%, transparent); color: var(--ink-2); }
+
+/* 提示 alert：微调圆角与信息条底色 */
+.console-shell .console-main .alert { border-radius: 8px; }

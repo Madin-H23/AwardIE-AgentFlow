@@ -6,14 +6,7 @@
 {% block extra_head %}
 <style>
     /* 页面头标题下沿提示条：仿百度云 pageHeader info-alert */
-    .dash-info {
-        display: flex; align-items: center; gap: 8px;
-        background: color-mix(in srgb, var(--brand) 6%, var(--panel));
-        border: 1px solid var(--line); border-radius: 6px;
-        padding: 8px 14px; font-size: .82rem; color: var(--ink-2);
-    }
-    .dash-info i { color: var(--brand); }
-    /* 汇总卡：左大数字右分类明细 */
+/* 汇总卡：左大数字右分类明细 */
     .pay-total .label { font-size: .8rem; color: var(--ink-2); margin-bottom: 6px; }
     .pay-total .num { font-size: 2.6rem; font-weight: 700; line-height: 1; }
     .pay-total .sub { font-size: .74rem; color: var(--ink-2); margin-top: 8px; }
@@ -23,7 +16,6 @@
     .pay-items .item .v { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
     .pay-formula { font-size: .75rem; color: var(--ink-2); margin-top: 14px; }
     /* 竞赛表头灰色 */
-    .dash-table thead th { font-weight: 600; color: var(--ink-2); background: color-mix(in srgb, var(--ink) 3%, transparent); border-bottom: 1px solid var(--line) !important; }
 </style>
 {% endblock %}
 
@@ -32,7 +24,7 @@
     <!-- ② 页面头 + 提示条 -->
     <div class="mb-3">
         <h1 class="mb-2" style="font-size:1.35rem">成果数据总览</h1>
-        <div class="dash-info">
+        <div class="page-alert">
             <i class="bi bi-info-circle"></i>
             <span>数据实时统计；成果分类以奖状/专利/软著/其他四类统计，最终口径以人工审核归档数据为准。</span>
         </div>
@@ -90,7 +82,7 @@
         <div class="p-3">
             <div class="panel-head px-0 pt-0" style="border:none;background:transparent"><span>竞赛战果 Top</span><span class="text-muted" style="font-weight:400;font-size:.78rem">按获奖总数排序</span></div>
             <div class="table-responsive">
-                <table class="table dash-table" style="font-size:.86rem">
+                <table class="table" style="font-size:.86rem">
                     <thead>
                         <tr><th>竞赛</th><th class="text-end">获奖总数</th><th class="text-end">占比</th></tr>
                     </thead>
