@@ -55,7 +55,8 @@ def login():
             user_type = user_info.get('user_type')
             
             if role == 'admin' or user_type == 'admin':
-                return redirect(url_for('admin_achievement.achievements'))
+                # 管理员登录直达数据总览看板（T-看板：dashboard 已升级为首页）
+                return redirect(url_for('admin.dashboard'))
             elif role == 'teacher' or user_type == 'teacher':
                 return redirect(url_for('teacher.dashboard'))
             else:
