@@ -685,15 +685,13 @@ def data_export():
                 filtered_awards.append(award)
             awards = filtered_awards
         
-        # 获取活动管理器和实验室管理器
-        activity_manager = app_context.get_activity_manager()
+        # 获取实验室管理器（activity_manager 已废弃：AppContext 无此方法、export_utils 无此参数——对齐签名）
         laboratory_manager = app_context.get_laboratory_manager()
         
         # 生成报表数据
         report_data = generate_department_summary_data(
             awards, 
             competition_manager,
-            activity_manager=activity_manager,
             laboratory_manager=laboratory_manager
         )
         

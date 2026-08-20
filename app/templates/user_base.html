@@ -186,24 +186,31 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- 主题切换（复用后台 console_theme.js 状态逻辑：SVG 日月 + aria 状态）
+                         注意：A 阶段仅公共层生效，页面主体 Tailwind 展示风不动；门户整体暗黑在 B（tailwind 重编译+dark:）阶段 -->
+                    <button type="button" data-console-theme-toggle class="p-2 text-gray-600 hover:text-orange-500 transition-colors" aria-label="切换为深色模式" title="切换为深色模式" aria-pressed="false">
+                        <svg class="theme-icon theme-icon-moon w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 14.1A8.3 8.3 0 0 1 9.9 3.6a8.3 8.3 0 1 0 10.5 10.5Z"></path></svg>
+                        <svg class="theme-icon theme-icon-sun w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"></path></svg>
+                    </button>
                     <div class="relative">
-                        <button class="p-2 text-gray-600 hover:text-orange-500 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6a2 2 0 012 2v9a2 2 0 01-2 2H9l-3-3V9a2 2 0 012-2z"></path>
-                            </svg>
+                        <button data-portal-user-toggle class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors" aria-expanded="false">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:linear-gradient(135deg,#1677ff,#4096ff)">
+                                {% if current_user and current_user.name %}{{ current_user.name[0] }}{% else %}用{% endif %}
+                            </div>
+                            {% if current_user and current_user.name %}
+                            <span class="text-sm font-medium text-gray-800 hidden sm:inline">{{ current_user.name }}</span>
+                            {% endif %}
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <span class="notification-badge absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        <ul data-portal-user-menu class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                            <li class="px-4 py-2 border-b border-gray-200">
+                                <div class="text-sm font-medium text-gray-800">{{ current_user.name if current_user else '访客' }}</div>
+                                <div class="text-xs text-gray-500 uppercase tracking-wide">{{ current_user.type if current_user else '' }}</div>
+                            </li>
+                            <li><a href="{{ user_route('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">个人中心</a></li>
+                            <li class="border-t border-gray-200"><a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-gray-500 hover:bg-red-50 hover:text-red-600">退出登录</a></li>
+                        </ul>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                            {% if current_user and current_user.name %}{{ current_user.name[0] }}{% else %}用{% endif %}
-                        </div>
-                        {% if current_user and current_user.name %}
-                        <span class="text-sm font-medium text-gray-800 hidden sm:inline">{{ current_user.name }}</span>
-                        {% endif %}
-                    </div>
-                    <a href="{{ url_for('auth.logout') }}" class="text-sm text-gray-600 hover:text-orange-500">退出</a>
                 </div>
             </div>
         </div>
@@ -263,6 +270,26 @@
     <!-- 通用JavaScript -->
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+    <!-- 主题切换（与后台 base_console 同源 console_theme.js） -->
+    <script src="{{ url_for('static', filename='js/console_theme.js') }}?v=2"></script>
+    <!-- 门户用户下拉（vanilla：按钮 toggle + 外部点击关闭） -->
+    <script>
+        (function () {
+            'use strict';
+            var btn = document.querySelector('[data-portal-user-toggle]');
+            var menu = document.querySelector('[data-portal-user-menu]');
+            if (!btn || !menu) return;
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var hidden = menu.classList.toggle('hidden');
+                btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+            });
+            document.addEventListener('click', function () {
+                if (!menu.classList.contains('hidden')) menu.classList.add('hidden');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+        })();
+    </script>
 
     {% block extra_scripts %}{% endblock %}
 </body>
