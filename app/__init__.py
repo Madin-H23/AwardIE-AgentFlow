@@ -26,6 +26,24 @@ def create_app(config_class=None):
         config_class = get_config()
     app.config.from_object(config_class)
 
+    # 阶段六 L2（T26）：trace_id 全链路——每请求生成/透传（X-Trace-Id 优先），
+    # errorhandler 与 SystemEventLogger 经 _current_trace_id() 统一读取（修复原
+    # app._current_trace_id 从未赋值、响应恒为 None 的存量缺陷）
+    import uuid as _uuid
+    from flask import g as _g, request as _request
+
+    def _current_trace_id():
+        try:
+            return _g.get('trace_id', None)
+        except RuntimeError:   # 无请求上下文（如启动期日志）
+            return None
+
+    @app.before_request
+    def _set_trace_id():
+        _g.trace_id = _request.headers.get('X-Trace-Id') or _uuid.uuid4().hex[:12]
+
+    app._current_trace_id = _current_trace_id   # errorhandler/事件写入统一入口
+
     # P1-1 CSRF 全局防护：所有写请求须携带 Token（前端经 csrf.js 统一注入：
     # fetch/XHR 自动加头 + POST 表单动态补 hidden；模板经 csrf_token() 输出 meta）
     from flask_wtf.csrf import CSRFProtect
@@ -42,9 +60,9 @@ def create_app(config_class=None):
         SystemEventLogger.from_exception(
             e, category="system", level="error",
             message=f"AppError {e.code}: {e.message}",
-            trace_id=getattr(app, '_current_trace_id', None),
+            trace_id=app._current_trace_id(),
             source_module="app.errorhandler")
-        payload = jsonify({"trace_id": getattr(app, '_current_trace_id', None),
+        payload = jsonify({"trace_id": app._current_trace_id(),
                            "code": e.code, "message": e.message, "data": None})
         resp = app.make_response((payload, e.http_status))
         if isinstance(e, BreakerOpenError):
@@ -64,9 +82,9 @@ def create_app(config_class=None):
         from backend.utils.system_event_logger import SystemEventLogger
         SystemEventLogger.from_exception(
             e, category="system", level="critical",
-            trace_id=getattr(app, '_current_trace_id', None),
+            trace_id=app._current_trace_id(),
             source_module="app.errorhandler")
-        payload = jsonify({"trace_id": getattr(app, '_current_trace_id', None),
+        payload = jsonify({"trace_id": app._current_trace_id(),
                            "code": 5000, "message": "服务器内部错误", "data": None})
         return app.make_response((payload, 500))
 

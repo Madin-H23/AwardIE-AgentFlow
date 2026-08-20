@@ -42,9 +42,21 @@ logs_dir.mkdir(exist_ok=True)
 # 日志文件路径
 log_file = logs_dir / 'app.log'
 
-# 创建格式化器
+# 阶段六 L2（T26）：TraceIdFilter——每条日志注入请求级 trace_id（无请求上下文为 '-'）
+class TraceIdFilter(logging.Filter):
+    def filter(self, record):
+        try:
+            from flask import g
+            record.trace_id = g.get('trace_id', '-')
+        except Exception:
+            record.trace_id = '-'
+        return True
+
+_trace_filter = TraceIdFilter()
+
+# 创建格式化器（[tid:xxx] 对齐部署设计 §4 规范）
 formatter = logging.Formatter(
-    '%(asctime)s - %(levelname)s [%(name)s] %(message)s',
+    '%(asctime)s - %(levelname)s [%(name)s] [tid:%(trace_id)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
@@ -60,7 +72,9 @@ file_handler = logging.handlers.RotatingFileHandler(
 )
 file_handler.setFormatter(formatter)
 
-# 配置根日志记录器
+# 配置根日志记录器（handler 加 TraceIdFilter）
+console_handler.addFilter(_trace_filter)
+file_handler.addFilter(_trace_filter)
 logging.basicConfig(
     level=getattr(logging, _log_level, logging.INFO),
     handlers=[console_handler, file_handler],
