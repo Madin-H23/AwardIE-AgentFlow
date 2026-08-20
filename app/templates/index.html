@@ -2,7 +2,20 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script src="{{ url_for('static', filename='js/console_boot.js') }}"></script>
+<script>
+/* boot-core（内联，无外部请求，避免 Stalled 阻塞解析）：storage 安全 + 异常兜底 + 未渲染提示 */
+(function(){'use strict';
+var _m={};
+try{window.__safeLocal={get:function(k){try{return localStorage.getItem(k)}catch(e){return Object.prototype.hasOwnProperty.call(_m,k)?_m[k]:null}},
+ set:function(k,v){try{localStorage.setItem(k,v)}catch(e){_m[k]=v}},remove:function(k){try{localStorage.removeItem(k)}catch(e){delete _m[k]}}}}catch(e){window.__safeLocal={get:function(){return null},set:function(){},remove:function(){}}}
+function _show(msg,w){var el=document.getElementById('bootError');if(!el){el=document.createElement('div');el.id='bootError';el.style.cssText='position:fixed;top:64px;right:16px;z-index:2100;max-width:340px;border-radius:8px;padding:10px 14px;font-size:.82rem;line-height:1.5;display:none';document.body.appendChild(el)}
+el.style.background=w?'#fef3c7':'#fee2e2';el.style.color=w?'#78350f':'#7f1d1d';el.innerHTML='⚠ '+String(msg).replace(/</g,'&lt;');el.style.display='block'}
+window.addEventListener('unhandledrejection',function(ev){var r=ev&&ev.reason||{},d=r.stack||r.message||String(r||'unknown');console.error('boot-unhandledrejection:',d);_show('异步异常: '+String(d).slice(0,180))});
+window.addEventListener('error',function(ev){var m=ev&&ev.message||'unknown';console.error('boot-error:',(ev&&ev.error&&ev.error.stack)||m);_show('页面脚本异常: '+m)});
+setTimeout(function(){var tx=document.body&&document.body.innerText?document.body.innerText.trim():'';if(tx.length<=20&&!document.querySelector('.console-shell,.portal-shell,#app,nav,main,.container'))_show('内容未渲染（详见控制台）',true)},4000);
+})();
+</script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>计算机工程系活动数据管理系统</title>
     
