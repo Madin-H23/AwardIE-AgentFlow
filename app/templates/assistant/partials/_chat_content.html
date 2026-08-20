@@ -1,13 +1,15 @@
 <div class="chat-container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">🤖 AI 智能助手</h4>
-        <ul class="nav mode-tabs">
+    <!-- 顶部：标题 + 模式 pill（DeepSeek 网页端顶部简洁条） -->
+    <div class="chat-head">
+        <h4>🤖 AI 智能助手</h4>
+        <ul class="mode-tabs" id="chatModeTabs">
             <li class="nav-item"><a class="nav-link active" href="#" data-mode="auto">智能路由</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-mode="qa">知识问答</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-mode="tools">数据操作</a></li>
         </ul>
     </div>
 
+    <!-- 模式引导卡（含可点击推荐问题 chips，点击即发送） -->
     <div class="mode-panel" id="modePanel">
         <div class="mode-panel-title" id="modePanelTitle"></div>
         <div class="mode-panel-desc" id="modePanelDesc"></div>
@@ -21,11 +23,12 @@
     </div>
     {% endif %}
 
+    <!-- 会话区 -->
     <div class="chat-messages" id="chatMessages">
         <div class="message assistant">
             <div class="message-avatar">🤖</div>
             <div class="message-bubble">
-                你好！我是竞赛与奖状管理智能助手。你可以问我：
+                你好！我是竞赛与奖状管理智能助手，可以帮你做这些事：
                 <ul class="mb-0 mt-2">
                     <li>📌 <b>知识问答</b>：挑战杯是几类竞赛？哪些是白名单赛事？</li>
                     <li>📊 <b>数据查询</b>：张老师2024年指导了多少奖状？</li>
@@ -36,14 +39,12 @@
         </div>
     </div>
 
+    <!-- 底部输入条（DeepSeek 大圆角悬浮样式） -->
     <div class="chat-input-area">
-        <div class="input-group">
-            <button class="btn btn-outline-secondary" id="uploadBtn" type="button" title="上传奖状图片/PDF，自动抽取+智能审核">📎</button>
-            <input type="text" class="form-control" id="chatInput"
-                   placeholder="输入你的问题..." autocomplete="off">
-            <button class="btn btn-primary" id="sendBtn" type="button">
-                发送
-            </button>
+        <div class="dse-composer">
+            <button class="dse-round ghost" id="uploadBtn" type="button" title="上传奖状图片/PDF，自动抽取+智能审核">📎</button>
+            <input type="text" id="chatInput" placeholder="输入你的问题..." autocomplete="off">
+            <button class="dse-round send" id="sendBtn" type="button" title="发送">↑</button>
         </div>
         <input type="file" id="awardFile" accept="image/*,.pdf" style="display:none">
         <div class="chat-input-toolbar">
