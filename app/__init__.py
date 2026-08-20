@@ -37,12 +37,38 @@ def create_app(config_class=None):
 
     @app.errorhandler(AppError)
     def _handle_app_error(e: AppError):
+        # 阶段六 L1：业务异常落系统事件（error 级；写入失败已吞）
+        from backend.utils.system_event_logger import SystemEventLogger
+        SystemEventLogger.from_exception(
+            e, category="system", level="error",
+            message=f"AppError {e.code}: {e.message}",
+            trace_id=getattr(app, '_current_trace_id', None),
+            source_module="app.errorhandler")
         payload = jsonify({"trace_id": getattr(app, '_current_trace_id', None),
                            "code": e.code, "message": e.message, "data": None})
         resp = app.make_response((payload, e.http_status))
         if isinstance(e, BreakerOpenError):
             resp.headers["Retry-After"] = str(e.retry_after)
         return resp
+
+    @app.errorhandler(Exception)
+    def _handle_unexpected_error(e: Exception):
+        """阶段六 L1：未预期异常兜底 500 + 落系统事件（含堆栈）。
+
+        HTTPException（403/404/400 等框架级响应）放行走默认处理——
+        否则会把 CSRF 400/IDOR 403 误吞成 500（L1 实测教训）。
+        """
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            return e
+        from backend.utils.system_event_logger import SystemEventLogger
+        SystemEventLogger.from_exception(
+            e, category="system", level="critical",
+            trace_id=getattr(app, '_current_trace_id', None),
+            source_module="app.errorhandler")
+        payload = jsonify({"trace_id": getattr(app, '_current_trace_id', None),
+                           "code": 5000, "message": "服务器内部错误", "data": None})
+        return app.make_response((payload, 500))
 
     # 确保必要的目录存在
     _ensure_directories(app)
@@ -52,7 +78,12 @@ def create_app(config_class=None):
     
     # 注册上下文处理器
     _register_context_processors(app)
-    
+
+    # 阶段六 L1：应用启动落系统事件（system info；写入失败已吞）
+    from backend.utils.system_event_logger import SystemEventLogger
+    SystemEventLogger.log("system", "info", f"应用启动（env={app.config.get('ENV', 'default')}）",
+                          source_module="app.create_app")
+
     return app
 
 def _ensure_directories(app):

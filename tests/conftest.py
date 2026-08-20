@@ -12,6 +12,17 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 
+@pytest.fixture(autouse=True)
+def _isolate_system_event_logger(tmp_path):
+    """全局隔离 SystemEventLogger（阶段六 L1 接入点遍布 breaker/errorhandler/auth）——
+    防止任何测试经接入点往真实库写 system_event_log（测试环境自持原则 R2）。"""
+    from backend.utils.system_event_logger import SystemEventLogger
+    original = SystemEventLogger._db_path
+    SystemEventLogger._db_path = str(tmp_path / "sys_events.db")
+    yield
+    SystemEventLogger._db_path = original
+
+
 @pytest.fixture
 def temp_db(tmp_path):
     """创建临时测试数据库，包含竞赛和奖状表"""

@@ -181,9 +181,9 @@ class TestAlembicBaseline:
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
         n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
         conn.close()
-        # M1 后半②③④ + P2-25：head 已推进到 0005（视图化+类型重建+FK 补漏+登录限流表）
-        assert ver == [("0005_failed_logins",)]
-        assert n_tables >= 24   # 视图化后业务表 -3 + failed_logins 表（原 26 业务表 + 系统表）
+        # M1 后半②③④ + P2-25 + 阶段六 L1：head 已推进到 0006（+system_event_log）
+        assert ver == [("0006_system_event_log",)]
+        assert n_tables >= 25   # 视图化 -3 + failed_logins + system_event_log（原 26 业务表 + 系统表）
 
     def test_no_autogenerate_in_versions(self):
         """禁用 autogenerate：versions/ 里不得出现 drop_table（防灾难性迁移）。"""

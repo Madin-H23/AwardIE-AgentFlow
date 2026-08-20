@@ -100,6 +100,14 @@ def record_login_failure(db_path: str, login_code: str, ip: str) -> None:
                 fail_count = 1
                 first = _fmt(now)
             lock_until = _fmt(now + timedelta(minutes=lock_min)) if fail_count >= max_fail else None
+            # 阶段六 L1：锁定触发落系统事件（security 关注项；写入失败已吞）
+            if lock_until:
+                from backend.utils.system_event_logger import SystemEventLogger
+                SystemEventLogger.log(
+                    "auth", "warning",
+                    f"登录锁定触发（{col}={key}，连续失败 {fail_count} 次，锁定 {lock_min} 分钟）",
+                    detail={"fail_count": fail_count, "lock_until": lock_until},
+                    source_module="backend.utils.login_guard")
             if row:
                 conn.execute(
                     f"UPDATE failed_logins SET fail_count=?, first_fail_at=?, "

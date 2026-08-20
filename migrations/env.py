@@ -19,6 +19,7 @@ import backend.orm.users      # noqa: F401
 import backend.orm.pending    # noqa: F401
 import backend.orm.awards     # noqa: F401
 import backend.orm.audit_log  # noqa: F401
+import backend.orm.system_event_log  # noqa: F401（阶段六 L1）
 target_metadata = Base.metadata
 
 

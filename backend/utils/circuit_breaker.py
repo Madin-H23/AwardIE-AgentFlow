@@ -65,6 +65,10 @@ class CircuitBreaker:
                     logger.info("[breaker] %s 恢复 closed", self.name)
                     from backend.utils.metrics import set_breaker
                     set_breaker(self.name, "closed")
+                    # 阶段六 L1：熔断恢复落系统事件
+                    from backend.utils.system_event_logger import SystemEventLogger
+                    SystemEventLogger.log("breaker", "info", f"熔断器 {self.name} 恢复 closed",
+                                          source_module="backend.utils.circuit_breaker")
             else:
                 self._fails = []          # closed 态成功清失败窗口；半开计数只在复位时清
 
@@ -86,6 +90,10 @@ class CircuitBreaker:
         logger.warning("[breaker] %s 熔断开启（cooldown=%ss）", self.name, self.cooldown)
         from backend.utils.metrics import set_breaker
         set_breaker(self.name, "open")
+        # 阶段六 L1：熔断翻转落系统事件（写入失败已吞，不影响熔断逻辑）
+        from backend.utils.system_event_logger import SystemEventLogger
+        SystemEventLogger.log("breaker", "error", f"熔断器 {self.name} 开启（cooldown={self.cooldown}s）",
+                              source_module="backend.utils.circuit_breaker")
 
     # ---------- 守卫上下文 ----------
     def guard(self):
