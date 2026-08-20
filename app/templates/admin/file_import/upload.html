@@ -18,7 +18,7 @@
         cursor: pointer;
     }
     .upload-zone:hover, .upload-zone.dragover {
-        border-color: #1890ff;
+        border-color: var(--brand);
         background-color: #e6f7ff;
     }
     .upload-icon {
@@ -46,7 +46,7 @@
     }
     .file-item .file-icon {
         font-size: 24px;
-        color: #1890ff;
+        color: var(--brand);
     }
     .file-item .remove-btn {
         color: #ff4d4f;
@@ -71,7 +71,7 @@
         overflow: hidden;
     }
     .progress-bar {
-        background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+        background: linear-gradient(90deg, var(--brand) 0%, var(--brand-hover) 100%);
         font-weight: 600;
         line-height: 24px;
         transition: width 0.3s ease;
@@ -79,7 +79,7 @@
     .upload-status {
         margin-top: 8px;
         font-size: 14px;
-        color: #495057;
+        color: var(--ink-2);
     }
 </style>
 
@@ -1616,14 +1616,14 @@ function loadFormByType(type, data, ocrText, parseData = null) {
                 #student_suggestions .suggestion-item.active,
                 #teacher_suggestions .suggestion-item:hover,
                 #teacher_suggestions .suggestion-item.active {
-                    background-color: #f8f9fa;
+                    background-color: color-mix(in srgb, var(--ink) 3%, transparent);
                 }
                 .select2-container--bootstrap-5 .select2-selection {
                     min-height: 31px;
                 }
                 .btn-group .btn-check:checked + .btn {
-                    background-color: #1890ff;
-                    border-color: #1890ff;
+                    background-color: var(--brand);
+                    border-color: var(--brand);
                     color: white;
                 }
             </style>

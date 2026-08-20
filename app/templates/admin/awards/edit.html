@@ -20,17 +20,7 @@
     
     <style>
         /* 确保删除按钮也是蓝色 */
-        .btn-primary {
-            background-color: #1890ff;
-            border-color: #1890ff;
-        }
-        .btn-primary:hover {
-            background-color: #40a9ff;
-            border-color: #40a9ff;
-        }
         /* 紧凑布局（面板节头节体，已由 console_tokens 的 .panel-head 接管）
-        .card-header { padding: 0.5rem 1rem; }
-        .card-body { padding: 0.75rem 1rem; }
         .form-label.small {
             font-size: 0.875rem;
             margin-bottom: 0.25rem;
@@ -45,8 +35,8 @@
         }
         /* 证书类型按钮组样式 */
         .btn-group .btn-check:checked + .btn {
-            background-color: #1890ff;
-            border-color: #1890ff;
+            background-color: var(--brand);
+            border-color: var(--brand);
             color: white;
         }
         /* 隐藏字段的过渡效果 */
@@ -75,7 +65,7 @@
         }
         #student_suggestions .suggestion-item:hover,
         #student_suggestions .suggestion-item.active {
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--ink) 3%, transparent);
         }
         /* 拖拽排序样式 */
         #selected_students_display .badge,
@@ -92,7 +82,7 @@
         #selected_students_display .badge.drag-over,
         #selected_teachers_display .badge.drag-over,
         #selected_supervisors_display .badge.drag-over {
-            border: 2px dashed #1890ff;
+            border: 2px dashed var(--brand);
         }
         /* 指导教师：卡片在输入框上方独立显示，隐藏 Select2 输入框内的标签 */
         #supervisors_section .select2-selection__choice {
@@ -104,9 +94,9 @@
         #selected_supervisors_display {
             min-height: 2rem;
             padding: 0.5rem;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--line);
             border-radius: 0.375rem;
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--ink) 3%, transparent);
         }
     </style>
     

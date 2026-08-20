@@ -134,10 +134,10 @@
                             <img src="{{ url_for('admin_templates.template_image', template_id=template.id) }}"
                                  alt="模板样本图片"
                                  class="img-fluid"
-                                 style="max-height: 240px; cursor: pointer; border: 1px solid #dee2e6; border-radius: 4px;"
+                                 style="max-height: 240px; cursor: pointer; border: 1px solid var(--line); border-radius: 4px;"
                                  onclick="window.open(this.src, '_blank')">
                             {% else %}
-                            <div class="text-muted p-5" style="background: #f8f9fa; border-radius: 4px; min-height: 240px; display: flex; align-items: center; justify-content: center;">暂无图片</div>
+                            <div class="text-muted p-5" style="background: color-mix(in srgb, var(--ink) 3%, transparent); border-radius: 4px; min-height: 240px; display: flex; align-items: center; justify-content: center;">暂无图片</div>
                             {% endif %}
                         </div>
                     </div>

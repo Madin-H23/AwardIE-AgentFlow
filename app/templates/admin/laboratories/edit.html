@@ -38,13 +38,13 @@
                             <div class="mt-2">
                                 <p class="text-muted small mb-1">当前封面：</p>
                                 <img src="{{ url_for('static', filename=lab.cover_image) }}" alt="当前封面"
-                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid var(--line);">
                             </div>
                             {% endif %}
                             <div id="imagePreview" class="mt-2" style="display: none;">
                                 <p class="text-muted small mb-1">预览：</p>
                                 <img id="previewImg" src="" alt="预览" 
-                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                                     style="max-width: 250px; max-height: 120px; border-radius: 0.5rem; border: 1px solid var(--line);">
                             </div>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                             <div class="lab-image-item position-relative" data-image-path="{{ image_path }}">
                                 <img src="{{ url_for('admin_laboratory.laboratory_image_file', filename=normalized_path) }}" 
                                      alt="实验室图片" 
-                                     style="width: 120px; height: 80px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #dee2e6;">
+                                     style="width: 120px; height: 80px; object-fit: cover; border-radius: 0.25rem; border: 1px solid var(--line);">
                                 <button type="button" class="lab-image-delete-btn" 
                                         onclick="deleteLabImage({{ lab.id }}, '{{ image_path|replace("'", "\\'") }}')" 
                                         title="删除图片">
@@ -659,7 +659,7 @@ if (labImagesUpload) {
                     // 使用完整的 image_path 作为 URL 参数
                     img.src = `/admin/files/laboratory/${data.image_path}`;
                     img.alt = '实验室图片';
-                    img.style.cssText = 'width: 150px; height: 100px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #dee2e6;';
+                    img.style.cssText = 'width: 150px; height: 100px; object-fit: cover; border-radius: 0.25rem; border: 1px solid var(--line);';
                     
                     const deleteBtn = document.createElement('button');
                     deleteBtn.type = 'button';
@@ -961,19 +961,9 @@ function renderUnclaimedList(type, container, items) {
     margin-bottom: 1rem;
 }
 
-.laboratory-edit-page .card-header {
-    padding: 0.5rem 1rem;
-}
-
-.laboratory-edit-page .card-header h5 {
-    font-size: 1rem;
-    margin-bottom: 0;
-}
-
-.laboratory-edit-page .card-body {
-    padding: 1rem;
-}
-
+.laboratory-edit-page
+.laboratory-edit-page
+.laboratory-edit-page
 .laboratory-edit-page .form-label {
     margin-bottom: 0.25rem;
     font-size: 0.9rem;
@@ -989,13 +979,13 @@ function renderUnclaimedList(type, container, items) {
 
 #studentSearchResults {
     background-color: white;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--line);
     border-radius: 0.375rem;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
 #studentSearchResults .list-group-item:hover {
-    background-color: #f8f9fa;
+    background-color: color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
 #selectedStudentsList .badge {

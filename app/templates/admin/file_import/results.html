@@ -17,11 +17,11 @@
 <style>
     /* 主TAB导航样式 */
     .main-tabs {
-        border-bottom: 2px solid #e9ecef;
+        border-bottom: 2px solid color-mix(in srgb, var(--ink) 6%, transparent);
         margin-bottom: 1.5rem;
     }
     .main-tabs .nav-link {
-        color: #495057;
+        color: var(--ink-2);
         border: none;
         border-bottom: 3px solid transparent;
         padding: 1rem 1.5rem;
@@ -29,13 +29,13 @@
         transition: all 0.2s;
     }
     .main-tabs .nav-link:hover {
-        color: #1890ff;
-        border-bottom-color: #1890ff;
+        color: var(--brand);
+        border-bottom-color: var(--brand);
     }
     .main-tabs .nav-link.active {
-        color: #1890ff;
+        color: var(--brand);
         background-color: transparent;
-        border-bottom-color: #1890ff;
+        border-bottom-color: var(--brand);
     }
 
     /* 子TAB导航样式 */
@@ -83,7 +83,7 @@
         flex-wrap: wrap;
         padding: 0.75rem 1rem;
         background-color: #fff;
-        border: 1px solid #e9ecef;
+        border: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
         border-radius: 8px;
         margin-bottom: 1rem;
     }
@@ -92,7 +92,7 @@
         align-items: center;
         gap: 0.5rem;
         padding-right: 0.75rem;
-        border-right: 1px solid #e9ecef;
+        border-right: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
     }
     .compact-toolbar .toolbar-section:last-child {
         border-right: none;
@@ -160,22 +160,8 @@
     }
 
     /* 按钮样式 - 确保主色调 */
-    .btn-primary {
-        background-color: #1890ff;
-        border-color: #1890ff;
-    }
-    .btn-primary:hover {
-        background-color: #40a9ff;
-        border-color: #40a9ff;
-    }
 
     /* 紧凑布局 */
-    .card-header {
-        padding: 0.5rem 1rem;
-    }
-    .card-body {
-        padding: 0.75rem 1rem;
-    }
     .form-label.small {
         font-size: 0.875rem;
         margin-bottom: 0.25rem;
@@ -192,8 +178,8 @@
 
     /* 证书类型按钮组样式 */
     .btn-group .btn-check:checked + .btn {
-        background-color: #1890ff;
-        border-color: #1890ff;
+        background-color: var(--brand);
+        border-color: var(--brand);
         color: white;
     }
 
@@ -224,7 +210,7 @@
     }
     #student_suggestions .suggestion-item:hover,
     #student_suggestions .suggestion-item.active {
-        background-color: #f8f9fa;
+        background-color: color-mix(in srgb, var(--ink) 3%, transparent);
     }
 
     /* 拖拽排序样式 */
@@ -239,7 +225,7 @@
     }
     #selected_students_display .badge.drag-over,
     #selected_teachers_display .badge.drag-over {
-        border: 2px dashed #1890ff;
+        border: 2px dashed var(--brand);
     }
 
     /* 验证错误样式 */

@@ -14,21 +14,21 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .settings-section h5 {
-        color: #1890ff;
+        color: var(--brand);
         margin-bottom: 20px;
         padding-bottom: 10px;
-        border-bottom: 2px solid #1890ff;
+        border-bottom: 2px solid var(--brand);
     }
     .form-label {
         font-weight: 600;
-        color: #495057;
+        color: var(--ink-2);
     }
     .save-btn {
         padding: 10px 40px;
     }
     /* Tabs 样式 */
     .nav-tabs {
-        border-bottom: 2px solid #1890ff;
+        border-bottom: 2px solid var(--brand);
         margin-bottom: 24px;
     }
     .nav-tabs .nav-link {
@@ -41,13 +41,13 @@
         transition: all 0.3s;
     }
     .nav-tabs .nav-link:hover {
-        color: #1890ff;
+        color: var(--brand);
         background-color: #f0f8ff;
     }
     .nav-tabs .nav-link.active {
-        color: #1890ff;
+        color: var(--brand);
         background-color: #fff;
-        border-bottom: 3px solid #1890ff;
+        border-bottom: 3px solid var(--brand);
         font-weight: 600;
     }
     .tab-content {
@@ -61,14 +61,6 @@
     .config-table {
         width: 100%;
         border-collapse: collapse;
-    }
-    .config-table th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #dee2e6;
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-        color: #495057;
     }
     .config-table td {
         padding: 12px;
@@ -93,7 +85,7 @@
     }
     .info-box {
         background-color: #e7f5ff;
-        border-left: 4px solid #1890ff;
+        border-left: 4px solid var(--brand);
         padding: 16px;
         margin-bottom: 24px;
         border-radius: 4px;
@@ -104,7 +96,7 @@
     }
     .info-box p {
         margin-bottom: 4px;
-        color: #495057;
+        color: var(--ink-2);
     }
 </style>
 {% endblock %}
@@ -744,7 +736,7 @@ function showAlert(message, type = 'info') {
                 <div style="font-size: 18px; color: #333; margin-bottom: 24px; line-height: 1.5;">
                     ${message}
                 </div>
-                <button onclick="closeAlert()" style="background: ${type === 'success' ? '#52c41a' : type === 'danger' ? '#ff4d4f' : '#1890ff'}; color: white; border: none; padding: 10px 32px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                <button onclick="closeAlert()" style="background: ${type === 'success' ? '#52c41a' : type === 'danger' ? '#ff4d4f' : 'var(--brand)'}; color: white; border: none; padding: 10px 32px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s;">
                     确定
                 </button>
             </div>

@@ -16,21 +16,7 @@
     
     <style>
         /* 确保删除按钮也是蓝色 */
-        .btn-primary {
-            background-color: #1890ff;
-            border-color: #1890ff;
-        }
-        .btn-primary:hover {
-            background-color: #40a9ff;
-            border-color: #40a9ff;
-        }
         /* 紧凑布局 */
-        .card-header {
-            padding: 0.5rem 1rem;
-        }
-        .card-body {
-            padding: 0.75rem 1rem;
-        }
         .form-label.small {
             font-size: 0.875rem;
             margin-bottom: 0.25rem;
@@ -45,8 +31,8 @@
         }
         /* 证书类型按钮组样式 */
         .btn-group .btn-check:checked + .btn {
-            background-color: #1890ff;
-            border-color: #1890ff;
+            background-color: var(--brand);
+            border-color: var(--brand);
             color: white;
         }
         /* 隐藏字段的过渡效果 */
@@ -75,7 +61,7 @@
         }
         #student_suggestions .suggestion-item:hover,
         #student_suggestions .suggestion-item.active {
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--ink) 3%, transparent);
         }
         /* 拖拽排序样式 */
         #selected_students_display .badge,
@@ -89,7 +75,7 @@
         }
         #selected_students_display .badge.drag-over,
         #selected_teachers_display .badge.drag-over {
-            border: 2px dashed #1890ff;
+            border: 2px dashed var(--brand);
         }
     </style>
     

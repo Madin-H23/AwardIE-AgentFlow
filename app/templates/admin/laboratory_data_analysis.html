@@ -6,7 +6,7 @@
 {% block extra_head %}
 <style>
     .nav-tabs .nav-link {
-        color: #495057;
+        color: var(--ink-2);
         border: none;
         border-bottom: 2px solid transparent;
         padding: 1rem 1.5rem;
@@ -14,31 +14,18 @@
         transition: all 0.2s;
     }
     .nav-tabs .nav-link:hover {
-        color: #1890ff;
-        border-bottom-color: #1890ff;
+        color: var(--brand);
+        border-bottom-color: var(--brand);
     }
     .nav-tabs .nav-link.active {
-        color: #1890ff;
+        color: var(--brand);
         background-color: transparent;
-        border-bottom-color: #1890ff;
+        border-bottom-color: var(--brand);
     }
     .card {
         border: none;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         border-radius: 8px;
-    }
-    .table th {
-        font-weight: 600;
-        color: #495057;
-        background-color: #f8f9fa;
-    }
-    .btn-primary {
-        background-color: #1890ff;
-        border-color: #1890ff;
-    }
-    .btn-primary:hover {
-        background-color: #40a9ff;
-        border-color: #40a9ff;
     }
     /* 年份多选框高度 */
     select[multiple] {
@@ -61,19 +48,19 @@
         border: 1px solid transparent;
     }
     .year-tag.unselected {
-        background-color: #e9ecef;
-        color: #495057;
-        border-color: #dee2e6;
+        background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+        color: var(--ink-2);
+        border-color: var(--line);
     }
     .year-tag.unselected:hover {
-        background-color: #dee2e6;
+        background-color: var(--line);
     }
     .year-tag.selected {
-        background-color: #1890ff;
+        background-color: var(--brand);
         color: #fff;
     }
     .year-tag.selected:hover {
-        background-color: #40a9ff;
+        background-color: var(--brand-hover);
     }
 </style>
 {% endblock %}
@@ -344,7 +331,8 @@ class LabCompetitionHeatmap {
                 orient: 'horizontal',
                 left: 'center',
                 bottom: '0%',
-                inRange: { color: ['#f7f7f7', '#1890ff', '#003a8c'] },
+                const _brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#1677ff';
+                inRange: { color: ['#f7f7f7', _brand, '#003a8c'] },
                 textStyle: { fontSize: 14 }
             },
             series: [{
