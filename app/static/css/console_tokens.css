@@ -126,6 +126,8 @@
   border: 1px solid transparent; background: transparent; color: var(--ink);
   border-radius: 6px; padding: 3px 8px; cursor: pointer;
 }
+/* Bootstrap dropdown-toggle 自带 ::after 三角，与自定义 chevron 重复——隐藏伪元素箭头 */
+.console-shell .console-topbar .dropdown-toggle::after { display: none; }
 .console-shell .console-topbar .topbar-user-btn:hover { border-color: var(--line); background: color-mix(in srgb, var(--ink) 4%, transparent); }
 .console-shell .console-topbar .topbar-avatar {
   width: 26px; height: 26px; border-radius: 50%;
