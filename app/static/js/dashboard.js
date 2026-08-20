@@ -54,6 +54,10 @@
         $('catSoftware').textContent = fmt(cat.software || 0);
         $('catInnovation').textContent = fmt(cat.innovation || 0);
         $('catOther').textContent = fmt(cat.other || 0);
+        // 奖状口径注脚：全量 vs 管理视角(排除教师) vs 教师证书
+        const note = $('awardNote');
+        if (note) note.textContent =
+            `奖状口径：全量 ${fmt(s.total_awards)}（其中教师证书 ${fmt(s.award_teacher)}；管理/学生视角 ${fmt(s.award_mgmt)}）`;
     }
 
     function renderCompetitions(list) {
