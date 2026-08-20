@@ -6,10 +6,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 def _require_real_db():
-    """CI 无 database/competitions.db（*.db 不入库）——依赖真实库的用例跳过。"""
-    import pytest
-    if not (PROJECT_ROOT / "database" / "competitions.db").exists():
-        pytest.skip("CI 环境无真实库文件")
+    """共享守卫（schemas.require_real_db）：文件存在且 users 表存在，否则 skip（R-028 升级）。"""
+    from tests.fixtures.schemas import require_real_db
+    require_real_db()
 
 
 SRC = (PROJECT_ROOT / "app" / "templates" / "admin" / "file_import" / "results.html").read_text(encoding="utf-8")

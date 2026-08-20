@@ -12,13 +12,18 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 
-@pytest.fixture(autouse=True)
-def _isolate_system_event_logger(tmp_path):
+@pytest.fixture(autouse=True, scope="session")
+def _isolate_system_event_logger(tmp_path_factory):
     """全局隔离 SystemEventLogger（阶段六 L1 接入点遍布 breaker/errorhandler/auth）——
-    防止任何测试经接入点往真实库写 system_event_log（测试环境自持原则 R2）。"""
+    防止任何测试经接入点往真实库写 system_event_log（测试环境自持原则 R2）。
+
+    R-028 补盲区：**session 级**——原函数级晚于 module 级 app fixture 的 create_app()
+    （启动事件），CI 曾因此把启动事件写到真实路径、静默建出空 competitions.db。
+    session 级先于一切 module/function fixture 实例化，堵住作用域盲区。
+    """
     from backend.utils.system_event_logger import SystemEventLogger
     original = SystemEventLogger._db_path
-    SystemEventLogger._db_path = str(tmp_path / "sys_events.db")
+    SystemEventLogger._db_path = str(tmp_path_factory.mktemp("sys_events") / "sys_events.db")
     yield
     SystemEventLogger._db_path = original
 

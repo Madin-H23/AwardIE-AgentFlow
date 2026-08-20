@@ -67,3 +67,25 @@ AUDIT_LOG_DDL = """CREATE TABLE achievement_audit_log (
     operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip TEXT,
     ai_batch_id TEXT, change_detail TEXT, remark TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP)"""
+
+
+def require_real_db():
+    """真实库守卫（R-028 兜底升级）：文件存在 **且** users 表存在，否则 skip。
+
+    原版只查文件存在——CI 曾被启动事件建出空 competitions.db（无表），
+    守卫放行致 3 个真实库用例由 skip 变挂。空/半初始化库一律按"无库"跳过。
+    """
+    import sqlite3
+    from pathlib import Path
+    import pytest
+    db = Path(__file__).resolve().parents[2] / "database" / "competitions.db"
+    if not db.exists():
+        pytest.skip("CI 环境无真实库文件")
+    conn = sqlite3.connect(str(db))
+    try:
+        has_users = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+    finally:
+        conn.close()
+    if not has_users:
+        pytest.skip("库文件存在但无业务表（空库）")

@@ -87,6 +87,15 @@ class SystemEventLogger:
                 logger.warning("[system_event] 非法事件级别: %s", level)
                 return False
 
+            # R-028 治本：库文件不存在直接跳过——sqlite3.connect 对不存在路径会静默建空文件
+            # （CI 曾因此被 create_app 启动事件建出空 competitions.db，3 个真实库用例由
+            # skip 变挂）。无库环境（CI/新环境）不落事件属预期，debug 级不刷 warning 噪声。
+            from pathlib import Path as _P
+            db_file = _P(cls._get_db_path())
+            if not db_file.exists():
+                logger.debug("[system_event] 库不存在，跳过事件写入: %s", db_file)
+                return False
+
             # operator 解析（复用 AuditLogger 语义：显式 dict > Flask session）
             op_id, op_code = None, None
             if isinstance(operator, dict) and operator.get("code"):

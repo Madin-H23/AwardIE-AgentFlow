@@ -10,10 +10,9 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def _real_db():
-    db = PROJECT_ROOT / "database" / "competitions.db"
-    if not db.exists():
-        pytest.skip("CI 无真实库")
-    return db
+    from tests.fixtures.schemas import require_real_db
+    require_real_db()   # R-028 升级：文件存在且 users 表存在，否则 skip
+    return PROJECT_ROOT / "database" / "competitions.db"
 
 
 class TestGeneratedColumn:

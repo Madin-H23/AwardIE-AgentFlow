@@ -94,6 +94,14 @@ class TestSanitize:
 
 
 class TestNeverBlocks:
+    def test_missing_db_file_not_created(self, tmp_path, monkeypatch):
+        """R-028 治本：库文件不存在时 log 直接跳过——绝不因写入静默建空库（CI 事故根因）。"""
+        from pathlib import Path
+        no_db = tmp_path / "not_exist.db"
+        monkeypatch.setattr(SystemEventLogger, "_db_path", str(no_db))
+        assert SystemEventLogger.log("system", "info", "不应落盘") is False
+        assert not no_db.exists()   # 关键：不创建文件
+
     def test_db_failure_returns_false(self, tmp_path, monkeypatch):
         monkeypatch.setattr(SystemEventLogger, "_db_path",
                             str(tmp_path / "no_dir" / "x.db"))

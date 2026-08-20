@@ -27,21 +27,31 @@ class TestOrmBase:
             assert str(c.exec_driver_sql("PRAGMA journal_mode").scalar()).lower() == "wal"
 
     def test_session_roundtrip(self, tmp_path):
-        """Session 可写读（临时库）。"""
-        from backend.orm.base import get_engine, get_session
+        """Session 可写读（临时库——R-028：不连默认库路径避免无库建空库）。"""
+        from backend.orm.base import get_engine, get_session, reset_engine
         from backend.orm.users import User
-        eng = get_engine()   # 真实库（测试只读，不写）
-        s = get_session()
-        u = s.get(User, 1)
-        assert u is not None and u.login_code
-        s.close()
+        import backend.orm.base as b
+        b._engine = b.build_engine(str(tmp_path / "orm.db"))
+        b._SessionLocal = None
+        try:
+            from backend.orm.base import Base
+            Base.metadata.create_all(b._engine)
+            s = get_session()
+            u = User(login_code="t1", name="测试", role="student")
+            s.add(u); s.commit()
+            got = s.get(User, u.id)
+            assert got is not None and got.login_code == "t1"
+            s.close()
+        finally:
+            b._engine.dispose()
+            reset_engine()
 
 
 class TestUserModel:
     def test_count_matches_real_db(self):
         """ORM users 总数与现库一致（1832）。"""
-        if not (PROJECT_ROOT / "database" / "competitions.db").exists():
-            pytest.skip("CI 无真实库")
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         from backend.orm.base import get_session
         from backend.orm.users import User
         from sqlalchemy import func, select
@@ -75,8 +85,8 @@ class TestUserModel:
 class TestCoreModels:
     def test_pending_model_matches(self):
         """pending ORM：行数/状态分布/生成列与现库一致。"""
-        if not (PROJECT_ROOT / "database" / "competitions.db").exists():
-            pytest.skip("CI 无真实库")
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         from backend.orm.base import get_session
         from backend.orm.pending import PendingAchievement
         from sqlalchemy import func, select
@@ -148,20 +158,27 @@ class TestAuthOrmProbe:
 
 
 class TestUserRepository:
-    """M1 后半③②：UserRepository ORM 读仓储。"""
+    """M1 后半③②：UserRepository ORM 读仓储（依赖真实库数据——R-028 守卫，
+    无库/空库 skip，且避免 get_session() 对默认路径建空库副作用）。"""
 
     def test_get_by_login_code(self):
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         from backend.orm.repositories import UserRepository
         u = UserRepository.get_by_login_code('admin')
         assert u is not None and u.role == 'admin' and u.id == 1832
         assert UserRepository.get_by_login_code('不存在') is None
 
     def test_get_by_id(self):
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         from backend.orm.repositories import UserRepository
         assert UserRepository.get_by_id(1832).login_code == 'admin'
         assert UserRepository.get_by_id(999999) is None
 
     def test_list_by_role(self):
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         from backend.orm.repositories import UserRepository
         admins = UserRepository.list_by_role('admin')
         assert len(admins) == 1
@@ -174,8 +191,8 @@ class TestAlembicBaseline:
 
     def test_baseline_stamped(self):
         """alembic_version 表记录 baseline，且未破坏现库（表数不变）。"""
-        if not (PROJECT_ROOT / "database" / "competitions.db").exists():
-            pytest.skip("CI 无真实库")
+        from tests.fixtures.schemas import require_real_db
+        require_real_db()
         import sqlite3
         conn = sqlite3.connect(str(PROJECT_ROOT / "database" / "competitions.db"))
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
