@@ -195,8 +195,7 @@
 </div>
 
 <!-- ECharts - 多 CDN 备用，与管理员页一致 -->
-<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
-        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='https://unpkg.com/echarts@5.4.3/dist/echarts.min.js'"></script>
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
 
 <script>
 // API 配置：根据用户类型确定 API 前缀

@@ -10,17 +10,16 @@
     <link href="{{ url_for('static', filename='css/console_tokens.css') }}?v=5" rel="stylesheet">
     
     <!-- Anime.js for animations -->
-    <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/anime/anime.min.js') }}"></script>
 
     <!-- ECharts for charts -->
-    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
 
     <!-- Splide.js for carousels -->
-    <script src="https://unpkg.com/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    <script src="{{ url_for('static', filename='vendor/splide/splide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/splide/splide.min.css') }}">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Custom Styles -->
     <style>
