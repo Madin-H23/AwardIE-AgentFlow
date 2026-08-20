@@ -44,9 +44,12 @@
         show('页面脚本异常: ' + m);
     });
     setTimeout(function () {
-        // 3.5s 后主框架/内容仍缺席 → 提示未渲染（控制台或资源异常）
-        if (!document.querySelector('.console-shell') && !document.querySelector('.portal-shell')) {
+        // 4s 后：仅当 body 几乎无可见内容（真白屏）才提示未渲染；
+        // 旧体系页/普通页即使无 console-shell 也有正文，不误报。
+        var hasText = (document.body && document.body.innerText && document.body.innerText.trim().length > 20);
+        var hasShell = !!document.querySelector('.console-shell, .portal-shell, #app, nav, main, .container');
+        if (!hasText && !hasShell) {
             show('页面内容未能渲染（详见控制台）。', true);
         }
-    }, 3500);
+    }, 4000);
 })();
