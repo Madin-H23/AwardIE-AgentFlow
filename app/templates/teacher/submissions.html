@@ -147,8 +147,8 @@
         </div>
 
         <!-- 文件导入卡片 -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">文件导入</h2>
+        <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 dark:text-gray-100 mb-4">文件导入</h2>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">支持自动导入和手动导入两种方式</p>
             
             <!-- 模式切换选项卡 -->
@@ -179,9 +179,9 @@
 
                     <!-- 文件上传区域 -->
                     <div id="fileUploadMode">
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="uploadZone">
+                        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="uploadZone">
                             <div class="text-4xl mb-4">📁</div>
-                            <p class="text-gray-700 mb-2">点击或拖拽文件到此处上传</p>
+                            <p class="text-gray-700 dark:text-gray-200 mb-2">点击或拖拽文件到此处上传</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）</p>
                             <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" class="hidden">
                         </div>
@@ -189,9 +189,9 @@
 
                     <!-- 目录扫描模式 -->
                     <div id="directoryScanMode" class="hidden">
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="directoryZone">
+                        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="directoryZone">
                             <div class="text-4xl mb-4">📂</div>
-                            <p class="text-gray-700 mb-2">点击选择要扫描的目录</p>
+                            <p class="text-gray-700 dark:text-gray-200 mb-2">点击选择要扫描的目录</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">系统会自动扫描该目录及其所有子目录中的文件</p>
                             <input type="file" id="directoryInput" webkitdirectory directory multiple class="hidden">
                         </div>
@@ -204,7 +204,7 @@
                     </div>
 
                     <!-- 缓存选项 -->
-                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-700/50 rounded-lg">
                         <h6 class="font-medium mb-3">缓存设置</h6>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="flex items-center">
@@ -219,7 +219,7 @@
                     </div>
 
                     <!-- 实验室关联设置 -->
-                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200">
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-700/50 rounded-lg border border-gray-200">
                         <h6 class="font-medium mb-3">实验室关联设置</h6>
                         <div class="space-y-3">
                             <label class="flex items-start">
@@ -237,7 +237,7 @@
                                 </div>
                             </label>
                             <div id="specificLaboratorySelect" class="ml-6 mt-2 hidden">
-                                <select id="specificLaboratory" class="w-full rounded-lg border-gray-300 text-sm">
+                                <select id="specificLaboratory" class="w-full rounded-lg border-gray-300 dark:border-gray-600 text-sm">
                                     <option value="">请选择实验室...</option>
                                 </select>
                             </div>
@@ -285,19 +285,19 @@
         <!-- 统计卡片：基于全部提交记录（all_submissions），列表仅展示最近 10 条（submissions） -->
         {% set _all = all_submissions|default([]) %}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
-                <h4 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ _all|length }}</h4>
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-gray-800 dark:text-gray-100 dark:text-gray-100">{{ _all|length }}</h4>
                 <p class="text-sm text-gray-600 dark:text-gray-300">全部提交</p>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-yellow-600">{{ _all|selectattr('status', 'equalto', 'pending')|list|length }}</h4>
                 <p class="text-sm text-gray-600 dark:text-gray-300">待审核</p>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-green-600">{{ _all|selectattr('status', 'equalto', 'approved')|list|length }}</h4>
                 <p class="text-sm text-gray-600 dark:text-gray-300">已通过</p>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-red-600">{{ _all|selectattr('status', 'equalto', 'rejected')|list|length }}</h4>
                 <p class="text-sm text-gray-600 dark:text-gray-300">已拒绝</p>
             </div>
@@ -390,7 +390,7 @@
             uploadBtn.disabled = false;
             const displayName = (f) => (currentMode === 'directory' && f.webkitRelativePath) ? f.webkitRelativePath : f.name;
             fileItems.innerHTML = selectedFiles.map((f, i) =>
-                '<div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded"><span class="text-sm text-gray-700 truncate">' +
+                '<div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-700/50 rounded"><span class="text-sm text-gray-700 dark:text-gray-200 truncate">' +
                 escapeHtml(displayName(f)) + '</span><button type="button" onclick="window.removeFileAchievement(' + i + ')" class="text-red-600 hover:text-red-700">×</button></div>'
             ).join('');
         }

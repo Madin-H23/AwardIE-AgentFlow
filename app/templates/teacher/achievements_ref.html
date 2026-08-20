@@ -98,7 +98,7 @@
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 card-hover text-center">
                         <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                             <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
@@ -108,7 +108,7 @@
                         <p class="text-sm text-gray-600">国赛</p>
                     </div>
                     
-                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 card-hover text-center">
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
@@ -118,7 +118,7 @@
                         <p class="text-sm text-gray-600">省赛</p>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover text-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 card-hover text-center">
                         <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
@@ -134,8 +134,8 @@
         <!-- 成果统计图表 -->
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
-                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">年度竞赛成果统计</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 card-hover">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">年度竞赛成果统计</h3>
                     <div id="achievement-yearly-chart" style="height: 400px;"></div>
                 </div>
             </div>
@@ -145,9 +145,9 @@
         {% if (total_awards or 0) > 0 %}
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="hero-title text-xl font-bold text-gray-800">奖状</h3>
+                        <h3 class="hero-title text-xl font-bold text-gray-800 dark:text-gray-100">奖状</h3>
                         <div class="flex items-center gap-2">
                             <button id="exportFilteredBtn" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all">
                                 导出当前筛选数据
@@ -160,8 +160,8 @@
                     <form method="GET" action="{{ url_for('teacher.achievements') }}" id="filterForm" class="mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">竞赛</label>
-                                <select name="competition_id" id="competition_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">竞赛</label>
+                                <select name="competition_id" id="competition_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
                                     <option value="">全部</option>
                                     {% for comp in competitions %}
                                     <option value="{{ comp.id }}" {% if competition_id == comp.id %}selected{% endif %}>{{ comp.name }}</option>
@@ -169,12 +169,12 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">年份</label>
-                                <input type="number" name="year" id="year" value="{{ year or '' }}" placeholder="年份" min="2000" max="2099" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-input">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">年份</label>
+                                <input type="number" name="year" id="year" value="{{ year or '' }}" placeholder="年份" min="2000" max="2099" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-orange-500 filter-input">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">竞赛等级</label>
-                                <select name="competition_level" id="competition_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">竞赛等级</label>
+                                <select name="competition_level" id="competition_level" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
                                     <option value="">全部</option>
                                     <option value="校赛" {% if competition_level == '校赛' %}selected{% endif %}>校赛</option>
                                     <option value="区域赛" {% if competition_level == '区域赛' %}selected{% endif %}>区域赛</option>
@@ -184,8 +184,8 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">获奖等级</label>
-                                <select name="award_level" id="award_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">获奖等级</label>
+                                <select name="award_level" id="award_level" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
                                     <option value="">全部</option>
                                     <option value="特等奖" {% if award_level == '特等奖' %}selected{% endif %}>特等奖</option>
                                     <option value="一等奖" {% if award_level == '一等奖' %}selected{% endif %}>一等奖</option>
@@ -200,8 +200,8 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">每页</label>
-                                <select name="per_page" id="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">每页</label>
+                                <select name="per_page" id="per_page" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-orange-500 filter-select">
                                     <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
                                     <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                                     <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
@@ -211,13 +211,13 @@
                                 <label class="flex items-center cursor-pointer">
                                     <input type="checkbox" name="include_teacher_certificates" id="include_teacher_certificates" value="1" 
                                            {% if include_teacher_certificates %}checked{% endif %}
-                                           class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
-                                    <span class="ml-2 text-sm font-medium text-gray-700">包含教师证书</span>
+                                           class="w-4 h-4 text-orange-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 focus:ring-2">
+                                    <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">包含教师证书</span>
                                 </label>
                             </div>
                         </div>
                         <div class="mt-4">
-                            <a href="{{ url_for('teacher.achievements') }}" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:border-orange-500 hover:text-orange-500 transition-all inline-block">
+                            <a href="{{ url_for('teacher.achievements') }}" class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-6 py-2 rounded-lg font-medium hover:border-orange-500 hover:text-orange-500 transition-all inline-block">
                                 重置
                             </a>
                         </div>
@@ -231,8 +231,8 @@
 
                         {% if awards %}
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700/50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">竞赛名称</th>
@@ -244,9 +244,9 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     {% for award in awards %}
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ award.id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {% if award.competition_id %}
@@ -268,7 +268,7 @@
                                                 {% elif level == '校赛' %}
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{{ award.competition_level }}</span>
                                                 {% else %}
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ award.competition_level }}</span>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">{{ award.competition_level }}</span>
                                                 {% endif %}
                                             {% else %}
                                                 <span class="text-gray-400">-</span>
@@ -292,7 +292,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             {% set supervisor_info = award.get_first_supervisor_info() %}
                                             {% if supervisor_info and supervisor_info.name %}
-                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ supervisor_info.name }}</span>
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">{{ supervisor_info.name }}</span>
                                             {% else %}
                                                 <span class="text-gray-400">-</span>
                                             {% endif %}
@@ -314,27 +314,27 @@
                         <div class="mt-6 flex justify-center">
                             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                 {% if page > 1 %}
-                                <a href="?page={{ page - 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <a href="?page={{ page - 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">
                                     上一页
                                 </a>
                                 {% endif %}
                                 {% for p in range(1, total_pages + 1) %}
                                     {% if p == page %}
-                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-orange-50 text-sm font-medium text-orange-600">
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-orange-50 text-sm font-medium text-orange-600">
                                         {{ p }}
                                     </span>
                                     {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
-                                    <a href="?page={{ p }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    <a href="?page={{ p }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
                                         {{ p }}
                                     </a>
                                     {% elif p == 4 or p == total_pages - 3 %}
-                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200">
                                         ...
                                     </span>
                                     {% endif %}
                                 {% endfor %}
                                 {% if page < total_pages %}
-                                <a href="?page={{ page + 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <a href="?page={{ page + 1 }}&per_page={{ per_page }}{% if competition_id %}&competition_id={{ competition_id }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if competition_level %}&competition_level={{ competition_level }}{% endif %}{% if award_level %}&award_level={{ award_level }}{% endif %}{% if include_teacher_certificates %}&include_teacher_certificates=1{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">
                                     下一页
                                 </a>
                                 {% endif %}
@@ -356,11 +356,11 @@
         {% if patents %}
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">专利</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">专利</h3>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">专利名称</th>
@@ -369,9 +369,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {% for patent in patents %}
-                                <tr class="hover:bg-gray-50">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ patent.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ patent.patent_name or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ patent.patent_type or '-' }}</td>
@@ -393,11 +393,11 @@
         {% if software_list %}
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">软著</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">软著</h3>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">软件名称</th>
@@ -406,9 +406,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {% for software in software_list %}
-                                <tr class="hover:bg-gray-50">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ software.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ software.software_name or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ software.registration_number or '-' }}</td>
@@ -430,11 +430,11 @@
         {% if innovation_projects %}
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="hero-title text-xl font-bold text-gray-800 mb-4">大创项目</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="hero-title text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">大创项目</h3>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">项目名称</th>
@@ -443,9 +443,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {% for project in innovation_projects %}
-                                <tr class="hover:bg-gray-50">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ project.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ project.project_name or '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ project.project_type or '-' }}</td>
@@ -466,10 +466,10 @@
 
     <!-- 成果详情模态框 -->
     <div id="achievement-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="hero-title text-2xl font-bold text-gray-800" id="achievement-modal-title">成果详情</h3>
+                    <h3 class="hero-title text-2xl font-bold text-gray-800 dark:text-gray-100" id="achievement-modal-title">成果详情</h3>
                     <button onclick="closeAchievementModal()" class="text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

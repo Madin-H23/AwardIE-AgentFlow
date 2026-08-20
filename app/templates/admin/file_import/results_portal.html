@@ -18,6 +18,7 @@
     .portal-shell { background: transparent; min-height: auto; }
 
     /* 门户风对齐：审核内容与教师门户一致（字体/卡片质感）——Bootstrap 引入覆盖了 user_base 的 Noto，此处强置；卡片加浅阴影弱边框贴近门户白卡 */
+    .portal-shell h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: .01em; }
     body { font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif !important; }
     .portal-shell .c-panel {
         border-radius: 0.625rem;
@@ -91,7 +92,7 @@
         gap: 0.75rem;
         flex-wrap: wrap;
         padding: 0.75rem 1rem;
-        background-color: #fff;
+        background-color: var(--panel);
         border: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
         border-radius: 8px;
         margin-bottom: 1rem;
@@ -210,7 +211,7 @@
     #student_suggestions {
         border: 1px solid var(--line);
         border-radius: 4px;
-        background: white;
+        background: var(--panel);
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     #student_suggestions .suggestion-item {

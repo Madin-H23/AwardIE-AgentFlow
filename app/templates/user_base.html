@@ -32,6 +32,16 @@
             background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
         }
         [data-theme="dark"] .hero-title { color: #f9fafb; }
+
+        /* 深色显式覆盖（兜底：Tailwind dark: 变体在本环境偶发不生效；用 data-theme 祖先显式成对覆盖全门户页亮类） */
+        [data-theme="dark"] .bg-white { background-color: #1f2937; }
+        [data-theme="dark"] .bg-gray-50 { background-color: rgba(55, 65, 81, .55); }
+        [data-theme="dark"] .bg-gray-100 { background-color: #374151; }
+        [data-theme="dark"] .text-gray-900, [data-theme="dark"] .text-gray-800 { color: #f3f4f6; }
+        [data-theme="dark"] .text-gray-700, [data-theme="dark"] .text-gray-600 { color: #d1d5db; }
+        [data-theme="dark"] .text-gray-500 { color: #9ca3af; }
+        [data-theme="dark"] .border-gray-300 { border-color: #4b5563; }
+        [data-theme="dark"] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
         .hero-title {
             font-family: 'Noto Serif SC', serif;
         }
@@ -198,12 +208,12 @@
                         <svg class="theme-icon theme-icon-sun w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"></path></svg>
                     </button>
                     <div class="relative">
-                        <button data-portal-user-toggle class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors" aria-expanded="false">
+                        <button data-portal-user-toggle class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" aria-expanded="false">
                             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:linear-gradient(135deg,#1677ff,#4096ff)">
                                 {% if current_user and current_user.name %}{{ current_user.name[0] }}{% else %}用{% endif %}
                             </div>
                             {% if current_user and current_user.name %}
-                            <span class="text-sm font-medium text-gray-800 hidden sm:inline">{{ current_user.name }}</span>
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-100 hidden sm:inline">{{ current_user.name }}</span>
                             {% endif %}
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
