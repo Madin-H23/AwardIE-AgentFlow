@@ -31,8 +31,27 @@
         <button type="button" class="theme-toggle" data-console-theme-toggle title="切换亮/暗主题"
                 aria-label="切换亮暗主题"><i class="bi bi-circle-half"></i></button>
         {% if current_user.id %}
-        <span class="mono-data" style="font-size:.82rem;color:var(--ink-2)">{{ current_user.username }}</span>
-        <a href="{{ url_for('auth.logout') }}" class="c-text-btn" style="font-size:.82rem">退出</a>
+        <div class="dropdown topbar-user">
+            <button class="dropdown-toggle topbar-user-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="topbar-avatar">{{ (current_user.name or '?')[:1]|upper }}</span>
+                <span class="topbar-username">{{ current_user.name }}</span>
+                <i class="bi bi-chevron-down topbar-caret"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                    <div class="px-3 py-2 topbar-user-head">
+                        <div class="fw-semibold"><i class="bi bi-person-circle me-1"></i>{{ current_user.name }}</div>
+                        <div class="topbar-user-role">{{ current_user.role }}</div>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <i class="bi bi-box-arrow-right me-2"></i>退出登录
+                    </a>
+                </li>
+            </ul>
+        </div>
         {% endif %}
     </header>
 

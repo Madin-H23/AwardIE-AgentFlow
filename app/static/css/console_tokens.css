@@ -119,6 +119,27 @@
 }
 .console-shell .console-topbar .theme-toggle:hover { color: var(--brand); border-color: var(--brand); }
 
+/* ---------- 顶栏用户下拉（控制台风格：头像+用户名+菜单） ---------- */
+.console-shell .console-topbar .topbar-user { margin-left: 4px; }
+.console-shell .console-topbar .topbar-user-btn {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid transparent; background: transparent; color: var(--ink);
+  border-radius: 6px; padding: 3px 8px; cursor: pointer;
+}
+.console-shell .console-topbar .topbar-user-btn:hover { border-color: var(--line); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.console-shell .console-topbar .topbar-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: .78rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.console-shell .console-topbar .topbar-username { font-size: .85rem; }
+.console-shell .console-topbar .topbar-caret { font-size: .6rem; color: var(--ink-2); }
+.console-shell .console-topbar .dropdown-menu { border-radius: 8px; border-color: var(--line); }
+.console-shell .console-topbar .topbar-user-head { min-width: 170px; font-size: .86rem; }
+.console-shell .console-topbar .topbar-user-role {
+  font-size: .72rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em;
+}
+
 .console-shell .console-main { margin-left: 240px; padding: 72px 24px 32px; }
 
 /* ---------- 通用面板 / 按钮 ---------- */
