@@ -54,6 +54,35 @@
 .console-shell .console-sidebar .nav-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
 .console-shell .console-sidebar .nav-link.active { background: var(--brand); color: #fff; }
 
+/* ---------- 侧边栏百度云化（T9 后续批）：分组标题可折叠 + 图标行 + 底部账户栏 ---------- */
+.console-shell .console-sidebar .nav-link { display: flex; align-items: center; gap: 10px; }
+.console-shell .console-sidebar .sb-ic { font-size: .92rem; opacity: .92; width: 16px; text-align: center; }
+.console-shell .console-sidebar .sb-group-title {
+  color: rgba(255, 255, 255, .42); font-size: .7rem; letter-spacing: .1em; font-weight: 600;
+  padding: 14px 12px 6px; margin: 0;
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;
+}
+.console-shell .console-sidebar .sb-group-title:hover { color: rgba(255, 255, 255, .75); }
+.console-shell .console-sidebar .sb-chevron { font-size: .62rem; opacity: .75; transition: transform .18s ease; }
+.console-shell .console-sidebar .sb-group.collapsed .sb-chevron { transform: rotate(-90deg); }
+.console-shell .console-sidebar .sb-group.collapsed .sb-group-body { display: none; }
+.console-shell .console-sidebar .sb-footer {
+  position: sticky; bottom: 0; margin-top: 12px; padding: 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, .1); background: var(--sb-bg);
+}
+.console-shell .console-sidebar .sb-user {
+  display: flex; align-items: center; gap: 8px;
+  color: rgba(255, 255, 255, .82); font-size: .86rem; padding: 6px 8px; border-radius: 6px;
+}
+.console-shell .console-sidebar .sb-user i { color: var(--brand); font-size: 1.15rem; }
+.console-shell .console-sidebar .sb-role {
+  margin-left: auto; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
+  color: rgba(255, 255, 255, .4);
+}
+.console-shell .console-sidebar .sb-ver {
+  color: rgba(255, 255, 255, .3); font-size: .68rem; padding: 4px 8px 0;
+}
+
 .console-shell .console-topbar {
   position: fixed; top: 0; right: 0; left: 240px; height: 52px; z-index: 1020;
   background: var(--panel); border-bottom: 1px solid var(--line);

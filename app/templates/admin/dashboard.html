@@ -1,43 +1,120 @@
 {% extends "layout/base_console.html" %}
 
-{% block title %}管理员首页 - 成果管理系统{% endblock %}
-{% block topbar_title %}管理员首页{% endblock %}
+{% block title %}成果数据总览 - 成果管理系统{% endblock %}
+{% block topbar_title %}成果数据总览{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* 页面头标题下沿提示条：仿百度云 pageHeader info-alert */
+    .dash-info {
+        display: flex; align-items: center; gap: 8px;
+        background: color-mix(in srgb, var(--brand) 6%, var(--panel));
+        border: 1px solid var(--line); border-radius: 6px;
+        padding: 8px 14px; font-size: .82rem; color: var(--ink-2);
+    }
+    .dash-info i { color: var(--brand); }
+    /* 汇总卡：左大数字右分类明细 */
+    .pay-total .label { font-size: .8rem; color: var(--ink-2); margin-bottom: 6px; }
+    .pay-total .num { font-size: 2.6rem; font-weight: 700; line-height: 1; }
+    .pay-total .sub { font-size: .74rem; color: var(--ink-2); margin-top: 8px; }
+    .pay-items { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 28px; }
+    .pay-items .item { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+    .pay-items .item .k { color: var(--ink-2); font-size: .85rem; }
+    .pay-items .item .v { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .pay-formula { font-size: .75rem; color: var(--ink-2); margin-top: 14px; }
+    /* 竞赛表头灰色 */
+    .dash-table thead th { font-weight: 600; color: var(--ink-2); background: color-mix(in srgb, var(--ink) 3%, transparent); border-bottom: 1px solid var(--line) !important; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div>
-    <h1 class="mb-4">管理员首页</h1>
-    
-    <div class="row">
-        <div class="col-12 col-md-6 col-lg-4 mb-4">
-            <div class="c-panel">
-                <div class="p-3">
-                    <h3 class="card-title mb-3">奖状管理</h3>
-                    <p class="card-text text-muted mb-3">管理所有奖状数据</p>
-                    <a href="{{ url_for('admin_awards.awards_list') }}" class="c-btn c-btn-primary">进入</a>
-                </div>
-            </div>
+    <!-- ② 页面头 + 提示条 -->
+    <div class="mb-3">
+        <h1 class="mb-2" style="font-size:1.35rem">成果数据总览</h1>
+        <div class="dash-info">
+            <i class="bi bi-info-circle"></i>
+            <span>数据实时统计；成果分类以奖状/专利/软著/其他四类统计，最终口径以人工审核归档数据为准。</span>
         </div>
-        
-        <div class="col-12 col-md-6 col-lg-4 mb-4">
-            <div class="c-panel">
-                <div class="p-3">
-                    <h3 class="card-title mb-3">竞赛管理</h3>
-                    <p class="card-text text-muted mb-3">管理竞赛信息</p>
-                    <a href="{{ url_for('admin.competitions_list') }}" class="c-btn c-btn-primary">进入</a>
-                </div>
+    </div>
+
+    <!-- ① 资产条（4 卡，对应百度云余额/订单/待支付） -->
+    <div class="vitals mb-4" id="summaryCards">
+        <div class="vital-card"><div class="vital-label"><i class="bi bi-award"></i> 成果总数</div><div class="vital-value mono-data" id="cTotal">–</div><div class="vital-sub" id="sTotal">加载中…</div></div>
+        <div class="vital-card"><div class="vital-label"><span class="pulse-dot down"></span> 待审核</div><div class="vital-value mono-data" id="cPending">–</div><div class="vital-sub" id="sPending">需人工处理</div></div>
+        <div class="vital-card"><div class="vital-label"><i class="bi bi-patch-check"></i> 白名单竞赛</div><div class="vital-value mono-data" id="cWhitelist">–</div><div class="vital-sub" id="sWhitelist">占总竞赛数</div></div>
+        <div class="vital-card"><div class="vital-label"><i class="bi bi-speedometer2"></i> 成果·竞赛密度</div><div class="vital-value mono-data" id="cDensity">–</div><div class="vital-sub" id="sDensity">平均每竞赛成果数</div></div>
+    </div>
+
+    <!-- ⑤ 汇总卡（对应应付金额 + 目录价/优惠/优惠券明细） -->
+    <div class="c-panel p-4 mb-4">
+        <div class="row g-4">
+            <div class="col-md-4 pay-total border-end pe-4">
+                <div class="label">本周期成果新增（2026 年至今）</div>
+                <div class="num mono-data" id="payNum">–</div>
+                <div class="sub" id="paySub">待审核 0 · 已通过 0</div>
             </div>
-        </div>
-        
-        <div class="col-12 col-md-6 col-lg-4 mb-4">
-            <div class="c-panel">
-                <div class="p-3">
-                    <h3 class="card-title mb-3">人员管理</h3>
-                    <p class="card-text text-muted mb-3">管理学生和教师</p>
-                    <a href="{{ url_for('admin.students_list') }}" class="c-btn c-btn-primary">进入</a>
+            <div class="col-md-8">
+                <div class="label mb-2 text-muted" style="font-size:.8rem">分类计数</div>
+                <div class="pay-items">
+                    <div class="item"><span class="k">奖状 (awards)</span><span class="v" id="catAward">–</span></div>
+                    <div class="item"><span class="k">专利 (patents)</span><span class="v" id="catPatent">–</span></div>
+                    <div class="item"><span class="k">软著 (software)</span><span class="v" id="catSoftware">–</span></div>
+                    <div class="item"><span class="k">其他文件 (other)</span><span class="v" id="catOther">–</span></div>
                 </div>
+                <div class="pay-formula">新增 = 奖状 + 专利 + 软著 + 其他</div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
 
+    <!-- ④ 工具条 + ⑥ 汇总表 -->
+    <div class="c-panel mb-4">
+        <div class="filter-bar" style="border:none;border-bottom:1px solid var(--line);border-radius:8px 8px 0 0">
+            <span class="text-muted" style="font-size:.82rem">周期</span>
+            <select id="periodSelect">
+                <option value="6">近 6 月</option>
+                <option value="12">近 12 月</option>
+                <option value="" selected>全部</option>
+            </select>
+            <span class="text-muted" style="font-size:.82rem">维度</span>
+            <select id="dimSelect">
+                <option selected>按时间</option>
+                <option>按竞赛</option>
+            </select>
+            <span class="ms-auto">
+                <a href="{{ url_for('admin_export.data_export') }}" class="c-btn"><i class="bi bi-download"></i> 导出</a>
+            </span>
+        </div>
+        <div class="p-3">
+            <div class="panel-head px-0 pt-0" style="border:none;background:transparent"><span>竞赛战果 Top</span><span class="text-muted" style="font-weight:400;font-size:.78rem">按获奖总数排序</span></div>
+            <div class="table-responsive">
+                <table class="table dash-table" style="font-size:.86rem">
+                    <thead>
+                        <tr><th>竞赛</th><th class="text-end">获奖总数</th><th class="text-end">占比</th></tr>
+                    </thead>
+                    <tbody id="compBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⑦ 趋势卡 -->
+    <div class="c-panel">
+        <div class="panel-head">
+            <span>成果入库趋势</span>
+            <select id="trendSelect" class="c-btn" style="padding:2px 8px;font-size:.78rem">
+                <option selected>按月汇总</option>
+                <option>按年度</option>
+            </select>
+        </div>
+        <div class="p-3">
+            <div id="trendChart" style="height:320px"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ECharts：沿用 data_analysis 页的多 CDN 回退模式 -->
+<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
+        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='http://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

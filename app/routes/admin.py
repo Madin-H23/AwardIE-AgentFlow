@@ -21,8 +21,89 @@ bp = Blueprint('admin', __name__)
 @bp.route('/dashboard')
 @require_role('admin')
 def dashboard():
-    """管理员入口：重定向到成果管理"""
-    return redirect(url_for('admin_achievement.achievements'))
+    """管理员首页：成果数据总览看板"""
+    return render_template('admin/dashboard.html')
+
+@bp.route('/api/dashboard/overview', methods=['GET'])
+@require_role('admin')
+def api_dashboard_overview():
+    """成果数据总览聚合接口——dashboard 看板数据源（仿百度云消费总览的信息架构）。
+    参数 months：近 N 个月（影响趋势与环比）；缺省=全部。"""
+    from backend.utils.db_connection import get_connection
+    from datetime import date, timedelta
+    months = request.args.get('months', type=int)
+    try:
+        from config.loader import get_config
+        db_path = get_config()['database']['competitions_db']
+    except Exception:
+        db_path = current_app.config.get('DATABASE', 'database/competitions.db')
+    try:
+        conn = get_connection(db_path)
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+    try:
+        cur = conn.cursor()
+
+        def one(sql, *args):
+            r = cur.execute(sql, args).fetchone()
+            return r[0] if r else 0
+
+        summary = {
+            'total_awards': one("SELECT COUNT(*) FROM awards"),
+            'pending': one("SELECT COUNT(*) FROM pending_achievements WHERE status='pending'"),
+            'whitelist': one("SELECT COUNT(*) FROM competitions WHERE white_list=1"),
+            'competitions': one("SELECT COUNT(*) FROM competitions"),
+        }
+        category = {
+            'award': summary['total_awards'],
+            'patent': one("SELECT COUNT(*) FROM patents"),
+            'software': one("SELECT COUNT(*) FROM software_copyrights"),
+            'other': one("SELECT COUNT(*) FROM other_files"),
+        }
+
+        # 近 N 月起点（含当月）
+        start_month = None
+        if months:
+            today = date.today()
+            start = today.replace(day=1)
+            for _ in range(months - 1):
+                start = (start - timedelta(days=1)).replace(day=1)
+            start_month = start.strftime('%Y-%m')
+
+        trend_sql = ("SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS count "
+                     "FROM awards WHERE created_at IS NOT NULL")
+        trend_args = []
+        if start_month:
+            trend_sql += " AND strftime('%Y-%m', created_at) >= ?"
+            trend_args.append(start_month)
+        trend_sql += " GROUP BY month ORDER BY month"
+        trend = [dict(r) for r in cur.execute(trend_sql, trend_args).fetchall()]
+
+        # 环比：本月 vs 上月奖状新增（映射百度云"消费环比"）
+        this_m = date.today().strftime('%Y-%m')
+        last_m = (date.today().replace(day=1) - timedelta(days=1)).strftime('%Y-%m')
+        this_n = one("SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=?", this_m)
+        last_n = one("SELECT COUNT(*) FROM awards WHERE strftime('%Y-%m', created_at)=?", last_m)
+        compare = {'period': this_m, 'this': this_n, 'last': last_n}
+        if last_n:
+            compare['delta_pct'] = round((this_n - last_n) / last_n * 100, 1)
+        else:
+            compare['delta_pct'] = None
+
+        by_comp = [dict(r) for r in cur.execute(
+            "SELECT COALESCE(c.competition_name, '未关联') AS name, COUNT(*) AS total "
+            "FROM awards a LEFT JOIN competitions c ON a.competition_id = c.id "
+            "GROUP BY COALESCE(c.competition_name, '未关联') ORDER BY total DESC LIMIT 12").fetchall()]
+        recent = [dict(r) for r in cur.execute(
+            "SELECT a.id, a.date, COALESCE(c.competition_name, '-') AS competition, "
+            "a.award_level, a.winner_name, a.submit_time "
+            "FROM awards a LEFT JOIN competitions c ON a.competition_id = c.id "
+            "ORDER BY a.created_at DESC, a.id DESC LIMIT 10").fetchall()]
+        return jsonify({'ok': True, 'summary': summary, 'category': category,
+                        'trend': trend, 'compare': compare,
+                        'by_competition': by_comp, 'recent': recent})
+    finally:
+        conn.close()
 
 @bp.route('/api/config/competition-levels', methods=['GET'])
 @require_role('admin')

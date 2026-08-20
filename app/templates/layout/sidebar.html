@@ -1,84 +1,124 @@
 <nav class="sidebar-nav">
     {% if current_user.role == 'admin' %}
-        <a class="nav-link {% if request.endpoint and 'achievements' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_achievement.achievements') }}">
-            成果管理
-        </a>
-        <a class="nav-link {% if request.endpoint and 'review' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_review.review_list') }}">
-            成果审核
-        </a>
-        <a class="nav-link {% if request.endpoint and 'file_import' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_achievement.file_import') }}">
-            成果/文件导入
-        </a>
+        <!-- 常用（映射百度云"我的收藏"：高频入口置顶） -->
+        <div class="sb-group">
+            <div class="sb-group-title">常用<i class="bi bi-chevron-down sb-chevron"></i></div>
+            <div class="sb-group-body">
+                <a class="nav-link {% if request.endpoint and 'achievements' in request.endpoint and 'review' not in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_achievement.achievements') }}">
+                    <i class="bi bi-award sb-ic"></i>成果管理
+                </a>
+                <a class="nav-link {% if request.endpoint and 'review' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_review.review_list') }}">
+                    <i class="bi bi-clipboard-check sb-ic"></i>成果审核
+                </a>
+                <a class="nav-link {% if request.endpoint and 'admin_log' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_log.index') }}">
+                    <i class="bi bi-journal-text sb-ic"></i>日志管理
+                </a>
+            </div>
+        </div>
         <hr class="sidebar-divider">
-        <div class="sidebar-section-title">智能体</div>
-        <a class="nav-link {% if request.endpoint and 'chat' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('chat.assistant') }}">
-            AI 智能体协作
-        </a>
+
+        <!-- 智能体 -->
+        <div class="sb-group">
+            <div class="sb-group-title">智能体<i class="bi bi-chevron-down sb-chevron"></i></div>
+            <div class="sb-group-body">
+                <a class="nav-link {% if request.endpoint and 'chat' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('chat.assistant') }}">
+                    <i class="bi bi-robot sb-ic"></i>AI 智能体协作
+                </a>
+            </div>
+        </div>
         <hr class="sidebar-divider">
-        <div class="sidebar-section-title">基础数据管理</div>
-        <a class="nav-link {% if request.endpoint and 'template' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_templates.templates_list') }}">
-            奖状模板管理
-        </a>
-        <a class="nav-link {% if request.endpoint and 'competition' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin.competitions_list') }}">
-            竞赛管理
-        </a>
-        <a class="nav-link {% if request.endpoint and 'laboratory' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_laboratory.laboratories_list') }}">
-            实验室管理
-        </a>
+
+        <!-- 基础数据管理 -->
+        <div class="sb-group">
+            <div class="sb-group-title">基础数据管理<i class="bi bi-chevron-down sb-chevron"></i></div>
+            <div class="sb-group-body">
+                <a class="nav-link {% if request.endpoint and 'file_import' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_achievement.file_import') }}">
+                    <i class="bi bi-cloud-arrow-up sb-ic"></i>成果/文件导入
+                </a>
+                <a class="nav-link {% if request.endpoint and 'template' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_templates.templates_list') }}">
+                    <i class="bi bi-file-earmark-richtext sb-ic"></i>奖状模板管理
+                </a>
+                <a class="nav-link {% if request.endpoint and 'competition' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin.competitions_list') }}">
+                    <i class="bi bi-trophy sb-ic"></i>竞赛管理
+                </a>
+                <a class="nav-link {% if request.endpoint and 'laboratory' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_laboratory.laboratories_list') }}">
+                    <i class="bi bi-diagram-3 sb-ic"></i>实验室管理
+                </a>
+            </div>
+        </div>
         <hr class="sidebar-divider">
-        <div class="sidebar-section-title">用户管理</div>
-        <a class="nav-link {% if request.endpoint and 'student' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin.students_list') }}">
-            学生管理
-        </a>
-        <a class="nav-link {% if request.endpoint and 'teacher' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin.teachers_list') }}">
-            教师管理
-        </a>
-        <a class="nav-link {% if request.endpoint and 'data_analysis' in request.endpoint and 'data_export' not in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_data_analysis.data_analysis') }}">
-            数据分析
-        </a>
-        <a class="nav-link {% if request.endpoint and 'data_export' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_export.data_export') }}">
-            数据导出
-        </a>
-        <a class="nav-link {% if request.endpoint and 'admin_log' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin_log.index') }}">
-            日志管理
-        </a>
+
+        <!-- 用户数据 -->
+        <div class="sb-group">
+            <div class="sb-group-title">用户数据<i class="bi bi-chevron-down sb-chevron"></i></div>
+            <div class="sb-group-body">
+                <a class="nav-link {% if request.endpoint and 'student' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin.students_list') }}">
+                    <i class="bi bi-people sb-ic"></i>学生管理
+                </a>
+                <a class="nav-link {% if request.endpoint and 'teacher' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin.teachers_list') }}">
+                    <i class="bi bi-person-badge sb-ic"></i>教师管理
+                </a>
+                <a class="nav-link {% if request.endpoint and 'data_analysis' in request.endpoint and 'data_export' not in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_data_analysis.data_analysis') }}">
+                    <i class="bi bi-bar-chart sb-ic"></i>数据分析
+                </a>
+                <a class="nav-link {% if request.endpoint and 'data_export' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin_export.data_export') }}">
+                    <i class="bi bi-download sb-ic"></i>数据导出
+                </a>
+            </div>
+        </div>
         <hr class="sidebar-divider">
-        <div class="sidebar-section-title">系统设置</div>
-        <a class="nav-link {% if request.endpoint and 'settings' in request.endpoint %}active{% endif %}"
-           href="{{ url_for('admin.settings') }}">
-            系统设置
-        </a>
+
+        <!-- 系统设置 -->
+        <div class="sb-group">
+            <div class="sb-group-title">系统设置<i class="bi bi-chevron-down sb-chevron"></i></div>
+            <div class="sb-group-body">
+                <a class="nav-link {% if request.endpoint and 'settings' in request.endpoint %}active{% endif %}"
+                   href="{{ url_for('admin.settings') }}">
+                    <i class="bi bi-gear sb-ic"></i>系统设置
+                </a>
+            </div>
+        </div>
+
     {% elif current_user.role == 'teacher' %}
         <a class="nav-link {% if request.endpoint and request.endpoint.startswith('teacher') %}active{% endif %}" 
            href="{{ url_for('teacher.dashboard') }}">
-            教师首页
+            <i class="bi bi-house sb-ic"></i>教师首页
         </a>
         <a class="nav-link" href="#">
-            我的成果
+            <i class="bi bi-folder2 sb-ic"></i>我的成果
         </a>
         <a class="nav-link" href="#">
-            奖状管理
+            <i class="bi bi-award sb-ic"></i>奖状管理
         </a>
     {% else %}
         <a class="nav-link {% if request.endpoint and request.endpoint.startswith('student') %}active{% endif %}" 
            href="{{ url_for('student.dashboard') }}">
-            学生首页
+            <i class="bi bi-house sb-ic"></i>学生首页
         </a>
         <a class="nav-link" href="#">
-            我的成果
+            <i class="bi bi-folder2 sb-ic"></i>我的成果
         </a>
     {% endif %}
 </nav>
 
+<!-- 底部账户栏（映射百度云控制台底部用户区） -->
+<div class="sb-footer">
+    <div class="sb-user">
+        <i class="bi bi-person-circle"></i>
+        <span class="mono-data">{{ current_user.username }}</span>
+        <span class="sb-role">{{ current_user.role }}</span>
+    </div>
+    <div class="sb-ver">AwardIE-AgentFlow 控制台 v1.0 · 管理端</div>
+</div>

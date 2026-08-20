@@ -20,5 +20,12 @@
         document.dispatchEvent(new CustomEvent('console-theme-changed', { detail: { theme: cur } }));
       });
     });
+
+    // 侧边栏分组折叠（百度云风格：分组标题点击展开/收起；状态不入存储，保持简单）
+    document.querySelectorAll('.console-sidebar .sb-group-title').forEach(function (title) {
+      title.addEventListener('click', function () {
+        title.closest('.sb-group').classList.toggle('collapsed');
+      });
+    });
   });
 })();
