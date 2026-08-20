@@ -14,10 +14,43 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/console_tokens.css') }}?v=5">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- 全局错误提示（排障用）：脚本异常/页面未渲染时显示可见条，避免静默白屏 -->
+    <style>
+        #bootError { position: fixed; top: 64px; right: 16px; z-index: 2100; max-width: 340px;
+            background: var(--sev-error-bg); color: var(--sev-error);
+            border: 1px solid color-mix(in srgb, var(--sev-error) 30%, transparent);
+            border-radius: 8px; padding: 10px 14px; font-size: .82rem; display: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12); line-height: 1.5; }
+        #bootError.warn { background: var(--sev-warning-bg); color: var(--sev-warning); }
+    </style>
+    <script>
+    (function () {
+        'use strict';
+        function show(msg, warn) {
+            var el = document.getElementById('bootError');
+            if (!el) return;
+            el.className = warn ? 'warn' : '';
+            el.style.display = 'block';
+            el.textContent = '⚠ ' + msg;
+        }
+        window.addEventListener('error', function (ev) { show('页面脚本异常: ' + ((ev && ev.message) || '未知') + ' （详见控制台）'); });
+        window.addEventListener('unhandledrejection', function (ev) {
+            var m = (ev && ev.reason && ev.reason.message) || 'unknown';
+            show('异步异常: ' + m + ' （详见控制台）');
+        });
+        setTimeout(function () {
+            if (!document.querySelector('.console-shell')) {
+                show('页面结构未能渲染（模板或资源加载异常）。请检查控制台/网络。', true);
+            }
+        }, 3000);
+        window.__bootErrorShown = show;
+    })();
+    </script>
 
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+<div id="bootError"></div>
 <div class="console-shell">
 
     {# 左侧固定侧边栏（深色，240px）——include 现有 sidebar（单一真源），样式由 tokens 作用域覆盖 #}
