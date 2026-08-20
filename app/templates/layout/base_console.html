@@ -12,10 +12,11 @@
     <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/console_tokens.css') }}?v=5">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/console_tokens.css') }}?v=6">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
 <script>
-/* boot-core（内联，无外部请求，避免 Stalled 阻塞解析）：storage 安全 + 异常兜底 + 未渲染提示 */
+/* boot-core（内联，无外部请求）：storage 安全 + 异常兜底 + 未渲染提示 */
 (function(){'use strict';
 var _m={};
 try{window.__safeLocal={get:function(k){try{return localStorage.getItem(k)}catch(e){return Object.prototype.hasOwnProperty.call(_m,k)?_m[k]:null}},
@@ -27,7 +28,6 @@ window.addEventListener('error',function(ev){var m=ev&&ev.message||'unknown';con
 setTimeout(function(){var tx=document.body&&document.body.innerText?document.body.innerText.trim():'';if(tx.length<=20&&!document.querySelector('.console-shell,.portal-shell,#app,nav,main,.container'))_show('内容未渲染（详见控制台）',true)},4000);
 })();
 </script>
-
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -89,10 +89,10 @@ setTimeout(function(){var tx=document.body&&document.body.innerText?document.bod
     </main>
 </div>
 
-<script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/console_theme.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='js/common.js') }}"></script>
-<script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+<script async src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script async src="{{ url_for('static', filename='js/console_theme.js') }}?v=2"></script>
+<script async src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script async src="{{ url_for('static', filename='js/csrf.js') }}"></script>
 
 {% block extra_scripts %}{% endblock %}
 </body>
