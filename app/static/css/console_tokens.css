@@ -137,6 +137,10 @@
 .console-shell .console-topbar .topbar-username { font-size: .85rem; }
 .console-shell .console-topbar .topbar-caret { font-size: .6rem; color: var(--ink-2); }
 .console-shell .console-topbar .dropdown-menu { border-radius: 8px; border-color: var(--line); }
+/* data-bs-display=static 后无 Popper：手动钉在顶栏(52px)下方外侧，远离顶栏底边框 */
+.console-shell .console-topbar .dropdown-menu {
+  position: fixed; top: 58px; right: 18px; margin-top: 0;
+}
 .console-shell .console-topbar .topbar-user-head { min-width: 170px; font-size: .86rem; }
 .console-shell .console-topbar .topbar-user-role {
   font-size: .72rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em;
