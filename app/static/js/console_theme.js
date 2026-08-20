@@ -21,7 +21,8 @@
     syncToggle(theme);
   }
   var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) { /* 隐私模式 */ }
+  saved = window.__safeLocal ? __safeLocal.get(KEY) : null;
+  try { if (saved === null) saved = localStorage.getItem(KEY); } catch (e) { /* 禁止 storage 时已内存兜底 */ }
   apply(saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -29,6 +30,7 @@
       btn.addEventListener('click', function () {
         var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         apply(cur);
+        if (window.__safeLocal) __safeLocal.set(KEY, cur);
         try { localStorage.setItem(KEY, cur); } catch (e) { /* 忽略 */ }
         document.dispatchEvent(new CustomEvent('console-theme-changed', { detail: { theme: cur } }));
       });
