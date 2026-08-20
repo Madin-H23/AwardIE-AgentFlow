@@ -7,6 +7,7 @@
     
     <!-- Tailwind CSS - 使用编译后的生产版本（运行 npm run build:css 生成） -->
     <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/console_tokens.css') }}?v=4" rel="stylesheet">
     
     <!-- Anime.js for animations -->
     <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js"></script>
@@ -44,6 +45,12 @@
         [data-theme="dark"] .text-orange-600, [data-theme="dark"] .text-orange-500 { color: #fb923c !important; }
         [data-theme="dark"] .border-gray-300, [data-theme="dark"] .border-gray-200 { border-color: #4b5563 !important; }
         [data-theme="dark"] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
+        [data-theme="dark"] .bg-gray-300, [data-theme="dark"] .bg-gray-400 { background-color: #4b5563 !important; }
+        /* 状态徽章渐变深色 variant（保持语义可见） */
+        [data-theme="dark"] .status-active { background: linear-gradient(135deg, #065f46, #10b981); }
+        [data-theme="dark"] .status-pending { background: linear-gradient(135deg, #b45309, #d97706); }
+        [data-theme="dark"] .status-completed { background: linear-gradient(135deg, #374151, #4b5563); }
+        [data-theme="dark"] .status-closed { background: linear-gradient(135deg, #991b1b, #dc2626); }
         .hero-title {
             font-family: 'Noto Serif SC', serif;
         }

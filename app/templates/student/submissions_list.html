@@ -19,35 +19,35 @@
         border-radius: 9999px;
     }
     .status-pending {
-        background: linear-gradient(135deg, #d69e2e 0%, #ed8936 100%);
+        background: linear-gradient(135deg, var(--sev-warning-bg) 0%, var(--sev-warning-bg) 100%);
         color: white;
     }
     .status-approved {
-        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        background: linear-gradient(135deg, color-mix(in srgb, var(--ok) 14%, transparent) 0%, color-mix(in srgb, var(--ok) 14%, transparent) 100%);
         color: white;
     }
     .status-rejected {
-        background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+        background: linear-gradient(135deg, var(--sev-error-bg) 0%, var(--sev-error-bg) 100%);
         color: white;
     }
     .type-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.75rem;
         border-radius: 0.375rem;
-        background: #e2e8f0;
-        color: #4a5568;
+        background: var(--line);
+        color: var(--ink);
     }
     .type-award {
-        background: #d1fae5;
-        color: #065f46;
+        background: color-mix(in srgb, var(--ok) 14%, transparent);
+        color: var(--ok);
     }
     .type-patent {
-        background: #dbeafe;
-        color: #1e40af;
+        background: var(--sev-info-bg);
+        color: var(--brand);
     }
     .type-software {
-        background: #fce7f3;
-        color: #9f1239;
+        background: color-mix(in srgb, var(--ai) 14%, transparent);
+        color: var(--sev-error);
     }
     .empty-state {
         padding: 3rem;
