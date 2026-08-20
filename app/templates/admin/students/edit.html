@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}{% if student %}编辑学生{% else %}添加学生{% endif %} - 成果管理系统{% endblock %}
+{% block topbar_title %}{% if student %}编辑学生{% else %}添加学生{% endif %}{% endblock %}
 
 {% block content %}
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>{% if student %}编辑学生{% else %}添加学生{% endif %}</h1>
-        <a href="{{ url_for('admin.students_list') }}" class="btn btn-outline-secondary">返回列表</a>
+        <a href="{{ url_for('admin.students_list') }}" class="c-btn">返回列表</a>
     </div>
     
-    <div class="card">
-        <div class="card-body">
+    <div class="c-panel p-4">
             <form method="POST">
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -53,16 +53,15 @@
                 </div>
                 
                 <div class="mt-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">保存</button>
-                    <a href="{{ url_for('admin.students_list') }}" class="btn btn-outline-secondary">取消</a>
+                    <button type="submit" class="c-btn c-btn-primary">保存</button>
+                    <a href="{{ url_for('admin.students_list') }}" class="c-btn">取消</a>
                     {% if student %}
-                    <button type="button" class="btn btn-warning ms-auto" onclick="resetPassword()">
+                    <button type="button" class="c-btn ms-auto" onclick="resetPassword()">
                         <i class="bi bi-key"></i> 重置密码
                     </button>
                     {% endif %}
                 </div>
             </form>
-        </div>
     </div>
 </div>
 

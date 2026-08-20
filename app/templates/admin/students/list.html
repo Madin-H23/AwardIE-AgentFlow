@@ -1,17 +1,17 @@
-{% extends "base.html" %}
+{% extends "layout/base_console.html" %}
 
 {% block title %}学生管理 - 成果管理系统{% endblock %}
+{% block topbar_title %}学生管理{% endblock %}
 
 {% block content %}
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>学生管理</h1>
-        <a href="{{ url_for('admin.student_edit') }}" class="btn btn-primary">添加学生</a>
+        <a href="{{ url_for('admin.student_edit') }}" class="c-btn c-btn-primary">添加学生</a>
     </div>
     
     <!-- 搜索表单 -->
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="c-panel p-3 mb-4">
             <form method="GET" action="{{ url_for('admin.students_list') }}" class="row g-3">
                 <div class="col-md-8">
                     <label for="search" class="form-label">搜索</label>
@@ -27,15 +27,13 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">搜索</button>
+                    <button type="submit" class="c-btn c-btn-primary w-100">搜索</button>
                 </div>
             </form>
-        </div>
     </div>
     
     <!-- 学生列表 -->
-    <div class="card">
-        <div class="card-body">
+    <div class="c-panel p-3">
             <div class="mb-3">
                 <span class="text-muted">共找到 {{ total_count }} 条记录</span>
             </div>
@@ -71,8 +69,8 @@
                             </td>
                             <td>
                                 <a href="{{ url_for('admin.student_edit', student_id=student.id) }}" 
-                                   class="btn btn-sm btn-outline-primary">编辑</a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                   class="c-text-btn">编辑</a>
+                                <button type="button" class="c-text-btn danger" 
                                         onclick="deleteStudent({{ student.id }})">删除</button>
                             </td>
                         </tr>
@@ -112,10 +110,9 @@
             {% else %}
             <div class="text-center py-5">
                 <p class="text-muted">暂无学生数据</p>
-                <a href="{{ url_for('admin.student_edit') }}" class="btn btn-primary">添加学生</a>
+                <a href="{{ url_for('admin.student_edit') }}" class="c-btn c-btn-primary">添加学生</a>
             </div>
             {% endif %}
-        </div>
     </div>
 </div>
 
