@@ -102,6 +102,11 @@ def create_app(config_class=None):
     SystemEventLogger.log("system", "info", f"应用启动（env={app.config.get('ENV', 'default')}）",
                           source_module="app.create_app")
 
+    # 阶段六 L6：日志定时任务（metrics 归档/每日报告/容量清理；测试环境不启线程）
+    if not app.config.get('TESTING'):
+        from backend.utils.log_scheduler import start as start_log_scheduler
+        start_log_scheduler()
+
     return app
 
 def _ensure_directories(app):

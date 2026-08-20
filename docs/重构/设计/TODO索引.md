@@ -115,6 +115,7 @@
 | T40 | ~~L3 分析层~~ **已完成（2026-08-20，`1953b40`）**：LogAnalyzer（动作分布/错误趋势/审核瓶颈/活跃度/AI 健康/留痕健康/每日摘要 7 类）+ AlertEngine（A001-A006 六规则 evaluate/归档/缺表容错）+ PlanGenerator（告警转计划/状态机 open→acknowledged→resolved/每日报告）+ 16 单测（363 全绿） | L2 | backend/services/log_analyzer.py 等 3 个 | ✅16 | ~~高~~ ✅ |
 | T41 | ~~L4 路由层~~ **已完成（2026-08-20，`d353fde`）**：admin_log 蓝图 19 接口（四源查询+分析5+指标/日报+告警/计划+SSE 并发≤2）；顺带修复 require_role_api_json 漏判 /admin/api/ 前缀（302→401）；SSE 前端自动重连留 L5；13 单测（376 全绿）。**同批暴露并处置 R-027 分支假推送事故**（37 提交 ff 合并回 main） | L2+L3 | app/routes/admin_log.py | ✅13 | ~~高~~ ✅ |
 | T42 | ~~L5 前端~~ **已完成（2026-08-20，`13bd08d`）**：控制台新体系地基（base_console 双主题基类）+ 首个落地页——3 Tab（行式日志流+severity 竖条/六 ECharts 看板+vitals 体征带/计划流转）+ SSE 重连提示 + 侧边栏导航；playwright 冒烟全通（含亮暗切换）。方案见《2026-08-20_前端重构方案.md》；**T9 批量迁移已由本会话直接执行**（`469d739`，见 T9 行） | L4 | console_logs.html + base_console + 2 宏 + 2 JS | ✅GUI 冒烟 | ~~中~~ ✅ |
+| T44 | ~~AI 助手页分端风格统一~~ **登记（2026-08-20）**：`assistant/chat.html` 现 extends 旧 `base.html`（三端共用旧风格），与按身份定体系不符；待办——chat.html 按角色选壳（admin→base_console / 师生→user_base），复用 results 双壳模式 + 排障清单 §2 检查 | 前端实施记录 §5 | 2 模板 + 选壳 | ~3 | 中 |
 | T43 | L6 收尾：行动计划状态持久化（open→acknowledged→resolved）+ 每日报告 + metrics_snapshot 定时归档（即 T28）+ 实施文档与 TODO 回写 | L5 | 定时任务 + 实施文档 | ~5 | 中 |
 | T26 | trace_id 全链路贯通（run.py TraceIdFilter + LogFileReader 解析 + DB 留痕串联） | 随 L2 | 含于 T39 | 含于 T39 | 高 |
 | T27 | SystemEventLogger 接入点矩阵全量落地（OCR/LLM/熔断/认证/上传/DB/安全 7 类事件） | 随 L1 | 含于 T38 | 含于 T38 | 高 |
