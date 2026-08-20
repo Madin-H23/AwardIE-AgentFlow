@@ -37,12 +37,8 @@ def assistant():
     if not capability["ready"]:
         flash(f"AI 助手未就绪：{capability['reason']}。请先安装依赖：pip install -r requirements.txt", "warning")
 
-    # T44 分端：admin 用控制台壳、师生用门户外壳（按身份定体系）
-    tmpl = ('assistant/chat_console.html'
-            if session.get('role') == 'admin'
-            else 'assistant/chat_portal.html')
     return render_template(
-        tmpl,
+        'assistant/chat.html',
         capability=capability,
     )
 

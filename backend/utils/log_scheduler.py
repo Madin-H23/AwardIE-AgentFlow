@@ -90,9 +90,8 @@ def _log_daily_report(db_path):
         rep = daily_report(db_path=db_path)
         SystemEventLogger.log(
             category="system", level="info",
-            message=(f"每日报告: 今日actions={rep.get('action_count', '?')} "
-                     f"错误={rep.get('error_count', '?')} 告警={len(rep.get('alerts', []))}"),
-            source_module="log_scheduler")
+            message=f"每日报告: 今日actions={rep.get('action_count', '?')} "
+                    f"错误={rep.get('error_count', '?')} 告警={len(rep.get('alerts', []))}")
     except Exception as e:
         logger.warning("[log_sched] 每日报告留痕失败: %s", e)
 
