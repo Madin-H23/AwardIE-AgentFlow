@@ -33,15 +33,17 @@
         }
         [data-theme="dark"] .hero-title { color: #f9fafb; }
 
-        /* 深色显式覆盖（兜底：Tailwind dark: 变体在本环境偶发不生效；用 data-theme 祖先显式成对覆盖全门户页亮类） */
-        [data-theme="dark"] .bg-white { background-color: #1f2937; }
-        [data-theme="dark"] .bg-gray-50 { background-color: rgba(55, 65, 81, .55); }
-        [data-theme="dark"] .bg-gray-100 { background-color: #374151; }
-        [data-theme="dark"] .text-gray-900, [data-theme="dark"] .text-gray-800 { color: #f3f4f6; }
-        [data-theme="dark"] .text-gray-700, [data-theme="dark"] .text-gray-600 { color: #d1d5db; }
-        [data-theme="dark"] .text-gray-500 { color: #9ca3af; }
-        [data-theme="dark"] .border-gray-300 { border-color: #4b5563; }
-        [data-theme="dark"] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
+        /* 深色显式覆盖（升格 !important：诊断证实 Tailwind dark: 待 :is() 变体在本环境 cascade 判定失效——三条背景规则命中却仍判白；用 data-theme 祖先 + !important 确定性覆盖全门户亮类，无视特异性必然生效） */
+        [data-theme="dark"] .bg-white, [data-theme="dark"] .bg-white\/90 { background-color: #1f2937 !important; }
+        [data-theme="dark"] .bg-gray-50 { background-color: rgba(55, 65, 81, .55) !important; }
+        [data-theme="dark"] .bg-gray-100, [data-theme="dark"] .bg-gray-200 { background-color: #374151 !important; }
+        [data-theme="dark"] .text-gray-900, [data-theme="dark"] .text-gray-800 { color: #f3f4f6 !important; }
+        [data-theme="dark"] .text-gray-700, [data-theme="dark"] .text-gray-600 { color: #d1d5db !important; }
+        [data-theme="dark"] .text-gray-500, [data-theme="dark"] .text-gray-400 { color: #9ca3af !important; }
+        [data-theme="dark"] .text-blue-600, [data-theme="dark"] .text-blue-500 { color: #60a5fa !important; }
+        [data-theme="dark"] .text-orange-600, [data-theme="dark"] .text-orange-500 { color: #fb923c !important; }
+        [data-theme="dark"] .border-gray-300, [data-theme="dark"] .border-gray-200 { border-color: #4b5563 !important; }
+        [data-theme="dark"] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
         .hero-title {
             font-family: 'Noto Serif SC', serif;
         }
