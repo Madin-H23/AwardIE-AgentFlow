@@ -7,7 +7,7 @@
 <style>
     .settings-section {
         background-color: #fff;
-        border: 1px solid #e8e8e8;
+        border: 1px solid var(--line);
         border-radius: 8px;
         padding: 24px;
         margin-bottom: 24px;
@@ -33,7 +33,7 @@
     }
     .nav-tabs .nav-link {
         border: none;
-        color: #6c757d;
+        color: var(--ink-2);
         font-weight: 500;
         padding: 12px 24px;
         margin-right: 8px;
@@ -42,7 +42,7 @@
     }
     .nav-tabs .nav-link:hover {
         color: var(--brand);
-        background-color: #f0f8ff;
+        background-color: var(--sev-info-bg);
     }
     .nav-tabs .nav-link.active {
         color: var(--brand);
@@ -52,7 +52,7 @@
     }
     .tab-content {
         background-color: #fff;
-        border: 1px solid #e8e8e8;
+        border: 1px solid var(--line);
         border-radius: 0 8px 8px 8px;
         padding: 24px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -64,7 +64,7 @@
     }
     .config-table td {
         padding: 12px;
-        border-bottom: 1px solid #e8e8e8;
+        border-bottom: 1px solid var(--line);
     }
     .config-table tr:last-child td {
         border-bottom: none;
@@ -80,18 +80,18 @@
         user-select: none;
     }
     .config-description {
-        color: #6c757d;
+        color: var(--ink-2);
         font-size: 0.9em;
     }
     .info-box {
-        background-color: #e7f5ff;
+        background-color: var(--sev-info-bg);
         border-left: 4px solid var(--brand);
         padding: 16px;
         margin-bottom: 24px;
         border-radius: 4px;
     }
     .info-box h6 {
-        color: #0056b3;
+        color: var(--brand);
         margin-bottom: 8px;
     }
     .info-box p {
@@ -733,10 +733,10 @@ function showAlert(message, type = 'info') {
                 <div style="font-size: 48px; margin-bottom: 16px;">
                     ${type === 'success' ? '✅' : type === 'danger' ? '❌' : 'ℹ️'}
                 </div>
-                <div style="font-size: 18px; color: #333; margin-bottom: 24px; line-height: 1.5;">
+                <div style="font-size: 18px; color: var(--ink); margin-bottom: 24px; line-height: 1.5;">
                     ${message}
                 </div>
-                <button onclick="closeAlert()" style="background: ${type === 'success' ? '#52c41a' : type === 'danger' ? '#ff4d4f' : 'var(--brand)'}; color: white; border: none; padding: 10px 32px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                <button onclick="closeAlert()" style="background: ${type === 'success' ? 'color-mix(in srgb, var(--ok) 14%var(--sev-error-bg)parent)' : type === 'danger' ? 'var(--sev-error)' : 'var(--brand)'}; color: white; border: none; padding: 10px 32px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s;">
                     确定
                 </button>
             </div>

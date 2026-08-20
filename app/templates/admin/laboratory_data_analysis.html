@@ -290,7 +290,7 @@ class LabCompetitionHeatmap {
             title: {
                 text: '竞赛×实验室 获奖数量',
                 left: 'center',
-                textStyle: { fontSize: 20, fontWeight: 600, color: '#333' }
+                textStyle: { fontSize: 20, fontWeight: 600, color: 'var(--ink)' }
             },
             tooltip: {
                 formatter: params => {
@@ -332,7 +332,7 @@ class LabCompetitionHeatmap {
                 left: 'center',
                 bottom: '0%',
                 const _brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#1677ff';
-                inRange: { color: ['#f7f7f7', _brand, '#003a8c'] },
+                inRange: { color: ['var(--ink-2)', _brand, '#003a8c'] },
                 textStyle: { fontSize: 14 }
             },
             series: [{
@@ -511,14 +511,14 @@ class LaboratoryDataAnalysis {
                 textStyle: {
                     fontSize: 16,
                     fontWeight: 600,
-                    color: '#333'
+                    color: 'var(--ink)'
                 }
             },
             tooltip: {
                 trigger: 'item',
                 formatter: params => {
                     if (params.data[0] === null) {
-                        return `${params.marker} ${params.data[1]}<br/><span style="color: #999;">时间数据未知</span>`;
+                        return `${params.marker} ${params.data[1]}<br/><span style="color: var(--ink-2);">时间数据未知</span>`;
                     }
                     const month = Math.floor(params.data[0]);
                     return `${params.marker} ${params.data[1]}<br/>月份: ${month}月`;
@@ -568,11 +568,11 @@ class LaboratoryDataAnalysis {
                     symbolSize: 14,
                     data: seriesStart,
                     itemStyle: {
-                        color: '#3498db'
+                        color: 'var(--brand)'
                     },
                     emphasis: {
                         itemStyle: {
-                            color: '#2980b9'
+                            color: 'var(--brand)'
                         }
                     }
                 },
@@ -582,11 +582,11 @@ class LaboratoryDataAnalysis {
                     symbolSize: 14,
                     data: seriesMiddle,
                     itemStyle: {
-                        color: '#f39c12'
+                        color: 'var(--sev-warning)'
                     },
                     emphasis: {
                         itemStyle: {
-                            color: '#e67e22'
+                            color: 'var(--sev-warning)'
                         }
                     }
                 },
@@ -596,11 +596,11 @@ class LaboratoryDataAnalysis {
                     symbolSize: 14,
                     data: seriesEnd,
                     itemStyle: {
-                        color: '#27ae60'
+                        color: 'var(--ok)'
                     },
                     emphasis: {
                         itemStyle: {
-                            color: '#229954'
+                            color: 'var(--ok)'
                         }
                     }
                 }
@@ -763,7 +763,7 @@ class LaboratoryDataAnalysis {
                     textStyle: {
                         fontSize: 16,
                         fontWeight: 600,
-                        color: '#333'
+                        color: 'var(--ink)'
                     }
                 },
                 tooltip: {
@@ -796,7 +796,7 @@ class LaboratoryDataAnalysis {
                     type: 'bar',
                     data: data.map(d => d.award_count),
                     itemStyle: {
-                        color: '#3498db'
+                        color: 'var(--brand)'
                     }
                 }]
             };

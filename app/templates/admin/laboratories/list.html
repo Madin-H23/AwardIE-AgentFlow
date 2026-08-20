@@ -26,7 +26,7 @@
     width: 100%;
     height: 200px;
     object-fit: cover;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
 }
 
 .lab-card-body {
@@ -39,13 +39,13 @@
 .lab-card-title {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #212529;
+    color: var(--ink);
     margin-bottom: 1rem;
     line-height: 1.3;
 }
 
 .lab-card-description {
-    color: #6c757d;
+    color: var(--ink-2);
     font-size: 0.95rem;
     margin-bottom: 1rem;
     flex: 1;
@@ -70,12 +70,12 @@
 }
 
 .lab-card-info-label {
-    color: #6c757d;
+    color: var(--ink-2);
 }
 
 .lab-card-info-value {
     font-weight: 600;
-    color: #212529;
+    color: var(--ink);
 }
 
 .instructor-names {
@@ -88,11 +88,11 @@
 .instructor-name {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #007bff;
+    color: var(--brand);
     padding: 0.25rem 0.75rem;
-    background: #e7f3ff;
+    background: var(--sev-info-bg);
     border-radius: 0.5rem;
-    border: 1px solid #b3d9ff;
+    border: 1px solid color-mix(in srgb, var(--sev-info) 22%, transparent);
 }
 
 .lab-card-footer {

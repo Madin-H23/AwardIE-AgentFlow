@@ -23,13 +23,13 @@
 .page-header h1 {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #212529;
+    color: var(--ink);
     margin: 0;
 }
 
 .page-header h1 i {
     margin-right: 0.5rem;
-    color: #007bff;
+    color: var(--brand);
 }
 
 /* 统计信息 */
@@ -56,12 +56,12 @@
 .stat-item .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #212529;
+    color: var(--ink);
 }
 
 .stat-item .stat-label {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--ink-2);
 }
 
 /* 竞赛卡片网格 */
@@ -89,13 +89,13 @@
 .competition-card-header {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
-    background: #fafbfc;
+    background: var(--sev-info-bg);
 }
 
 .competition-card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #212529;
+    color: var(--ink);
     margin: 0 0 0.5rem 0;
     line-height: 1.4;
 }
@@ -106,7 +106,7 @@
 }
 
 .competition-card-title a:hover {
-    color: #007bff;
+    color: var(--brand);
 }
 
 .competition-badges {
@@ -116,8 +116,8 @@
 }
 
 .badge-whitelist {
-    background: #d4edda;
-    color: #155724;
+    background: color-mix(in srgb, var(--ok) 14%, transparent);
+    color: color-mix(in srgb, var(--ok) 22%, transparent);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.75rem;
@@ -125,8 +125,8 @@
 }
 
 .badge-watchlist {
-    background: #fff3cd;
-    color: #856404;
+    background: var(--sev-warning-bg);
+    color: var(--sev-warning);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.75rem;
@@ -134,7 +134,7 @@
 }
 
 .badge-grade {
-    background: #e7f1ff;
+    background: var(--sev-info-bg);
     color: var(--brand);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
@@ -164,26 +164,26 @@
 }
 
 .competition-stat-value.total {
-    color: #007bff;
+    color: var(--brand);
 }
 
 .competition-stat-value.national {
-    color: #dc3545;
+    color: var(--sev-error);
 }
 
 .competition-stat-value.provincial {
-    color: #fd7e14;
+    color: var(--sev-warning);
 }
 
 .competition-stat-label {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--ink-2);
     margin-top: 0.25rem;
 }
 
 .competition-card-footer {
     padding: 0.75rem 1.25rem;
-    background: #fafbfc;
+    background: var(--sev-info-bg);
     border-top: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
@@ -192,11 +192,11 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--ink-2);
 }
 
 .competition-website a {
-    color: #007bff;
+    color: var(--brand);
     text-decoration: none;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -209,7 +209,7 @@
 }
 
 .competition-website .no-website {
-    color: #adb5bd;
+    color: var(--ink-2);
     font-style: italic;
 }
 
@@ -217,7 +217,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    color: #6c757d;
+    color: var(--ink-2);
 }
 
 .empty-state-icon {

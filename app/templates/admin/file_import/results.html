@@ -48,29 +48,29 @@
         border-bottom: 2px solid transparent;
     }
     .sub-tabs .nav-link.active {
-        border-bottom-color: #003366;
+        border-bottom-color: var(--brand);
         background-color: transparent;
-        color: #003366;
+        color: var(--brand);
     }
 
     /* 待处理标题 */
     .pending-title {
         padding: 0.5rem 1rem;
-        background-color: #f6ffed;
-        border-left: 4px solid #52c41a;
+        background-color: color-mix(in srgb, var(--ok) 14%, transparent);
+        border-left: 4px solid color-mix(in srgb, var(--ok) 22%, transparent);
         border-radius: 6px;
         margin-bottom: 0;
     }
     .pending-title h3 {
         margin: 0;
         font-size: 1rem;
-        color: #262626;
+        color: var(--ink);
     }
 
     /* 按钮栏 */
     .button-bar {
         padding: 0.5rem 1rem;
-        background-color: #fafafa;
+        background-color: color-mix(in srgb, var(--ink) 4%, transparent);
         border-radius: 6px;
         margin-bottom: 0;
     }
@@ -101,7 +101,7 @@
     .compact-toolbar .badge-count {
         font-size: 0.875rem;
         padding: 0.25rem 0.5rem;
-        background-color: #52c41a;
+        background-color: color-mix(in srgb, var(--ok) 14%, transparent);
         color: white;
         border-radius: 4px;
     }
@@ -111,7 +111,7 @@
     }
     .compact-toolbar .current-index {
         font-size: 0.875rem;
-        color: #6c757d;
+        color: var(--ink-2);
         white-space: nowrap;
     }
 
@@ -149,9 +149,9 @@
     .content-placeholder {
         text-align: center;
         padding: 5rem 2rem;
-        background-color: #fafafa;
+        background-color: color-mix(in srgb, var(--ink) 4%, transparent);
         border-radius: 8px;
-        color: #8c8c8c;
+        color: var(--ink-2);
     }
     .content-placeholder i {
         font-size: 4rem;
@@ -199,7 +199,7 @@
 
     /* 学生建议列表样式 */
     #student_suggestions {
-        border: 1px solid #ddd;
+        border: 1px solid var(--line);
         border-radius: 4px;
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -234,24 +234,24 @@
     }
     .field-error .form-control,
     .field-error .form-select {
-        border-color: #ff4d4f;
-        background-color: #fff2f0;
+        border-color: color-mix(in srgb, var(--sev-error) 22%, transparent);
+        background-color: var(--sev-error-bg);
     }
     .field-error .form-control:focus,
     .field-error .form-select:focus {
-        border-color: #ff4d4f;
+        border-color: color-mix(in srgb, var(--sev-error) 22%, transparent);
         box-shadow: 0 0 0 0.2rem rgba(255, 77, 79, 0.25);
     }
     .field-error-icon {
         position: absolute;
         right: 10px;
         top: 32px;
-        color: #ff4d4f;
+        color: var(--sev-error);
         font-size: 16px;
         pointer-events: none;
     }
     .field-error-message {
-        color: #ff4d4f;
+        color: var(--sev-error);
         font-size: 0.75rem;
         margin-top: 0.25rem;
         display: flex;
@@ -263,14 +263,14 @@
     }
     .validation-alert {
         padding: 1rem 1.5rem;
-        background-color: #fff7e6;
-        border-left: 4px solid #faad14;
+        background-color: var(--sev-warning-bg);
+        border-left: 4px solid color-mix(in srgb, var(--sev-warning) 22%, transparent);
         border-radius: 8px;
         margin-bottom: 1.5rem;
     }
     .validation-alert h5 {
         margin: 0 0 0.5rem 0;
-        color: #d46b08;
+        color: var(--sev-warning);
         font-size: 1rem;
         display: flex;
         align-items: center;
@@ -279,7 +279,7 @@
     .validation-alert ul {
         margin: 0;
         padding-left: 1.5rem;
-        color: #873800;
+        color: var(--sev-warning);
     }
     .validation-alert li {
         margin-bottom: 0.25rem;
@@ -542,30 +542,30 @@
 
     <!-- AI 智能复核（Agent 语义+知识库交叉校验，仅奖状且有结果时展示） -->
     {% if agent_review and tab_type == 'award' %}
-    <div style="background:linear-gradient(135deg,#f5f8ff 0%,#f9f0ff 100%);border:1px solid #e6e6f5;border-radius:8px;padding:.75rem 1rem;margin-top:.5rem;">
-        <div style="font-size:.8rem;font-weight:700;color:#531dab;margin-bottom:.4rem;">🤖 AI 智能复核</div>
+    <div style="background:linear-gradient(135deg, color-mix(in srgb, var(--ai) 8%, var(--panel)) 0%, color-mix(in srgb, var(--ai) 12%, var(--panel)) 100%);border:1px solid var(--line);border-radius:8px;padding:.75rem 1rem;margin-top:.5rem;">
+        <div style="font-size:.8rem;font-weight:700;color:var(--ai);margin-bottom:.4rem;">🤖 AI 智能复核</div>
         {% if agent_review.decision == 'pass' %}
-        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;">✓ 审核通过</span>
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:color-mix(in scolor-mix(in srgb, var(--color-mix(in srgb, var(--ok) 22%, transparent), transparent)r(--ok) 14%, transparent);color:var(--ok);border:1px solid color-mix(in srgb, var(--ok) 22%, transparent);">✓ 审核通过</span>
         {% elif agent_review.decision == 'reject' %}
-        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#fff2f0;color:#cf1322;border:1px solid #ffccc7;">✗ 不通过</span>
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:var(--sev-errovar(--sev-error-bg)olor:#color-mix(in srgb, var(--sev-error) 22%, transparent)border:1px solid color-mix(in srgb, var(--sev-error) 22%, transparent);">✗ 不通过</span>
         {% else %}
-        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:#fffbe6;color:#d48806;border:1px solid #ffe58f;">⚠ 需人工复核</span>
+        <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:16px;font-weight:600;font-size:.88rem;background:var(--sev-warnvar(--sev-warning-bg);colcolor-mix(in srgb, var(--sev-warning) 22%, transparent)806;border:1px solid color-mix(in srgb, var(--sev-warning) 22%, transparent);">⚠ 需人工复核</span>
         {% endif %}
         {% if agent_review.issues %}
         <ul style="list-style:none;padding:0;margin:.5rem 0 0;">
             {% for issue in agent_review.issues %}
-            <li style="padding:.35rem .5rem;margin:.25rem 0;background:#fff;border-radius:5px;font-size:.82rem;border-left:3px solid {% if issue.severity == 'high' %}#ff4d4f{% elif issue.severity == 'medium' %}#faad14{% else %}#d9d9d9{% endif %};">
+            <li style="padding:.35rem .5rem;margin:.25rem 0;background:var(--panel);border-radius:5px;font-size:.82rem;border-left:3px solid {% if issue.severity == 'high' %}var(--sev-error){% elif issue.severity == 'medium' %}var(--sev-warning){% else %}var(--line){% endif %};">
                 {% if issue.field %}<b>{{ issue.field }}</b>: {% endif %}{{ issue.issue }}
-                <span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.7rem;font-weight:600;margin-left:.3rem;background:{% if issue.severity == 'high' %}#fff2f0;color:#cf1322{% elif issue.severity == 'medium' %}#fff7e6;color:#d46b08{% elif issue.severity == 'low' %}#e6f7ff;color:#096dd9{% else %}#f5f5f5;color:#8c8c8c{% endif %};">{{ issue.severity }}</span>
+                <span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.7rem;font-weight:600;margin-left:.3rem;background:{% if issue.severity == 'high' %}var(--sev-error-bg);color:var(--sev-error){% elif issue.severity == 'medium' %}var(--sev-warning-bg);color:var(--sev-warning){% elif issue.severity == 'low' %}var(--sev-info-bg);color:var(--sev-info){% else %}color-mix(in srgb, var(--ink) 4%, transparent);color:var(--ink-2){% endif %};">{{ issue.severity }}</span>
             </li>
             {% endfor %}
         </ul>
         {% endif %}
         {% if agent_review.suggestion %}
-        <div style="margin-top:.5rem;padding:.45rem .65rem;background:#e6f7ff;border:1px solid #91d5ff;border-radius:5px;font-size:.82rem;color:#096dd9;">💡 {{ agent_review.suggestion }}</div>
+        <div style="margin-top:.5rem;padding:.45rem .65rem;background:var(--sev-info-bg);border:1px solid color-mix(in srgb, var(--sev-info) 22%, transparent);border-radius:5px;font-size:.82rem;color:var(--sev-info);">💡 {{ agent_review.suggestion }}</div>
         {% endif %}
         {% if agent_review.rag_reference and agent_review.rag_reference.matched_name %}
-        <div style="margin-top:.4rem;font-size:.78rem;color:#8c8c8c;">📚 知识库匹配：{{ agent_review.rag_reference.matched_name }}{% if agent_review.rag_reference.level %} · {{ agent_review.rag_reference.level }}{% endif %}{% if agent_review.rag_reference.category %} · {{ agent_review.rag_reference.category }}类赛事{% endif %}</div>
+        <div style="margin-top:.4rem;font-size:.78rem;color:var(--ink-2);">📚 知识库匹配：{{ agent_review.rag_reference.matched_name }}{% if agent_review.rag_reference.level %} · {{ agent_review.rag_reference.level }}{% endif %}{% if agent_review.rag_reference.category %} · {{ agent_review.rag_reference.category }}类赛事{% endif %}</div>
         {% endif %}
     </div>
     {% endif %}
@@ -600,7 +600,7 @@
                                         <img src="{{ file_url }}"
                                              alt="奖状图片"
                                              class="img-fluid rounded"
-                                             style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+                                             style="max-height: 300px; cursor: pointer; border: 1px solid var(--line);"
                                              onclick="window.open(this.src, '_blank')"
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                         <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
@@ -615,7 +615,7 @@
                                         <img src="{{ pdf_img_url }}"
                                              alt="奖状图片"
                                              class="img-fluid rounded"
-                                             style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+                                             style="max-height: 300px; cursor: pointer; border: 1px solid var(--line);"
                                              onclick="window.open(this.src, '_blank')"
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                         <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
@@ -1098,7 +1098,7 @@
                                             <img src="{{ file_url }}"
                                                  alt="专利文件预览"
                                                  class="img-fluid rounded"
-                                                 style="max-height: 400px; cursor: pointer; border: 1px solid #ddd;"
+                                                 style="max-height: 400px; cursor: pointer; border: 1px solid var(--line);"
                                                  onclick="window.open(this.src, '_blank')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                             <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
@@ -1108,7 +1108,7 @@
                                         {% endif %}
                                     {% elif file_ext == 'pdf' %}
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: var(--sev-error);"></i>
                                             <p class="mt-3 mb-2 fw-bold">PDF 文件</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                             {% if file_url %}
@@ -1122,7 +1122,7 @@
                                         </div>
                                     {% else %}
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: #6c757d;"></i>
+                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: var(--ink-2);"></i>
                                             <p class="mt-3 mb-2">文件类型: {{ file_ext }}</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                         </div>
@@ -1319,7 +1319,7 @@
                                             <img src="{{ file_url }}"
                                                  alt="软著证书预览"
                                                  class="img-fluid rounded"
-                                                 style="max-height: 400px; cursor: pointer; border: 1px solid #ddd;"
+                                                 style="max-height: 400px; cursor: pointer; border: 1px solid var(--line);"
                                                  onclick="window.open(this.src, '_blank')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                             <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
@@ -1329,7 +1329,7 @@
                                         {% endif %}
                                     {% elif file_ext == 'pdf' %}
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: var(--sev-error);"></i>
                                             <p class="mt-3 mb-2 fw-bold">PDF 文件</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                             {% if file_url %}
@@ -1343,7 +1343,7 @@
                                         </div>
                                     {% else %}
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: #6c757d;"></i>
+                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: var(--ink-2);"></i>
                                             <p class="mt-3 mb-2">文件类型: {{ file_ext }}</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                         </div>
@@ -1541,7 +1541,7 @@
                                             <img src="{{ file_url }}"
                                                  alt="文件预览"
                                                  class="img-fluid rounded"
-                                                 style="max-height: 300px; cursor: pointer; border: 1px solid #ddd;"
+                                                 style="max-height: 300px; cursor: pointer; border: 1px solid var(--line);"
                                                  onclick="window.open(this.src, '_blank')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                             <p class="text-muted mt-2 small" style="display: none;">图片加载失败</p>
@@ -1552,7 +1552,7 @@
                                     {% elif file_ext in ['xlsx', 'xls'] %}
                                         <!-- Excel 文件：显示图标和下载链接 -->
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark-excel" style="font-size: 4rem; color: #217346;"></i>
+                                            <i class="bi bi-file-earmark-excel" style="font-size: 4rem; color: var(--ok);"></i>
                                             <p class="mt-3 mb-2 fw-bold">Excel 文件</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                             {% if file_url %}
@@ -1568,7 +1568,7 @@
                                     {% elif file_ext == 'pdf' %}
                                         <!-- PDF 文件 -->
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                                            <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: var(--sev-error);"></i>
                                             <p class="mt-3 mb-2 fw-bold">PDF 文件</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                             {% if file_url %}
@@ -1583,7 +1583,7 @@
                                     {% else %}
                                         <!-- 其他文件类型 -->
                                         <div class="py-4">
-                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: #6c757d;"></i>
+                                            <i class="bi bi-file-earmark" style="font-size: 4rem; color: var(--ink-2);"></i>
                                             <p class="mt-3 mb-2">文件类型: {{ file_ext }}</p>
                                             <p class="text-muted small mb-3">{{ file_name }}</p>
                                             {% if file_url %}
@@ -2120,14 +2120,14 @@
                                     <img src="{{ file_url }}"
                                          alt="图片预览"
                                          class="img-fluid rounded"
-                                         style="max-height: 400px; cursor: pointer; border: 1px solid #ddd;"
+                                         style="max-height: 400px; cursor: pointer; border: 1px solid var(--line);"
                                          onclick="window.open(this.src, '_blank')">
                                     <p class="text-muted mt-2 small">点击查看大图</p>
                                 {% elif file_path %}
                                     {% set file_ext = file_path.split('.')[-1].lower() if '.' in file_path else '' %}
                                     {% if file_ext == 'pdf' %}
                                     <div class="py-4">
-                                        <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                                        <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: var(--sev-error);"></i>
                                         <p class="mt-3 mb-2 fw-bold">PDF 文件</p>
                                         <p class="text-muted small mb-3">{{ other_data.file_name or file_path.split('/')[-1] }}</p>
                                         {% if file_url %}
@@ -2141,7 +2141,7 @@
                                     </div>
                                     {% else %}
                                     <div class="py-4">
-                                        <i class="bi bi-file-earmark" style="font-size: 4rem; color: #6c757d;"></i>
+                                        <i class="bi bi-file-earmark" style="font-size: 4rem; color: var(--ink-2);"></i>
                                         <p class="mt-3 mb-2">文件类型: {{ file_ext }}</p>
                                         <p class="text-muted small mb-3">{{ other_data.file_name or file_path.split('/')[-1] }}</p>
                                         {% if file_url %}
@@ -2711,7 +2711,7 @@ function showTimeline(kind, entityId) {
             body.innerHTML = '<div class="timeline-vert">' + data.timeline.map(t => `
                 <div class="d-flex mb-3">
                   <div class="flex-shrink-0 me-3 text-center" style="width:64px">
-                    <span class="badge ${t.is_ai ? 'bg-purple' : (ROLE_STYLE[t.operator_role] || 'bg-secondary')}" style="background:${t.is_ai ? '#7c3aed' : ''}">
+                    <span class="badge ${t.is_ai ? 'bg-purple' : (ROLE_STYLE[t.operator_role] || 'bg-secondary')}" style="background:${t.is_ai ? 'color-mix(in srgb, var(--brand) 12%, transparent)' : ''}">
                       ${t.is_ai ? '🤖 AI' : t.operator_role}</span>
                   </div>
                   <div class="border-start ps-3 w-100">

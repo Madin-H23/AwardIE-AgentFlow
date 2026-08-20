@@ -24,6 +24,7 @@
   --sb-line: #eef0f3;
   --sb-foot: #f7f8fa;
   --ok: #0f766e;
+  --ai: #7222d1;               /* AI 标记紫（审核 agent 标注） */
   /* severity 五级阶（亮） */
   --sev-debug: #94a3b8;
   --sev-info: #2563eb;      --sev-info-bg: #eff6ff;
@@ -45,6 +46,7 @@
   --sb-muted-strong: rgba(255, 255, 255, .78);
   --sb-line: rgba(255, 255, 255, .1);
   --sb-foot: #141414;
+  --ai: #a78bfa;               /* AI 标记紫（暗色提亮） */
   --sev-info: #60a5fa;      --sev-info-bg: rgba(37, 99, 235, .15);
   --sev-warning: #fbbf24;   --sev-warning-bg: rgba(217, 119, 6, .15);
   --sev-error: #f87171;     --sev-error-bg: rgba(220, 38, 38, .15);
