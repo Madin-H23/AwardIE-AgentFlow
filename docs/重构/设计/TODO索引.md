@@ -111,7 +111,7 @@
 | # | 事项 | 依赖 | 产出 | 预计用例 | 触发/时点 |
 | --- | --- | --- | --- | --- | --- |
 | T38 | ~~L1 数据层~~ **已完成（2026-08-20，`cc91a8a`）**：迁移 0006 + ORM 模型 + SystemEventLogger（PII 脱敏/不阻塞/from_exception）+ 接入点 4/8 类（breaker/errorhandler/auth 锁定/启动；ocr 属冻结模块经调用方包装、llm/upload/db 留 L2+）+ conftest 全局隔离 + 15 单测（335 全绿） | 无 | migrations/0006 + backend/orm/system_event_log.py + backend/utils/system_event_logger.py | ✅15 | ~~高~~ ✅ |
-| T39 | L2 查询层：LogQueryService（四源统一查询）+ LogFileReader + MetricsSnapshot + trace_id 补齐（即 T26：TraceIdFilter + before_request + 解析正则） | L1 | backend/services/log_query_service.py 等 3 个 | ~15 | 高 |
+| T39 | ~~L2 查询层~~ **已完成（2026-08-20，`8e16f09`）**：LogQueryService（audit/system/review 三源 + 跨源合并）+ LogFileReader（tail/search/stream + tid 解析，旧格式兼容）+ MetricsSnapshot（collect/archive）+ trace_id 补齐（T26 同步闭环：before_request + TraceIdFilter，**修复 `app._current_trace_id` 从未赋值、响应恒 None 的存量缺陷**）+ 12 单测（347 全绿） | L1 | backend/services/log_query_service.py 等 3 个 | ✅12 | ~~高~~ ✅ |
 | T40 | L3 分析层：LogAnalyzer（聚合/趋势/瓶颈）+ AlertEngine（6 条阈值规则）+ PlanGenerator（行动建议） | L2 | backend/services/log_analyzer.py 等 3 个 | ~18 | 高 |
 | T41 | L4 路由层：admin_log 蓝图 18 接口 + SSE handler（订阅过滤/自动重连） | L2+L3 | app/routes/admin_log.py | ~10 | 高 |
 | T42 | L5 前端：3 Tab 页面（日志查看/分析看板 6 图表/行动计划）+ ECharts + log_stream.js + 侧边栏导航 | L4 | app/templates/admin/logs/ 4 个模板 + 2 个 JS | GUI 冒烟 | 中 |
