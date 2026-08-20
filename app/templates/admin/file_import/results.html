@@ -396,7 +396,7 @@
                 <a class="nav-link {{ 'active' if status == 'valid' else '' }}"
                    href="{% if session_id %}{% if route_prefix == 'teacher' %}{{ url_for('teacher.achievement_submit_results', session_id=session_id, tab=tab_type, sub_tab='valid') }}{% elif route_prefix == 'student' %}{{ url_for('student.achievement_submit_results', session_id=session_id, tab=tab_type, sub_tab='valid') }}{% else %}{{ url_for('admin_achievement.file_import_results', session_id=session_id, tab=tab_type, sub_tab='valid') }}{% endif %}{% else %}{% if route_prefix == 'teacher_review' %}{{ url_for('teacher.achievement_review_single', type=tab_type, sub_tab='valid', index=0) }}{% else %}{{ url_for('admin_review.review_single_global', type=tab_type, sub_tab='valid', index=0) }}{% endif %}{% endif %}">
                     <i class="bi bi-check-circle"></i> 识别成功
-                    <span class="badge bg-success ms-1">{{ current_stats.get('valid', 0) }}</span>
+                    <span class="sev-chip sev-ok ms-1">{{ current_stats.get('valid', 0) }}</span>
                 </a>
             </li>
             {% endif %}
@@ -405,7 +405,7 @@
                 <a class="nav-link {{ 'active' if status == 'invalid' else '' }}"
                    href="{% if session_id %}{% if route_prefix == 'teacher' %}{{ url_for('teacher.achievement_submit_results', session_id=session_id, tab=tab_type, sub_tab='invalid') }}{% elif route_prefix == 'student' %}{{ url_for('student.achievement_submit_results', session_id=session_id, tab=tab_type, sub_tab='invalid') }}{% else %}{{ url_for('admin_achievement.file_import_results', session_id=session_id, tab=tab_type, sub_tab='invalid') }}{% endif %}{% else %}{% if route_prefix == 'teacher_review' %}{{ url_for('teacher.achievement_review_single', type=tab_type, sub_tab='invalid', index=0) }}{% else %}{{ url_for('admin_review.review_single_global', type=tab_type, sub_tab='invalid', index=0) }}{% endif %}{% endif %}">
                     <i class="bi bi-exclamation-triangle"></i> 待修订
-                    <span class="badge bg-warning text-dark ms-1">{{ current_stats.get('invalid', 0) }}</span>
+                    <span class="sev-chip sev-warning ms-1">{{ current_stats.get('invalid', 0) }}</span>
                 </a>
             </li>
             {% endif %}
@@ -645,7 +645,7 @@
                                     </span>
                                     <!-- 待修订标签（验证未通过时显示） -->
                                     {% if not is_valid %}
-                                    <span class="badge bg-danger fw-bold mt-2" style="font-size: 0.875rem;">
+                                    <span class="sev-chip sev-danger fw-bold mt-2" style="font-size: 0.875rem;">
                                         <i class="bi bi-exclamation-triangle"></i> 待修订
                                     </span>
                                     {% endif %}

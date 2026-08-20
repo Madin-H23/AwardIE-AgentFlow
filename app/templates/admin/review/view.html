@@ -39,13 +39,13 @@
                     <dt class="col-sm-3">成果类型</dt>
                     <dd class="col-sm-9">
                         {% if pending.achievement_type == 'award' %}
-                        <span class="badge bg-primary">奖状</span>
+                        <span class="sev-chip sev-info">奖状</span>
                         {% elif pending.achievement_type == 'patent' %}
-                        <span class="badge bg-info">专利</span>
+                        <span class="sev-chip sev-warning">专利</span>
                         {% elif pending.achievement_type == 'software' %}
-                        <span class="badge bg-success">软著</span>
+                        <span class="sev-chip sev-ok">软著</span>
                         {% elif pending.achievement_type == 'innovation' %}
-                        <span class="badge bg-warning">大创</span>
+                        <span class="sev-chip sev-critical">大创</span>
                         {% endif %}
                     </dd>
 
@@ -64,11 +64,13 @@
                     <dt class="col-sm-3">当前状态</dt>
                     <dd class="col-sm-9">
                         {% if pending.status == 'pending' %}
-                        <span class="badge bg-warning">待审核</span>
+                        <span class="sev-chip sev-warning">待审核</span>
                         {% elif pending.status == 'approved' %}
-                        <span class="badge bg-success">已通过</span>
+                        <span class="sev-chip sev-ok">已通过</span>
                         {% elif pending.status == 'rejected' %}
-                        <span class="badge bg-danger">已拒绝</span>
+                        <span class="sev-chip sev-danger">已拒绝</span>
+                        {% else %}
+                        <span class="sev-chip sev-critical">{{ pending.status }}</span>
                         {% endif %}
                     </dd>
                 </dl>
@@ -197,11 +199,6 @@
 </div>
 
 <style>
-    .card {
-        border: none;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-radius: 8px;
-    }
     pre {
         font-size: 0.875rem;
         max-height: 400px;

@@ -46,30 +46,27 @@
 
 <!-- 筛选卡片 -->
 <div class="c-panel mb-4">
+    <div class="panel-head"><span>筛选条件</span></div>
     <div class="p-3">
-        <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">审核状态</label>
-                <select name="status" class="form-select">
-                    <option value="pending" {% if filter_obj.status == 'pending' %}selected{% endif %}>待审核</option>
-                    <option value="approved" {% if filter_obj.status == 'approved' %}selected{% endif %}>已通过</option>
-                    <option value="rejected" {% if filter_obj.status == 'rejected' %}selected{% endif %}>已拒绝</option>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">成果类型</label>
-                <select name="achievement_type" class="form-select">
-                    <option value="">全部</option>
-                    <option value="award" {% if filter_obj.achievement_type == 'award' %}selected{% endif %}>奖状</option>
-                    <option value="patent" {% if filter_obj.achievement_type == 'patent' %}selected{% endif %}>专利</option>
-                    <option value="software" {% if filter_obj.achievement_type == 'software' %}selected{% endif %}>软著</option>
-                    <option value="innovation" {% if filter_obj.achievement_type == 'innovation' %}selected{% endif %}>大创</option>
-                </select>
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="c-btn c-btn-primary me-2">筛选</button>
+        <form method="get" class="filter-bar">
+            <span class="text-muted" style="font-size:.82rem">审核状态</span>
+            <select name="status">
+                <option value="pending" {% if filter_obj.status == 'pending' %}selected{% endif %}>待审核</option>
+                <option value="approved" {% if filter_obj.status == 'approved' %}selected{% endif %}>已通过</option>
+                <option value="rejected" {% if filter_obj.status == 'rejected' %}selected{% endif %}>已拒绝</option>
+            </select>
+            <span class="text-muted" style="font-size:.82rem">成果类型</span>
+            <select name="achievement_type">
+                <option value="">全部</option>
+                <option value="award" {% if filter_obj.achievement_type == 'award' %}selected{% endif %}>奖状</option>
+                <option value="patent" {% if filter_obj.achievement_type == 'patent' %}selected{% endif %}>专利</option>
+                <option value="software" {% if filter_obj.achievement_type == 'software' %}selected{% endif %}>软著</option>
+                <option value="innovation" {% if filter_obj.achievement_type == 'innovation' %}selected{% endif %}>大创</option>
+            </select>
+            <span class="ms-auto d-flex gap-2">
+                <button type="submit" class="c-btn c-btn-primary">筛选</button>
                 <a href="{{ url_for('admin_review.review_list') }}" class="c-btn">重置</a>
-            </div>
+            </span>
         </form>
     </div>
 </div>
@@ -97,13 +94,13 @@
                         <td>{{ pending.id }}</td>
                         <td>
                             {% if pending.achievement_type == 'award' %}
-                            <span class="badge bg-primary">奖状</span>
+                            <span class="sev-chip sev-info">奖状</span>
                             {% elif pending.achievement_type == 'patent' %}
-                            <span class="badge bg-info">专利</span>
+                            <span class="sev-chip sev-warning">专利</span>
                             {% elif pending.achievement_type == 'software' %}
-                            <span class="badge bg-success">软著</span>
+                            <span class="sev-chip sev-ok">软著</span>
                             {% elif pending.achievement_type == 'innovation' %}
-                            <span class="badge bg-warning">大创</span>
+                            <span class="sev-chip sev-critical">大创</span>
                             {% endif %}
                         </td>
                         <td>
@@ -113,11 +110,13 @@
                         <td>{{ pending.submit_time or '-' }}</td>
                         <td>
                             {% if pending.status == 'pending' %}
-                            <span class="badge bg-warning">待审核</span>
+                            <span class="sev-chip sev-warning">待审核</span>
                             {% elif pending.status == 'approved' %}
-                            <span class="badge bg-success">已通过</span>
+                            <span class="sev-chip sev-ok">已通过</span>
                             {% elif pending.status == 'rejected' %}
-                            <span class="badge bg-danger">已拒绝</span>
+                            <span class="sev-chip sev-danger">已拒绝</span>
+                            {% else %}
+                            <span class="sev-chip sev-critical">{{ pending.status }}</span>
                             {% endif %}
                         </td>
                         <td>{{ pending.review_time or '-' }}</td>
@@ -162,12 +161,4 @@
         {% endif %}
     </div>
 </div>
-
-<style>
-    .card {
-        border: none;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-radius: 8px;
-    }
-</style>
 {% endblock %}

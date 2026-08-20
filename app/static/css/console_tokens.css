@@ -203,6 +203,8 @@
 .console-shell .sev-chip.sev-warning  { background: var(--sev-warning-bg); color: var(--sev-warning); }
 .console-shell .sev-chip.sev-error    { background: var(--sev-error-bg); color: var(--sev-error); }
 .console-shell .sev-chip.sev-critical { background: var(--sev-critical-bg); color: var(--sev-critical); }
+/* 成功态 chip（approved 用；--ok 两态同为 teal，无需 dark 覆盖） */
+.console-shell .sev-chip.sev-ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
 
 /* ---------- 日志流（行式，等宽，悬停高亮，选中左边条） ---------- */
 .console-shell .log-stream { font-size: .8rem; }
