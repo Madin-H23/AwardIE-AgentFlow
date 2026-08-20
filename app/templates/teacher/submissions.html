@@ -134,7 +134,7 @@
                 <h1 class="hero-title text-3xl font-bold gradient-text mb-2">
                     成果提交
                 </h1>
-                <p class="text-gray-600">提交您的成果文件并查看提交记录</p>
+                <p class="text-gray-600 dark:text-gray-300">提交您的成果文件并查看提交记录</p>
             </div>
             <div>
                 <a href="{{ url_for('teacher.achievement_review_list') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
@@ -147,9 +147,9 @@
         </div>
 
         <!-- 文件导入卡片 -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">文件导入</h2>
-            <p class="text-sm text-gray-600 mb-4">支持自动导入和手动导入两种方式</p>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">文件导入</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">支持自动导入和手动导入两种方式</p>
             
             <!-- 模式切换选项卡 -->
             <div class="border-b border-gray-200 mb-4">
@@ -157,7 +157,7 @@
                     <button id="autoModeTab" class="py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
                         自动导入
                     </button>
-                    <button id="manualModeTab" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <button id="manualModeTab" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700">
                         手动导入
                     </button>
                 </nav>
@@ -182,7 +182,7 @@
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="uploadZone">
                             <div class="text-4xl mb-4">📁</div>
                             <p class="text-gray-700 mb-2">点击或拖拽文件到此处上传</p>
-                            <p class="text-sm text-gray-500">支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">支持格式：PDF、JPG、PNG（奖状、证书）、Excel（大创项目）</p>
                             <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" class="hidden">
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="directoryZone">
                             <div class="text-4xl mb-4">📂</div>
                             <p class="text-gray-700 mb-2">点击选择要扫描的目录</p>
-                            <p class="text-sm text-gray-500">系统会自动扫描该目录及其所有子目录中的文件</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">系统会自动扫描该目录及其所有子目录中的文件</p>
                             <input type="file" id="directoryInput" webkitdirectory directory multiple class="hidden">
                         </div>
                     </div>
@@ -204,7 +204,7 @@
                     </div>
 
                     <!-- 缓存选项 -->
-                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <h6 class="font-medium mb-3">缓存设置</h6>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="flex items-center">
@@ -219,21 +219,21 @@
                     </div>
 
                     <!-- 实验室关联设置 -->
-                    <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200">
                         <h6 class="font-medium mb-3">实验室关联设置</h6>
                         <div class="space-y-3">
                             <label class="flex items-start">
                                 <input type="radio" name="labAssociationMode" id="labModeAuto" value="auto" checked class="mt-1 mr-2">
                                 <div>
                                     <span class="text-sm font-medium">自动关联（按第一导师）</span>
-                                    <p class="text-xs text-gray-500 mt-0.5">根据奖状中的第一指导教师自动关联到其所属实验室</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">根据奖状中的第一指导教师自动关联到其所属实验室</p>
                                 </div>
                             </label>
                             <label class="flex items-start">
                                 <input type="radio" name="labAssociationMode" id="labModeSpecific" value="specific" class="mt-1 mr-2">
                                 <div>
                                     <span class="text-sm font-medium">指定实验室</span>
-                                    <p class="text-xs text-gray-500 mt-0.5">为本批次所有成果指定同一个实验室</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">为本批次所有成果指定同一个实验室</p>
                                 </div>
                             </label>
                             <div id="specificLaboratorySelect" class="ml-6 mt-2 hidden">
@@ -245,7 +245,7 @@
                                 <input type="radio" name="labAssociationMode" id="labModeNone" value="none" class="mt-1 mr-2">
                                 <div>
                                     <span class="text-sm font-medium">不关联</span>
-                                    <p class="text-xs text-gray-500 mt-0.5">不关联实验室，保持为空</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">不关联实验室，保持为空</p>
                                 </div>
                             </label>
                         </div>
@@ -285,21 +285,21 @@
         <!-- 统计卡片：基于全部提交记录（all_submissions），列表仅展示最近 10 条（submissions） -->
         {% set _all = all_submissions|default([]) %}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
-                <h4 class="text-2xl font-bold text-gray-800">{{ _all|length }}</h4>
-                <p class="text-sm text-gray-600">全部提交</p>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
+                <h4 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ _all|length }}</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-300">全部提交</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-yellow-600">{{ _all|selectattr('status', 'equalto', 'pending')|list|length }}</h4>
-                <p class="text-sm text-gray-600">待审核</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">待审核</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-green-600">{{ _all|selectattr('status', 'equalto', 'approved')|list|length }}</h4>
-                <p class="text-sm text-gray-600">已通过</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">已通过</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-4 card-hover text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 card-hover text-center">
                 <h4 class="text-2xl font-bold text-red-600">{{ _all|selectattr('status', 'equalto', 'rejected')|list|length }}</h4>
-                <p class="text-sm text-gray-600">已拒绝</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">已拒绝</p>
             </div>
         </div>
     </div>
@@ -390,7 +390,7 @@
             uploadBtn.disabled = false;
             const displayName = (f) => (currentMode === 'directory' && f.webkitRelativePath) ? f.webkitRelativePath : f.name;
             fileItems.innerHTML = selectedFiles.map((f, i) =>
-                '<div class="flex items-center justify-between p-2 bg-gray-50 rounded"><span class="text-sm text-gray-700 truncate">' +
+                '<div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded"><span class="text-sm text-gray-700 truncate">' +
                 escapeHtml(displayName(f)) + '</span><button type="button" onclick="window.removeFileAchievement(' + i + ')" class="text-red-600 hover:text-red-700">×</button></div>'
             ).join('');
         }
@@ -425,8 +425,8 @@
         if (autoModeTab) {
             autoModeTab.addEventListener('click', function() {
                 autoModeTab.classList.add('border-blue-500', 'text-blue-600');
-                autoModeTab.classList.remove('border-transparent', 'text-gray-500');
-                if (manualModeTab) { manualModeTab.classList.remove('border-blue-500', 'text-blue-600'); manualModeTab.classList.add('border-transparent', 'text-gray-500'); }
+                autoModeTab.classList.remove('border-transparent', 'text-gray-500 dark:text-gray-400');
+                if (manualModeTab) { manualModeTab.classList.remove('border-blue-500', 'text-blue-600'); manualModeTab.classList.add('border-transparent', 'text-gray-500 dark:text-gray-400'); }
                 if (autoImportContent) autoImportContent.classList.remove('hidden');
                 if (manualImportContent) manualImportContent.classList.add('hidden');
             });
@@ -434,8 +434,8 @@
         if (manualModeTab) {
             manualModeTab.addEventListener('click', function() {
                 manualModeTab.classList.add('border-blue-500', 'text-blue-600');
-                manualModeTab.classList.remove('border-transparent', 'text-gray-500');
-                if (autoModeTab) { autoModeTab.classList.remove('border-blue-500', 'text-blue-600'); autoModeTab.classList.add('border-transparent', 'text-gray-500'); }
+                manualModeTab.classList.remove('border-transparent', 'text-gray-500 dark:text-gray-400');
+                if (autoModeTab) { autoModeTab.classList.remove('border-blue-500', 'text-blue-600'); autoModeTab.classList.add('border-transparent', 'text-gray-500 dark:text-gray-400'); }
                 if (manualImportContent) manualImportContent.classList.remove('hidden');
                 if (autoImportContent) autoImportContent.classList.add('hidden');
             });

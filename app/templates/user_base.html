@@ -27,6 +27,11 @@
             font-family: 'Noto Sans SC', sans-serif;
             background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
         }
+        /* 暗黑：body 背景与 data-theme 联动（Tailwind dark: 不作用于内联 style，手动覆盖） */
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        }
+        [data-theme="dark"] .hero-title { color: #f9fafb; }
         .hero-title {
             font-family: 'Noto Serif SC', serif;
         }
@@ -162,27 +167,27 @@
 </head>
 <body class="min-h-screen">
     <!-- 导航栏 -->
-    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50 dark:bg-gray-900/90 dark:border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-8">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-orange-400 rounded-lg flex items-center justify-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-orange-400 rounded-lg flex items-center justify-center dark:from-blue-500 dark:to-orange-500">
                             <span class="text-white font-bold text-sm">CS</span>
                         </div>
                         
                     </div>
                     <div class="hidden md:flex space-x-6">
-                        <a href="{{ user_route('dashboard') }}" class="{% block nav_dashboard %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">仪表板</a>
+                        <a href="{{ user_route('dashboard') }}" class="{% block nav_dashboard %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">仪表板</a>
                         {% if current_user and current_user.type == 'teacher' %}
-                        <a href="{{ url_for('teacher.achievements') }}" class="{% block nav_achievements %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果展示</a>
+                        <a href="{{ url_for('teacher.achievements') }}" class="{% block nav_achievements %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">成果展示</a>
                         {% endif %}
-                        <a href="{{ user_route('submissions') }}" class="{% block nav_submissions %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果提交</a>
+                        <a href="{{ user_route('submissions') }}" class="{% block nav_submissions %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">成果提交</a>
                         {% if current_user and current_user.type == 'teacher' %}
-                        <a href="{{ url_for('teacher.achievement_review_list') }}" class="{% block nav_review %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">成果审核</a>
+                        <a href="{{ url_for('teacher.achievement_review_list') }}" class="{% block nav_review %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">成果审核</a>
                         {% endif %}
-                        <a href="{{ url_for('chat.assistant') }}" class="{% block nav_assistant %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">🤖 AI 助手</a>
-                        <a href="{{ user_route('profile') }}" class="{% block nav_profile %}text-gray-600 hover:text-orange-500 transition-colors{% endblock %}">个人资料</a>
+                        <a href="{{ url_for('chat.assistant') }}" class="{% block nav_assistant %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">🤖 AI 助手</a>
+                        <a href="{{ user_route('profile') }}" class="{% block nav_profile %}text-gray-600 hover:text-orange-500 transition-colors dark:text-gray-300{% endblock %}">个人资料</a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -202,13 +207,13 @@
                             {% endif %}
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <ul data-portal-user-menu class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                            <li class="px-4 py-2 border-b border-gray-200">
-                                <div class="text-sm font-medium text-gray-800">{{ current_user.name if current_user else '访客' }}</div>
-                                <div class="text-xs text-gray-500 uppercase tracking-wide">{{ current_user.type if current_user else '' }}</div>
+                        <ul data-portal-user-menu class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 dark:bg-gray-800 dark:border-gray-700">
+                            <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ current_user.name if current_user else '访客' }}</div>
+                                <div class="text-xs text-gray-500 uppercase tracking-wide dark:text-gray-400">{{ current_user.type if current_user else '' }}</div>
                             </li>
-                            <li><a href="{{ user_route('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">个人中心</a></li>
-                            <li class="border-t border-gray-200"><a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-gray-500 hover:bg-red-50 hover:text-red-600">退出登录</a></li>
+                            <li><a href="{{ user_route('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">个人中心</a></li>
+                            <li class="border-t border-gray-200 dark:border-gray-700"><a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/30">退出登录</a></li>
                         </ul>
                     </div>
                 </div>
@@ -261,9 +266,9 @@
     </main>
 
     <!-- 页脚 -->
-    <footer class="bg-gray-800 text-white py-8 mt-16">
+    <footer class="bg-gray-800 text-white py-8 mt-16 dark:bg-gray-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-gray-400">© 计算机系学生成果管理系统.</p>
+            <p class="text-gray-400 dark:text-gray-500">© 计算机系学生成果管理系统.</p>
         </div>
     </footer>
 
