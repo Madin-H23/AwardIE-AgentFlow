@@ -22,6 +22,13 @@ setTimeout(function(){var tx=document.body&&document.body.innerText?document.bod
     <!-- Tailwind CSS - 使用编译后的生产版本（运行 npm run build:css 生成） -->
     <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/console_tokens.css') }}?v=5" rel="stylesheet">
+    <style>
+      /* Bootstrap collapse 组件与 Tailwind .collapse 工具类(.collapse{visibility:collapse})类名冲突：
+         visibility 会继承，令门户下所有 Bootstrap 折叠面板(成果页 OCR/LLM/抽取、导航折叠等)
+         内容整体不可见但占位("面板在、内容空白")。此处恢复 Bootstrap 语义——
+         收起仍由 Bootstrap 的 .collapse:not(.show){display:none} 控制，与可见性无关。 */
+      .collapse { visibility: unset; }
+    </style>
     
     <!-- Anime.js for animations -->
     <script src="{{ url_for('static', filename='vendor/anime/anime.min.js') }}"></script>
