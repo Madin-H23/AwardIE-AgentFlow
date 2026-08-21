@@ -131,3 +131,8 @@
 | T53 | ~~测试资产治理~~ **已完成（2026-08-21，6b1312b/cdafb79/97fa7e0）**：数据库结构说明文档；完整回归实测三档（CI 192/unit 365/根级 61+11 挂）；CI 清单补全 5 新测试；CI YAML 字面 \n 事故修复（run 88009233372） | 08-21 实施记录 §8.3 | — | ✅217 | 高 |
 | T54 | ~~数据库结构说明文档~~ **已完成（2026-08-21，6b1312b）**：`设计/2026-08-21_数据库结构说明.md`（31 表/迁移链 0001-0009/核心约定/排查命令） | 08-21 实施记录 §8.3 | — | ✅ | 中 |
 | T55 | system_event_log 时间统一（写入层 UTC→本地，连带 90 天清理/每日 09:00 报告窗口基准评估） | 数据库结构文档 §4 待办 | T52 展示层已转本地 | 评估后 | 上线前 |
+| T56 | SystemEventLogger 接入点矩阵全量落地——现状仅 4/8 类（breaker/errorhandler/auth/启动），llm/upload/db 待接、ocr 经调用方包装；且存在非标准 category（completeness/content 等 14+9 处）需规范化到 8 类枚举 | 阶段六文档 §接入点矩阵 | T38 | 缺失矩阵核对 | 上线前 |
+| T57 | review_logs 停写切换（M4）——audit_log 已覆盖全部决策动作，旧表 INSERT 仍在（review_log.py:152），择机停写转纯只读历史 | 阶段三批G/M4 | audit 全动作覆盖✅ | 双写一致性核对 | 上线后 |
+| T58 | daily_report 推送通道（邮件/webhook）——当前仅 system_event_log 留痕 + daily-report API 拉取 | 阶段六 L6 文档"推送通道后续接" | L6 ✅ | 通道选型 | 二期 |
+| T59 | data_analysis 模板 tab2YearFilter 缺陷修复（存量测试挂因之一，根级 manual_import 同批清理时顺带） | 阶段六遗留登记/T31-T34 同期 | — | — | 上线前 |
+| T60 | users_sync 双写 bridge 退役评估——to_users_id 映射函数长期保留，镜像写入部分核实是否仍有必要（admin 6 路由在用） | M1 后半依赖链第4步 | M1 收官 | 引用面核对 | 二期 |
