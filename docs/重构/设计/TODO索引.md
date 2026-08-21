@@ -120,3 +120,9 @@
 | T26 | trace_id 全链路贯通（run.py TraceIdFilter + LogFileReader 解析 + DB 留痕串联） | 随 L2 | 含于 T39 | 含于 T39 | 高 |
 | T27 | SystemEventLogger 接入点矩阵全量落地（OCR/LLM/熔断/认证/上传/DB/安全 7 类事件） | 随 L1 | 含于 T38 | 含于 T38 | 高 |
 | T28 | metrics_snapshot 定时归档（5 分钟快照）+ daily_report 推送 | 随 L6 | 含于 T43 | 含于 T43 | 中 |
+| T45 | ~~AI 助手恢复 V2 外观~~ **已完成（2026-08-21，`fc66e9a`）**：撤销 343a8ec 回退（chat 3 partials + 双壳 + 按 role 选壳），叠加 CSS v6 修复保留；三角色 playwright 验证（admin=console/student=portal+DeepSeek UI+暗黑 token 成对） | 08-21 实施记录 | — | ✅GUI | 中 |
+| T46 | ~~网络出站直连~~ **已完成（2026-08-21，`b656b7d`）**：run.py 剥 HTTP(S)_PROXY + llm_adapter `httpx.Client(trust_env=False)`——LLM/OCR 不再被本地代理(3067)劫持，代理开/关均正常访问；实测无代理直连+页面问答正常 | 08-21 实施记录 §3 | — | ✅ | 高 |
+| T47 | ~~AI 助手三模式体验（markdown 排版+独立窗口+全流式）~~ **已完成（2026-08-21，`35a9840`/`68f41b2`/`982eb1d`）**：①renderMarkdown 安全渲染（先转义后渲染/白名单/逐行状态机，支持 ol/ul/表格/标题/引用/注入防护）；②三模式独立对话窗口（modeHistories 快照+专属欢迎语+生成中禁切+清空只当窗）；③multi_agent/single_agent 分片流式（_answer_pieces 逐 delta，tools 138 片/auto 进度3+8 片，零重复 LLM 调用）；新增测试 5 例 | 08-21 实施记录 §4 | — | ✅16测试 | 中 |
+| T48 | ~~5001 端口误判澄清 + 三端并行测试手法~~ **已完成（2026-08-21，memory/文档）**：实测 5001 可用（切回默认端口）；`*.localhost` 三端并行（cookie 按 host 隔离、端口不参与；坑=系统代理吞 .localhost 回 502） | 08-21 实施记录 §5 | — | ✅实测 | 中 |
+| T49 | 三模式**生成期真流式**（非分片）：auto 改 LangGraph QA 节点透出 chunk / tools 用 create_agent `stream_mode=messages` | 08-21 实施记录 §7 | T47 分片版基础上 | 视测试 | 可选/用户确认 |
+| T50 | 三端并行 Playwright 自动化冒烟示例（补 hosts 后三 context 并行） | 08-21 实施记录 §7 | T48 | 待定 | 可选 |
