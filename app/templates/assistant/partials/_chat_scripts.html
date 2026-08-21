@@ -4,6 +4,14 @@ const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 let currentMode = 'auto';
 
+// 三模式独立对话窗口：0/1/2 各自保留历史，切换互不干扰（null=该模式窗口尚未初始化）
+const modeHistories = { auto: null, qa: null, tools: null };
+const MODE_WELCOME = {
+    auto: '你好！我是竞赛与奖状管理智能助手，可以帮你做这些事：\n- 📌 知识问答：挑战杯是几类竞赛？哪些是白名单赛事？\n- 📊 数据查询：张老师2024年指导了多少奖状？\n- 📈 统计分析：哪些竞赛贡献的奖状最多？\n- 📤 导出报表：生成2024年成果汇总',
+    qa: '📚 知识问答窗口：输入单个竞赛名称，查询等级/类别并附引用来源。\n示例：挑战杯是 A 类吗？蓝桥杯是什么级别？',
+    tools: '🔧 数据操作窗口：查询、统计、导出数据，或列出赛事清单（白名单 / A 类 / B 类）。\n示例：A 类赛事有哪些？',
+};
+
 // 各模式说明、示例、输入提示
 const MODE_META = {
     auto: {
@@ -29,8 +37,20 @@ const MODE_META = {
     },
 };
 
-// 根据模式渲染说明面板、输入提示，并绑定示例点击
+// 根据模式渲染说明面板、输入提示，并绑定示例点击；同时切换独立对话窗口
 function renderModePanel(mode) {
+    // ① 保存当前模式窗口快照（首次从 auto 切走时即记录初始欢迎语）
+    modeHistories[currentMode] = chatMessages.innerHTML;
+    currentMode = mode;
+    // ② 恢复目标窗口；未初始化则种子该模式欢迎语
+    if (!modeHistories[mode]) {
+        chatMessages.innerHTML = '';
+        appendMessage('assistant', MODE_WELCOME[mode] || '');
+        modeHistories[mode] = chatMessages.innerHTML;
+    } else {
+        chatMessages.innerHTML = modeHistories[mode];
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
     const m = MODE_META[mode] || MODE_META.auto;
     document.getElementById('modePanelTitle').textContent = m.title;
     document.getElementById('modePanelDesc').textContent = m.desc;
@@ -51,20 +71,26 @@ function renderModePanel(mode) {
     });
 }
 
-// 模式切换：更新面板与输入提示
+// 模式切换：更新面板与输入提示，并切换到该模式的独立对话窗口
 document.querySelectorAll('.mode-tabs .nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
+        if (sendBtn.disabled) {  // 生成中禁止切窗，防止写乱两窗口历史
+            document.getElementById('modeHint').textContent = '当前窗口正在生成回答，请稍候…';
+            return;
+        }
         document.querySelectorAll('.mode-tabs .nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
-        currentMode = link.dataset.mode;
-        renderModePanel(currentMode);
+        renderModePanel(link.dataset.mode);
     });
 });
+// 初始化：默认(智能路由)窗口与面板就绪（含示例 chips）
+renderModePanel('auto');
 
-// 清空对话
+// 清空当前模式窗口的对话
 document.getElementById('clearBtn').addEventListener('click', () => {
     chatMessages.innerHTML = '';
+    modeHistories[currentMode] = '';
     appendMessage('assistant', '对话已清空，继续提问吧。上方示例可直接点击使用。');
 });
 
