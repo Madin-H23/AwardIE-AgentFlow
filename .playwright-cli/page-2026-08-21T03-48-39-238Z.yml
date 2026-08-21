@@ -1,0 +1,393 @@
+- generic [active] [ref=f3e1]:
+  - navigation [ref=f3e2]:
+    - generic [ref=f3e4]:
+      - generic [ref=f3e5]:
+        - generic [ref=f3e6]: CS
+        - generic [ref=f3e9]:
+          - link "仪表板" [ref=f3e10] [cursor=pointer]:
+            - /url: /teacher/dashboard
+          - link "成果展示" [ref=f3e11] [cursor=pointer]:
+            - /url: /teacher/achievements
+          - link "成果提交" [ref=f3e12] [cursor=pointer]:
+            - /url: /teacher/achievement-submit
+          - link "成果审核" [ref=f3e13] [cursor=pointer]:
+            - /url: /teacher/achievement-review
+          - link "🤖 AI 助手" [ref=f3e14] [cursor=pointer]:
+            - /url: /assistant
+          - link "个人资料" [ref=f3e15] [cursor=pointer]:
+            - /url: /teacher/profile
+      - generic [ref=f3e16]:
+        - button "切换为深色模式" [ref=f3e17] [cursor=pointer]
+        - button "马 马云莺" [ref=f3e21] [cursor=pointer]:
+          - generic [ref=f3e22]: 马
+          - generic [ref=f3e23]: 马云莺
+  - main [ref=f3e26]:
+    - generic [ref=f3e28]:
+      - generic [ref=f3e29]:
+        - generic [ref=f3e30]:
+          - heading " 文件/成果导入审核" [level=1] [ref=f3e31]:
+            - generic [ref=f3e32]: 
+            - text: 文件/成果导入审核
+          - separator [ref=f3e33]
+        - tablist [ref=f3e34]:
+          - link " 奖状 1" [ref=f3e35] [cursor=pointer]:
+            - /url: /teacher/achievement-review/award/valid/0
+            - generic [ref=f3e36]: 
+            - text: 奖状
+            - generic [ref=f3e37]: "1"
+        - tablist [ref=f3e39]:
+          - link " 待修订 1" [ref=f3e40] [cursor=pointer]:
+            - /url: /teacher/achievement-review/award/invalid/0
+            - generic [ref=f3e41]: 
+            - text: 待修订
+            - generic [ref=f3e42]: "1"
+        - generic [ref=f3e43]:
+          - generic [ref=f3e44]:
+            - generic [ref=f3e45]: 
+            - generic [ref=f3e46]: 奖状
+            - generic [ref=f3e47]: "1"
+          - generic [ref=f3e48]:
+            - text: 第
+            - strong [ref=f3e49]: "1"
+            - text: / 1 项
+            - generic [ref=f3e50]: "(ID: 3709)"
+          - generic [ref=f3e51]:
+            - button " 上一项" [disabled] [ref=f3e52] [cursor=pointer]:
+              - generic [ref=f3e53]: 
+              - text: 上一项
+            - button "下一项 " [disabled] [ref=f3e54] [cursor=pointer]:
+              - text: 下一项
+              - generic [ref=f3e55]: 
+          - generic [ref=f3e56]:
+            - button " 驳回" [ref=f3e57] [cursor=pointer]:
+              - generic [ref=f3e58]: 
+              - text: 驳回
+            - button " 轨迹" [ref=f3e59] [cursor=pointer]:
+              - generic [ref=f3e60]: 
+              - text: 轨迹
+            - button " 提交" [ref=f3e61] [cursor=pointer]:
+              - generic [ref=f3e62]: 
+              - text: 提交
+            - button " 删除" [ref=f3e63] [cursor=pointer]:
+              - generic [ref=f3e64]: 
+              - text: 删除
+          - generic [ref=f3e65]:
+            - button " 全部提交" [ref=f3e66] [cursor=pointer]:
+              - generic [ref=f3e67]: 
+              - text: 全部提交
+            - button " 全部放弃" [ref=f3e68] [cursor=pointer]:
+              - generic [ref=f3e69]: 
+              - text: 全部放弃
+        - generic [ref=f3e70]:
+          - generic [ref=f3e72]:
+            - heading " 识别存在以下问题，请补充修订" [level=5] [ref=f3e73]:
+              - generic [ref=f3e74]: 
+              - text: 识别存在以下问题，请补充修订
+            - list [ref=f3e75]:
+              - listitem [ref=f3e76]:
+                - strong [ref=f3e77]: supervisor_name
+                - text: ": 缺少指导教师（所有奖状必须填写指导教师）"
+          - button "重新校验" [ref=f3e79] [cursor=pointer]
+        - generic [ref=f3e81]:
+          - generic [ref=f3e82]:
+            - generic [ref=f3e84]:
+              - heading "奖状图片" [level=6] [ref=f3e86]
+              - generic [ref=f3e87]:
+                - img "奖状图片" [ref=f3e88] [cursor=pointer]
+                - paragraph [ref=f3e89]: 点击查看大图
+                - generic [ref=f3e91]:
+                  - generic [ref=f3e92]:
+                    - generic [ref=f3e93]: 
+                    - text: 模板匹配
+                  - generic [ref=f3e94]: 中国高校计算机大赛
+                  - generic [ref=f3e95]:
+                    - generic [ref=f3e96]: 
+                    - text: 待修订
+            - generic [ref=f3e98]:
+              - heading "基本信息" [level=6] [ref=f3e100]
+              - generic [ref=f3e101]:
+                - generic [ref=f3e102]:
+                  - generic [ref=f3e103]: 竞赛 *
+                  - combobox "竞赛 *" [ref=f3e104]:
+                    - option "未关联"
+                    - option "全国大学生软件测试大赛"
+                    - option "全国大学生市场调查与分析大赛"
+                    - option "“大唐杯”全国大学生新一代信息通信技术大赛"
+                    - option "“学创杯”全国大学生创业综合模拟大赛"
+                    - option "“工行杯”全国大学生金融科技创新大赛"
+                    - option "“挑战杯”中国大学生创业计划大赛"
+                    - option "“挑战杯”全国大学生课外学术科技作品竞赛"
+                    - option "iCAN大学生创新创业大赛"
+                    - option "ACM-ICPC国际大学生程序设计竞赛"
+                    - option "中国国际“互联网+”大学生创新创业大赛"
+                    - option "两岸新锐设计竞赛·华灿奖"
+                    - option "中国好创意暨全国数字艺术设计大赛"
+                    - option "中国大学生工程实践与创新能力大赛"
+                    - option "中国机器人大赛暨RoboCup机器人世界杯中国赛"
+                    - option "中国大学生计算机设计大赛"
+                    - option "全国大学生信息安全与对抗技术竞赛"
+                    - option "全国大学生广告艺术大赛"
+                    - option "全国大学生嵌入式芯片与系统设计竞赛"
+                    - option "全国大学生数字媒体科技作品及创意竞赛"
+                    - option "全国大学生数学建模竞赛"
+                    - option "全国大学生智能汽车竞赛"
+                    - option "全国大学生机器人大赛-①RoboMaster、②RoboCon"
+                    - option "全国大学生电子商务\"创新、创意及创业\"挑战赛"
+                    - option "全国大学生物流设计大赛"
+                    - option "全国大学生节能减排社会实践与科技竞赛"
+                    - option "全国大学生电子设计竞赛"
+                    - option "全国大学生计算机应用能力与数字素养大赛"
+                    - option "全国大学生软件创新大赛"
+                    - option "全国高校计算机能力挑战赛"
+                    - option "蓝桥杯全国软件和信息技术专业人才大赛"
+                    - option "百度之星·程序设计大赛"
+                    - option "未来设计师·全国高校数字艺术设计大赛（NCDA）"
+                    - option "新华三杯全国大学生数字技术大赛"
+                    - option "国际先进机器人及仿真技术大赛"
+                    - option "“品茗杯”全国高校智能建造创新应用大赛"
+                    - option "全国高等院校数智化企业经营沙盘大赛"
+                    - option "一带一路暨金砖国家技能发展与技术创新大赛"
+                    - option "中国大学生医学技术技能大赛"
+                    - option "全国大学生机械创新设计大赛"
+                    - option "全国大学生结构设计竞赛"
+                    - option "外研社全国大学生英语系列赛"
+                    - option "全国大学生创新创业训练计划年会展示"
+                    - option "全国大学生化工设计竞赛"
+                    - option "全国大学生先进成图技术与产品信息建模创新大赛"
+                    - option "全国三维数字化创新设计大赛"
+                    - option "\"西门子杯\"中国智能制造挑战赛"
+                    - option "中国大学生服务外包创新创业大赛"
+                    - option "中国高校计算机大赛" [selected]
+                    - option "米兰设计周--中国高校设计学科师生优秀作品展"
+                    - option "全国大学生地质技能竞赛"
+                    - option "全国大学生光电设计竞赛"
+                    - option "全国大学生集成电路创新创业大赛"
+                    - option "全国大学生金相技能大赛"
+                    - option "全国大学生信息安全竞赛"
+                    - option "全国周培源大学生力学竞赛"
+                    - option "中国大学生机械工程创新创意大赛"
+                    - option "\"中国软件杯\"大学生软件设计大赛"
+                    - option "中美青年创客大赛"
+                    - option "睿抗机器人开发者大赛（RAICOM）"
+                    - option "华为ICT大赛"
+                    - option "全国大学生生命科学竞赛（CULSC）"
+                    - option "全国大学生物理实验竞赛"
+                    - option "全国高校BIM毕业设计创新大赛"
+                    - option "全国高校商业精英挑战赛"
+                    - option "中国高校智能机器人创意大赛"
+                    - option "中国机器人及人工智能大赛"
+                    - option "\"21世纪杯\"全国英语演讲比赛"
+                    - option "中华经典诵写讲大赛"
+                    - option "\"外教社杯\"全国高校学生跨文化能力大赛"
+                    - option "全国大学生工业设计大赛"
+                    - option "全国大学生水利创新设计大赛"
+                    - option "全国大学生化工实验大赛"
+                    - option "全国大学生化学实验创新设计大赛"
+                    - option "全国大学生计算机系统能力大赛"
+                    - option "全国大学生花园设计建造竞赛"
+                    - option "全国大学生物联网设计竞赛"
+                    - option "全国大学生测绘学科创新创业智能大赛"
+                    - option "全国大学生统计建模大赛"
+                    - option "全国大学生能源经济学术创意大赛"
+                    - option "全国大学生基础医学创新研究暨实验设计论坛（大赛）"
+                    - option "全国本科院校税收风险管控案例大赛"
+                    - option "全国企业竞争模拟大赛"
+                    - option "全国数字建筑创新应用大赛"
+                    - option "全球校园人工智能算法精英大赛"
+                    - option "国际大学生智能农业装备创新大赛"
+                    - option "\"科云杯\"全国大学生财会职业能力大赛"
+                    - option "全国职业院校技能大赛"
+                    - option "全国大学生机器人大赛-ROBOTAC"
+                    - option "世界技能大赛"
+                    - option "世界技能大赛中国选拔赛"
+                    - option "码蹄杯全国职业院校程序设计大赛"
+                    - option "中国大学生方程式系列赛事"
+                    - option "KTK设计奖·全球华人设计比赛"
+                    - option "大学生财务决策竞赛"
+                    - option "“中译国青杯”国际组织文件翻译大赛"
+                    - option "中国大学生人力资源创新实践大赛（HRU大赛）"
+                    - option "中国大学生广告艺术节学院奖"
+                    - option "中国石油工程设计大赛"
+                    - option "中国国际飞行器设计挑战赛"
+                    - option "“中装杯”全国大学生环境设计大赛"
+                    - option "东方设计奖·全国高校创新设计大赛"
+                    - option "“外教社·词达人杯”全国大学生英语词汇能力大赛"
+                    - option "全国大学生人力资源管理综合能力竞赛"
+                    - option "全国大学生语言文字能力大赛"
+                    - option "全国大学生结构设计信息技术大赛"
+                    - option "全国大学生商务谈判大赛"
+                    - option "全国大学生数学竞赛"
+                    - option "全国邮政行业职业教育快递技能大赛"
+                    - option "全国供应链大赛"
+                    - option "全国高校企业价值创造实战竞赛"
+                    - option "全国高校经济决策虚仿实验大赛"
+                    - option "全国高校模拟飞行锦标赛"
+                    - option "全国高等学校民航服务技能大赛"
+                    - option "“求是杯”国际诗歌创作与翻译大赛"
+                    - option "时报金犊奖"
+                    - option "金蝶云管理创新杯"
+                    - option "“泰山杯”全国医学影像技术专业大学生（本科）实践技能大赛"
+                    - option "“福思特杯”全国大学生审计精英挑战赛"
+                    - option "“海峡杯”青年创新创业大赛"
+                    - option "Awaken Your Web创新挑战赛"
+                    - option "“创响鼓楼”创新创业大赛"
+                    - option "支付宝小程序开发者大赛"
+                    - option "团体程序设计天梯赛"
+                    - option "深育杯大学生网络安全大赛"
+                    - option "福建省大学生数据安全大赛"
+                    - option "睿抗机器人开发者大赛"
+                    - option "挑战杯"
+                    - option "美国大学生数学建模竞赛"
+                    - option "国际大学生程序设计竞赛"
+                    - option "全国管理决策模拟大赛"
+                - generic [ref=f3e105]:
+                  - generic [ref=f3e106]: 竞赛等级
+                  - combobox "竞赛等级" [ref=f3e107]:
+                    - option "未设置"
+                    - option "校赛"
+                    - option "区域赛"
+                    - option "省赛" [selected]
+                    - option "国赛"
+                    - option "国际赛"
+                - generic [ref=f3e108]:
+                  - generic [ref=f3e109]: 获奖等级
+                  - combobox "获奖等级" [ref=f3e110]:
+                    - option "未设置"
+                    - option "特等奖"
+                    - option "一等奖"
+                    - option "二等奖"
+                    - option "三等奖" [selected]
+                    - option "优秀奖"
+                    - option "金奖"
+                    - option "银奖"
+                    - option "铜奖"
+                - generic [ref=f3e111]:
+                  - generic [ref=f3e112]: 年份
+                  - spinbutton "年份" [ref=f3e113]: "2025"
+                - generic [ref=f3e114]:
+                  - generic [ref=f3e115]: 赛道
+                  - textbox "赛道" [ref=f3e116]:
+                    - /placeholder: 软件类、本科B组
+                    - text: 团体程序设计天梯赛
+                - generic [ref=f3e117]:
+                  - generic [ref=f3e118]: 竞赛届数
+                  - textbox "竞赛届数" [ref=f3e119]:
+                    - /placeholder: 第15届、2024春季
+                - generic [ref=f3e120]:
+                  - generic [ref=f3e121]: 证书编号
+                  - textbox "证书编号" [ref=f3e122]: CCCC2025GPLT27499
+            - generic [ref=f3e124]:
+              - heading "其他信息" [level=6] [ref=f3e126]
+              - generic [ref=f3e127]:
+                - generic [ref=f3e128]:
+                  - generic [ref=f3e129]: 项目名称
+                  - textbox "项目名称" [ref=f3e130]:
+                    - /placeholder: 项目或作品名称
+                - generic [ref=f3e131]:
+                  - generic [ref=f3e132]: 日期
+                  - textbox "日期" [ref=f3e133]:
+                    - /placeholder: YYYY-MM-DD
+                    - text: 2025-05-06
+                - generic [ref=f3e134]:
+                  - generic [ref=f3e135]: 省份
+                  - textbox "省份" [ref=f3e136]:
+                    - /placeholder: 广东省
+                    - text: 福建省
+                - generic [ref=f3e137]:
+                  - generic [ref=f3e138]: 颁发机构
+                  - textbox "颁发机构" [ref=f3e139]:
+                    - /placeholder: 颁发机构名称
+                - generic [ref=f3e140]:
+                  - generic [ref=f3e141]: 关联学生实验室
+                  - combobox "关联学生实验室" [ref=f3e142]:
+                    - option "无" [selected]
+                    - option "智创学生实验室"
+                    - option "AI赋能和创新"
+                    - option "编程学生实验室"
+                    - option "ICT_网安学生实验室"
+            - generic [ref=f3e144]:
+              - heading "关联信息" [level=6] [ref=f3e146]
+              - generic [ref=f3e147]:
+                - generic [ref=f3e148]:
+                  - generic [ref=f3e149]: 证书类型 *
+                  - group "证书类型" [ref=f3e150]:
+                    - radio "学生证书" [checked]
+                    - generic [ref=f3e151] [cursor=pointer]: 学生证书
+                    - radio "教师证书"
+                    - generic [ref=f3e152] [cursor=pointer]: 教师证书
+                  - generic [ref=f3e153]: 选择证书类型后，相关字段将自动调整
+                - generic [ref=f3e154]:
+                  - generic [ref=f3e155]: 学生获奖者
+                  - generic [ref=f3e157]:
+                    - generic [ref=f3e158]: ☰
+                    - text: 何伟健
+                    - button "删除" [ref=f3e159] [cursor=pointer]
+                  - textbox "学生获奖者" [ref=f3e161]:
+                    - /placeholder: 输入学生姓名，按回车或逗号添加
+                  - text: 输入学生姓名后按回车或逗号添加，如果查不到会显示为红色
+                - generic [ref=f3e162]:
+                  - generic [ref=f3e163]: 指导教师
+                  - listbox [ref=f3e164]:
+                    - option [ref=f3e165]: 马云莺 (02114818)
+                    - option [ref=f3e166]: 阴爱英 (02112675)
+                    - option [ref=f3e167]: 陈欣 (02104010)
+                    - option [ref=f3e168]: 黄巧云 (02110606)
+                    - option [ref=f3e169]: 李娟 (02124020)
+                    - option [ref=f3e170]: 陈亦萍 (02111627)
+                    - option [ref=f3e171]: 张栋 (02114120)
+                    - option [ref=f3e172]: 涂娟 (02109104)
+                    - option [ref=f3e173]: 罗周庆 (02108094)
+                    - option [ref=f3e174]: 冯新 (02105032)
+                    - option [ref=f3e175]: 汪海龙 (02123006)
+                    - option [ref=f3e176]: 蔡亮明 (02110618)
+                    - option [ref=f3e177]: 杨雄 (02116828)
+                    - option [ref=f3e178]: 林一婧 (02217001)
+                    - option [ref=f3e179]: 刘童安 (02125001)
+                    - option [ref=f3e180]: 冯文俊 (02125002)
+                    - option [ref=f3e181]: 刘延华 (02721268)
+                    - option [ref=f3e182]: 罗建炜 (02117284)
+                    - option [ref=f3e183]: 陈荣丽 (02113205)
+                    - option [ref=f3e184]: 贺朋飞 (02123023)
+                    - option [ref=f3e185]: 杨晓花 (02210001)
+                    - option [ref=f3e186]: 林逾静 (02119304)
+                    - option [ref=f3e187]: 毛烨 (02110607)
+                    - option [ref=f3e188]: 陈国栋 (02121004)
+                    - option [ref=f3e189]: 何苏栩 (02124006)
+                    - option [ref=f3e190]: 陈哲君 (02115823)
+                    - option [ref=f3e191]: 包玉芬 (02124010)
+                    - option [ref=f3e192]: 兰菲 (02125008)
+                    - option [ref=f3e193]: 李鑫 (02121005)
+                    - option [ref=f3e194]: 邓泽源 (02125018)
+                    - option [ref=f3e195]: 沈炎斌 (02109122)
+                    - option [ref=f3e196]: 黄福明 (02113689)
+                    - option [ref=f3e197]: 鞠慧 (02104005)
+                    - option [ref=f3e198]: 杨君石 (02104019)
+                    - option [ref=f3e199]: 林耀威 (02123005)
+                    - option [ref=f3e200]: 黄立慧 (02206004)
+                    - option [ref=f3e201]: 李杨婧 (02117835)
+                    - option [ref=f3e202]: 钱韵含 (02125019)
+                    - option [ref=f3e203]: 张三 (99991001)
+                    - option [ref=f3e204]: 李四 (99991002)
+                  - combobox [ref=f3e207] [cursor=pointer]:
+                    - list
+                    - searchbox "Search" [ref=f3e209]
+                  - generic: 
+                  - generic [ref=f3e210]:
+                    - generic [ref=f3e211]: 
+                    - text: 缺少指导教师（所有奖状必须填写指导教师）
+          - generic [ref=f3e212]:
+            - button [ref=f3e216] [cursor=pointer]:
+              - heading " OCR结果" [level=6] [ref=f3e217]:
+                - generic [ref=f3e218]: 
+                - text: OCR结果
+            - button [ref=f3e224] [cursor=pointer]:
+              - heading " LLM应答" [level=6] [ref=f3e225]:
+                - generic [ref=f3e226]: 
+                - text: LLM应答
+            - button [ref=f3e232] [cursor=pointer]:
+              - heading " 最终抽取结果" [level=6] [ref=f3e233]:
+                - generic [ref=f3e234]: 
+                - text: 最终抽取结果
+      - text:    
+  - contentinfo [ref=f3e237]:
+    - paragraph [ref=f3e239]: © 计算机系学生成果管理系统.

@@ -1,0 +1,235 @@
+- generic [ref=f6e2]:
+  - complementary [ref=f6e3]:
+    - navigation [ref=f6e4]:
+      - link " 数据总览" [ref=f6e5] [cursor=pointer]:
+        - /url: /admin/dashboard
+        - generic [ref=f6e6]: 
+        - text: 数据总览
+      - separator [ref=f6e7]
+      - generic [ref=f6e8]:
+        - generic [ref=f6e9] [cursor=pointer]:
+          - text: 常用
+          - generic [ref=f6e10]: 
+        - generic [ref=f6e11]:
+          - link " 成果管理" [ref=f6e12] [cursor=pointer]:
+            - /url: /admin/achievements
+            - generic [ref=f6e13]: 
+            - text: 成果管理
+          - link " 成果审核" [ref=f6e14] [cursor=pointer]:
+            - /url: /admin/achievement-review
+            - generic [ref=f6e15]: 
+            - text: 成果审核
+          - link " 日志管理" [ref=f6e16] [cursor=pointer]:
+            - /url: /admin/logs
+            - generic [ref=f6e17]: 
+            - text: 日志管理
+      - separator [ref=f6e18]
+      - generic [ref=f6e19]:
+        - generic [ref=f6e20] [cursor=pointer]:
+          - text: 智能体
+          - generic [ref=f6e21]: 
+        - link " AI 智能体协作" [ref=f6e23] [cursor=pointer]:
+          - /url: /assistant
+          - generic [ref=f6e24]: 
+          - text: AI 智能体协作
+      - separator [ref=f6e25]
+      - generic [ref=f6e26]:
+        - generic [ref=f6e27] [cursor=pointer]:
+          - text: 基础数据管理
+          - generic [ref=f6e28]: 
+        - generic [ref=f6e29]:
+          - link " 成果/文件导入" [ref=f6e30] [cursor=pointer]:
+            - /url: /admin/file-import
+            - generic [ref=f6e31]: 
+            - text: 成果/文件导入
+          - link " 奖状模板管理" [ref=f6e32] [cursor=pointer]:
+            - /url: /admin/templates
+            - generic [ref=f6e33]: 
+            - text: 奖状模板管理
+          - link " 竞赛管理" [ref=f6e34] [cursor=pointer]:
+            - /url: /admin/competitions
+            - generic [ref=f6e35]: 
+            - text: 竞赛管理
+          - link " 实验室管理" [ref=f6e36] [cursor=pointer]:
+            - /url: /admin/laboratories
+            - generic [ref=f6e37]: 
+            - text: 实验室管理
+      - separator [ref=f6e38]
+      - generic [ref=f6e39]:
+        - generic [ref=f6e40] [cursor=pointer]:
+          - text: 用户数据
+          - generic [ref=f6e41]: 
+        - generic [ref=f6e42]:
+          - link " 学生管理" [ref=f6e43] [cursor=pointer]:
+            - /url: /admin/students
+            - generic [ref=f6e44]: 
+            - text: 学生管理
+          - link " 教师管理" [ref=f6e45] [cursor=pointer]:
+            - /url: /admin/teachers
+            - generic [ref=f6e46]: 
+            - text: 教师管理
+          - link " 数据分析" [ref=f6e47] [cursor=pointer]:
+            - /url: /admin/data-analysis
+            - generic [ref=f6e48]: 
+            - text: 数据分析
+          - link " 数据导出" [ref=f6e49] [cursor=pointer]:
+            - /url: /admin/data_export
+            - generic [ref=f6e50]: 
+            - text: 数据导出
+      - separator [ref=f6e51]
+      - generic [ref=f6e52]:
+        - generic [ref=f6e53] [cursor=pointer]:
+          - text: 系统设置
+          - generic [ref=f6e54]: 
+        - link " 系统设置" [ref=f6e56] [cursor=pointer]:
+          - /url: /admin/settings
+          - generic [ref=f6e57]: 
+          - text: 系统设置
+    - generic [ref=f6e58]:
+      - generic [ref=f6e59]:
+        - generic [ref=f6e60]: 
+        - generic [ref=f6e61]: admin
+      - generic [ref=f6e62]: AwardIE-AgentFlow 控制台 v1.0 · 管理端
+  - banner [ref=f6e63]:
+    - generic [ref=f6e64]: 成果数据总览
+    - button "切换为深色模式" [ref=f6e65] [cursor=pointer]
+    - generic [ref=f6e68]:
+      - button "系 系统管理员 " [ref=f6e69] [cursor=pointer]:
+        - generic [ref=f6e70]: 系
+        - generic [ref=f6e71]: 系统管理员
+        - generic [ref=f6e72]: 
+      - text:  
+  - main [ref=f6e73]:
+    - generic [ref=f6e74]:
+      - generic [ref=f6e75]:
+        - heading "成果数据总览" [level=1] [ref=f6e76]
+        - generic [ref=f6e77]:
+          - generic [ref=f6e78]: 
+          - generic [ref=f6e79]: 数据实时统计；成果分类以奖状/专利/软著/其他四类统计，最终口径以人工审核归档数据为准。
+      - generic [ref=f6e80]:
+        - generic [ref=f6e81]:
+          - generic [ref=f6e82]:
+            - generic [ref=f6e83]: 
+            - text: 成果总数
+          - generic [ref=f6e84]: "218"
+          - generic [ref=f6e85]: 奖状 197 · 专利 0 · 软著 1 · 大创 20 · 其他 0
+        - generic [ref=f6e86]:
+          - generic [ref=f6e87]: 待审核
+          - generic [ref=f6e89]: "39"
+          - generic [ref=f6e90]: 需人工处理
+        - generic [ref=f6e91]:
+          - generic [ref=f6e92]:
+            - generic [ref=f6e93]: 
+            - text: 白名单竞赛
+          - generic [ref=f6e94]: "84"
+          - generic [ref=f6e95]: 占 65% 竞赛
+        - generic [ref=f6e96]:
+          - generic [ref=f6e97]:
+            - generic [ref=f6e98]: 
+            - text: 成果·竞赛密度
+          - generic [ref=f6e99]: "1.7"
+          - generic [ref=f6e100]: 共 130 个竞赛
+      - generic [ref=f6e102]:
+        - generic [ref=f6e103]:
+          - generic [ref=f6e104]: 本周期成果新增（2026 年至今）
+          - generic [ref=f6e105]: "218"
+          - generic [ref=f6e106]: 待审核 39 · 白名单竞赛 84本月新增 0 · 上月 0
+        - generic [ref=f6e107]:
+          - generic [ref=f6e108]: 分类计数
+          - generic [ref=f6e109]:
+            - generic [ref=f6e110]:
+              - generic [ref=f6e111]: 奖状 (awards)
+              - generic [ref=f6e112]: "197"
+            - generic [ref=f6e113]:
+              - generic [ref=f6e114]: 专利 (patents)
+              - generic [ref=f6e115]: "0"
+            - generic [ref=f6e116]:
+              - generic [ref=f6e117]: 软著 (software)
+              - generic [ref=f6e118]: "1"
+            - generic [ref=f6e119]:
+              - generic [ref=f6e120]: 大创 (innovation)
+              - generic [ref=f6e121]: "20"
+            - generic [ref=f6e122]:
+              - generic [ref=f6e123]: 其他文件 (other)
+              - generic [ref=f6e124]: "0"
+          - generic [ref=f6e125]: 新增 = 奖状 + 专利 + 软著 + 大创 + 其他
+          - generic [ref=f6e126]: 奖状口径：全量 197（其中教师证书 24；管理/学生视角 173）
+      - generic [ref=f6e127]:
+        - generic [ref=f6e128]:
+          - generic [ref=f6e129]: 周期
+          - combobox [ref=f6e130]:
+            - option "近 6 月"
+            - option "近 12 月"
+            - option "全部" [selected]
+          - generic [ref=f6e131]: 维度
+          - combobox [ref=f6e132]:
+            - option "按时间" [selected]
+            - option "按竞赛"
+          - link " 导出" [ref=f6e134] [cursor=pointer]:
+            - /url: /admin/data_export
+            - generic [ref=f6e135]: 
+            - text: 导出
+        - generic [ref=f6e136]:
+          - generic [ref=f6e137]:
+            - generic [ref=f6e138]: 竞赛战果 Top
+            - generic [ref=f6e139]: 按获奖总数排序
+          - table [ref=f6e141]:
+            - rowgroup [ref=f6e142]:
+              - row [ref=f6e143]:
+                - columnheader "竞赛" [ref=f6e144]
+                - columnheader "获奖总数" [ref=f6e145]
+                - columnheader "占比" [ref=f6e146]
+            - rowgroup [ref=f6e147]:
+              - row [ref=f6e148]:
+                - cell "蓝桥杯全国软件和信息技术专业人才大赛" [ref=f6e149]
+                - cell "112" [ref=f6e150]
+                - cell "58.3%" [ref=f6e151]
+              - row [ref=f6e152]:
+                - cell "中国大学生计算机设计大赛" [ref=f6e153]
+                - cell "18" [ref=f6e154]
+                - cell "9.4%" [ref=f6e155]
+              - row [ref=f6e156]:
+                - cell "全国大学生信息安全与对抗技术竞赛" [ref=f6e157]
+                - cell "14" [ref=f6e158]
+                - cell "7.3%" [ref=f6e159]
+              - row [ref=f6e160]:
+                - cell "中国高校计算机大赛" [ref=f6e161]
+                - cell "14" [ref=f6e162]
+                - cell "7.3%" [ref=f6e163]
+              - row [ref=f6e164]:
+                - cell "一带一路暨金砖国家技能发展与技术创新大赛" [ref=f6e165]
+                - cell "8" [ref=f6e166]
+                - cell "4.2%" [ref=f6e167]
+              - row [ref=f6e168]:
+                - cell "新华三杯全国大学生数字技术大赛" [ref=f6e169]
+                - cell "7" [ref=f6e170]
+                - cell "3.6%" [ref=f6e171]
+              - row [ref=f6e172]:
+                - cell "华为ICT大赛" [ref=f6e173]
+                - cell "6" [ref=f6e174]
+                - cell "3.1%" [ref=f6e175]
+              - row [ref=f6e176]:
+                - cell "睿抗机器人开发者大赛" [ref=f6e177]
+                - cell "5" [ref=f6e178]
+                - cell "2.6%" [ref=f6e179]
+              - row [ref=f6e180]:
+                - cell "中国机器人及人工智能大赛" [ref=f6e181]
+                - cell "3" [ref=f6e182]
+                - cell "1.6%" [ref=f6e183]
+              - row [ref=f6e184]:
+                - cell "全国大学生软件创新大赛" [ref=f6e185]
+                - cell "2" [ref=f6e186]
+                - cell "1.0%" [ref=f6e187]
+              - row [ref=f6e188]:
+                - cell "“挑战杯”全国大学生课外学术科技作品竞赛" [ref=f6e189]
+                - cell "2" [ref=f6e190]
+                - cell "1.0%" [ref=f6e191]
+              - row [ref=f6e192]:
+                - cell "支付宝小程序开发者大赛" [ref=f6e193]
+                - cell "1" [ref=f6e194]
+                - cell "0.5%" [ref=f6e195]
+      - generic [ref=f6e197]:
+        - generic [ref=f6e198]: 成果入库趋势
+        - combobox [ref=f6e199] [cursor=pointer]:
+          - option "按月汇总" [selected]
+          - option "按年度"

@@ -197,3 +197,9 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
+
+def test_routes_integrity():
+    """pytest 入口（T31-T34 批次4）：全模板 url_for 路由完整性扫描。"""
+    tester = RouteIntegrityTester()
+    assert tester.run_all_tests(), "存在失败的路由引用，详见上方输出"

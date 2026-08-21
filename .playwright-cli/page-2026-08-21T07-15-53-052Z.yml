@@ -1,0 +1,17 @@
+- generic [ref=e2]:
+  - alert [ref=e4]:
+    - text: 请先登录
+    - button "Close" [ref=e5] [cursor=pointer]
+  - generic [ref=e7]:
+    - heading "登录" [level=1] [ref=e8]
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: 用户名
+        - textbox "用户名" [active] [ref=e15]:
+          - /placeholder: 请输入学号/工号
+      - generic [ref=e16]:
+        - generic [ref=e17]: 密码
+        - textbox "密码" [ref=e21]:
+          - /placeholder: 请输入密码
+      - button "登录" [ref=e22] [cursor=pointer]
+    - generic [ref=e23]: 默认密码：P@ss301（首次登录后请修改）

@@ -191,6 +191,41 @@ def review_approve(pending_id):
         return redirect(url_for('admin_review.review_view', pending_id=pending_id))
 
 
+@bp.route('/achievement-review/<int:pending_id>/reject', methods=['POST'])
+@require_role('admin')
+def review_reject(pending_id):
+    """驳回打回 - 页面表单版（与 review_approve 对称；JSON API 版见 api_reject）"""
+    try:
+        comment = request.form.get('comment', '').strip()
+        if not comment:
+            flash('请填写拒绝原因', 'error')
+            return redirect(url_for('admin_review.review_view', pending_id=pending_id))
+
+        from app.utils import get_app_context_instance
+        app_context = get_app_context_instance()
+        pending_manager = app_context.get_pending_achievement_manager()
+
+        if pending_id not in [p.id for p in pending_manager.get_pending_for_admin()]:
+            flash('无权操作该记录', 'error')
+            return redirect(url_for('admin_review.review_view', pending_id=pending_id))
+
+        reviewer_id = session.get('user_id')
+        if pending_manager.reject(pending_id, 'admin', reviewer_id, comment):
+            from backend.utils.audit_logger import audit_log
+            audit_log(7, pending_id, None,
+                      operator={"id": reviewer_id, "code": str(reviewer_id), "user_type": "admin"},
+                      action_result=2, remark=comment[:200])
+            flash('已驳回，提交人可查看原因并修改后重新提交', 'success')
+            return redirect(url_for('admin_review.review_list'))
+
+        flash('驳回失败：记录不存在或状态已变化', 'error')
+        return redirect(url_for('admin_review.review_view', pending_id=pending_id))
+    except Exception as e:
+        logger.error(f"Error rejecting pending {pending_id}: {e}")
+        flash(f'驳回失败: {e}', 'error')
+        return redirect(url_for('admin_review.review_view', pending_id=pending_id))
+
+
 @bp.route('/api/achievement-review/<int:pending_id>/reject', methods=['POST'])
 @require_role_api('admin')
 def api_reject(pending_id):

@@ -46,7 +46,7 @@ jobs:
             tests/unit/test_reject_button_embedding.py tests/unit/test_ci_assets.py tests/unit/test_metrics_backup.py \
             tests/unit/test_audit_operator_display.py tests/unit/test_static_cache.py \
             tests/unit/test_llm_metric.py tests/unit/test_chat_stream_pieces.py \
-            tests/unit/test_log_scheduler_report.py \
+            tests/unit/test_log_scheduler_report.py tests/test_routes_integrity.py tests/test_page_rendering.py \
             --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics \
             --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error \
             --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision \

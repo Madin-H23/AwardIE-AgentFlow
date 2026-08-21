@@ -1,0 +1,112 @@
+- generic [ref=f4e2]:
+  - complementary [ref=f4e3]:
+    - navigation [ref=f4e4]:
+      - link " 数据总览" [ref=f4e5] [cursor=pointer]:
+        - /url: /admin/dashboard
+        - generic [ref=f4e6]: 
+        - text: 数据总览
+      - separator [ref=f4e7]
+      - generic [ref=f4e8]:
+        - generic [ref=f4e9] [cursor=pointer]:
+          - text: 常用
+          - generic [ref=f4e10]: 
+        - generic [ref=f4e11]:
+          - link " 成果管理" [ref=f4e12] [cursor=pointer]:
+            - /url: /admin/achievements
+            - generic [ref=f4e13]: 
+            - text: 成果管理
+          - link " 成果审核" [ref=f4e14] [cursor=pointer]:
+            - /url: /admin/achievement-review
+            - generic [ref=f4e15]: 
+            - text: 成果审核
+          - link " 日志管理" [ref=f4e16] [cursor=pointer]:
+            - /url: /admin/logs
+            - generic [ref=f4e17]: 
+            - text: 日志管理
+      - separator [ref=f4e18]
+      - generic [ref=f4e19]:
+        - generic [ref=f4e20] [cursor=pointer]:
+          - text: 智能体
+          - generic [ref=f4e21]: 
+        - link " AI 智能体协作" [ref=f4e23] [cursor=pointer]:
+          - /url: /assistant
+          - generic [ref=f4e24]: 
+          - text: AI 智能体协作
+      - separator [ref=f4e25]
+      - generic [ref=f4e26]:
+        - generic [ref=f4e27] [cursor=pointer]:
+          - text: 基础数据管理
+          - generic [ref=f4e28]: 
+        - generic [ref=f4e29]:
+          - link " 成果/文件导入" [ref=f4e30] [cursor=pointer]:
+            - /url: /admin/file-import
+            - generic [ref=f4e31]: 
+            - text: 成果/文件导入
+          - link " 奖状模板管理" [ref=f4e32] [cursor=pointer]:
+            - /url: /admin/templates
+            - generic [ref=f4e33]: 
+            - text: 奖状模板管理
+          - link " 竞赛管理" [ref=f4e34] [cursor=pointer]:
+            - /url: /admin/competitions
+            - generic [ref=f4e35]: 
+            - text: 竞赛管理
+          - link " 实验室管理" [ref=f4e36] [cursor=pointer]:
+            - /url: /admin/laboratories
+            - generic [ref=f4e37]: 
+            - text: 实验室管理
+      - separator [ref=f4e38]
+      - generic [ref=f4e39]:
+        - generic [ref=f4e40] [cursor=pointer]:
+          - text: 用户数据
+          - generic [ref=f4e41]: 
+        - generic [ref=f4e42]:
+          - link " 学生管理" [ref=f4e43] [cursor=pointer]:
+            - /url: /admin/students
+            - generic [ref=f4e44]: 
+            - text: 学生管理
+          - link " 教师管理" [ref=f4e45] [cursor=pointer]:
+            - /url: /admin/teachers
+            - generic [ref=f4e46]: 
+            - text: 教师管理
+          - link " 数据分析" [ref=f4e47] [cursor=pointer]:
+            - /url: /admin/data-analysis
+            - generic [ref=f4e48]: 
+            - text: 数据分析
+          - link " 数据导出" [ref=f4e49] [cursor=pointer]:
+            - /url: /admin/data_export
+            - generic [ref=f4e50]: 
+            - text: 数据导出
+      - separator [ref=f4e51]
+      - generic [ref=f4e52]:
+        - generic [ref=f4e53] [cursor=pointer]:
+          - text: 系统设置
+          - generic [ref=f4e54]: 
+        - link " 系统设置" [ref=f4e56] [cursor=pointer]:
+          - /url: /admin/settings
+          - generic [ref=f4e57]: 
+          - text: 系统设置
+    - generic [ref=f4e58]:
+      - generic [ref=f4e59]:
+        - generic [ref=f4e60]: 
+        - generic [ref=f4e61]: admin
+      - generic [ref=f4e62]: AwardIE-AgentFlow 控制台 v1.0 · 管理端
+  - banner [ref=f4e63]:
+    - generic [ref=f4e64]: 成果管理
+    - button "切换为深色模式" [ref=f4e65] [cursor=pointer]
+    - generic [ref=f4e68]:
+      - button "系 系统管理员 " [ref=f4e69] [cursor=pointer]:
+        - generic [ref=f4e70]: 系
+        - generic [ref=f4e71]: 系统管理员
+        - generic [ref=f4e72]: 
+      - text:  
+  - main [ref=f4e73]:
+    - heading "成果管理" [level=1] [ref=f4e75]
+    - tablist [ref=f4e76]:
+      - tab "奖状管理" [ref=f4e77] [cursor=pointer]
+      - tab "专利管理" [ref=f4e78] [cursor=pointer]
+      - tab "软著管理" [ref=f4e79] [cursor=pointer]
+      - tab "大创管理" [ref=f4e80] [cursor=pointer]
+      - tab "其他文件管理" [ref=f4e81] [cursor=pointer]
+    - tabpanel [ref=f4e83]:
+      - status [ref=f4e86]:
+        - generic [ref=f4e87]: 加载中...

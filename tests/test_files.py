@@ -69,8 +69,10 @@ class FileFlowTester:
         from config.flask import get_config
         from backend.services.unified_file_manager import get_unified_file_manager
         
-        # 创建Flask应用
+        # 创建Flask应用（测试期禁用 WTF CSRF——T31-T34 批次4）
         self.app = create_app(get_config())
+        self.app.config['TESTING'] = True
+        self.app.config['WTF_CSRF_ENABLED'] = False
         self.client = self.app.test_client()
         
         # 在Flask应用上下文中初始化，确保使用相同的AppContext实例
@@ -1861,3 +1863,24 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+def test_file_flow_integration():
+    """pytest 入口（T31-T34 批次4）：文件流转 API 全流程集成测试。
+
+    依赖真实库与业务文件（CI 无库环境自动 skip）。运行结束恢复工作目录，
+    避免模块级 os.chdir 污染其它用例。
+    """
+    import os as _os
+    from tests.fixtures.schemas import require_real_db
+    require_real_db()
+    import pytest as _pytest
+    original_cwd = _os.getcwd()
+    try:
+        tester = FileFlowTester()
+        assets = tester._pick_test_files()
+        if not assets:
+            _pytest.skip("缺少 images/测试图片 测试资产（CI/新环境无本地图片）")
+        assert tester.run_all_tests(), "文件流转流程存在失败步骤，详见上方输出"
+    finally:
+        _os.chdir(original_cwd)

@@ -1,0 +1,264 @@
+- generic [active] [ref=f1e1]:
+  - navigation [ref=f1e2]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e6]: CS
+        - generic [ref=f1e9]:
+          - link "仪表板" [ref=f1e10] [cursor=pointer]:
+            - /url: /teacher/dashboard
+          - link "成果展示" [ref=f1e11] [cursor=pointer]:
+            - /url: /teacher/achievements
+          - link "成果提交" [ref=f1e12] [cursor=pointer]:
+            - /url: /teacher/achievement-submit
+          - link "成果审核" [ref=f1e13] [cursor=pointer]:
+            - /url: /teacher/achievement-review
+          - link "🤖 AI 助手" [ref=f1e14] [cursor=pointer]:
+            - /url: /assistant
+          - link "个人资料" [ref=f1e15] [cursor=pointer]:
+            - /url: /teacher/profile
+      - generic [ref=f1e16]:
+        - button "切换为深色模式" [ref=f1e17] [cursor=pointer]
+        - button "马 马云莺" [ref=f1e21] [cursor=pointer]:
+          - generic [ref=f1e22]: 马
+          - generic [ref=f1e23]: 马云莺
+  - main [ref=f1e26]:
+    - generic [ref=f1e30]:
+      - generic [ref=f1e31]:
+        - generic [ref=f1e32]: 马
+        - generic [ref=f1e34]:
+          - generic [ref=f1e35]:
+            - heading "马云莺" [level=3] [ref=f1e36]
+            - generic [ref=f1e37]:
+              - checkbox [checked] [ref=f1e39]
+              - generic [ref=f1e41]: 公开主页
+          - generic [ref=f1e42]:
+            - generic [ref=f1e43]: 未设置
+            - generic [ref=f1e44]: 工号：02114818
+          - generic [ref=f1e45]: 暂无技术标签
+          - generic [ref=f1e46]:
+            - generic [ref=f1e47]:
+              - generic [ref=f1e48]: "26"
+              - generic [ref=f1e49]: 获得成果
+            - generic [ref=f1e50]:
+              - generic [ref=f1e51]: "0"
+              - generic [ref=f1e52]: 技术标签
+      - generic [ref=f1e53]:
+        - link "学生实验首页" [ref=f1e54] [cursor=pointer]:
+          - /url: /
+        - button "个人设置" [ref=f1e55] [cursor=pointer]
+    - generic [ref=f1e59]:
+      - generic [ref=f1e60]:
+        - heading "成果展示" [level=3] [ref=f1e61]
+        - link "查看更多 →" [ref=f1e62] [cursor=pointer]:
+          - /url: /teacher/achievements
+      - generic [ref=f1e63]:
+        - link "国赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-06-27" [ref=f1e64] [cursor=pointer]:
+          - /url: /admin/awards/1131/edit
+          - generic [ref=f1e68]:
+            - heading "国赛二等奖" [level=4] [ref=f1e69]
+            - paragraph [ref=f1e70]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e71]:
+              - generic [ref=f1e72]: 竞赛获奖
+              - generic [ref=f1e73]: 2025-06-27
+        - link "国赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-06-27" [ref=f1e74] [cursor=pointer]:
+          - /url: /admin/awards/1107/edit
+          - generic [ref=f1e78]:
+            - heading "国赛二等奖" [level=4] [ref=f1e79]
+            - paragraph [ref=f1e80]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e81]:
+              - generic [ref=f1e82]: 竞赛获奖
+              - generic [ref=f1e83]: 2025-06-27
+        - link "省赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e84] [cursor=pointer]:
+          - /url: /admin/awards/1152/edit
+          - generic [ref=f1e88]:
+            - heading "省赛二等奖" [level=4] [ref=f1e89]
+            - paragraph [ref=f1e90]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e91]:
+              - generic [ref=f1e92]: 竞赛获奖
+              - generic [ref=f1e93]: 2025-05-26
+        - link "省赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e94] [cursor=pointer]:
+          - /url: /admin/awards/1151/edit
+          - generic [ref=f1e98]:
+            - heading "省赛二等奖" [level=4] [ref=f1e99]
+            - paragraph [ref=f1e100]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e101]:
+              - generic [ref=f1e102]: 竞赛获奖
+              - generic [ref=f1e103]: 2025-05-26
+        - link "省赛一等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e104] [cursor=pointer]:
+          - /url: /admin/awards/1142/edit
+          - generic [ref=f1e108]:
+            - heading "省赛一等奖" [level=4] [ref=f1e109]
+            - paragraph [ref=f1e110]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e111]:
+              - generic [ref=f1e112]: 竞赛获奖
+              - generic [ref=f1e113]: 2025-05-26
+        - link "省赛三等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e114] [cursor=pointer]:
+          - /url: /admin/awards/1140/edit
+          - generic [ref=f1e118]:
+            - heading "省赛三等奖" [level=4] [ref=f1e119]
+            - paragraph [ref=f1e120]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e121]:
+              - generic [ref=f1e122]: 竞赛获奖
+              - generic [ref=f1e123]: 2025-05-26
+        - link "省赛三等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e124] [cursor=pointer]:
+          - /url: /admin/awards/1137/edit
+          - generic [ref=f1e128]:
+            - heading "省赛三等奖" [level=4] [ref=f1e129]
+            - paragraph [ref=f1e130]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e131]:
+              - generic [ref=f1e132]: 竞赛获奖
+              - generic [ref=f1e133]: 2025-05-26
+        - link "省赛一等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e134] [cursor=pointer]:
+          - /url: /admin/awards/1129/edit
+          - generic [ref=f1e138]:
+            - heading "省赛一等奖" [level=4] [ref=f1e139]
+            - paragraph [ref=f1e140]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e141]:
+              - generic [ref=f1e142]: 竞赛获奖
+              - generic [ref=f1e143]: 2025-05-26
+        - link "省赛三等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e144] [cursor=pointer]:
+          - /url: /admin/awards/1128/edit
+          - generic [ref=f1e148]:
+            - heading "省赛三等奖" [level=4] [ref=f1e149]
+            - paragraph [ref=f1e150]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e151]:
+              - generic [ref=f1e152]: 竞赛获奖
+              - generic [ref=f1e153]: 2025-05-26
+        - link "省赛三等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e154] [cursor=pointer]:
+          - /url: /admin/awards/1127/edit
+          - generic [ref=f1e158]:
+            - heading "省赛三等奖" [level=4] [ref=f1e159]
+            - paragraph [ref=f1e160]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e161]:
+              - generic [ref=f1e162]: 竞赛获奖
+              - generic [ref=f1e163]: 2025-05-26
+        - link "省赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e164] [cursor=pointer]:
+          - /url: /admin/awards/1126/edit
+          - generic [ref=f1e168]:
+            - heading "省赛二等奖" [level=4] [ref=f1e169]
+            - paragraph [ref=f1e170]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e171]:
+              - generic [ref=f1e172]: 竞赛获奖
+              - generic [ref=f1e173]: 2025-05-26
+        - link "省赛二等奖 2025年蓝桥杯全国软件和信息技术专业人才大赛 竞赛获奖 2025-05-26" [ref=f1e174] [cursor=pointer]:
+          - /url: /admin/awards/1125/edit
+          - generic [ref=f1e178]:
+            - heading "省赛二等奖" [level=4] [ref=f1e179]
+            - paragraph [ref=f1e180]: 2025年蓝桥杯全国软件和信息技术专业人才大赛
+            - generic [ref=f1e181]:
+              - generic [ref=f1e182]: 竞赛获奖
+              - generic [ref=f1e183]: 2025-05-26
+        - link "省赛三等奖 2025年中国大学生计算机设计大赛 竞赛获奖 2025-05" [ref=f1e184] [cursor=pointer]:
+          - /url: /admin/awards/1102/edit
+          - generic [ref=f1e188]:
+            - heading "省赛三等奖" [level=4] [ref=f1e189]
+            - paragraph [ref=f1e190]: 2025年中国大学生计算机设计大赛
+            - generic [ref=f1e191]:
+              - generic [ref=f1e192]: 竞赛获奖
+              - generic [ref=f1e193]: 2025-05
+        - link "国赛二等奖 2023年支付宝小程序开发者大赛 竞赛获奖 2024-05" [ref=f1e194] [cursor=pointer]:
+          - /url: /admin/awards/1097/edit
+          - generic [ref=f1e198]:
+            - heading "国赛二等奖" [level=4] [ref=f1e199]
+            - paragraph [ref=f1e200]: 2023年支付宝小程序开发者大赛
+            - generic [ref=f1e201]:
+              - generic [ref=f1e202]: 竞赛获奖
+              - generic [ref=f1e203]: 2024-05
+        - link "国赛二等奖 2024年中国大学生计算机设计大赛 竞赛获奖 2024-07" [ref=f1e204] [cursor=pointer]:
+          - /url: /admin/awards/1096/edit
+          - generic [ref=f1e208]:
+            - heading "国赛二等奖" [level=4] [ref=f1e209]
+            - paragraph [ref=f1e210]: 2024年中国大学生计算机设计大赛
+            - generic [ref=f1e211]:
+              - generic [ref=f1e212]: 竞赛获奖
+              - generic [ref=f1e213]: 2024-07
+        - link "国赛三等奖 2024年中国大学生计算机设计大赛 竞赛获奖 2024-07" [ref=f1e214] [cursor=pointer]:
+          - /url: /admin/awards/1095/edit
+          - generic [ref=f1e218]:
+            - heading "国赛三等奖" [level=4] [ref=f1e219]
+            - paragraph [ref=f1e220]: 2024年中国大学生计算机设计大赛
+            - generic [ref=f1e221]:
+              - generic [ref=f1e222]: 竞赛获奖
+              - generic [ref=f1e223]: 2024-07
+        - link "省赛一等奖 2024年中国大学生计算机设计大赛 竞赛获奖 2024-05" [ref=f1e224] [cursor=pointer]:
+          - /url: /admin/awards/1094/edit
+          - generic [ref=f1e228]:
+            - heading "省赛一等奖" [level=4] [ref=f1e229]
+            - paragraph [ref=f1e230]: 2024年中国大学生计算机设计大赛
+            - generic [ref=f1e231]:
+              - generic [ref=f1e232]: 竞赛获奖
+              - generic [ref=f1e233]: 2024-05
+        - link "省赛三等奖 2024年中国大学生计算机设计大赛 竞赛获奖 2024-05" [ref=f1e234] [cursor=pointer]:
+          - /url: /admin/awards/1093/edit
+          - generic [ref=f1e238]:
+            - heading "省赛三等奖" [level=4] [ref=f1e239]
+            - paragraph [ref=f1e240]: 2024年中国大学生计算机设计大赛
+            - generic [ref=f1e241]:
+              - generic [ref=f1e242]: 竞赛获奖
+              - generic [ref=f1e243]: 2024-05
+        - link "省赛二等奖 2024年中国大学生计算机设计大赛 竞赛获奖 2024-05" [ref=f1e244] [cursor=pointer]:
+          - /url: /admin/awards/1091/edit
+          - generic [ref=f1e248]:
+            - heading "省赛二等奖" [level=4] [ref=f1e249]
+            - paragraph [ref=f1e250]: 2024年中国大学生计算机设计大赛
+            - generic [ref=f1e251]:
+              - generic [ref=f1e252]: 竞赛获奖
+              - generic [ref=f1e253]: 2024-05
+        - link "国赛二等奖 2023年“挑战杯”全国大学生课外学术科技作品竞赛 竞赛获奖 2023-12" [ref=f1e254] [cursor=pointer]:
+          - /url: /admin/awards/1089/edit
+          - generic [ref=f1e258]:
+            - heading "国赛二等奖" [level=4] [ref=f1e259]
+            - paragraph [ref=f1e260]: 2023年“挑战杯”全国大学生课外学术科技作品竞赛
+            - generic [ref=f1e261]:
+              - generic [ref=f1e262]: 竞赛获奖
+              - generic [ref=f1e263]: 2023-12
+        - link "银奖 2023年中国国际“互联网+”大学生创新创业大赛 竞赛获奖 2023-05" [ref=f1e264] [cursor=pointer]:
+          - /url: /admin/awards/1087/edit
+          - generic [ref=f1e268]:
+            - heading "银奖" [level=4] [ref=f1e269]
+            - paragraph [ref=f1e270]: 2023年中国国际“互联网+”大学生创新创业大赛
+            - generic [ref=f1e271]:
+              - generic [ref=f1e272]: 竞赛获奖
+              - generic [ref=f1e273]: 2023-05
+        - link "国赛三等奖 2022年中国大学生计算机设计大赛 竞赛获奖 2022-07" [ref=f1e274] [cursor=pointer]:
+          - /url: /admin/awards/1086/edit
+          - generic [ref=f1e278]:
+            - heading "国赛三等奖" [level=4] [ref=f1e279]
+            - paragraph [ref=f1e280]: 2022年中国大学生计算机设计大赛
+            - generic [ref=f1e281]:
+              - generic [ref=f1e282]: 竞赛获奖
+              - generic [ref=f1e283]: 2022-07
+        - link "省赛二等奖 2022年中国大学生计算机设计大赛 竞赛获奖 2022-05" [ref=f1e284] [cursor=pointer]:
+          - /url: /admin/awards/1085/edit
+          - generic [ref=f1e288]:
+            - heading "省赛二等奖" [level=4] [ref=f1e289]
+            - paragraph [ref=f1e290]: 2022年中国大学生计算机设计大赛
+            - generic [ref=f1e291]:
+              - generic [ref=f1e292]: 竞赛获奖
+              - generic [ref=f1e293]: 2022-05
+        - link "国赛一等奖 2022年中国大学生计算机设计大赛 竞赛获奖 2022-07" [ref=f1e294] [cursor=pointer]:
+          - /url: /admin/awards/1084/edit
+          - generic [ref=f1e298]:
+            - heading "国赛一等奖" [level=4] [ref=f1e299]
+            - paragraph [ref=f1e300]: 2022年中国大学生计算机设计大赛
+            - generic [ref=f1e301]:
+              - generic [ref=f1e302]: 竞赛获奖
+              - generic [ref=f1e303]: 2022-07
+        - link "省赛一等奖 2022年中国大学生计算机设计大赛 竞赛获奖 2022-05" [ref=f1e304] [cursor=pointer]:
+          - /url: /admin/awards/1083/edit
+          - generic [ref=f1e308]:
+            - heading "省赛一等奖" [level=4] [ref=f1e309]
+            - paragraph [ref=f1e310]: 2022年中国大学生计算机设计大赛
+            - generic [ref=f1e311]:
+              - generic [ref=f1e312]: 竞赛获奖
+              - generic [ref=f1e313]: 2022-05
+        - link "省赛三等奖 2022年中国大学生计算机设计大赛 竞赛获奖 2022-05" [ref=f1e314] [cursor=pointer]:
+          - /url: /admin/awards/1082/edit
+          - generic [ref=f1e318]:
+            - heading "省赛三等奖" [level=4] [ref=f1e319]
+            - paragraph [ref=f1e320]: 2022年中国大学生计算机设计大赛
+            - generic [ref=f1e321]:
+              - generic [ref=f1e322]: 竞赛获奖
+              - generic [ref=f1e323]: 2022-05
+  - contentinfo [ref=f1e324]:
+    - paragraph [ref=f1e326]: © 计算机系学生成果管理系统.

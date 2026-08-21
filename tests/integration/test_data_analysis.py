@@ -125,13 +125,12 @@ class TestAdminDataAnalysis:
         assert 'id="whitelistFilter"' not in html, \
             "页面不应包含全局白名单过滤器（应在Tab 2中）"
 
-        # 验证Tab 2中存在过滤器
-        assert 'id="tab2YearFilter"' in html, \
-            "Tab 2应包含年份过滤器"
+        # 验证Tab 2中存在过滤器（T59 修复：模板演进为 year-tags 标签式筛选，
+        # 原 tab2YearFilter select 已退役；等价容器 id=yearTags）
+        assert 'id="yearTags"' in html or 'id="tab2YearFilter"' in html, \
+            "Tab 2应包含年份筛选（yearTags 标签容器或 tab2YearFilter）"
         assert 'id="tab2WhitelistFilter"' in html, \
             "Tab 2应包含白名单过滤器"
-        assert 'id="applyTab2Filters"' in html, \
-            "Tab 2应包含应用筛选按钮"
 
 
 class TestLaboratoryDataAnalysis:

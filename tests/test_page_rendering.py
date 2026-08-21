@@ -279,3 +279,11 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
+
+def test_page_rendering_all_routes():
+    """pytest 入口（T31-T34 批次4）：关键页面渲染无异常。"""
+    from tests.fixtures.schemas import require_real_db
+    require_real_db()   # 页面渲染依赖真实库数据
+    tester = PageRenderingTester()
+    assert tester.run_all_tests(), "存在渲染失败的页面，详见上方输出"

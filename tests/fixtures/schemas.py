@@ -53,7 +53,7 @@ USERS_DDL = """CREATE TABLE users (
     password_hash TEXT,
     user_activated INTEGER NOT NULL DEFAULT 1 CHECK(user_activated IN (0,1)),
     phone TEXT, qq TEXT, skills TEXT, profile_is_public INTEGER DEFAULT 1,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     major TEXT, grade TEXT, title TEXT, department TEXT, id_number TEXT,
     needs_password_change INTEGER NOT NULL DEFAULT 0)"""
 
@@ -61,10 +61,10 @@ AUDIT_LOG_DDL = """CREATE TABLE achievement_audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     achievement_id INTEGER NOT NULL,
     achievement_kind TEXT CHECK(achievement_kind IN ('award','patent','software','innovation','other')),
-    trace_id TEXT, action_type INTEGER NOT NULL CHECK(action_type BETWEEN 1 AND 11),
+    trace_id TEXT, action_type INTEGER NOT NULL CHECK(action_type BETWEEN 1 AND 12),
     action_result INTEGER NOT NULL DEFAULT 0 CHECK(action_result IN (0,1,2)),
     operator_id INTEGER, operator_code TEXT NOT NULL, operator_name TEXT NOT NULL,
-    operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip TEXT,
+    operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip VARCHAR(45),
     ai_batch_id TEXT, change_detail TEXT, remark TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP)"""
 

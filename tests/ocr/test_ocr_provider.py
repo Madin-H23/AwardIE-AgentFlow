@@ -74,7 +74,7 @@ def get_image_size(file_path: str) -> Tuple[int, int]:
         return (0, 0)
 
 
-def test_single_provider(provider_name: str, provider_config: dict, image_path: str, temp_dir: str, cache_db_path: str) -> Tuple[str, float, bool, str]:
+def _run_single_provider(provider_name: str, provider_config: dict, image_path: str, temp_dir: str, cache_db_path: str) -> Tuple[str, float, bool, str]:
     """测试单个 OCR 厂商"""
     start_time = time.time()
     error_msg = ""
@@ -157,7 +157,7 @@ def run_test(image_files: List[str], providers_to_test: List[str] = None) -> Dic
         for provider_name, provider_config in ocr_providers.items():
             print(f"  - 测试厂商: {provider_name}...", end=" ", flush=True)
 
-            text, elapsed, success, error_msg = test_single_provider(
+            text, elapsed, success, error_msg = _run_single_provider(
                 provider_name, provider_config, image_path, temp_dir, cache_db_path
             )
 

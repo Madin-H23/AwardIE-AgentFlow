@@ -1,0 +1,150 @@
+- generic [ref=f2e2]:
+  - complementary [ref=f2e3]:
+    - navigation [ref=f2e4]:
+      - link " 数据总览" [ref=f2e5] [cursor=pointer]:
+        - /url: /admin/dashboard
+        - generic [ref=f2e6]: 
+        - text: 数据总览
+      - separator [ref=f2e7]
+      - generic [ref=f2e8]:
+        - generic [ref=f2e9] [cursor=pointer]:
+          - text: 常用
+          - generic [ref=f2e10]: 
+        - generic [ref=f2e11]:
+          - link " 成果管理" [ref=f2e12] [cursor=pointer]:
+            - /url: /admin/achievements
+            - generic [ref=f2e13]: 
+            - text: 成果管理
+          - link " 成果审核" [ref=f2e14] [cursor=pointer]:
+            - /url: /admin/achievement-review
+            - generic [ref=f2e15]: 
+            - text: 成果审核
+          - link " 日志管理" [ref=f2e16] [cursor=pointer]:
+            - /url: /admin/logs
+            - generic [ref=f2e17]: 
+            - text: 日志管理
+      - separator [ref=f2e18]
+      - generic [ref=f2e19]:
+        - generic [ref=f2e20] [cursor=pointer]:
+          - text: 智能体
+          - generic [ref=f2e21]: 
+        - link " AI 智能体协作" [ref=f2e23] [cursor=pointer]:
+          - /url: /assistant
+          - generic [ref=f2e24]: 
+          - text: AI 智能体协作
+      - separator [ref=f2e25]
+      - generic [ref=f2e26]:
+        - generic [ref=f2e27] [cursor=pointer]:
+          - text: 基础数据管理
+          - generic [ref=f2e28]: 
+        - generic [ref=f2e29]:
+          - link " 成果/文件导入" [ref=f2e30] [cursor=pointer]:
+            - /url: /admin/file-import
+            - generic [ref=f2e31]: 
+            - text: 成果/文件导入
+          - link " 奖状模板管理" [ref=f2e32] [cursor=pointer]:
+            - /url: /admin/templates
+            - generic [ref=f2e33]: 
+            - text: 奖状模板管理
+          - link " 竞赛管理" [ref=f2e34] [cursor=pointer]:
+            - /url: /admin/competitions
+            - generic [ref=f2e35]: 
+            - text: 竞赛管理
+          - link " 实验室管理" [ref=f2e36] [cursor=pointer]:
+            - /url: /admin/laboratories
+            - generic [ref=f2e37]: 
+            - text: 实验室管理
+      - separator [ref=f2e38]
+      - generic [ref=f2e39]:
+        - generic [ref=f2e40] [cursor=pointer]:
+          - text: 用户数据
+          - generic [ref=f2e41]: 
+        - generic [ref=f2e42]:
+          - link " 学生管理" [ref=f2e43] [cursor=pointer]:
+            - /url: /admin/students
+            - generic [ref=f2e44]: 
+            - text: 学生管理
+          - link " 教师管理" [ref=f2e45] [cursor=pointer]:
+            - /url: /admin/teachers
+            - generic [ref=f2e46]: 
+            - text: 教师管理
+          - link " 数据分析" [ref=f2e47] [cursor=pointer]:
+            - /url: /admin/data-analysis
+            - generic [ref=f2e48]: 
+            - text: 数据分析
+          - link " 数据导出" [ref=f2e49] [cursor=pointer]:
+            - /url: /admin/data_export
+            - generic [ref=f2e50]: 
+            - text: 数据导出
+      - separator [ref=f2e51]
+      - generic [ref=f2e52]:
+        - generic [ref=f2e53] [cursor=pointer]:
+          - text: 系统设置
+          - generic [ref=f2e54]: 
+        - link " 系统设置" [ref=f2e56] [cursor=pointer]:
+          - /url: /admin/settings
+          - generic [ref=f2e57]: 
+          - text: 系统设置
+    - generic [ref=f2e58]:
+      - generic [ref=f2e59]:
+        - generic [ref=f2e60]: 
+        - generic [ref=f2e61]: admin
+      - generic [ref=f2e62]: AwardIE-AgentFlow 控制台 v1.0 · 管理端
+  - banner [ref=f2e63]:
+    - generic [ref=f2e64]: 日志管理
+    - button "切换为深色模式" [ref=f2e65] [cursor=pointer]
+    - generic [ref=f2e68]:
+      - button "系 系统管理员 " [ref=f2e69] [cursor=pointer]:
+        - generic [ref=f2e70]: 系
+        - generic [ref=f2e71]: 系统管理员
+        - generic [ref=f2e72]: 
+      - text:  
+  - main [ref=f2e73]:
+    - tablist [ref=f2e74]:
+      - tab "日志查看" [selected] [ref=f2e75] [cursor=pointer]
+      - tab "分析看板" [ref=f2e76] [cursor=pointer]
+      - tab "行动计划" [ref=f2e77] [cursor=pointer]
+    - tabpanel [ref=f2e79]:
+      - generic [ref=f2e80]:
+        - combobox "级别" [ref=f2e81]:
+          - option "全部级别" [selected]
+          - option "debug"
+          - option "info"
+          - option "warning"
+          - option "error"
+          - option "critical"
+        - textbox "keyword" [ref=f2e82]:
+          - /placeholder: 关键词 / trace_id
+        - textbox "开始日期" [ref=f2e83]
+        - textbox "结束日期" [ref=f2e84]
+        - button "查询" [ref=f2e85] [cursor=pointer]
+        - button "重置" [ref=f2e86] [cursor=pointer]
+      - list [ref=f2e87]:
+        - listitem [ref=f2e88]:
+          - button "审核留痕" [ref=f2e89] [cursor=pointer]
+        - listitem [ref=f2e90]:
+          - button "系统事件" [ref=f2e91] [cursor=pointer]
+        - listitem [ref=f2e92]:
+          - button "应用日志" [ref=f2e93] [cursor=pointer]
+        - listitem [ref=f2e94]:
+          - button "实时流" [ref=f2e95] [cursor=pointer]
+      - generic [ref=f2e96]:
+        - generic [ref=f2e97]:
+          - generic [ref=f2e98] [cursor=pointer]:
+            - generic [ref=f2e99]: 08-21 14:55:51
+            - generic [ref=f2e100]: 入库
+            - generic [ref=f2e101]: 02114818 马云莺 · 成果#1194
+          - generic [ref=f2e102] [cursor=pointer]:
+            - generic [ref=f2e103]: 08-21 14:55:51
+            - generic [ref=f2e104]: 审核通过
+            - generic [ref=f2e105]: 02114818 马云莺 · 待审成果#3709
+          - generic [ref=f2e106] [cursor=pointer]:
+            - generic [ref=f2e107]: 08-21 11:31:31
+            - generic [ref=f2e108]: 提交
+            - generic [ref=f2e109]: 212306413 陈品天 · 待审成果#3709
+        - generic [ref=f2e110]:
+          - generic [ref=f2e111]: 共 3 条
+          - generic [ref=f2e112]:
+            - button "上一页" [ref=f2e113] [cursor=pointer]
+            - text: 1 / 1
+            - button "下一页" [ref=f2e114] [cursor=pointer]

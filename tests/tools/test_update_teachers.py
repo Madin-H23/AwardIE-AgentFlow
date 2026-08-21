@@ -128,7 +128,7 @@ def test_update_teacher_success():
 
     # 模拟教师对象
     mock_teacher = Mock()
-    mock_teacher.configure_mock(id=1, name='马云莺')
+    mock_teacher.configure_mock(id=1, name='马云莺', teacher_id='02114818')
 
     # 更新数据
     data = {
@@ -137,43 +137,31 @@ def test_update_teacher_success():
         'title': '讲师'
     }
 
-    result = update_teacher_info(mock_manager, mock_teacher, data)
+    from unittest.mock import patch
+    with patch('backend.orm.repositories.UserRepository') as mock_repo:
+        result = update_teacher_info(mock_manager, mock_teacher, data)
 
-    # 验证调用了 update_teacher（只传递 phone 和 title，不传递 teacher_id 关键字参数）
-    mock_manager.update_teacher.assert_called_once_with(
-        1,  # teacher.id
-        phone='13950308256',
-        title='讲师'
-    )
-    # 验证执行了 SQL 更新 teacher_id
-    mock_cursor.execute.assert_called_once_with(
-        'UPDATE teachers SET teacher_id = ? WHERE id = ?',
-        ('02114818', 1)
-    )
-    # 验证数据库事务提交
-    mock_conn.commit.assert_called_once()
-    mock_conn.close.assert_called_once()
-    assert result is True
+        # M1 后半②：直写 users 真源（update_profile + update_login_code）
+        mock_repo.update_profile.assert_called_once_with(
+            '02114818', phone='13950308256', title='讲师')
+        # 工号未变（teacher.teacher_id 也是 02114818）→ 不调 update_login_code
+        mock_repo.update_login_code.assert_not_called()
+        assert result is True
 
 
 def test_update_teacher_failure():
-    """测试更新失败情况"""
+    """测试更新失败情况（M1 后：mock UserRepository.update_profile 抛异常）"""
     mock_manager = Mock()
-    mock_manager.update_teacher.side_effect = Exception("Database error")
-
-    # 模拟数据库连接
-    mock_conn = Mock()
-    mock_cursor = Mock()
-    mock_conn.cursor.return_value = mock_cursor
-    mock_manager._get_db_connection.return_value = mock_conn
 
     mock_teacher = Mock()
-    mock_teacher.configure_mock(id=1, name='马云莺')
+    mock_teacher.configure_mock(id=1, name='马云莺', teacher_id='02114818')
     data = {'teacher_id': '001', 'phone': '111', 'title': '讲师'}
 
-    result = update_teacher_info(mock_manager, mock_teacher, data)
-
-    assert result is False
+    from unittest.mock import patch
+    with patch('backend.orm.repositories.UserRepository') as mock_repo:
+        mock_repo.update_profile.side_effect = Exception("Database error")
+        result = update_teacher_info(mock_manager, mock_teacher, data)
+        assert result is False
 
 
 # ============================================================================
@@ -195,23 +183,24 @@ def test_insert_new_teacher_success():
         'title': '教授'
     }
 
-    result = insert_new_teacher(mock_manager, data)
+    from unittest.mock import patch
+    with patch('backend.orm.repositories.UserRepository') as mock_repo:
+        result = insert_new_teacher(mock_manager, data)
 
-    # 验证调用了 add_teacher
-    mock_manager.add_teacher.assert_called_once_with(
-        teacher_id='99991001',
-        name='张三',
-        phone='13800000001',
-        title='教授',
-        department='计算机工程系'
-    )
-    assert result is True
+        # M1 后半②：直写 users 真源（create_user，角色 teacher + 首登改密）
+        mock_repo.create_user.assert_called_once()
+        call_args = mock_repo.create_user.call_args
+        assert call_args.args[0] == '99991001'
+        assert call_args.args[1] == '张三'
+        assert call_args.args[2] == 'teacher'
+        assert call_args.kwargs.get('phone') == '13800000001'
+        assert call_args.kwargs.get('title') == '教授'
+        assert result is True
 
 
 def test_insert_new_teacher_failure():
     """测试插入失败情况"""
     mock_manager = Mock()
-    mock_manager.add_teacher.side_effect = Exception("Duplicate key")
 
     data = {
         'name': '张三',
@@ -220,9 +209,11 @@ def test_insert_new_teacher_failure():
         'title': '教授'
     }
 
-    result = insert_new_teacher(mock_manager, data)
-
-    assert result is False
+    from unittest.mock import patch
+    with patch('backend.orm.repositories.UserRepository') as mock_repo:
+        mock_repo.create_user.side_effect = Exception("Duplicate key")
+        result = insert_new_teacher(mock_manager, data)
+        assert result is False
 
 
 # ============================================================================
@@ -286,9 +277,10 @@ def test_main_with_real_updates(mock_get_config, mock_teacher_manager_class):
     mock_teacher_manager.add_teacher.return_value = Mock(id=100)
     mock_teacher_manager_class.return_value = mock_teacher_manager
 
-    # 运行主流程（非 dry_run）
-    result = main('tests/fixtures/test_contacts.xlsx', dry_run=False)
-
-    # 验证实际调用了更新
-    assert mock_teacher_manager.update_teacher.called
-    assert result['updated'] >= 1
+    # 运行主流程（非 dry_run）——M1 后半②：更新走 UserRepository.update_profile
+    from unittest.mock import patch
+    with patch('backend.orm.repositories.UserRepository') as mock_repo:
+        mock_repo.update_profile.return_value = True
+        result = main('tests/fixtures/test_contacts.xlsx', dry_run=False)
+        assert mock_repo.update_profile.called
+        assert result['updated'] >= 1

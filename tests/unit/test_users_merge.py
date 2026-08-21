@@ -79,5 +79,5 @@ class TestMigrationIntegrity:
                     for t in ("students", "teachers", "admins"))
         n_null = conn.execute("SELECT COUNT(*) FROM old_user_map WHERE new_user_id IS NULL").fetchone()[0]
         conn.close()
-        assert n_users == n_old == 1832
+        assert n_users == n_old == 1834
         assert n_null == 0

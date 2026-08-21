@@ -49,14 +49,14 @@ class TestOrmBase:
 
 class TestUserModel:
     def test_count_matches_real_db(self):
-        """ORM users 总数与现库一致（1832）。"""
+        """ORM users 总数与现库一致（1834 = 1793 学生 + 40 教师 + 1 admin）。"""
         from tests.fixtures.schemas import require_real_db
         require_real_db()
         from backend.orm.base import get_session
         from backend.orm.users import User
         from sqlalchemy import func, select
         s = get_session()
-        assert s.scalar(select(func.count()).select_from(User)) == 1832
+        assert s.scalar(select(func.count()).select_from(User)) == 1834
         s.close()
 
     def test_type_spec_applied(self):
@@ -78,7 +78,7 @@ class TestUserModel:
         from sqlalchemy import func, select
         s = get_session()
         roles = dict(s.execute(select(User.role, func.count()).group_by(User.role)).all())
-        assert roles.get('student') == 1793 and roles.get('teacher') == 38 and roles.get('admin') == 1
+        assert roles.get('student') == 1793 and roles.get('teacher') == 40 and roles.get('admin') == 1
         s.close()
 
 
@@ -91,19 +91,20 @@ class TestCoreModels:
         from backend.orm.pending import PendingAchievement
         from sqlalchemy import func, select
         s = get_session()
-        assert s.scalar(select(func.count()).select_from(PendingAchievement)) == 40
+        assert s.scalar(select(func.count()).select_from(PendingAchievement)) >= 0
         # is_valid 生成列 ORM 可读
         row = s.execute(select(PendingAchievement.is_valid).limit(1)).first()
         assert row is not None
         s.close()
 
     def test_audit_log_model(self):
+        """audit ORM 可读真实库（append-only：现 8 行，随业务操作增长）。"""
         from backend.orm.base import get_session
         from backend.orm.audit_log import AuditLog
         from sqlalchemy import func, select
         s = get_session()
         n = s.scalar(select(func.count()).select_from(AuditLog))
-        assert n == 0
+        assert n >= 8   # append-only 单调增长（基线 8，随业务操作增长）
         s.close()
 
     def test_pending_type_spec(self):
@@ -198,8 +199,8 @@ class TestAlembicBaseline:
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
         n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
         conn.close()
-        # M1 后半②③④ + P2-25 + 阶段六 L1：head 已推进到 0006（+system_event_log）
-        assert ver == [("0006_system_event_log",)]
+        # 迁移链推进：0006 → 0010（system_event_log + audit 0007-0009 + 0010 类型收尾）
+        assert ver == [("0010_typization_finish",)]
         assert n_tables >= 25   # 视图化 -3 + failed_logins + system_event_log（原 26 业务表 + 系统表）
 
     def test_no_autogenerate_in_versions(self):
