@@ -43,7 +43,10 @@ jobs:
             tests/unit/test_true_stream.py tests/unit/test_users_merge.py tests/unit/test_timeline_ui.py \
             tests/unit/test_audit_complete.py tests/unit/test_workflow_progress.py tests/unit/test_stage3_batchA.py \
             tests/unit/test_cache_targeted.py tests/unit/test_frontend_timeline.py tests/unit/test_stage2_finish.py \
-            tests/unit/test_reject_button_embedding.py tests/unit/test_ci_assets.py tests/unit/test_metrics_backup.py \n            tests/unit/test_audit_operator_display.py tests/unit/test_static_cache.py \n            tests/unit/test_llm_metric.py tests/unit/test_chat_stream_pieces.py \n            tests/unit/test_log_scheduler_report.py \
+            tests/unit/test_reject_button_embedding.py tests/unit/test_ci_assets.py tests/unit/test_metrics_backup.py \
+            tests/unit/test_audit_operator_display.py tests/unit/test_static_cache.py \
+            tests/unit/test_llm_metric.py tests/unit/test_chat_stream_pieces.py \
+            tests/unit/test_log_scheduler_report.py \
             --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics \
             --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error \
             --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision \
