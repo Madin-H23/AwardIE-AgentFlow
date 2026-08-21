@@ -199,8 +199,8 @@ class TestAlembicBaseline:
         ver = conn.execute("SELECT * FROM alembic_version").fetchall()
         n_tables = len([r for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")])
         conn.close()
-        # 迁移链推进：0006 → 0010（system_event_log + audit 0007-0009 + 0010 类型收尾）
-        assert ver == [("0010_typization_finish",)]
+        # 迁移链推进：0006 → 0011（system_event_log + audit 0007-0009 + 0010 类型收尾 + 0011 seq 去重）
+        assert ver == [("0011_sqlite_seq_dedup",)]
         assert n_tables >= 25   # 视图化 -3 + failed_logins + system_event_log（原 26 业务表 + 系统表）
 
     def test_no_autogenerate_in_versions(self):
