@@ -90,21 +90,11 @@ def test_query_audit_logs_labels_and_display(db):
     assert items["AI智能审核"]["operator_display"] == "AI智能审核"
 
 
-def test_utc_to_local_dynamic_offset():
-    from datetime import datetime, timezone
-    from backend.utils.audit_logger import utc_to_local
-    off = datetime.now().astimezone().utcoffset()
-    src = "2026-08-21 06:55:51"
-    expect = (datetime.strptime(src, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-              + off).strftime("%Y-%m-%d %H:%M:%S")
-    assert utc_to_local(src) == expect
-    assert utc_to_local(None) is None
-    assert utc_to_local("bad") == "bad"      # 容错原样
 
-
-def test_query_audit_logs_created_at_localized(db):
+def test_query_audit_logs_created_at_local(db):
+    # 库内即应用本地时间：写入走 _local_now_str，查询不再转换
     import sqlite3
-    from datetime import datetime, timezone
+    from datetime import datetime
     conn = sqlite3.connect(db)
     conn.execute(
         "INSERT INTO achievement_audit_log (achievement_id, achievement_kind, action_type,"
@@ -112,8 +102,14 @@ def test_query_audit_logs_created_at_localized(db):
     conn.commit(); conn.close()
     r = LogQueryService.query_audit_logs(db_path=db, per_page=5)
     it = [x for x in r["items"] if x["action_type"] == 8][0]
-    assert it["created_at_utc"] == "2026-08-21 06:55:51"     # 原 UTC 保留
-    off = datetime.now().astimezone().utcoffset()
-    expect = (datetime.strptime("2026-08-21 06:55:51", "%Y-%m-%d %H:%M:%S")
-              .replace(tzinfo=timezone.utc) + off).strftime("%Y-%m-%d %H:%M:%S")
-    assert it["created_at"] == expect                          # 展示为本地时间
+    assert it["created_at"] == "2026-08-21 06:55:51"           # 原样返回，无任何时区转换
+
+def test_audit_log_writes_local_time(audit_path):
+    import sqlite3
+    from datetime import datetime
+    assert AuditLogger.log(6, 999, "award", operator={"id": 2, "code": "2", "user_type": "teacher"})
+    conn = sqlite3.connect(audit_path)
+    row = conn.execute("SELECT created_at FROM achievement_audit_log WHERE achievement_id=999").fetchone()
+    conn.close()
+    assert row is not None
+    assert abs((datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") - datetime.now()).total_seconds()) < 30

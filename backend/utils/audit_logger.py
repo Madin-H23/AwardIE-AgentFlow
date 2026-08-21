@@ -23,19 +23,11 @@ ACTION_LABELS = {1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5:
                  6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回'}
 
 
-def utc_to_local(ts):
-    """achievement_audit_log.created_at 为 SQLite CURRENT_TIMESTAMP（UTC）——展示层转本地时区。
-
-    解析失败原样返回（容错：非标准格式/空值）。原始 UTC 值由调用方另行保留。
-    """
-    if not ts:
-        return ts
-    try:
-        from datetime import datetime, timezone
-        dt = datetime.strptime(str(ts)[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-        return dt.astimezone().strftime("%Y-%m-%d %H:%M:%S")
-    except Exception:
-        return ts
+def _local_now_str():
+    """留痕时间统一存应用本地时间（中国时间）——库内直观可读、排障无换算；
+    不用 SQLite CURRENT_TIMESTAMP（恒 UTC）。"""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 class AuditLogger:
@@ -119,11 +111,11 @@ class AuditLogger:
                     """INSERT INTO achievement_audit_log
                        (achievement_id, achievement_kind, trace_id, action_type, action_result,
                         operator_id, operator_code, operator_name, operator_role,
-                        ai_batch_id, change_detail, remark)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        ai_batch_id, change_detail, remark, created_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (achievement_id, achievement_kind, trace_id, action_type, action_result,
                      op["id"], op["code"], op["name"], op["role"],
-                     ai_batch_id, detail, remark),
+                     ai_batch_id, detail, remark, _local_now_str()),
                 )
                 conn.commit()
                 from backend.utils.metrics import inc_audit

@@ -55,7 +55,7 @@ class LogQueryService:
                                params, page, per_page, conn)
             # 展示加工：动作中文标签 + 操作人显示名（历史数据 operator_name 曾存 users.id 纯数字，
             # 批量解析为 "学号 姓名"；非数字快照原样保留）
-            from backend.utils.audit_logger import ACTION_LABELS, utc_to_local
+            from backend.utils.audit_logger import ACTION_LABELS
             items = result.get("items") or []
             num_ids = {str(it.get("operator_name")) for it in items
                        if it.get("operator_name") and str(it["operator_name"]).isdigit()}
@@ -74,9 +74,6 @@ class LogQueryService:
                                                        f"动作{it.get('action_type')}")
                 it["operator_display"] = disp_map.get(str(it.get("operator_name")),
                                                       it.get("operator_name") or it.get("operator_code") or "-")
-                # created_at 为 SQLite CURRENT_TIMESTAMP(UTC)——展示转本地，原值保留 created_at_utc
-                it["created_at_utc"] = it.get("created_at")
-                it["created_at"] = utc_to_local(it.get("created_at"))
             return result
         finally:
             conn.close()
