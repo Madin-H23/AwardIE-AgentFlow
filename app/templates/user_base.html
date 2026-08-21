@@ -17,6 +17,12 @@ setTimeout(function(){var tx=document.body&&document.body.innerText?document.bod
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    /* 主题引导（防跨页闪烁/FOUC）：渲染前同步恢复 localStorage 偏好（key 与 console_theme.js 一致：console-theme，初值 localStorage > 系统偏好） */
+    (function(){try{var t=localStorage.getItem('console-theme');
+    if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}
+    var d=document.documentElement;d.setAttribute('data-theme',t);d.setAttribute('data-bs-theme',t);}catch(e){}})();
+    </script>
     <title>{% block title %}成果管理系统{% endblock %}</title>
     
     <!-- Tailwind CSS - 使用编译后的生产版本（运行 npm run build:css 生成） -->
