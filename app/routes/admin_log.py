@@ -232,20 +232,28 @@ def stream():
             yield f"event: open\ndata: {json.dumps({'source': source, 'level': level, 'keyword': keyword})}\n\n"
             last_id = 0
             last_ping = time.time()
-            from backend.services.log_file_reader import LogFileReader
+            from backend.services.log_file_reader import LogFileReader, parse_line
             from backend.services.log_query_service import LogQueryService
+            # app 文件用非阻塞 readline 增量（只推新增行）：
+            # 旧实现 LogFileReader.stream 是阻塞生成器——source=all 时先 next() 卡在 app 等待，
+            # audit/system 新事件推不出（实时流只有"已连接"）。非阻塞后可每轮交替轮询全部源。
+            app_f = None
+            if source in ("app", "all"):
+                _p = LogFileReader._path()
+                if _p.exists():
+                    app_f = open(_p, "r", encoding="utf-8", errors="replace")
+                    app_f.seek(0, 2)
             while True:
                 sent = False
-                if source in ("app", "all"):
-                    streamer = LogFileReader.stream(filter_level=level, filter_keyword=keyword)
-                    try:
-                        row = next(streamer)
-                        yield f"event: log\ndata: {json.dumps({'source': 'app', **row}, ensure_ascii=False)}\n\n"
-                        sent = True
-                    except StopIteration:
-                        pass
-                    finally:
-                        streamer.close()
+                if app_f:
+                    line = app_f.readline()
+                    while line:
+                        parsed = parse_line(line)
+                        if parsed and (not level or parsed.get("level") == level) and (
+                                not keyword or keyword.lower() in (parsed.get("msg") or "").lower()):
+                            yield f"event: log\ndata: {json.dumps({'source': 'app', **parsed}, ensure_ascii=False)}\n\n"
+                            sent = True
+                        line = app_f.readline()
                 if source in ("audit", "system", "all"):
                     srcs = ["audit", "system"] if source == "all" else [source]
                     for src in srcs:
@@ -262,6 +270,8 @@ def stream():
                     last_ping = time.time()
                 time.sleep(1 if sent else 0.5)
         finally:
+            if 'app_f' in locals() and app_f:
+                app_f.close()
             _SSE_CONN[user] = max(0, _SSE_CONN.get(user, 0) - 1)
 
     resp = Response(stream_with_context(gen()), mimetype="text/event-stream")
