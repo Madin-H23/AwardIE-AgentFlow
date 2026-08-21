@@ -47,6 +47,22 @@
     .message-bubble pre { background: color-mix(in srgb, var(--ink) 4%, transparent); padding: 8px 10px;
         border-radius: 8px; overflow-x: auto; font-size: .82rem; }
 
+    /* LLM 输出 markdown 排版（三个模式统一） */
+    .message-bubble p { margin: .25em 0; }
+    .message-bubble h3, .message-bubble h4 { margin: .5em 0 .3em; font-weight: 600; line-height: 1.35; }
+    .message-bubble ul { margin: .3em 0; padding-left: 1.25em; }
+    .message-bubble li { margin: .12em 0; }
+    .message-bubble code { background: color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 4px;
+        padding: .1em .35em; font-size: .85em; font-family: ui-monospace, Consolas, monospace; }
+    .message-bubble blockquote { border-left: 3px solid color-mix(in srgb, var(--brand) 42%, transparent);
+        margin: .4em 0; padding: .1em .6em; color: var(--ink-2); }
+    .message-bubble .md-table-wrap { overflow-x: auto; margin: .5em 0; }
+    .message-bubble table.md-table { width: 100%; border-collapse: collapse; font-size: .85em; }
+    .message-bubble table.md-table th, .message-bubble table.md-table td {
+        border: 1px solid var(--line); padding: 4px 8px; text-align: left; }
+    .message-bubble table.md-table thead th { background: color-mix(in srgb, var(--ink) 4%, transparent); font-weight: 600; }
+    .message-bubble a { color: var(--brand); text-decoration: underline; }
+
     /* 底部输入条（DeepSeek 大圆角悬浮样式） */
     .chat-input-area { padding: 6px 0 2px; }
     .dse-composer { display: flex; align-items: flex-end; gap: 10px;

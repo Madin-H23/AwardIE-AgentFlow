@@ -72,7 +72,7 @@ function appendMessage(role, text, extraHtml = '', raw = false) {
     const avatar = role === 'user' ? '👤' : '🤖';
     const div = document.createElement('div');
     div.className = `message ${role}`;
-    const body = raw ? text : escapeHtml(text);
+    const body = raw ? text : renderMarkdown(escapeHtml(text));
     div.innerHTML = `
         <div class="message-avatar">${avatar}</div>
         <div class="message-bubble">${body}${extraHtml}</div>
@@ -86,6 +86,69 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// 轻量 markdown 渲染（三模式输出统一排版）：入参=已 HTML 转义文本；
+// 仅输出白名单标签（h2-h5/p/ul/li/strong/em/code/pre/blockquote/table/a），标签内容全来自已转义文本，无注入面。
+// 支持：代码块/标题/粗斜体/行内码/引用/无序列表/表格/链接。
+function renderMarkdown(src) {
+    src = String(src);
+    // 代码块优先占位，避免被行内规则误伤
+    const blocks = [];
+    src = src.replace(/```[\r\n]*([\s\S]*?)```/g, (m, code) => {
+        blocks.push('<pre><code>' + (code.trim() || ' ') + '</code></pre>');
+        return '\u0000BLK' + (blocks.length - 1) + '\u0000';
+    });
+    const inline = (s) => s
+        .replace(/`([^`\n]+)`/g, (m, c) => '<code>' + c + '</code>')
+        .replace(/\*\*([^*\n]+)\*\*/g, (m, c) => '<strong>' + c + '</strong>')
+        .replace(/\*([^*\n]+)\*/g, (m, c) => '<em>' + c + '</em>')
+        .replace(/\[([^\]\n]+)\]\((https?:[^)\s]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>');
+    const renderTable = (rows) => {
+        const sepIdx = rows.findIndex(r => /^\s*:?-{2,}[\s:|:-]*$/.test(r.replace(/\|/g, ' ').trim()));
+        const hasHead = sepIdx > 0;
+        const data = (hasHead ? rows.slice(sepIdx + 1) : rows).filter(Boolean);
+        let h = '<div class="md-table-wrap"><table class="md-table">';
+        if (hasHead) h += '<thead><tr>' + rows[0].split('|').map(c => '<th>' + inline(c.trim()) + '</th>').join('') + '</tr></thead>';
+        h += '<tbody>' + data.map(r => '<tr>' + r.split('|').map(c => '<td>' + inline(c.trim()) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+        return h;
+    };
+    // 全局逐行状态机：支持跨空行连续无序/有序列表、表格段聚合、标题、引用、代码块/段落
+    const srcLines = src.split(/\r?\n/);
+    let html = '', inUl = false, inOl = false;
+    const flushLists = () => { if (inUl) { html += '</ul>'; inUl = false; } if (inOl) { html += '</ol>'; inOl = false; } };
+    const isTableLine = (x) => /^\s*\|.*\|\s*$/.test(x.trim());
+    const isBlk = (x) => /^\u0000BLK\d+\u0000$/.test(x.trim());
+    for (let i = 0; i < srcLines.length; i++) {
+        const raw = srcLines[i];
+        // 表格：连续表格行聚合成段
+        if (isTableLine(raw)) {
+            const tbl = [raw];
+            let j = i + 1;
+            while (j < srcLines.length && isTableLine(srcLines[j])) { tbl.push(srcLines[j]); j++; }
+            flushLists(); html += renderTable(tbl.map(x => x.trim().replace(/^\||\|$/g, '')));
+            i = j - 1; continue;
+        }
+        const t = raw.trim();
+        if (!t) continue;                       // 空行：列表保持状态跨空行连续；其余忽略
+        if (isBlk(t)) { flushLists(); html += blocks[Number(t.match(/\d+/)[0])]; continue; }
+        const hm = t.match(/^(#{1,4})\s+(.*)$/);
+        if (hm) { flushLists(); const lv = hm[1].length + 1; html += '<h' + lv + '>' + inline(hm[2]) + '</h' + lv + '>'; continue; }
+        if (/^\>\s?/.test(t)) { flushLists(); html += '<blockquote>' + inline(t.replace(/^\>\s?/, '')) + '</blockquote>'; continue; }
+        if (/^\s*[-*]\s+/.test(t)) {
+            if (inOl) { html += '</ol>'; inOl = false; }
+            if (!inUl) { html += '<ul>'; inUl = true; }
+            html += '<li>' + inline(t.replace(/^\s*[-*]\s+/, '')) + '</li>'; continue;
+        }
+        if (/^\s*\d+[.)、]\s+/.test(t)) {
+            if (inUl) { html += '</ul>'; inUl = false; }
+            if (!inOl) { html += '<ol>'; inOl = true; }
+            html += '<li>' + inline(t.replace(/^\s*\d+[.)、]\s+/, '')) + '</li>'; continue;
+        }
+        flushLists(); html += '<p>' + inline(t) + '</p>';
+    }
+    flushLists();
+    return html;
 }
 
 function showTyping() {
@@ -315,7 +378,7 @@ async function sendStreamed(text) {
             const modeTag = d && d.mode_used
                 ? `<div class="mt-1"><small class="text-muted">模式：${escapeHtml(d.mode_used)}</small></div>` : '';
             const srcs = (d && d.sources && d.sources.length) ? formatSources(d.sources) : '';
-            contentEl.innerHTML = escapeHtml((d && d.answer) || acc) + srcs + modeTag;
+            contentEl.innerHTML = renderMarkdown(escapeHtml((d && d.answer) || acc)) + srcs + modeTag;
             chatMessages.scrollTop = chatMessages.scrollHeight;
             resolve(true);
         });
