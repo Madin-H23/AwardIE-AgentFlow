@@ -89,10 +89,12 @@ setTimeout(function(){var tx=document.body&&document.body.innerText?document.bod
     </main>
 </div>
 
-<script async src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
-<script async src="{{ url_for('static', filename='js/console_theme.js') }}?v=2"></script>
-<script async src="{{ url_for('static', filename='js/common.js') }}"></script>
-<script async src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+{# defer（非 async）：DOMContentLoaded 前按序执行，保证 console_theme/common/csrf
+   的 DOMContentLoaded 绑定必达——async 下脚本晚于事件执行会导致主题切换等按钮失效（竞态） #}
+<script defer src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/console_theme.js') }}?v=2"></script>
+<script defer src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/csrf.js') }}"></script>
 
 {% block extra_scripts %}{% endblock %}
 </body>
