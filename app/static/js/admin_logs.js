@@ -6,6 +6,11 @@
 (function () {
   'use strict';
 
+  // 动作中文标签（与 backend audit_logger.ACTION_LABELS 对齐）
+  var ACTION_LABELS = { 1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
+                        6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回' };
+  function actionLabel(k) { return ACTION_LABELS[k] || ('动作' + k); }
+
   /* ---------- 工具 ---------- */
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -54,7 +59,7 @@
     if (source === 'audit') {
       return '<div class="log-row" data-detail="' + esc(JSON.stringify(it)) + '">' +
         '<span class="log-ts">' + esc((it.created_at || '').slice(5, 19)) + '</span>' +
-        '<span class="severity-bar sev-info" style="min-width:52px">' + esc(it.action_label || ('动作' + it.action_type)) + '</span>' +
+        '<span class="severity-bar sev-info" style="min-width:52px">' + esc(it.action_label || actionLabel(it.action_type)) + '</span>' +
         '<span class="log-msg">' + esc(it.operator_display || it.operator_name || it.operator_code || '-') + ' · 成果#' + esc(it.achievement_id) + '</span></div>';
     }
     if (source === 'system') {
@@ -213,7 +218,7 @@
       c.setOption({
         title: { text: '审核动作分布', left: 'center', textStyle: { fontSize: 13, color: cssVar('--ink') } },
         tooltip: { trigger: 'item' },
-        series: [{ type: 'pie', radius: ['38%', '62%'], data: keys.map(function (k) { return { name: '动作' + k, value: d[k] }; }) }]
+        series: [{ type: 'pie', radius: ['38%', '62%'], data: keys.map(function (k) { return { name: actionLabel(k), value: d[k] }; }) }]
       });
     }).catch(function () {});
     api('/admin/api/logs/analysis/errors?days=7').then(function (d) {
@@ -235,7 +240,7 @@
         title: { text: '活跃用户 Top 8', left: 'center', textStyle: { fontSize: 13, color: cssVar('--ink') } },
         tooltip: {}, grid: { left: 90, right: 20, top: 40, bottom: 24 },
         xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: d.map(function (x) { return x.operator_name || x.operator_code; }).reverse() },
+        yAxis: { type: 'category', data: d.map(function (x) { return x.operator_display || x.operator_name || x.operator_code; }).reverse() },
         series: [{ type: 'bar', data: d.map(function (x) { return x.count; }).reverse(), itemStyle: { color: cssVar('--brand') } }]
       });
     }).catch(function () {});
