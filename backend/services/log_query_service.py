@@ -50,9 +50,31 @@ class LogQueryService:
         w = ("WHERE " + " AND ".join(where)) if where else ""
         conn = get_connection(db_path or LogQueryService._get_db_path())
         try:
-            return _paginate(f"SELECT * FROM achievement_audit_log {w}",
-                             f"SELECT COUNT(*) FROM achievement_audit_log {w}",
-                             params, page, per_page, conn)
+            result = _paginate(f"SELECT * FROM achievement_audit_log {w}",
+                               f"SELECT COUNT(*) FROM achievement_audit_log {w}",
+                               params, page, per_page, conn)
+            # 展示加工：动作中文标签 + 操作人显示名（历史数据 operator_name 曾存 users.id 纯数字，
+            # 批量解析为 "学号 姓名"；非数字快照原样保留）
+            from backend.utils.audit_logger import ACTION_LABELS
+            items = result.get("items") or []
+            num_ids = {str(it.get("operator_name")) for it in items
+                       if it.get("operator_name") and str(it["operator_name"]).isdigit()}
+            disp_map = {}
+            if num_ids:
+                try:
+                    ph = ",".join("?" * len(num_ids))
+                    for ur in conn.execute(
+                            f"SELECT id, login_code, name FROM users WHERE id IN ({ph})",
+                            tuple(num_ids)):
+                        disp_map[str(ur["id"])] = f"{ur['login_code']} {ur['name'] or ur['login_code']}".strip()
+                except Exception:
+                    pass
+            for it in items:
+                it["action_label"] = ACTION_LABELS.get(it.get("action_type"),
+                                                       f"动作{it.get('action_type')}")
+                it["operator_display"] = disp_map.get(str(it.get("operator_name")),
+                                                      it.get("operator_name") or it.get("operator_code") or "-")
+            return result
         finally:
             conn.close()
 

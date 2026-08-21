@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 ROLE_MAP = {"student": 1, "teacher": 2, "admin": 4}
 AI_OPERATOR = {"id": None, "code": "AI", "name": "AI智能审核", "role": 3}
 
+# 动作中文标签（单一真源：timeline 端点 / 日志查询展示共用）
+ACTION_LABELS = {1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
+                 6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回'}
+
 
 class AuditLogger:
     """全生命周期留痕写入器（进程级单例用法：直接调用类方法）。"""
@@ -32,6 +36,23 @@ class AuditLogger:
         return cls._db_path
 
     @classmethod
+    def _users_display(cls, uid):
+        """users.id → (login_code, name)；任何失败返回 None（容错：无表/锁/连接）。"""
+        try:
+            from backend.utils.db_connection import get_connection
+            conn = get_connection(cls._get_db_path())
+            try:
+                row = conn.execute(
+                    "SELECT login_code, name FROM users WHERE id=?", (uid,)).fetchone()
+                if row and row[0]:
+                    return str(row[0]), (row[1] or str(row[0]))
+            finally:
+                conn.close()
+        except Exception:
+            pass
+        return None
+
+    @classmethod
     def _resolve_operator(cls, operator=None):
         """显式 dict{code,name,role} 优先；否则尝试 Flask session；AI 用常量。"""
         if operator == "AI":
@@ -40,8 +61,15 @@ class AuditLogger:
             role = operator.get("role")
             if role is None:
                 role = ROLE_MAP.get(operator.get("user_type", ""), 4)
-            return {"id": operator.get("id"), "code": operator["code"],
-                    "name": operator.get("name") or operator["code"], "role": role}
+            code = str(operator["code"])
+            name = operator.get("name")
+            # M1 后调用方多直传 users.id 作 code（name 缺省=数字）——解析回业务号+姓名快照
+            if (not name or str(name) == code) and operator.get("id") is not None:
+                disp = cls._users_display(operator["id"])
+                if disp:
+                    code, name = disp
+            return {"id": operator.get("id"), "code": code,
+                    "name": name or code, "role": role}
         try:  # 请求上下文内自动取当前登录人
             from flask import session
             uid = session.get("user_id")

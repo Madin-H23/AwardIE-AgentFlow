@@ -54,8 +54,8 @@
     if (source === 'audit') {
       return '<div class="log-row" data-detail="' + esc(JSON.stringify(it)) + '">' +
         '<span class="log-ts">' + esc((it.created_at || '').slice(5, 19)) + '</span>' +
-        '<span class="severity-bar sev-info" style="min-width:52px">动作' + esc(it.action_type) + '</span>' +
-        '<span class="log-msg">' + esc(it.operator_name || it.operator_code || '-') + ' · 成果#' + esc(it.achievement_id) + '</span></div>';
+        '<span class="severity-bar sev-info" style="min-width:52px">' + esc(it.action_label || ('动作' + it.action_type)) + '</span>' +
+        '<span class="log-msg">' + esc(it.operator_display || it.operator_name || it.operator_code || '-') + ' · 成果#' + esc(it.achievement_id) + '</span></div>';
     }
     if (source === 'system') {
       var lv = (it.event_level || 'info').toLowerCase();

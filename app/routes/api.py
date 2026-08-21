@@ -39,6 +39,7 @@ def audit_timeline(kind, entity_id):
     try:
         from backend.utils.db_connection import get_connection
         from config.loader import get_config
+        from backend.utils.audit_logger import ACTION_LABELS
         conn = get_connection(get_config().get_path('database', 'competitions_db'))
         rows = conn.execute(
             """SELECT id, action_type, action_result, operator_code, operator_name, operator_role,
@@ -47,15 +48,28 @@ def audit_timeline(kind, entity_id):
                WHERE achievement_kind = ? AND achievement_id = ?
                ORDER BY created_at ASC, id ASC""",
             (kind, entity_id)).fetchall()
+        # 历史数据兼容：M1 后 operator_name 曾存 users.id（纯数字）——批量解析为 "学号 姓名"
+        disp_map = {}
+        num_ids = {r['operator_name'] for r in rows
+                   if r['operator_name'] and str(r['operator_name']).isdigit()}
+        if num_ids:
+            try:
+                placeholders = ",".join("?" * len(num_ids))
+                c2 = get_connection(get_config().get_path('database', 'competitions_db'))
+                for ur in c2.execute(
+                        f"SELECT id, login_code, name FROM users WHERE id IN ({placeholders})",
+                        tuple(num_ids)):
+                    disp_map[str(ur['id'])] = f"{ur['login_code']} {ur['name'] or ur['login_code']}".strip()
+                c2.close()
+            except Exception:
+                pass
         conn.close()
         ROLE_LABELS = {1: '学生', 2: '教师', 3: 'AI', 4: '管理员'}
-        ACTION_LABELS = {1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
-                         6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回'}
         timeline = [{
             'id': r['id'],
             'action': ACTION_LABELS.get(r['action_type'], str(r['action_type'])),
             'action_type': r['action_type'],
-            'operator': r['operator_name'],
+            'operator': disp_map.get(str(r['operator_name']), r['operator_name']),
             'operator_role': ROLE_LABELS.get(r['operator_role'], ''),
             'is_ai': r['operator_role'] == 3,
             'trace_id': r['trace_id'],
