@@ -2429,7 +2429,7 @@ function showTimeline(kind, entityId) {
                       <strong>${t.action}</strong>
                       <small class="text-muted">${t.created_at || ''}</small>
                     </div>
-                    <div class="small text-muted">${t.operator || ''} ${t.remark ? '· ' + escapeHtmlTl(t.remark) : ''}</div>
+                    <div class="small text-muted">${t.operator || ''} · ${(t.action_type === 8 ? '成果#' : '待审成果#') + (t.entity_id || '')} ${t.remark ? '· ' + escapeHtmlTl(t.remark) : ''}</div>
                   </div>
                 </div>`).join('') + '</div>';
         })

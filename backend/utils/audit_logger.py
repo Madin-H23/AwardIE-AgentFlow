@@ -60,6 +60,31 @@ class AuditLogger:
         return None
 
     @classmethod
+    def resolve_display_names(cls, conn, values):
+        """把留痕操作人快照值（users.id 或 login_code）解析为 '学号 姓名'。
+
+        历史数据 operator_name/operator_code 形态不一：M1 后曾存 users.id（如 1370），
+        更早存业务号（如 02114818）。先按 id 匹配、未命中再按 login_code 匹配；
+        解析失败的原值不进返回（调用方回退原快照显示）。conn 须为 sqlite3 连接。
+        """
+        out = {}
+        vals = {str(v) for v in values if v is not None}
+        if not vals:
+            return out
+        try:
+            ph = ",".join("?" * len(vals))
+            for u in conn.execute(
+                    f"SELECT id, login_code, name FROM users WHERE id IN ({ph}) OR login_code IN ({ph})",
+                    tuple(vals) + tuple(vals)):
+                uid, ucode, uname = u[0], u[1], u[2]   # 位置索引：兼容 row_factory=Row 与默认 tuple
+                key = str(uid) if str(uid) in vals else str(ucode)
+                if key not in out and ucode:
+                    out[key] = f"{ucode} {uname or ucode}".strip()
+            return out
+        except Exception:
+            return out
+
+    @classmethod
     def _resolve_operator(cls, operator=None):
         """显式 dict{code,name,role} 优先；否则尝试 Flask session；AI 用常量。"""
         if operator == "AI":

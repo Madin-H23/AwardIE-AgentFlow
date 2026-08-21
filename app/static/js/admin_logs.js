@@ -10,6 +10,8 @@
   var ACTION_LABELS = { 1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
                         6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回' };
   function actionLabel(k) { return ACTION_LABELS[k] || ('动作' + k); }
+  /* 成果编号阶段语义：动作8=入库后(awards.id)→'成果#'；其余作用于待审(pending.id)→'待审成果#' */
+  function entityTag(type, id) { return (type === 8 ? '成果#' : '待审成果#') + id; }
 
   /* ---------- 工具 ---------- */
   function esc(s) {
@@ -60,7 +62,7 @@
       return '<div class="log-row" data-detail="' + esc(JSON.stringify(it)) + '">' +
         '<span class="log-ts">' + esc((it.created_at || '').slice(5, 19)) + '</span>' +
         '<span class="severity-bar sev-info" style="min-width:52px">' + esc(it.action_label || actionLabel(it.action_type)) + '</span>' +
-        '<span class="log-msg">' + esc(it.operator_display || it.operator_name || it.operator_code || '-') + ' · 成果#' + esc(it.achievement_id) + '</span></div>';
+        '<span class="log-msg">' + esc(it.operator_display || it.operator_name || it.operator_code || '-') + ' · ' + esc(entityTag(it.action_type, it.achievement_id)) + '</span></div>';
     }
     if (source === 'system') {
       var lv = (it.event_level || 'info').toLowerCase();

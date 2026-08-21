@@ -48,25 +48,16 @@ def audit_timeline(kind, entity_id):
                WHERE achievement_kind = ? AND achievement_id = ?
                ORDER BY created_at ASC, id ASC""",
             (kind, entity_id)).fetchall()
-        # 历史数据兼容：M1 后 operator_name 曾存 users.id（纯数字）——批量解析为 "学号 姓名"
-        disp_map = {}
+        # 历史数据兼容：操作人快照存 users.id 或 login_code——统一解析为 "学号 姓名"（id 未命中按 login_code 兜底）
+        from backend.utils.audit_logger import AuditLogger
         num_ids = {r['operator_name'] for r in rows
                    if r['operator_name'] and str(r['operator_name']).isdigit()}
-        if num_ids:
-            try:
-                placeholders = ",".join("?" * len(num_ids))
-                c2 = get_connection(get_config().get_path('database', 'competitions_db'))
-                for ur in c2.execute(
-                        f"SELECT id, login_code, name FROM users WHERE id IN ({placeholders})",
-                        tuple(num_ids)):
-                    disp_map[str(ur['id'])] = f"{ur['login_code']} {ur['name'] or ur['login_code']}".strip()
-                c2.close()
-            except Exception:
-                pass
+        disp_map = AuditLogger.resolve_display_names(conn, num_ids)
         conn.close()
         ROLE_LABELS = {1: '学生', 2: '教师', 3: 'AI', 4: '管理员'}
         timeline = [{
             'id': r['id'],
+            'entity_id': entity_id,
             'action': ACTION_LABELS.get(r['action_type'], str(r['action_type'])),
             'action_type': r['action_type'],
             'operator': disp_map.get(str(r['operator_name']), r['operator_name']),

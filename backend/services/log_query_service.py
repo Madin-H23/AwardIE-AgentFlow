@@ -55,20 +55,11 @@ class LogQueryService:
                                params, page, per_page, conn)
             # 展示加工：动作中文标签 + 操作人显示名（历史数据 operator_name 曾存 users.id 纯数字，
             # 批量解析为 "学号 姓名"；非数字快照原样保留）
-            from backend.utils.audit_logger import ACTION_LABELS
+            from backend.utils.audit_logger import ACTION_LABELS, AuditLogger
             items = result.get("items") or []
             num_ids = {str(it.get("operator_name")) for it in items
                        if it.get("operator_name") and str(it["operator_name"]).isdigit()}
-            disp_map = {}
-            if num_ids:
-                try:
-                    ph = ",".join("?" * len(num_ids))
-                    for ur in conn.execute(
-                            f"SELECT id, login_code, name FROM users WHERE id IN ({ph})",
-                            tuple(num_ids)):
-                        disp_map[str(ur["id"])] = f"{ur['login_code']} {ur['name'] or ur['login_code']}".strip()
-                except Exception:
-                    pass
+            disp_map = AuditLogger.resolve_display_names(conn, num_ids)
             for it in items:
                 it["action_label"] = ACTION_LABELS.get(it.get("action_type"),
                                                        f"动作{it.get('action_type')}")

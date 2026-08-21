@@ -113,3 +113,20 @@ def test_audit_log_writes_local_time(audit_path):
     conn.close()
     assert row is not None
     assert abs((datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") - datetime.now()).total_seconds()) < 30
+
+
+def test_resolve_display_names_by_login_code(db):
+    # 历史快照存业务号(02114818 教师 users.id=1794 不在现有集合) → login_code 兜底命中
+    import sqlite3
+    conn = sqlite3.connect(db)
+    r = AuditLogger.resolve_display_names(conn, {"02114818", "1370"})
+    conn.close()
+    assert r["1370"] == "212306413 陈品天"           # 按 id
+    assert r["02114818"] == "02114818 王老师"        # 按 login_code 兜底
+
+
+def test_query_audit_logs_teacher_name_via_login_code(db):
+    _insert_audit(db, operator_name="02114818", operator_role=2, action_type=8)
+    r = LogQueryService.query_audit_logs(db_path=db, per_page=10)
+    it = [x for x in r["items"] if x["operator_name"] == "02114818"][0]
+    assert it["operator_display"] == "02114818 王老师"
