@@ -23,6 +23,21 @@ ACTION_LABELS = {1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5:
                  6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回'}
 
 
+def utc_to_local(ts):
+    """achievement_audit_log.created_at 为 SQLite CURRENT_TIMESTAMP（UTC）——展示层转本地时区。
+
+    解析失败原样返回（容错：非标准格式/空值）。原始 UTC 值由调用方另行保留。
+    """
+    if not ts:
+        return ts
+    try:
+        from datetime import datetime, timezone
+        dt = datetime.strptime(str(ts)[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        return dt.astimezone().strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return ts
+
+
 class AuditLogger:
     """全生命周期留痕写入器（进程级单例用法：直接调用类方法）。"""
 

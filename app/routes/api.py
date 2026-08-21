@@ -39,7 +39,7 @@ def audit_timeline(kind, entity_id):
     try:
         from backend.utils.db_connection import get_connection
         from config.loader import get_config
-        from backend.utils.audit_logger import ACTION_LABELS
+        from backend.utils.audit_logger import ACTION_LABELS, utc_to_local
         conn = get_connection(get_config().get_path('database', 'competitions_db'))
         rows = conn.execute(
             """SELECT id, action_type, action_result, operator_code, operator_name, operator_role,
@@ -75,7 +75,8 @@ def audit_timeline(kind, entity_id):
             'trace_id': r['trace_id'],
             'remark': r['remark'],
             'change_detail': r['change_detail'],
-            'created_at': r['created_at'],
+            'created_at': utc_to_local(r['created_at']),
+            'created_at_utc': r['created_at'],
         } for r in rows]
         return jsonify({'success': True, 'kind': kind, 'entity_id': entity_id,
                         'timeline': timeline, 'count': len(timeline)})

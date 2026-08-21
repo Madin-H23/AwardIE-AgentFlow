@@ -88,3 +88,32 @@ def test_query_audit_logs_labels_and_display(db):
     assert items["1370"]["operator_display"] == "212306413 陈品天"
     assert items["AI智能审核"]["action_label"] == "AI 审核"
     assert items["AI智能审核"]["operator_display"] == "AI智能审核"
+
+
+def test_utc_to_local_dynamic_offset():
+    from datetime import datetime, timezone
+    from backend.utils.audit_logger import utc_to_local
+    off = datetime.now().astimezone().utcoffset()
+    src = "2026-08-21 06:55:51"
+    expect = (datetime.strptime(src, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+              + off).strftime("%Y-%m-%d %H:%M:%S")
+    assert utc_to_local(src) == expect
+    assert utc_to_local(None) is None
+    assert utc_to_local("bad") == "bad"      # 容错原样
+
+
+def test_query_audit_logs_created_at_localized(db):
+    import sqlite3
+    from datetime import datetime, timezone
+    conn = sqlite3.connect(db)
+    conn.execute(
+        "INSERT INTO achievement_audit_log (achievement_id, achievement_kind, action_type,"
+        " operator_name, operator_role, created_at) VALUES (1194,'award',8,'2',2,'2026-08-21 06:55:51')")
+    conn.commit(); conn.close()
+    r = LogQueryService.query_audit_logs(db_path=db, per_page=5)
+    it = [x for x in r["items"] if x["action_type"] == 8][0]
+    assert it["created_at_utc"] == "2026-08-21 06:55:51"     # 原 UTC 保留
+    off = datetime.now().astimezone().utcoffset()
+    expect = (datetime.strptime("2026-08-21 06:55:51", "%Y-%m-%d %H:%M:%S")
+              .replace(tzinfo=timezone.utc) + off).strftime("%Y-%m-%d %H:%M:%S")
+    assert it["created_at"] == expect                          # 展示为本地时间
