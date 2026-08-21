@@ -119,3 +119,4 @@ pyrightconfig.json
 # 工具缓存目录（MCP 会话记忆，不入库）
 .serena/
 .playwright-cli/
+database/backups/
