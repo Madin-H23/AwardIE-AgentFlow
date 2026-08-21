@@ -97,6 +97,17 @@ from config.flask import get_config
 # 获取配置
 config = get_config()
 
+# T19：OCR 禁用自动恢复——凭据已齐全的环境性禁用（非"管理员手动禁用"）自动解除，
+# 在 OCR 引擎首次构造前执行（防 P0-1 复发：补配 .env 后重启即恢复，不残留禁用记录）
+try:
+    from config.loader import get_config as get_config_loader
+    from backend.utils.ocr_provider_auto_recover import auto_recover_disabled_providers
+    _restored = auto_recover_disabled_providers(get_config_loader())
+    if _restored:
+        print(f"[ocr-recover] 已自动恢复 {_restored} 个 OCR Provider（凭据已齐全）")
+except Exception as _e:  # noqa: BLE001 —— 恢复失败不阻塞启动
+    print(f"[ocr-recover] 自动恢复检查跳过: {_e}")
+
 # 创建应用
 app = create_app(config)
 

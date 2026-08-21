@@ -123,6 +123,17 @@ class FileUploadService:
 
         except Exception as e:
             logger.error(f"文件上传失败: {e}", exc_info=True)
+            # T56 接入点：上传失败落系统事件（upload 类；写入失败已吞，不改变业务返回）
+            try:
+                from backend.utils.system_event_logger import SystemEventLogger
+                SystemEventLogger.log(
+                    "upload", "error",
+                    f"文件上传失败: {type(e).__name__}: {e}",
+                    detail={"original_filename": getattr(uploaded_file, "filename", ""),
+                            "session_id": session_id},
+                    source_module="backend.services.file_upload_service")
+            except Exception:  # noqa: BLE001 —— 事件写入契约：失败不影响主业务
+                pass
             return UploadResult(
                 success=False,
                 filename="",

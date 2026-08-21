@@ -22,10 +22,23 @@ def get_connection(db_path, *, row_factory: bool = True, timeout: float = 30.0) 
         row_factory: True 时行对象为 sqlite3.Row（兼容索引访问，另支持按列名访问）
         timeout: sqlite3 层连接超时（秒），与 busy_timeout 语义配合
     """
-    conn = sqlite3.connect(str(db_path), timeout=timeout)
-    if row_factory:
-        conn.row_factory = sqlite3.Row
-    conn.execute(f"PRAGMA foreign_keys = ON")
-    conn.execute(f"PRAGMA journal_mode = WAL")
-    conn.execute(f"PRAGMA busy_timeout = {_BUSY_TIMEOUT_MS}")
-    return conn
+    try:
+        conn = sqlite3.connect(str(db_path), timeout=timeout)
+        if row_factory:
+            conn.row_factory = sqlite3.Row
+        conn.execute(f"PRAGMA foreign_keys = ON")
+        conn.execute(f"PRAGMA journal_mode = WAL")
+        conn.execute(f"PRAGMA busy_timeout = {_BUSY_TIMEOUT_MS}")
+        return conn
+    except sqlite3.Error as e:
+        # T56 接入点：DB 连接失败落系统事件（db 类；写入失败已吞，异常照常上抛）
+        try:
+            from backend.utils.system_event_logger import SystemEventLogger
+            SystemEventLogger.log(
+                "db", "error",
+                f"数据库连接失败: {type(e).__name__}: {e}",
+                detail={"db_path": str(db_path)},
+                source_module="backend.utils.db_connection")
+        except Exception:  # noqa: BLE001
+            pass
+        raise

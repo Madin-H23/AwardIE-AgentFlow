@@ -75,6 +75,16 @@ if BaseCallbackHandler is not None:
         def on_llm_error(self, error, **kwargs):  # noqa: ARG002
             from backend.utils.metrics import inc_llm
             inc_llm(self._provider, "fail")
+            # T56 接入点：LLM 调用失败落系统事件（llm 类；写入失败已吞，不打乱回调）
+            try:
+                from backend.utils.system_event_logger import SystemEventLogger
+                SystemEventLogger.log(
+                    "llm", "error",
+                    f"LLM 调用失败（provider={self._provider}）: "
+                    f"{type(error).__name__}: {error}",
+                    source_module="backend.agent.llm_adapter")
+            except Exception:  # noqa: BLE001
+                pass
 
 
 
