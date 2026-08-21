@@ -292,6 +292,17 @@ def award_delete(award_id):
         app_context = get_app_context_instance()
         award_manager = app_context.get_award_manager()
 
+        # 防重复删除：仅当成果真实存在时删除并留痕；已删除/不存在 → 明确提示且不再写留痕
+        from backend.utils.db_connection import get_connection
+        from config.loader import get_config
+        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        try:
+            exists = conn.execute("SELECT COUNT(*) FROM awards WHERE id=?", (award_id,)).fetchone()[0]
+        finally:
+            conn.close()
+        if not exists:
+            return jsonify({'success': False, 'message': '成果不存在或已删除'}), 404
+
         # 删除奖状（删除前留痕：动作12=成果删除，可追溯/防留痕悬空）
         from backend.utils.audit_logger import audit_log
         audit_log(12, award_id, 'award', remark='成果删除')
@@ -317,11 +328,25 @@ def awards_batch_delete():
         
         success_count = 0
         failed_count = 0
+        skipped_count = 0
         errors = []
         
+        # 防重复删除：仅真实存在的成果才删除并留痕；已不存在则跳过（不计成功、不再写留痕）
         from backend.utils.audit_logger import audit_log
+        from backend.utils.db_connection import get_connection
+        from config.loader import get_config
+        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        try:
+            existing = {r[0] for r in conn.execute(
+                f"SELECT id FROM awards WHERE id IN ({','.join('?' * len(award_ids))})",
+                award_ids)}
+        finally:
+            conn.close()
         for award_id in award_ids:
             try:
+                if award_id not in existing:
+                    skipped_count += 1
+                    continue
                 audit_log(12, award_id, 'award', remark='成果删除')
                 award_manager.delete_award(award_id)
                 success_count += 1
@@ -333,6 +358,7 @@ def awards_batch_delete():
             return jsonify({
                 'success': True, 
                 'message': f'成功删除 {success_count} 条奖状'
+                + (f'（{skipped_count} 条已不存在，跳过）' if skipped_count else '')
             })
         else:
             return jsonify({
