@@ -243,6 +243,47 @@ class PendingAchievementManager:
                 return pending
         return None
 
+    def reload_from_db(self, pending_id: int) -> Optional[PendingAchievement]:
+        """从数据库强制重读单条记录并替换内存缓存（T61：防陈旧读）。
+
+        背景：get_pending_by_id 只读内存缓存，多 worker / 异步归档线程在他人
+        直连写库后会拿到写前旧数据（典型症状=教师奖状入库时 granted_role 偶发
+        为旧值'学生'）。本方法回源 DB 取最新行，同步替换缓存中的同 id 对象，
+        保证后续 approve_single 内部再次 get_pending_by_id 读到一致新数据。
+
+        Returns:
+            最新 PendingAchievement；记录已删除返回 None（并从缓存剔除）。
+            读库异常时降级返回缓存对象，绝不阻塞业务（可用性优先）。
+        """
+        conn = None
+        try:
+            conn = self._get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM pending_achievements WHERE id = ?", (pending_id,)
+            )
+            row = cursor.fetchone()
+            if row is None:
+                self.pending = [p for p in self.pending if p.id != pending_id]
+                return None
+            fresh = self._row_to_pending(row)
+            for i, p in enumerate(self.pending):
+                if p.id == pending_id:
+                    self.pending[i] = fresh
+                    break
+            else:
+                # 缓存未命中（如他进程新建），补入缓存保持 get_pending_by_id 可见
+                self.pending.append(fresh)
+            return fresh
+        except Exception as e:
+            logger.error(
+                f"从数据库重读 pending 失败，降级返回缓存对象: pending_id={pending_id}, error={e}"
+            )
+            return self.get_pending_by_id(pending_id)
+        finally:
+            if conn is not None:
+                conn.close()
+
     def submit_for_review(self, achievement_type: str, achievement_data: Dict[str, Any],
                           validation_result: Optional[Dict[str, Any]] = None,
                           submitter_type: str = "student",

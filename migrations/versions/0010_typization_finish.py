@@ -92,8 +92,16 @@ def _target_ddl(conn, table: str) -> str:
 
 
 def _check_lengths(conn, table: str) -> None:
-    """VARCHAR(n) 目标越界兜底：存量数据超长立即中止（防静默截断/写入失败）。"""
+    """VARCHAR(n) 目标越界兜底：存量数据超长立即中止（防静默截断/写入失败）。
+
+    注意：SQLite 双引号在列不存在时退化为字符串字面量，LENGTH("缺列") 会返回
+    字符串长度（如 'application_date'=16）误报越界——故先按 table_info 过滤
+    实际存在的列，缺失列跳过（与 _target_ddl 的缺失列跳过语义一致）。
+    """
+    existing = {r[1] for r in conn.execute(text(f'PRAGMA table_info("{table}")'))}
     for col, new_type in _TYPE_OVERRIDES.get(table, {}).items():
+        if col not in existing:
+            continue
         m = re.fullmatch(r"VARCHAR\((\d+)\)", new_type)
         if not m:
             continue

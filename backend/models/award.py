@@ -1486,6 +1486,9 @@ class AwardManager:
                         'match_status': award.match_status,
                         'laboratory_id': award.laboratory_id,
                     })
+                # 显式提交事务：此前缺失 commit 致 INSERT/UPDATE 随连接关闭整体回滚
+                # （awards 表写入从未落库，成果管理中新增成果不可见——重大存量 bug）
+                conn.commit()
             except Exception as e:
                 logger.error(f"Failed to save award: {e}")
     

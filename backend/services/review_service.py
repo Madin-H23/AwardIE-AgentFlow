@@ -616,8 +616,9 @@ class ReviewService:
             pending_id: pending 记录 ID
         """
         try:
-            # 获取 pending 记录
-            pending = self.pending_manager.get_pending_by_id(pending_id)
+            # T61：异步线程不信任内存缓存（多 worker/并发写库后缓存可能陈旧，
+            # granted_role 曾偶发读到旧值'学生'）——强制从库重读最新记录
+            pending = self.pending_manager.reload_from_db(pending_id)
             if not pending:
                 logger.warning(f"异步自动归档找不到记录: {pending_id}")
                 return
