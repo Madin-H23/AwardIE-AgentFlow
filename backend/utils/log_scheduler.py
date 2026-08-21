@@ -88,10 +88,11 @@ def _log_daily_report(db_path):
         from backend.utils.system_event_logger import SystemEventLogger
         from backend.services.plan_generator import daily_report
         rep = daily_report(db_path=db_path)
+        # 键名对齐 LogAnalyzer.daily_summary：audit_actions/system_errors
         SystemEventLogger.log(
             category="system", level="info",
-            message=(f"每日报告: 今日actions={rep.get('action_count', '?')} "
-                     f"错误={rep.get('error_count', '?')} 告警={len(rep.get('alerts', []))}"),
+            message=(f"每日报告: 今日actions={rep.get('audit_actions', '?')} "
+                     f"错误={rep.get('system_errors', '?')} 告警={len(rep.get('alerts', []))}"),
             source_module="log_scheduler")
     except Exception as e:
         logger.warning("[log_sched] 每日报告留痕失败: %s", e)
