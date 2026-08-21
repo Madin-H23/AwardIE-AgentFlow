@@ -1,7 +1,7 @@
 """
 Flask应用工厂
 """
-from flask import Flask
+from flask import Flask, request
 from pathlib import Path
 import os
 
@@ -115,6 +115,22 @@ def create_app(config_class=None):
         def _close_connection(resp):
             resp.headers.setdefault('Connection', 'close')
             return resp
+
+    # 静态资源强缓存（页面导航不再逐资源发 304 协商，冷热访问提速）：
+    # vendor/ 第三方库内容不变 → 7 天 immutable；其余自有资源 1 小时
+    # （模板引用多带 ?v= 版本参数，改动时 bump 版本即失效，不会被缓存锁旧）。
+    @app.after_request
+    def _static_cache(resp):
+        if request.path.startswith('/static/vendor/'):
+            resp.cache_control.no_cache = None   # 移除 Flask 静态默认 no-cache，否则强缓存失效
+            resp.cache_control.public = True
+            resp.cache_control.max_age = 604800
+            resp.cache_control.immutable = True
+        elif request.path.startswith('/static/'):
+            resp.cache_control.no_cache = None
+            resp.cache_control.public = True
+            resp.cache_control.max_age = 3600
+        return resp
 
     return app
 
