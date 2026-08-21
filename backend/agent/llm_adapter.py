@@ -43,6 +43,14 @@ except ImportError:
     ChatOpenAI = None  # type: ignore[assignment,misc]
     _LANGCHAIN_AVAILABLE = False
 
+# httpx 客户端：LLM 出站强制直连（trust_env=False 忽略环境代理变量）。
+try:
+    import httpx as _httpx
+    _HTTPX_AVAILABLE = True
+except ImportError:
+    _httpx = None  # type: ignore[assignment]
+    _HTTPX_AVAILABLE = False
+
 
 # OpenAI 兼容路径后缀（需从完整 URL 中剥离，得到 ChatOpenAI 期望的 base_url）
 _CHAT_COMPLETIONS_SUFFIXES = (
@@ -236,6 +244,10 @@ def build_chat_model(
         # M1：单请求输出上限（防滥用长生成失控成本；AI 层设计 §8，默认 1024）
         "max_tokens": int(cfg.get("max_tokens", 1024)),
     }
+    # 强制直连（trust_env=False）：LLM 出站不读环境代理变量，
+    # 本地系统代理（如 127.0.0.1:3067）开/关均正常访问；实例可被 extra_kwargs 覆盖。
+    if _HTTPX_AVAILABLE:
+        kwargs.setdefault("http_client", _httpx.Client(trust_env=False))
     if extra_kwargs:
         kwargs.update(extra_kwargs)
     # provider 专属默认（如 ollama 的占位 api_key 已在 resolve 阶段处理）

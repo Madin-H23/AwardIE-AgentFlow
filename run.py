@@ -14,6 +14,14 @@ try:
 except ImportError:
     pass
 
+# 网络出站统一直连：启动即剥离 HTTP(S)/ALL 代理环境变量。
+# 本机常驻代理（如 127.0.0.1:3067）未启动时，openai/httpx/requests 会把 LLM/OCR 等出站请求误发给死代理 → Connection error。
+# 剥离后应用所有出站直连（实测外网可达），本地系统代理开/关均不影响访问。
+for _proxy_var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
+    os.environ.pop(_proxy_var, None)
+os.environ["NO_PROXY"] = "*"
+os.environ["no_proxy"] = "*"
+
 # 加载配置以获取日志级别
 # 优先级：环境变量 LOG_LEVEL > settings.json flask.log_level > 默认 INFO
 try:
