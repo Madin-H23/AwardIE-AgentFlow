@@ -65,3 +65,23 @@ def test_collect_reads_new_version_metric_types(monkeypatch):
            if k.startswith("llm_call_total") and not k.startswith("llm_call_created")
            and "outcome=ok" in k]
     assert hit and hit[0] == 2.0
+
+
+def test_query_system_events_created_at_localized(tmp_path):
+    """system_event_log.created_at(UTC) 展示层转本地（动态偏移断言，CI UTC 环境亦成立）。"""
+    import sqlite3
+    from datetime import datetime, timezone
+    from backend.services.log_query_service import LogQueryService
+    db = str(tmp_path / "sys.db")
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE system_event_log (id INTEGER PRIMARY KEY, event_category TEXT,"
+                 " event_level TEXT, event_message TEXT, created_at TEXT)")
+    conn.execute("INSERT INTO system_event_log (event_category, event_level, created_at)"
+                 " VALUES ('system','info','2026-08-21 08:24:11')")
+    conn.commit(); conn.close()
+    r = LogQueryService.query_system_events(db_path=db)
+    it = r["items"][0]
+    off = datetime.now().astimezone().utcoffset()
+    expect = (datetime.strptime("2026-08-21 08:24:11", "%Y-%m-%d %H:%M:%S")
+              .replace(tzinfo=timezone.utc) + off).strftime("%Y-%m-%d %H:%M:%S")
+    assert it["created_at"] == expect

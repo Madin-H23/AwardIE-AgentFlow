@@ -87,10 +87,16 @@
     var p = filterParams();
     var url;
     if (state.source === 'app') {
-      url = '/admin/api/logs/app?limit=' + state.perPage +
-        (p.keyword ? '&keyword=' + encodeURIComponent(p.keyword) : '') +
-        (p.level ? '&level=' + p.level : '') +
-        (p.start_date ? '&start_time=' + p.start_date : '') + (p.end_date ? '&end_time=' + p.end_date + ' 23:59:59' : '');
+      if (p.keyword || p.level || p.start_date || p.end_date) {
+        // 带过滤：search（旧→新，全文匹配）
+        url = '/admin/api/logs/app?limit=' + state.perPage +
+          (p.keyword ? '&keyword=' + encodeURIComponent(p.keyword) : '') +
+          (p.level ? '&level=' + p.level : '') +
+          (p.start_date ? '&start_time=' + p.start_date : '') + (p.end_date ? '&end_time=' + p.end_date + ' 23:59:59' : '');
+      } else {
+        // 默认视图：tail 倒读最新 N 条（新→旧，avoid 拿到文件头旧日志）
+        url = '/admin/api/logs/app/tail?lines=' + state.perPage;
+      }
     } else {
       url = '/admin/api/logs/' + state.source + '?page=' + state.page + '&per_page=' + state.perPage +
         (p.level ? '&level=' + p.level : '') +

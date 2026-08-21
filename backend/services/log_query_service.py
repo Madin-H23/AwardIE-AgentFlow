@@ -73,6 +73,19 @@ class LogQueryService:
 
     # ---------- system_event_log ----------
     @staticmethod
+    def _utc_to_local(ts):
+        """system_event_log.created_at 为 SQLite CURRENT_TIMESTAMP(UTC)——展示层转本地。
+        写入层保持 UTC（90 天清理/每日 09:00 报告窗口依赖该基准，整体评估见数据库结构文档）。"""
+        if not ts:
+            return ts
+        try:
+            from datetime import datetime, timezone
+            return (datetime.strptime(str(ts)[:19], "%Y-%m-%d %H:%M:%S")
+                    .replace(tzinfo=timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S"))
+        except Exception:
+            return ts
+
+    @staticmethod
     def query_system_events(*, page=1, per_page=50, category=None, level=None,
                             trace_id=None, start_date=None, end_date=None,
                             db_path=None) -> dict:
@@ -90,9 +103,12 @@ class LogQueryService:
         w = ("WHERE " + " AND ".join(where)) if where else ""
         conn = get_connection(db_path or LogQueryService._get_db_path())
         try:
-            return _paginate(f"SELECT * FROM system_event_log {w}",
-                             f"SELECT COUNT(*) FROM system_event_log {w}",
-                             params, page, per_page, conn)
+            result = _paginate(f"SELECT * FROM system_event_log {w}",
+                               f"SELECT COUNT(*) FROM system_event_log {w}",
+                               params, page, per_page, conn)
+            for it in result.get("items") or []:
+                it["created_at"] = LogQueryService._utc_to_local(it.get("created_at"))
+            return result
         finally:
             conn.close()
 
