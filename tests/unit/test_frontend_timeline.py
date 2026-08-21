@@ -17,7 +17,7 @@ def _require_real_db():
 class TestFrontendStream:
     def test_eventsource_wired(self):
         """chat.html 必须：EventSource 消费 + 逐 delta 追加 + 失败回退同步。"""
-        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "chat.html").read_text(encoding='utf-8')
+        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "partials" / "_chat_scripts.html").read_text(encoding='utf-8')
         assert "new EventSource(" in src, "未接 EventSource"
         assert "sendStreamed" in src and "event: delta" not in src   # addEventListener('delta'...)
         assert "addEventListener('delta'" in src
@@ -26,7 +26,7 @@ class TestFrontendStream:
 
     def test_fallback_fetch_kept(self):
         """同步 fetch 路径保留（回退目标）。"""
-        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "chat.html").read_text(encoding='utf-8')
+        src = (PROJECT_ROOT / "app" / "templates" / "assistant" / "partials" / "_chat_scripts.html").read_text(encoding='utf-8')
         assert "fetch('/assistant/chat'" in src
 
 
