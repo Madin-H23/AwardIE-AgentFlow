@@ -37,6 +37,18 @@ def integrity_check(db: Path) -> bool:
         return False
 
 
+def checkpoint(db_path: Path) -> None:
+    """WAL checkpoint（A5/A6 发现）：copy2 只备份主文件、不带 -wal/-shm，
+    未 checkpoint 的写入/删除会丢失或残留（表现为备份计数与主库不一致）。
+    备份前 TRUNCATE checkpoint 把 WAL 全部合并进主文件。"""
+    try:
+        conn = sqlite3.connect(str(db_path))
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        conn.close()
+    except Exception as e:
+        logger.warning("WAL checkpoint 失败 %s: %s", db_path, e)
+
+
 def main():
     stamp = time.strftime("%Y%m%d_%H%M%S")
     dest_dir = BACKUP_ROOT / stamp
@@ -54,6 +66,8 @@ def main():
             if src.is_dir():
                 shutil.copytree(src, d)
             else:
+                if name.endswith(".db"):
+                    checkpoint(src)  # WAL 合并进主文件再拷贝，保证副本与主库一致
                 shutil.copy2(src, d)
                 if name.endswith(".db") and not integrity_check(d):
                     logger.error("备份库完整性校验失败: %s", name)
