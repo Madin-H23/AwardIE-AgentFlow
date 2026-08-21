@@ -35,6 +35,8 @@ class LogQueryService:
                          achievement_id=None, trace_id=None,
                          start_date=None, end_date=None, db_path=None) -> dict:
         where, params = [], []
+        # 去重标记：默认排除重复删除留痕（0009 订正；需看全部可加参数放开）
+        where.append("COALESCE(is_redundant,0)=0")
         if action_type is not None:
             where.append("action_type=?"); params.append(action_type)
         if operator_role is not None:

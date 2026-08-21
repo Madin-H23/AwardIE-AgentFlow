@@ -24,7 +24,7 @@ def app(tmp_path, monkeypatch):
         trace_id VARCHAR(64), action_type INTEGER, action_result INTEGER,
         operator_id INTEGER, operator_code VARCHAR(50), operator_name VARCHAR(50),
         operator_role INTEGER, ai_batch_id VARCHAR(50), change_detail TEXT, remark TEXT,
-        created_at TEXT)""")
+        created_at TEXT, is_redundant INTEGER NOT NULL DEFAULT 0)""")
     conn.execute("""CREATE TABLE review_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, pending_id INTEGER, achievement_type TEXT,
         file_hash TEXT, file_path TEXT, submitter_type TEXT, submitter_id INTEGER,

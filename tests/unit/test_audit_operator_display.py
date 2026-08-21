@@ -17,7 +17,7 @@ CREATE TABLE achievement_audit_log (
   action_type INTEGER CHECK(action_type BETWEEN 1 AND 12), action_result INTEGER,
   operator_id INTEGER, operator_code TEXT, operator_name TEXT, operator_role INTEGER,
   ai_batch_id TEXT, change_detail TEXT, remark TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0)
 """
 USERS_DDL = "CREATE TABLE users (id INTEGER PRIMARY KEY, login_code TEXT, name TEXT)"
 
@@ -143,3 +143,22 @@ def test_action12_delete_label_and_display(audit_path):
     assert it["action_label"] == "成果删除"
     assert it["operator_display"] == "02114818 王老师"
     assert it["remark"] == "成果删除"
+
+
+def test_query_and_stats_exclude_redundant(db):
+    # 同一成果 4 条 action12：最早一条 is_redundant=0，其余 1 → 查询/统计默认只看 1 条
+    import sqlite3
+    conn = sqlite3.connect(db)
+    for i, ts in enumerate(["2026-08-21 15:36:12", "2026-08-21 15:36:57",
+                            "2026-08-21 15:37:19", "2026-08-21 15:39:21"]):
+        conn.execute(
+            "INSERT INTO achievement_audit_log (achievement_id, achievement_kind, action_type,"
+            " operator_name, operator_role, created_at, is_redundant)"
+            " VALUES (1194,'award',12,'2',2,?,?)", (ts, 1 if i else 0))
+    conn.commit(); conn.close()
+    r = LogQueryService.query_audit_logs(db_path=db, per_page=10, action_type=12)
+    assert len(r["items"]) == 1
+    assert r["items"][0]["created_at"] == "2026-08-21 15:36:12"
+    from backend.services.log_analyzer import LogAnalyzer
+    d = LogAnalyzer.action_distribution(db_path=db)
+    assert d.get(12) == 1

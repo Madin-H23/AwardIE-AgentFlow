@@ -29,6 +29,7 @@ class LogAnalyzer:
     def action_distribution(start_date=None, end_date=None, db_path=None) -> dict:
         """audit_log action_type 分组计数：{action_type: count}。"""
         where, params = [], []
+        where.append("COALESCE(is_redundant,0)=0")   # 默认排除重复删除留痕（0009）
         if start_date:
             where.append("created_at>=?"); params.append(start_date)
         if end_date:

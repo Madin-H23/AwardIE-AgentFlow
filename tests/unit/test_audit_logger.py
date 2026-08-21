@@ -15,7 +15,7 @@ AUDIT_DDL = """CREATE TABLE achievement_audit_log (
     action_type INTEGER NOT NULL, action_result INTEGER NOT NULL DEFAULT 0,
     operator_id INTEGER, operator_code TEXT NOT NULL, operator_name TEXT NOT NULL,
     operator_role INTEGER, operator_ip TEXT, ai_batch_id TEXT,
-    change_detail TEXT, remark TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"""
+    change_detail TEXT, remark TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0)"""
 
 
 @pytest.fixture()
