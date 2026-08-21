@@ -8,10 +8,11 @@
 
   // 动作中文标签（与 backend audit_logger.ACTION_LABELS 对齐）
   var ACTION_LABELS = { 1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
-                        6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃', 11: '撤回' };
+                        6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃',
+                        11: '撤回', 12: '成果删除' };
   function actionLabel(k) { return ACTION_LABELS[k] || ('动作' + k); }
   /* 成果编号阶段语义：动作8=入库后(awards.id)→'成果#'；其余作用于待审(pending.id)→'待审成果#' */
-  function entityTag(type, id) { return (type === 8 ? '成果#' : '待审成果#') + id; }
+  function entityTag(type, id) { return (type === 8 || type === 12 ? '成果#' : '待审成果#') + id; }
 
   /* ---------- 工具 ---------- */
   function esc(s) {

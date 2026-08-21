@@ -14,7 +14,7 @@ AUDIT_DDL = """
 CREATE TABLE achievement_audit_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   achievement_id INTEGER, achievement_kind TEXT, trace_id TEXT,
-  action_type INTEGER, action_result INTEGER,
+  action_type INTEGER CHECK(action_type BETWEEN 1 AND 12), action_result INTEGER,
   operator_id INTEGER, operator_code TEXT, operator_name TEXT, operator_role INTEGER,
   ai_batch_id TEXT, change_detail TEXT, remark TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
@@ -130,3 +130,16 @@ def test_query_audit_logs_teacher_name_via_login_code(db):
     r = LogQueryService.query_audit_logs(db_path=db, per_page=10)
     it = [x for x in r["items"] if x["operator_name"] == "02114818"][0]
     assert it["operator_display"] == "02114818 王老师"
+
+
+def test_action12_delete_label_and_display(audit_path):
+    db = audit_path
+    # 成果删除(动作12)：写入成功 + 中文标签 + 操作人展示
+    assert AuditLogger.log(12, 1194, "award",
+                           operator={"id": 1794, "code": "02114818", "user_type": "teacher"},
+                           remark="成果删除")
+    r = LogQueryService.query_audit_logs(db_path=db, per_page=10)
+    it = [x for x in r["items"] if x["action_type"] == 12][0]
+    assert it["action_label"] == "成果删除"
+    assert it["operator_display"] == "02114818 王老师"
+    assert it["remark"] == "成果删除"

@@ -292,7 +292,9 @@ def award_delete(award_id):
         app_context = get_app_context_instance()
         award_manager = app_context.get_award_manager()
 
-        # 删除奖状
+        # 删除奖状（删除前留痕：动作12=成果删除，可追溯/防留痕悬空）
+        from backend.utils.audit_logger import audit_log
+        audit_log(12, award_id, 'award', remark='成果删除')
         award_manager.delete_award(award_id)
 
         return jsonify({'success': True, 'message': '删除成功'})
@@ -317,8 +319,10 @@ def awards_batch_delete():
         failed_count = 0
         errors = []
         
+        from backend.utils.audit_logger import audit_log
         for award_id in award_ids:
             try:
+                audit_log(12, award_id, 'award', remark='成果删除')
                 award_manager.delete_award(award_id)
                 success_count += 1
             except Exception as e:
