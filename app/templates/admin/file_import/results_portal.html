@@ -294,6 +294,14 @@
     .validation-alert li {
         margin-bottom: 0.25rem;
     }
+
+    /* 成果详情折叠区（OCR/LLM/最终抽取）pre：背景/文字主题化——
+       Bootstrap bg-light 硬编码浅底，暗色主题下文字变白＝白底白字内容不可见 */
+    #contentArea pre {
+        background: color-mix(in srgb, var(--ink) 4%, transparent) !important;
+        color: var(--ink) !important;
+        border: 1px solid var(--line);
+    }
 </style>
 
 {% endblock %}
