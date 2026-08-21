@@ -80,11 +80,11 @@
     </style>
     
     <!-- jQuery (Select2依赖) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
     
     <!-- Select2 CSS -->
-    <link href="https://unpkg.com/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://unpkg.com/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='vendor/select2/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='vendor/select2/select2-bootstrap-5-theme.min.css') }}" rel="stylesheet" />
     
     <form method="POST" action="{{ url_for('admin_achievement.file_import_award_edit', session_id=session_id, index=index) }}" id="awardForm">
         <!-- 第一行：三栏布局 -->
@@ -519,7 +519,7 @@
 </div>
 
 <!-- Select2 JS -->
-<script src="https://unpkg.com/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/select2/select2.min.js') }}"></script>
 
 <script>
 // 阻止表单默认提交，添加确认
