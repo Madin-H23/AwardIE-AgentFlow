@@ -51,6 +51,32 @@ except ImportError:
     _httpx = None  # type: ignore[assignment]
     _HTTPX_AVAILABLE = False
 
+# langchain 回调：LLM 调用成功/失败统一打点（metrics llm_call_total → 日志看板 LLM 成功率）。
+try:
+    from langchain_core.callbacks import BaseCallbackHandler
+    _CALLBACK_AVAILABLE = True
+except ImportError:
+    BaseCallbackHandler = None  # type: ignore[assignment,misc]
+    _CALLBACK_AVAILABLE = False
+
+
+if BaseCallbackHandler is not None:
+    class _LlmMetricHandler(BaseCallbackHandler):
+        """每次 LLM 调用结束/出错时给 metrics 打点（provider 维度，outcome=ok|fail）。"""
+
+        def __init__(self, provider: str):
+            super().__init__()
+            self._provider = provider
+
+        def on_llm_end(self, response, **kwargs):  # noqa: ARG002
+            from backend.utils.metrics import inc_llm
+            inc_llm(self._provider, "ok")
+
+        def on_llm_error(self, error, **kwargs):  # noqa: ARG002
+            from backend.utils.metrics import inc_llm
+            inc_llm(self._provider, "fail")
+
+
 
 # OpenAI 兼容路径后缀（需从完整 URL 中剥离，得到 ChatOpenAI 期望的 base_url）
 _CHAT_COMPLETIONS_SUFFIXES = (
@@ -248,6 +274,9 @@ def build_chat_model(
     # 本地系统代理（如 127.0.0.1:3067）开/关均正常访问；实例可被 extra_kwargs 覆盖。
     if _HTTPX_AVAILABLE:
         kwargs.setdefault("http_client", _httpx.Client(trust_env=False))
+    # 成功/失败打点：统一出口挂 metrics 回调（供日志看板 LLM 成功率统计）
+    if _CALLBACK_AVAILABLE:
+        kwargs.setdefault("callbacks", [_LlmMetricHandler(name)])
     if extra_kwargs:
         kwargs.update(extra_kwargs)
     # provider 专属默认（如 ollama 的占位 api_key 已在 resolve 阶段处理）

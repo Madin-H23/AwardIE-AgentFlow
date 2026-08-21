@@ -119,11 +119,18 @@ class LogAnalyzer:
         try:
             from backend.services.metrics_snapshot import collect
             snap = collect()
-            ok = snap.get("llm_call_total_total{outcome=ok}")
-            fail = snap.get("llm_call_total_total{outcome=fail}")
+            # collect() 键含 provider 维度；prometheus 0.26 下名字已含 _total 的 Counter
+            # sample.name 不再追加 _total（llm_call_total{...}），且会生成 *_created 元数据键——
+            # 按 outcome 前缀匹配并排除 created，跨 provider 聚合
+            ok = fail = 0
+            for k, v in snap.items():
+                if k.startswith("llm_call_total") and not k.startswith("llm_call_created"):
+                    if "outcome=ok" in k:
+                        ok += v
+                    elif "outcome=fail" in k:
+                        fail += v
             if ok or fail:
-                total = (ok or 0) + (fail or 0)
-                out["llm_success_rate"] = round((ok or 0) / total, 4)
+                out["llm_success_rate"] = round(ok / (ok + fail), 4)
         except Exception:
             pass
         return out

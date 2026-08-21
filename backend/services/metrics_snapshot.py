@@ -7,21 +7,27 @@ import json
 
 
 def collect() -> dict:
-    """读取全部 prometheus 指标当前值（未安装 prometheus_client 返回空）。"""
+    """读取全部 prometheus 指标当前值（未安装 prometheus_client 返回空）。
+
+    注：prometheus_client 0.26+ 的 REGISTRY.collect() 返回 Metric 包装对象，
+    不再是 GaugeMetricFamily/CounterMetricFamily 实例——直接遍历 metric.samples
+    （各版本返回对象均带 samples），否则业务 Counter 被过滤致快照恒空。
+    """
     try:
         from prometheus_client import REGISTRY
-        from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
     except ImportError:
         return {}
     out = {}
-    for metric in REGISTRY.collect():
-        if isinstance(metric, (GaugeMetricFamily, CounterMetricFamily)):
+    try:
+        for metric in REGISTRY.collect():
             for sample in metric.samples:
                 labels = sample.labels or {}
                 key = sample.name
                 if labels:
                     key = f"{sample.name}{{{','.join(f'{k}={v}' for k, v in sorted(labels.items()))}}}"
                 out[key] = sample.value
+    except Exception:
+        return {}
     return out
 
 
