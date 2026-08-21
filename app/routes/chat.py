@@ -202,7 +202,8 @@ def chat_stream():
                                   "review": review, "extraction": extraction}
                         if result.get("sources"):
                             yield from sse("source", {"docs": result["sources"]})
-                        yield from sse("delta", {"text": result["answer"]})
+                        for _piece in _answer_pieces(result["answer"]):
+                            yield from sse("delta", {"text": _piece})
                         yield from sse("done", result)
                         return
                 except ImportError:
@@ -212,7 +213,8 @@ def chat_stream():
             result = _dispatch(message, mode, user_context)     # tools / auto 回退路径
             if result.get("sources"):
                 yield from sse("source", {"docs": result["sources"]})
-            yield from sse("delta", {"text": result.get("answer", "")})
+            for _piece in _answer_pieces(result.get("answer", "")):
+                yield from sse("delta", {"text": _piece})
             yield from sse("done", result)
         except ImportError as e:
             yield from sse("error", {"code": 503, "message": f"AI 助手依赖未安装: {e}"})
@@ -349,6 +351,29 @@ def _check_capability():
         reason = f"缺少依赖: {', '.join(missing)}"
 
     return {"ready": ready, "checks": checks, "reason": reason}
+
+
+def _answer_pieces(text: str, size: int = 8) -> list:
+    """把完整答案切成流式片段（呈现层分片，不重新调用 LLM）。
+
+    qa 模式是生成期真流式（llm.stream 逐 chunk）；auto/tools 的答案由
+    workflow/create_agent 整体生成后就绪，此处按 token 切成小块逐段下发，
+    前端打字机逐 delta 追加，视觉与真流式一致；done 仍回传完整答案供排版。
+    """
+    import re
+    if text is None:
+        return []
+    tokens = re.findall(r"[\u4e00-\u9fff]|[^\u4e00-\u9fff\s]|\s+", text)
+    pieces, cur, n = [], [], 0
+    for tk in tokens:
+        cur.append(tk)
+        n += 1
+        if n >= size:
+            pieces.append("".join(cur))
+            cur, n = [], 0
+    if cur:
+        pieces.append("".join(cur))
+    return pieces if pieces else [text or ""]
 
 
 def _dispatch(message: str, mode: str, user_context: dict) -> dict:
