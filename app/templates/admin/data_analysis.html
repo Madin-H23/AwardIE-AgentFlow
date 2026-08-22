@@ -241,9 +241,8 @@
     </div>
 </div>
 
-<!-- ECharts - 多个备用 CDN -->
-<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
-        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='http://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'"></script>
+<!-- ECharts（本地 vendor）-->
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
 
 <!-- 自定义脚本 -->
 <script src="{{ url_for('static', filename='js/data-analysis.js') }}"></script>

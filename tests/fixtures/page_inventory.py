@@ -149,9 +149,8 @@ EXEMPT = {
     "/admin/file-import/results": ("not_page", "需导入会话 query 参数的中间结果页"),
     "/teacher/achievement-review/{type}/{sub_tab}/{index}": (
         "not_page", "审核列表的具体形态子路由，由 award/valid/0 正例覆盖"),
-    "/student/activities": (
-        "bad_page", "存量坏页：activities_ref.html 模板不存在致 500（遗留假数据页），待修复后移入 PAGES"),
     # type=bad_page：存量坏页（修复后移入 PAGES）
+    # 注：/student/activities 坏页已于 T66 下线（student skip_routes 加 activities，路由不复存在）
     "/teacher/laboratory/{lab_id}/data-analysis": (
         "bad_page", "成员权限校验依赖 laboratory 关联数据，种子形态待迭代（T64 豁免）"),
 }

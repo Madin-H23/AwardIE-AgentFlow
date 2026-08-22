@@ -14,8 +14,8 @@ from app.routes.admin_achievement import _get_review_service
 logger = logging.getLogger(__name__)
 bp = Blueprint('student', __name__)
 
-# 注册共同路由（跳过 dashboard 和 achievements，使用自定义路由）
-register_common_routes(bp, 'student', skip_routes=['dashboard', 'achievements'])
+# 注册共同路由（跳过 dashboard/achievements/activities——activities_ref 模板不存在，与 teacher 同法下线）
+register_common_routes(bp, 'student', skip_routes=['dashboard', 'achievements', 'activities'])
 
 # 自定义仪表板路由，传递技能标签数据
 @bp.route('/')

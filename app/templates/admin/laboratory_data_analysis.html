@@ -191,9 +191,8 @@
     </div>
 </div>
 
-<!-- ECharts：HTTPS 主源 + 备用 CDN，避免混合内容或单源不可用 -->
-<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
-        onerror="this.onerror=null; this.src='https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js'; this.onerror=null; this.src='https://unpkg.com/echarts@5.4.3/dist/echarts.min.js'"></script>
+<!-- ECharts（本地 vendor）-->
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
 
 <script>
 // API 配置：管理员使用 /api/admin 前缀

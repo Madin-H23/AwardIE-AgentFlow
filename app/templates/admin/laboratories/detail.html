@@ -5,7 +5,7 @@
 
 {% block extra_head %}
 <!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://unpkg.com/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}">
 <style>
 /* 实验室详情与管理员风格统一：内容区最大宽度一致 */
 .laboratory-detail-wrapper {

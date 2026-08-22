@@ -6,8 +6,7 @@
 {% block topbar_title %}日志管理{% endblock %}
 
 {% block extra_head %}
-<script src="https://npm.elemecdn.com/echarts@5.4.3/dist/echarts.min.js"
-        onerror="this.onerror=null;document.write('<script src=\'https://unpkg.com/echarts@5.4.3/dist/echarts.min.js\'><\/script>')"></script>
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
 {% endblock %}
 
 {% block content %}
