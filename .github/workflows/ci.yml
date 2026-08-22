@@ -46,7 +46,7 @@ jobs:
             tests/unit/test_reject_button_embedding.py tests/unit/test_ci_assets.py tests/unit/test_metrics_backup.py \
             tests/unit/test_audit_operator_display.py tests/unit/test_static_cache.py \
             tests/unit/test_llm_metric.py tests/unit/test_chat_stream_pieces.py \
-            tests/unit/test_log_scheduler_report.py tests/test_routes_integrity.py tests/test_page_rendering.py \
+            tests/unit/test_log_scheduler_report.py tests/test_routes_integrity.py \n            tests/unit/test_all_pages_smoke.py tests/unit/test_page_inventory_meta.py \
             tests/unit/test_alembic_0007.py tests/unit/test_alembic_0008.py tests/unit/test_alembic_0009.py \
             tests/unit/test_alembic_0010.py tests/unit/test_alembic_0011.py tests/unit/test_pending_reload.py \
             tests/unit/test_core_routes_coverage.py tests/unit/test_review_logs_freeze.py \

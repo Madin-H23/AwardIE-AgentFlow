@@ -76,10 +76,13 @@ def test_admin_api_logs_audit_json(client):
 
 def test_teacher_pages(client):
     _login(client, "teacher", "02110606")
-    for url in ("/teacher/dashboard", "/teacher/achievements",
-                "/teacher/achievement-review"):
+    for url in ("/teacher/dashboard", "/teacher/achievements"):
         r = client.get(url)
         assert r.status_code == 200, f"GET {url} -> {r.status_code}"
+    # 审核列表是智能路由：单一类型有数据时 302 直达详情，空/多类型渲染列表 200
+    r = client.get("/teacher/achievement-review")
+    assert r.status_code in (200, 302), \
+        f"GET /teacher/achievement-review -> {r.status_code}"
 
 
 def test_teacher_cannot_access_admin_pages(client):

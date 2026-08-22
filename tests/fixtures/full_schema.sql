@@ -1,0 +1,466 @@
+-- 全库 schema 快照（自 database/competitions.db 反射导出）。
+-- 用途：CI 种子库建库（无 *.db 环境）；与 migrations 演进同步——迁移变更后需重新导出。
+-- 由 scripts/dump_schema.py 生成，勿手工编辑。
+
+CREATE TABLE "achievement_audit_log" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            achievement_id INTEGER NOT NULL,
+            achievement_kind TEXT CHECK(achievement_kind IN ('award','patent','software','innovation','other')),
+            trace_id VARCHAR(64), action_type INTEGER NOT NULL CHECK(action_type BETWEEN 1 AND 12),
+            action_result INTEGER NOT NULL DEFAULT 0 CHECK(action_result IN (0,1,2)),
+            operator_id INTEGER, operator_code VARCHAR(50) NOT NULL, operator_name VARCHAR(50) NOT NULL,
+            operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip VARCHAR(45),
+            ai_batch_id VARCHAR(50), change_detail TEXT, remark TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0);
+
+CREATE TABLE "action_plans" (
+    id VARCHAR(64) PRIMARY KEY,
+    alert_id VARCHAR(64) NOT NULL,
+    priority VARCHAR(20) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    evidence TEXT,
+    suggested_actions TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    resolved_at TIMESTAMP
+);
+
+CREATE TABLE alembic_version (
+	version_num VARCHAR(32) NOT NULL, 
+	CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+
+CREATE TABLE "auto_archive_config" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    achievement_type VARCHAR(20) NOT NULL,           -- 'award', 'patent', 'software', 'innovation', 'other'
+    validation_status VARCHAR(20),                   -- 'valid', 'invalid'（大创/其他为NULL）
+    auto_archive_enabled BOOLEAN NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(achievement_type, validation_status)
+);
+
+CREATE TABLE "award_related_students" (award_id INTEGER, student_id INTEGER, created_at TIMESTAMP, FOREIGN KEY(student_id) REFERENCES users(id));
+
+CREATE TABLE "award_student_winners" (award_id INTEGER, student_id INTEGER, created_at TIMESTAMP, FOREIGN KEY(student_id) REFERENCES users(id));
+
+CREATE TABLE "award_supervisors" (
+        award_id INTEGER NOT NULL REFERENCES awards(id) ON DELETE CASCADE,
+        teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (award_id, teacher_id));
+
+CREATE TABLE "award_teacher_winners" (
+        award_id INTEGER NOT NULL REFERENCES awards(id) ON DELETE CASCADE,
+        teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (award_id, teacher_id));
+
+CREATE TABLE "awards" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            image_hash VARCHAR(64),
+            certificate_id VARCHAR(50),
+            match_status BOOLEAN,
+            ocr_result TEXT,
+            extract_json TEXT,
+            
+            competition_name_in_file VARCHAR(200),
+            track VARCHAR(100),
+            issuer VARCHAR(100),
+            province VARCHAR(100),
+            group_name VARCHAR(100),
+            winner_name VARCHAR(100),
+            supervisor_name VARCHAR(100),
+            award_level VARCHAR(20),
+            competition_level VARCHAR(20),
+            date VARCHAR(10),
+            project_title VARCHAR(200),
+            granted_role VARCHAR(20),
+            related_student_name VARCHAR(100),
+            edition INTEGER,
+            year INTEGER,
+            
+            competition_id INTEGER NOT NULL,
+            is_abnormal BOOLEAN DEFAULT 0,
+            submitter_type VARCHAR(20),
+            submitter_id INTEGER,
+            submit_time TIMESTAMP,
+            laboratory_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        , llm_prompt TEXT, llm_response TEXT, validation_result TEXT);
+
+CREATE TABLE "competitions" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    competition_name VARCHAR(200) NOT NULL UNIQUE,
+    official_website TEXT,
+    organizer TEXT,
+    competition_time TEXT,
+    participant_requirements TEXT,
+    grade_category VARCHAR(20),
+    brief_description TEXT,
+    alias_list TEXT
+, white_list BOOLEAN DEFAULT 0, watch_list BOOLEAN DEFAULT 0, is_auto_added BOOLEAN DEFAULT 0);
+
+CREATE TABLE "failed_logins" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    login_code VARCHAR(50) NOT NULL DEFAULT '',
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    fail_count INTEGER NOT NULL DEFAULT 0,
+    first_fail_at TIMESTAMP NOT NULL,
+    lock_until TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE idempotency_keys (
+    key TEXT PRIMARY KEY,
+    response_json TEXT NOT NULL,
+    status_code INTEGER NOT NULL DEFAULT 200,
+    created_at REAL NOT NULL,
+    expires_at REAL NOT NULL);
+
+CREATE TABLE "innovation_project_students" (project_id INTEGER, student_id INTEGER, role VARCHAR(20), student_name VARCHAR(50), student_id_str VARCHAR(50), match_type VARCHAR(20), FOREIGN KEY(student_id) REFERENCES users(id));
+
+CREATE TABLE "innovation_projects" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_no VARCHAR(50) UNIQUE,
+    project_name VARCHAR(200) NOT NULL,
+    project_type VARCHAR(20) CHECK(project_type IN ('国家级', '省级',  '院级')),
+    start_date TEXT,
+    end_date TEXT,
+    student_leader_name VARCHAR(50),
+    student_leader_id VARCHAR(50),
+    other_members TEXT,
+    supervisors TEXT,
+    funding_amount REAL,
+    status VARCHAR(20) DEFAULT '进行中' CHECK(status IN ('进行中', '已结题', '终止')),
+    submitter_type VARCHAR(20) CHECK(submitter_type IN ('admin')),
+    submitter_id INTEGER,
+    submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    laboratory_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE "laboratories" (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(100) NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                , cover_image TEXT);
+
+CREATE TABLE "laboratory_assistants" (laboratory_id INTEGER, student_id INTEGER, FOREIGN KEY(student_id) REFERENCES users(id));
+
+CREATE TABLE "laboratory_downloads" (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    laboratory_id INTEGER NOT NULL,
+                    file_path VARCHAR(500) NOT NULL,
+                    file_title VARCHAR(200),
+                    file_name VARCHAR(200),
+                    file_size INTEGER,
+                    submitter_type VARCHAR(20),
+                    submitter_id INTEGER,
+                    is_public INTEGER DEFAULT 1,
+                    display_order INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE CASCADE
+                );
+
+CREATE TABLE "laboratory_images" (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    laboratory_id INTEGER NOT NULL,
+                    image_path VARCHAR(500) NOT NULL,
+                    display_order INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, file_name VARCHAR(100), file_hash VARCHAR(64), description TEXT, submitter_type VARCHAR(20), submitter_id INTEGER,
+                    FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE CASCADE
+                );
+
+CREATE TABLE "laboratory_instructors" (
+                    laboratory_id INTEGER,
+                    teacher_id INTEGER,
+                    PRIMARY KEY (laboratory_id, teacher_id),
+                    FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE CASCADE,
+                    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+CREATE TABLE "laboratory_students" (laboratory_id INTEGER, student_id INTEGER, FOREIGN KEY(student_id) REFERENCES users(id));
+
+CREATE TABLE "old_user_map" (old_role VARCHAR(20) NOT NULL CHECK(old_role IN ('student','teacher','admin')), old_id INTEGER NOT NULL, new_user_id INTEGER NOT NULL REFERENCES users(id), PRIMARY KEY (old_role, old_id));
+
+CREATE TABLE "other_files" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_name VARCHAR(100) NOT NULL,
+            file_path VARCHAR(500) NOT NULL UNIQUE,
+            file_type VARCHAR(20),
+            file_size INTEGER,
+            file_hash VARCHAR(64),
+            is_image BOOLEAN DEFAULT 0,
+            description TEXT,
+            submitter_type VARCHAR(20) CHECK(submitter_type IN ('student', 'teacher', 'admin')),
+            submitter_id INTEGER,
+            submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            laboratory_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE SET NULL
+        );
+
+CREATE TABLE "patents" (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    patent_name VARCHAR(200) NOT NULL,
+                    patent_type VARCHAR(20) CHECK(patent_type IN ('发明专利', '实用新型', '外观设计')),
+                    application_number VARCHAR(50) UNIQUE,
+                    publication_number VARCHAR(50),
+                    inventor VARCHAR(200),
+                    application_date VARCHAR(10),
+                    patentee VARCHAR(200),
+                    certificate_file VARCHAR(500),
+                    submitter_type VARCHAR(20) CHECK(submitter_type IN ('student', 'teacher', 'admin')),
+                    submitter_id INTEGER,
+                    laboratory_id INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (laboratory_id) REFERENCES laboratories(id)
+                );
+
+CREATE TABLE "pending_achievements" (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                achievement_type VARCHAR(20),
+                achievement_data TEXT NOT NULL,
+                validation_result TEXT,
+                submitter_type VARCHAR(20),
+                submitter_id INTEGER,
+                submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(20) DEFAULT 'pending',
+                reviewer_id INTEGER,
+                review_time TIMESTAMP,
+                review_comment TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            , file_path VARCHAR(500), assigned_reviewer_type VARCHAR(20)
+                        CHECK(assigned_reviewer_type IN ('teacher', 'admin')), reviewer_type VARCHAR(20)
+                        CHECK(reviewer_type IN ('teacher', 'admin')), file_hash VARCHAR(64) NOT NULL DEFAULT '', ocr_text TEXT, llm_prompt TEXT, llm_response TEXT, ext_info TEXT, session_id VARCHAR(50), laboratory_id INTEGER, version INTEGER NOT NULL DEFAULT 1, is_valid INTEGER
+        GENERATED ALWAYS AS (CASE WHEN json_extract(validation_result, '$.is_valid') IS NULL
+            THEN NULL ELSE CAST(json_extract(validation_result, '$.is_valid') AS INTEGER) END) VIRTUAL);
+
+CREATE TABLE "review_logs" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pending_id INTEGER NOT NULL,
+    achievement_type VARCHAR(20) NOT NULL,
+    file_hash VARCHAR(64),
+    file_path VARCHAR(500),
+    submitter_type VARCHAR(20) NOT NULL,
+    submitter_id INTEGER NOT NULL,
+    reviewer_type VARCHAR(20) NOT NULL,
+    reviewer_id INTEGER NOT NULL,
+    action_type VARCHAR(20) NOT NULL,
+    result_type VARCHAR(20),
+    result_id INTEGER,
+    result_file_path VARCHAR(500),
+    review_comment TEXT,
+    operation_note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK(reviewer_type IN ('teacher', 'admin', 'system'))
+);
+
+CREATE TABLE "software_copyrights" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            software_name VARCHAR(200) NOT NULL,
+            software_version VARCHAR(20),
+            registration_number VARCHAR(50) UNIQUE,
+            certificate_no VARCHAR(50),
+            registration_date VARCHAR(10),
+            copyright_owner VARCHAR(200),
+            certificate_file VARCHAR(500),
+            submitter_type VARCHAR(20) CHECK(submitter_type IN ('student', 'teacher', 'admin')),
+            submitter_id INTEGER,
+            submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            laboratory_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE SET NULL
+        );
+
+CREATE TABLE system_event_log (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_category  VARCHAR(20) NOT NULL CHECK(event_category IN (
+                            'ocr', 'llm', 'breaker', 'auth', 'upload',
+                            'db', 'security', 'system')),
+        event_level     VARCHAR(10) NOT NULL CHECK(event_level IN (
+                            'debug', 'info', 'warning', 'error', 'critical')),
+        event_message   TEXT NOT NULL,
+        trace_id        VARCHAR(64),
+        operator_id     INTEGER REFERENCES users(id),
+        operator_code   VARCHAR(50),
+        detail          TEXT,
+        source_module   VARCHAR(100),
+        source_file     VARCHAR(200),
+        source_line     INTEGER,
+        created_at      TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+CREATE TABLE "templates" (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                template_type VARCHAR(20) NOT NULL,
+                min_length INTEGER DEFAULT 0,
+                max_length INTEGER DEFAULT 0,
+                keywords TEXT,
+                sample_text TEXT,
+                sample_extracted TEXT,
+                default_fields TEXT,
+                llm_fields TEXT,
+                language VARCHAR(10) DEFAULT 'zh',
+                need_translate BOOLEAN DEFAULT 0,
+                is_manual_edited BOOLEAN DEFAULT 0,
+                sample_image_blob BLOB,
+                competition_id INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (competition_id) REFERENCES competitions(id)
+            );
+
+CREATE TABLE "user_photos" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_name VARCHAR(100) NOT NULL,
+            file_path VARCHAR(500) NOT NULL UNIQUE,
+            file_hash VARCHAR(64) UNIQUE,
+            thumbnail_path VARCHAR(500),
+            photo_type VARCHAR(20) CHECK(photo_type IN ('lab_activity', 'personal_gallery')),
+            description TEXT,
+            submitter_type VARCHAR(20) CHECK(submitter_type IN ('student', 'teacher')),
+            submitter_id INTEGER NOT NULL,
+            submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            laboratory_id INTEGER,
+            is_public BOOLEAN DEFAULT 1,
+            display_order INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (laboratory_id) REFERENCES laboratories(id) ON DELETE SET NULL
+        );
+
+CREATE TABLE "users" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, login_code VARCHAR(50) UNIQUE, name VARCHAR(50) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK(role IN ('student','teacher','admin')),
+    password_hash VARCHAR(255), user_activated INTEGER NOT NULL DEFAULT 1 CHECK(user_activated IN (0,1)),
+    phone VARCHAR(20), qq VARCHAR(50), skills TEXT, profile_is_public INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    major VARCHAR(50), grade VARCHAR(50), title VARCHAR(50), department VARCHAR(50), id_number VARCHAR(50),
+    needs_password_change INTEGER NOT NULL DEFAULT 0);
+
+CREATE VIEW admins AS
+SELECT u.id, u.login_code AS username, u.password_hash, u.name, u.user_activated,
+       u.created_at, u.needs_password_change
+FROM users u WHERE u.role = 'admin';
+
+CREATE VIEW students AS
+SELECT u.id, u.login_code AS student_id, u.name, u.major, u.grade, u.phone,
+       u.user_activated, u.created_at, u.updated_at, u.password_hash, u.role,
+       u.qq, u.skills, u.profile_is_public, u.needs_password_change
+FROM users u WHERE u.role = 'student';
+
+CREATE VIEW teachers AS
+SELECT u.id, u.login_code AS teacher_id, u.name, u.title, u.department, u.phone,
+       u.id_number, u.user_activated, u.created_at, u.updated_at, u.password_hash,
+       u.role, u.qq, u.skills, u.profile_is_public, u.needs_password_change
+FROM users u WHERE u.role = 'teacher';
+
+CREATE INDEX idx_auto_archive_config_type_status
+ON auto_archive_config(achievement_type, validation_status);
+
+CREATE INDEX idx_award_related_students_student ON award_related_students(student_id);
+
+CREATE INDEX idx_award_student_winners_student ON award_student_winners(student_id);
+
+CREATE INDEX idx_award_supervisors_teacher ON award_supervisors(teacher_id);
+
+CREATE INDEX idx_award_teacher_winners_teacher ON award_teacher_winners(teacher_id);
+
+CREATE INDEX idx_awards_abnormal ON awards(is_abnormal) WHERE is_abnormal = 1;
+
+CREATE INDEX idx_awards_competition ON awards(competition_id);
+
+CREATE INDEX idx_awards_date ON awards(date);
+
+CREATE INDEX idx_awards_laboratory ON awards(laboratory_id) WHERE laboratory_id IS NOT NULL;
+
+CREATE INDEX idx_awards_submitter ON awards(submitter_type, submitter_id);
+
+CREATE INDEX idx_event_category ON system_event_log(event_category, created_at);
+
+CREATE INDEX idx_event_level ON system_event_log(event_level, created_at);
+
+CREATE INDEX idx_event_time ON system_event_log(created_at);
+
+CREATE INDEX idx_event_trace ON system_event_log(trace_id) WHERE trace_id IS NOT NULL;
+
+CREATE INDEX idx_failed_logins_code ON failed_logins(login_code);
+
+CREATE INDEX idx_innovation_project_students_project 
+                ON innovation_project_students(project_id)
+            ;
+
+CREATE INDEX idx_innovation_project_students_student 
+                ON innovation_project_students(student_id)
+            ;
+
+CREATE UNIQUE INDEX idx_lab_images_hash_unique ON laboratory_images(file_hash);
+
+CREATE INDEX idx_lab_images_submitter ON laboratory_images(submitter_type, submitter_id);
+
+CREATE INDEX idx_other_files_hash ON other_files(file_hash);
+
+CREATE INDEX idx_other_files_is_image ON other_files(is_image);
+
+CREATE INDEX idx_other_files_laboratory ON other_files(laboratory_id);
+
+CREATE INDEX idx_other_files_path ON other_files(file_path);
+
+CREATE INDEX idx_other_files_submitter ON other_files(submitter_type, submitter_id);
+
+CREATE INDEX idx_pending_achievements_session_id ON pending_achievements(session_id);
+
+CREATE INDEX idx_pending_assigned_reviewer
+                    ON pending_achievements(assigned_reviewer_type)
+                ;
+
+CREATE INDEX idx_pending_file_hash
+                    ON pending_achievements(file_hash)
+                ;
+
+CREATE INDEX idx_pending_file_path ON pending_achievements(file_path)
+            ;
+
+CREATE INDEX idx_pending_is_valid ON pending_achievements(is_valid);
+
+CREATE INDEX idx_pending_status ON pending_achievements(status, achievement_type);
+
+CREATE INDEX idx_pending_submit_time ON pending_achievements(submit_time);
+
+CREATE INDEX idx_pending_submitter ON pending_achievements(submitter_type, submitter_id);
+
+CREATE INDEX idx_softwares_laboratory ON software_copyrights(laboratory_id);
+
+CREATE INDEX idx_softwares_name ON software_copyrights(software_name);
+
+CREATE INDEX idx_softwares_reg_number ON software_copyrights(registration_number);
+
+CREATE INDEX idx_softwares_submit_time ON software_copyrights(submit_time);
+
+CREATE INDEX idx_softwares_submitter ON software_copyrights(submitter_type, submitter_id);
+
+CREATE INDEX idx_user_photos_hash ON user_photos(file_hash);
+
+CREATE INDEX idx_user_photos_laboratory ON user_photos(laboratory_id);
+
+CREATE INDEX idx_user_photos_owner ON user_photos(submitter_type, submitter_id);
+
+CREATE INDEX idx_user_photos_path ON user_photos(file_path);
+
+CREATE INDEX idx_user_photos_public ON user_photos(is_public);
+
+CREATE INDEX idx_user_photos_type ON user_photos(photo_type);
+
+CREATE UNIQUE INDEX uk_awards_image_hash ON awards(image_hash) WHERE image_hash IS NOT NULL AND image_hash <> '';
