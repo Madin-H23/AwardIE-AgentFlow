@@ -120,3 +120,4 @@ pyrightconfig.json
 .serena/
 .playwright-cli/
 database/backups/
+.coverage
