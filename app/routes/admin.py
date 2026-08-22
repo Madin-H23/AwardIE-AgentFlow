@@ -54,7 +54,10 @@ def api_dashboard_overview():
             'total_awards': one("SELECT COUNT(*) FROM awards"),
             'award_mgmt': one("SELECT COUNT(*) FROM awards WHERE (granted_role IS NULL OR granted_role <> '教师')"),
             'award_teacher': one("SELECT COUNT(*) FROM awards WHERE granted_role = '教师'"),
-            'pending': one("SELECT COUNT(*) FROM pending_achievements WHERE status='pending'"),
+            # 口径修正（dashboard 待审核歧义）：待审核=status='submit'（已提交待人工处理）；
+            # status='pending' 是导入草稿（识别完成未提交），单列 pending_import
+            'pending_submit': one("SELECT COUNT(*) FROM pending_achievements WHERE status='submit'"),
+            'pending_import': one("SELECT COUNT(*) FROM pending_achievements WHERE status='pending'"),
             'whitelist': one("SELECT COUNT(*) FROM competitions WHERE white_list=1"),
             'competitions': one("SELECT COUNT(*) FROM competitions"),
         }

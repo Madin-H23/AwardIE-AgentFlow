@@ -33,7 +33,7 @@
     <!-- ① 资产条（4 卡，对应百度云余额/订单/待支付） -->
     <div class="vitals mb-4" id="summaryCards">
         <div class="vital-card"><div class="vital-label"><i class="bi bi-award"></i> 成果总数</div><div class="vital-value mono-data" id="cTotal">–</div><div class="vital-sub" id="sTotal">加载中…</div></div>
-        <div class="vital-card"><div class="vital-label"><span class="pulse-dot down"></span> 待审核</div><div class="vital-value mono-data" id="cPending">–</div><div class="vital-sub" id="sPending">需人工处理</div></div>
+        <div class="vital-card"><div class="vital-label"><span class="pulse-dot down"></span> 待审核</div><div class="vital-value mono-data" id="cPending">–</div><div class="vital-sub" id="sPending">需人工处理 · 草稿另计</div></div>
         <div class="vital-card"><div class="vital-label"><i class="bi bi-patch-check"></i> 白名单竞赛</div><div class="vital-value mono-data" id="cWhitelist">–</div><div class="vital-sub" id="sWhitelist">占总竞赛数</div></div>
         <div class="vital-card"><div class="vital-label"><i class="bi bi-speedometer2"></i> 成果·竞赛密度</div><div class="vital-value mono-data" id="cDensity">–</div><div class="vital-sub" id="sDensity">平均每竞赛成果数</div></div>
     </div>
@@ -109,5 +109,5 @@
 
 <!-- ECharts：沿用 data_analysis 页的多 CDN 回退模式 -->
 <script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3"></script>
 {% endblock %}

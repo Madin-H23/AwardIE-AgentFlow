@@ -29,9 +29,12 @@
         $('cTotal').textContent = fmt(total);
         $('sTotal').textContent = `奖状 ${s.total_awards || 0} · 专利 ${cat.patent || 0} · 软著 ${cat.software || 0} · 大创 ${cat.innovation || 0} · 其他 ${cat.other || 0}`;
 
-        $('cPending').textContent = fmt(s.pending);
-        $('sPending').textContent = s.pending > 0 ? '需人工处理' : '无积压';
-        if (s.pending > 0) $('cPending').classList.add('alarming');
+        // 口径修正：pending_submit=已提交待人工审核；pending_import=导入草稿（识别完成未提交）
+        $('cPending').textContent = fmt(s.pending_submit);
+        const draftN = s.pending_import || 0;
+        $('sPending').textContent = (s.pending_submit > 0 ? '需人工处理' : '无积压')
+            + (draftN > 0 ? ` · 另有导入草稿 ${draftN} 条` : '');
+        if (s.pending_submit > 0) $('cPending').classList.add('alarming');
 
         $('cWhitelist').textContent = fmt(s.whitelist);
         $('sWhitelist').textContent = s.competitions ? `占 ${(s.whitelist / s.competitions * 100).toFixed(0)}% 竞赛` : '';
@@ -48,7 +51,7 @@
             const up = cmp.delta_pct >= 0;
             cmpTxt += ` · 环比 <span class="mono-data ${up ? 'text-success' : 'text-danger'}">${up ? '▲' : '▼'}${Math.abs(cmp.delta_pct)}%</span>`;
         }
-        $('paySub').innerHTML = `待审核 ${s.pending || 0} · 白名单竞赛 ${s.whitelist || 0}<br>${cmpTxt}`;
+        $('paySub').innerHTML = `待审核 ${s.pending_submit || 0} · 白名单竞赛 ${s.whitelist || 0}<br>${cmpTxt}`;
         $('catAward').textContent = fmt(s.total_awards);
         $('catPatent').textContent = fmt(cat.patent || 0);
         $('catSoftware').textContent = fmt(cat.software || 0);
