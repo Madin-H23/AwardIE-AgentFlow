@@ -30,6 +30,7 @@ class LogAnalyzer:
         """audit_log action_type 分组计数：{action_type: count}。"""
         where, params = [], []
         where.append("COALESCE(is_redundant,0)=0")   # 默认排除重复删除留痕（0009）
+        where.append("COALESCE(is_test,0)=0")        # 默认排除测试噪音（0012）
         if start_date:
             where.append("created_at>=?"); params.append(start_date)
         if end_date:
@@ -100,7 +101,7 @@ class LogAnalyzer:
             rows = conn.execute(
                 """SELECT operator_code, operator_name, COUNT(*) c
                    FROM achievement_audit_log
-                   WHERE operator_code IS NOT NULL
+                   WHERE operator_code IS NOT NULL AND COALESCE(is_test,0)=0
                    GROUP BY operator_code ORDER BY c DESC LIMIT ?""", (top_n,)).fetchall()
             return [{"operator_code": r[0], "operator_name": r[1], "count": r[2]} for r in rows]
         finally:
@@ -159,7 +160,8 @@ class LogAnalyzer:
         conn = get_connection(db_path or LogAnalyzer._get_db_path())
         try:
             audit_n = conn.execute("SELECT COUNT(*) FROM achievement_audit_log "
-                                   "WHERE created_at BETWEEN ? AND ?", (start, end)).fetchone()[0]
+                                   "WHERE created_at BETWEEN ? AND ? AND COALESCE(is_test,0)=0",
+                                   (start, end)).fetchone()[0]
             err_n = sys_n = 0
             try:
                 err_n = conn.execute("SELECT COUNT(*) FROM system_event_log "

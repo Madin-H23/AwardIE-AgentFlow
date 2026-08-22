@@ -47,6 +47,7 @@ def audit_timeline(kind, entity_id):
                FROM achievement_audit_log
                WHERE achievement_kind = ? AND achievement_id = ?
                  AND COALESCE(is_redundant,0)=0
+                 AND COALESCE(is_test,0)=0
                ORDER BY created_at ASC, id ASC""",
             (kind, entity_id)).fetchall()
         # 历史数据兼容：操作人快照存 users.id 或 login_code——统一解析为 "学号 姓名"（id 未命中按 login_code 兜底）

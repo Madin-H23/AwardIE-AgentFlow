@@ -1,5 +1,6 @@
 -- 全库 schema 快照（自 database/competitions.db 反射导出）。
--- 用途：CI 种子库建库（无 *.db 环境）；与 migrations 演进同步——迁移变更后需重新导出。
+
+-- 用途：CI 种子库建库（无 *.db 环境）；迁移变更后需重新导出。
 -- 由 scripts/dump_schema.py 生成，勿手工编辑。
 
 CREATE TABLE "achievement_audit_log" (
@@ -11,7 +12,7 @@ CREATE TABLE "achievement_audit_log" (
             operator_id INTEGER, operator_code VARCHAR(50) NOT NULL, operator_name VARCHAR(50) NOT NULL,
             operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip VARCHAR(45),
             ai_batch_id VARCHAR(50), change_detail TEXT, remark TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0);
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0, is_test INTEGER NOT NULL DEFAULT 0);
 
 CREATE TABLE "action_plans" (
     id VARCHAR(64) PRIMARY KEY,

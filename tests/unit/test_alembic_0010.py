@@ -42,7 +42,7 @@ def typ_db(tmp_path):
     conn.execute("CREATE TABLE software_copyrights (id INTEGER PRIMARY KEY AUTOINCREMENT,"
                  " registration_number TEXT, registration_date TEXT, source_code TEXT)")
     conn.execute("CREATE TABLE achievement_audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                 " operator_ip TEXT, change_detail TEXT)")
+                 " operator_ip TEXT, change_detail TEXT, is_test INTEGER NOT NULL DEFAULT 0)")
     # 视图（0010 先删后建）
     conn.execute("CREATE VIEW students AS SELECT id, login_code FROM users WHERE login_code LIKE '2%'")
     # 数据 + 自增计数（含"删除历史"形态：seq 大于行数）

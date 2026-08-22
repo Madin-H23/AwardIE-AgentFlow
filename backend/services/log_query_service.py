@@ -33,10 +33,14 @@ class LogQueryService:
     @staticmethod
     def query_audit_logs(*, page=1, per_page=50, action_type=None, operator_role=None,
                          achievement_id=None, trace_id=None,
-                         start_date=None, end_date=None, db_path=None) -> dict:
+                         start_date=None, end_date=None, db_path=None,
+                         include_tests=False) -> dict:
         where, params = [], []
         # 去重标记：默认排除重复删除留痕（0009 订正；需看全部可加参数放开）
         where.append("COALESCE(is_redundant,0)=0")
+        # 测试噪音：默认排除（0012 打标；include_tests=True 查全量）
+        if not include_tests:
+            where.append("COALESCE(is_test,0)=0")
         if action_type is not None:
             where.append("action_type=?"); params.append(action_type)
         if operator_role is not None:

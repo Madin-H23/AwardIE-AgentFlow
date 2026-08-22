@@ -31,6 +31,18 @@ def _local_now_str():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _is_test_mode():
+    """pytest 运行态检测（0012 防复发：测试产生的留痕自动打 is_test=1）。
+
+    双信号：tests/conftest.py 收集期注入 AWARDIE_AUDIT_TEST_MODE=1
+    （覆盖 fixture/setup/teardown 阶段）；PYTEST_CURRENT_TEST 兜底
+    （仅用例执行期存在）。生产进程两者皆无，零配置零开销。
+    """
+    import os
+    return (os.environ.get("AWARDIE_AUDIT_TEST_MODE") == "1"
+            or "PYTEST_CURRENT_TEST" in os.environ)
+
+
 class AuditLogger:
     """全生命周期留痕写入器（进程级单例用法：直接调用类方法）。"""
 
@@ -137,11 +149,12 @@ class AuditLogger:
                     """INSERT INTO achievement_audit_log
                        (achievement_id, achievement_kind, trace_id, action_type, action_result,
                         operator_id, operator_code, operator_name, operator_role,
-                        ai_batch_id, change_detail, remark, created_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        ai_batch_id, change_detail, remark, created_at, is_test)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (achievement_id, achievement_kind, trace_id, action_type, action_result,
                      op["id"], op["code"], op["name"], op["role"],
-                     ai_batch_id, detail, remark, _local_now_str()),
+                     ai_batch_id, detail, remark, _local_now_str(),
+                     1 if _is_test_mode() else 0),
                 )
                 conn.commit()
                 from backend.utils.metrics import inc_audit

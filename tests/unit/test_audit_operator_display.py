@@ -17,7 +17,7 @@ CREATE TABLE achievement_audit_log (
   action_type INTEGER CHECK(action_type BETWEEN 1 AND 12), action_result INTEGER,
   operator_id INTEGER, operator_code TEXT, operator_name TEXT, operator_role INTEGER,
   ai_batch_id TEXT, change_detail TEXT, remark TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_redundant INTEGER NOT NULL DEFAULT 0, is_test INTEGER NOT NULL DEFAULT 0)
 """
 USERS_DDL = "CREATE TABLE users (id INTEGER PRIMARY KEY, login_code TEXT, name TEXT)"
 
@@ -138,7 +138,8 @@ def test_action12_delete_label_and_display(audit_path):
     assert AuditLogger.log(12, 1194, "award",
                            operator={"id": 1794, "code": "02114818", "user_type": "teacher"},
                            remark="成果删除")
-    r = LogQueryService.query_audit_logs(db_path=db, per_page=10)
+    # pytest 运行态 AuditLogger 自动 is_test=1（0012 防复发），需显式包含
+    r = LogQueryService.query_audit_logs(db_path=db, per_page=10, include_tests=True)
     it = [x for x in r["items"] if x["action_type"] == 12][0]
     assert it["action_label"] == "成果删除"
     assert it["operator_display"] == "02114818 王老师"

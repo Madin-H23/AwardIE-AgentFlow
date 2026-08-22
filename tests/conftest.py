@@ -11,6 +11,10 @@ project_root = current_file.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# 审计防复发（0012）：pytest 进程内所有 AuditLogger 写入自动 is_test=1。
+# 收集期注入，覆盖 fixture/setup/teardown 阶段（PYTEST_CURRENT_TEST 仅用例执行期存在）。
+os.environ.setdefault("AWARDIE_AUDIT_TEST_MODE", "1")
+
 
 @pytest.fixture(autouse=True, scope="session")
 def _isolate_system_event_logger(tmp_path_factory):

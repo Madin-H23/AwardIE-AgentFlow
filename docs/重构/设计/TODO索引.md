@@ -141,3 +141,21 @@
 | T63 | ~~本地每日自动备份~~ **已完成（2026-08-22，P0）**：backup.py 补文件日志（logs/backup.log，计划任务场景无控制台）；**主保障=log_scheduler 每日窗口挂 _daily_backup()**（subprocess 调 backup.py，服务常开即每日备份；run_daily 触发实测新备份生成+对账一致）；OS 计划任务（schtasks/PowerShell Register-ScheduledTask 均建过 AwardIE-DailyBackup 每日 02:00）在本机被安全策略拦截无法启动 python（LastTaskResult=1，最小探针同样失败）——保留任务定义作可选增强，环境放行后即生效 | P0 | backup WAL 修复 | ✅应用内每日 | 高 |
 | T57 | ~~review_logs 停写切换（M4）~~ **已完成（2026-08-22，P1）**：audit_log 已覆盖全部决策动作（1/2/6/7/8/9/10/11/12），`ReviewLogManager.create_log` 改 no-op（签名兼容唯一调用点 _log_review_action），历史数据只读可查、/admin/logs 展示不受影响（gui_smoke 留痕步骤实测）；附带消除 submitter_id NOT NULL 的 ERROR 噪音日志。测试 test_review_logs_freeze 3 例（停写不变/audit 接管增长/历史可查），相关回归 40 例全绿 | P1 | audit 全动作覆盖✅ | ✅3测试 | 上线后→完成 |
 | T64 | ~~全页面自动化测试体系~~ **已完成（2026-08-23）**：清单驱动两层冒烟——`tests/fixtures/page_inventory.py`（77 路由全集盘点：PAGES 正例+EXEMPT 单一豁免表带 type 字段）+ `tests/fixtures/seeded_db.py`（CI 种子库：full_schema.sql 全量 schema+最小数据集；DATABASE_PATH 双路径 patch 含 auth 直读类属性+app.utils 双命名空间 _managers 清理+reset_app_context 前后复位+teardown 还原类属性）+ `tests/unit/test_all_pages_smoke.py`（正例渲染/未登录守卫全清单/角色越权/深链越权负例）+ `test_page_inventory_meta.py` 防腐自检（url_map 扫描 vs 清单归一匹配，新页面不挂清单即红）。无库模拟实测 115 passed 非 skip、真实库零接触（文件未生成）；旧资产收敛（page_rendering/index_page 退役）；发现并登记存量坏页 /student/activities（模板缺失致 500，豁免待修）。页面路由覆盖率=75/77（97%，豁免 2 类） | T64 goal | — | ✅118p+7s | 高 |
+
+## 见好就收·收尾编排（2026-08-23 重构决策分析报告产出）
+
+> 定位：架构级重构收官后的 S/A 级收尾——可用性收口（P0）→ 审计流卫生（P1）→ 质量护栏与异味根治（P2），全部完成即**架构冻结**，仅剩条件触发项（B 部署包/T49/T58/T35-T37 等）。总基调=见好就收：不再启动新的架构级重构。第二副本经用户拍板暂缓（2026-08-23，残留风险=备份与库同盘，C/D 为同一物理盘分区）。
+> 三项核查基线（2026-08-23 实测）：行覆盖率 TOTAL=**39%**（coverage.json 留存仓库根）；157 skip 全拆账=140 冻结模块+8 真 API 门控+7 公开页豁免+2 零头；登录 P95 410ms=scrypt(N32768/r8/p1) 单次 ~290ms 安全特性非缺陷；⚠️"CDN 已清零"系过时记载（P15 只清了 jquery/select2，vendor 本地副本已在、只差引用替换）。
+
+| # | 事项 | 出处 | 触发/时点 |
+| --- | --- | --- | --- |
+| T65 | CDN 外链本地化收尾——bootstrap-icons(unpkg×6)/echarts(elemecdn·npmmirror×5)/bootstrap.bundle(jsdelivr×3) 约 10 个模板替换为 vendor 已有本地副本（含登录页 base_simple）；_ref 假数据页装饰图热链登记例外 | 决策分析 P0 | 高（1~2h） |
+| T66 | /student/activities 坏页处置：student skip_routes 加 'activities'（与 teacher.py:306 同法；三端 activities_ref.html 模板均不存在）；page_inventory 移出该 EXEMPT 条目，覆盖 97%→≥98%（剩余唯一豁免=lab data-analysis 种子形态，另案不动） | T64 登记 / 决策分析 P0 | 高 |
+| T67 | audit_log 测试噪音治理：历史 ~1063 条按保守特征打标 is_test 列（标记不物理删、迁移可回退，宁可漏标不可误标）+ AuditLogger pytest 运行态自动标记防复发 + log_query/timeline 默认过滤 | 决策分析 P1 | 高 |
+| T68 | 登录 410ms 结案归档（搭车）：压测报告补 scrypt 归因节（单次 ~290ms 实测/失败登录旧三表最多再哈希 2 次/安全特性不建议降参） | 决策分析拷问④ | 低（15min，随 P1） |
+| T69 | 覆盖率定向补测第一批：backend/models 写路径（award/laboratory save/update 分支，seeded_db 用例）；models 44%→≥60%，R-031 式回归护栏；完成后测试健壮性可复评 | 决策分析 P2 | 中高 |
+| T70 | 39 条死导入草稿归档：确认失效标准后 status pending→archived 带守卫备份（dry-run 默认），dashboard 导入草稿计数归零 | 决策分析 P2 | 中（0.25d） |
+| T71 | skip 零头清理：①images 测试图片入库或条件收集 ②update_teachers 待实现用例补数据或删除 ③RUN_AGENT_INTEGRATION=1 月度真 API 例行成文（8 例防 AI 层漂移）④140 冻结模块处置卡立条待 hewj | 决策分析 P2 | 中（0.5d） |
+| T72 | 双 get_config 同名异义收敛：config.loader.get_config 改名+全量引用替换逐一核对（config.flask.get_config 保持），根治 SECRET_KEY None 连环误判源 | 决策分析拷问① | 中（0.5d） |
+| T73 | app.utils 包/模块同名双命名空间收敛：_managers 全局缓存单一真源（保持 import 兼容 re-export），seeded_db fixture 清理逻辑随之简化 | 决策分析拷问② | 中（0.5d） |
+| T74 | 旧基类 17 页分批迁 base_console（user_base×16+base_simple×1，每批 4~6 页亮暗双态冒烟）；base_simple 登录页轻量性单独评估，保留需落档决策 | 决策分析拷问③ / T9 续 | 按节奏 |

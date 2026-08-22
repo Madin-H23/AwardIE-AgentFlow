@@ -40,7 +40,7 @@ def audit_db(tmp_path):
             operator_id INTEGER, operator_code TEXT NOT NULL, operator_name TEXT NOT NULL,
             operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip TEXT,
             ai_batch_id TEXT, change_detail TEXT, remark TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP)""")
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_test INTEGER NOT NULL DEFAULT 0)""")
     for i, at in enumerate([1, 6, 8], start=1):
         conn.execute(
             "INSERT INTO achievement_audit_log (achievement_id, achievement_kind, action_type,"

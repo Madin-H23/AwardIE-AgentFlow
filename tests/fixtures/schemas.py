@@ -66,7 +66,7 @@ AUDIT_LOG_DDL = """CREATE TABLE achievement_audit_log (
     operator_id INTEGER, operator_code TEXT NOT NULL, operator_name TEXT NOT NULL,
     operator_role INTEGER CHECK(operator_role IN (1,2,3,4)), operator_ip VARCHAR(45),
     ai_batch_id TEXT, change_detail TEXT, remark TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP)"""
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_test INTEGER NOT NULL DEFAULT 0)"""
 
 
 def require_real_db():
