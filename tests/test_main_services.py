@@ -1861,6 +1861,9 @@ if __name__ == "__main__":
 def test_core_services_integration():
     """pytest 入口（T31-T34 批次4）：核心业务全流程集成测试。
 
+    ⚠️ 破坏性提醒：本测试 prepare_test_environment 会【清空真实库 awards/软著/pending】
+    并写入测试数据。跑完后如需还原业务数据，执行：
+        python scripts/restore_awards_history.py --apply   （幂等，补回历史 198 行）
     依赖真实库与业务文件（CI 无库环境自动 skip）。运行结束恢复工作目录。
     """
     import os as _os
