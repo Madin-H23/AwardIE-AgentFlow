@@ -319,3 +319,9 @@
 
 /* 提示 alert：微调圆角与信息条底色 */
 .console-shell .console-main .alert, .portal-shell .console-main .alert { border-radius: 8px; }
+
+/* bg-light 工具类暗色适配（Bootstrap 固定浅色不随主题；全站统一转深面板） */
+[data-bs-theme="dark"] .bg-light {
+  background-color: var(--panel) !important;
+  border-color: var(--line) !important;
+}
