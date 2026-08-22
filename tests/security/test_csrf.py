@@ -64,8 +64,12 @@ def test_login_page_has_csrf_meta(client):
 
 
 def test_all_three_bases_inject_assets():
-    """三套基础模板必须都注入 meta + csrf.js（防后续新增基底遗漏）。"""
-    for name in ("base.html", "user_base.html", "base_simple.html"):
+    """全部在役基础模板必须都注入 meta + csrf.js（防后续新增基底遗漏）。
+
+    base.html 已退役（2026-08-23，唯一引用 laboratory/data_analysis.html 已自包含化），
+    在役基底 = user_base.html（门户/师生）+ base_simple.html（登录页）。
+    """
+    for name in ("user_base.html", "base_simple.html"):
         src = (PROJECT_ROOT / "app" / "templates" / name).read_text(encoding="utf-8")
         assert 'meta name="csrf-token"' in src, f"{name} 缺少 meta 注入"
         assert "csrf.js" in src, f"{name} 缺少 csrf.js 引用"

@@ -1,8 +1,14 @@
-{% extends "base.html" %}
-
-{% block title %}数据分析 - 实验室{% endblock %}
-
-{% block extra_head %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 - 实验室</title>
+    <!-- Bootstrap 5 CSS（原 base.html 体系，本页自包含；base.html 已退役） -->
+    <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- 与管理员实验室数据分析页一致：使用 base 的 Bootstrap + custom.css -->
 <style>
     .nav-tabs .nav-link {
@@ -72,9 +78,11 @@
         background-color: #40a9ff;
     }
 </style>
-{% endblock %}
-
-{% block content %}
+</head>
+<body>
+    {% include 'layout/navbar.html' %}
+    <div class="container-fluid">
+        <main class="col-12 main-content">
 <div class="container-fluid py-4">
     <h2 class="h4 mb-3">实验室数据分析</h2>
 
@@ -812,4 +820,10 @@ window.addEventListener('resize', () => {
     }
 });
 </script>
-{% endblock %}
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+</body>
+</html>
