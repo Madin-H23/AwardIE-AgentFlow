@@ -17,6 +17,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BACKUP_ROOT = PROJECT_ROOT / "database" / "backups"
 RETAIN_DAYS = 30
 
+# 计划任务场景（schtasks/cron）无控制台，日志同时落文件供核对
+_log_dir = PROJECT_ROOT / "logs"
+try:
+    _log_dir.mkdir(exist_ok=True)
+    _fh = logging.FileHandler(_log_dir / "backup.log", encoding="utf-8")
+    _fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logger.addHandler(_fh)
+except Exception:
+    pass
+
 TARGETS = {
     "competitions.db": "database/competitions.db",
     "ocr_cache.db": "database/ocr_cache.db",

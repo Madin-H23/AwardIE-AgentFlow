@@ -8,6 +8,7 @@
 """
 import threading
 import logging
+import sys
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,30 @@ def run_daily(db_path=None):
     _cleanup_capacity(db_path)
     _reopen_ignored(db_path)
     _log_daily_report(db_path)
+    _daily_backup()
+
+
+def _daily_backup():
+    """每日全量备份（T63）：复用 scripts/backup.py（三库+chroma+files+.env，
+    30 天滚动+WAL checkpoint+对账自检）。失败仅 warning 不影响其余每日任务。
+    本地使用场景服务常开，应用内每日备份是主保障；OS 计划任务为可选增强
+    （本机 schtasks 交互式任务受安全策略限制无法启动 python，故以应用内为准）。"""
+    try:
+        import subprocess
+        from pathlib import Path
+        script = Path(__file__).resolve().parents[2] / "scripts" / "backup.py"
+        if not script.exists():
+            logger.warning("[log_sched] 备份脚本不存在，跳过每日备份: %s", script)
+            return
+        r = subprocess.run([sys.executable, str(script)], capture_output=True,
+                           text=True, timeout=900)
+        if r.returncode == 0:
+            logger.info("[log_sched] 每日备份完成")
+        else:
+            logger.warning("[log_sched] 每日备份返回码 %s: %s",
+                           r.returncode, (r.stdout or r.stderr or "")[-300:])
+    except Exception as e:
+        logger.warning("[log_sched] 每日备份失败: %s", e)
 
 
 def _log_daily_report(db_path):
