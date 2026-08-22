@@ -49,6 +49,7 @@ jobs:
             tests/unit/test_log_scheduler_report.py tests/test_routes_integrity.py tests/test_page_rendering.py \
             tests/unit/test_alembic_0007.py tests/unit/test_alembic_0008.py tests/unit/test_alembic_0009.py \
             tests/unit/test_alembic_0010.py tests/unit/test_alembic_0011.py tests/unit/test_pending_reload.py \
+            tests/unit/test_core_routes_coverage.py tests/unit/test_review_logs_freeze.py \
             --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics \
             --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error \
             --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision \

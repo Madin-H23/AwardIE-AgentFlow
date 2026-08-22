@@ -121,62 +121,16 @@ class ReviewLogManager:
         result_file_path: Optional[str] = None,
         review_comment: Optional[str] = None,
         operation_note: Optional[str] = None
-    ) -> ReviewLog:
+    ):
+        """T57 停写切换（M4）：review_logs 冻结为历史只读，运行时不再 INSERT。
+
+        audit_log（achievement_audit_log）已覆盖全部决策类动作
+        （提交1/AI审核2/通过6/驳回7/入库8/改字段9/撤回10/放弃11/删除12），
+        双写期结束。本方法保留签名兼容既有调用点（review_service._log_review_action），
+        调用即 no-op；历史数据经 query_logs/get_recent_logs 等只读路径继续可查。
         """
-        创建审核日志记录
-
-        Args:
-            pending_id: pending记录ID
-            achievement_type: 成果类型
-            submitter_type: 提交人类型
-            submitter_id: 提交人ID
-            reviewer_type: 审核人类型
-            reviewer_id: 审核人ID
-            action_type: 操作类型 ('approved', 'rejected', 'deleted')
-            file_hash: 文件hash（可选）
-            file_path: 文件路径（可选）
-            result_type: approved时的成果类型（可选）
-            result_id: approved时的成果ID（可选）
-            result_file_path: approved时文件移动后的路径（可选）
-            review_comment: 审核意见（可选）
-            operation_note: 操作说明（可选）
-
-        Returns:
-            创建的 ReviewLog 对象
-        """
-        conn = self._get_db_connection()
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute("""
-                INSERT INTO review_logs
-                (pending_id, achievement_type, file_hash, file_path,
-                 submitter_type, submitter_id,
-                 reviewer_type, reviewer_id,
-                 action_type, result_type, result_id, result_file_path,
-                 review_comment, operation_note)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                pending_id, achievement_type, file_hash, file_path,
-                submitter_type, submitter_id,
-                reviewer_type, reviewer_id,
-                action_type, result_type, result_id, result_file_path,
-                review_comment, operation_note
-            ))
-
-            log_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
-
-            # 重新加载并返回
-            self._load_all_from_db()
-            return self.get_log_by_id(log_id)
-
-        except Exception as e:
-            conn.rollback()
-            conn.close()
-            logger.error(f"创建审核日志失败: {e}")
-            raise
+        logger.info("review_logs 已停写（M4/T57）：动作 %s 不再写入旧审核日志表", action_type)
+        return None
 
     def query_logs(
         self,

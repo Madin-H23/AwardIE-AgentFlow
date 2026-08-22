@@ -40,7 +40,7 @@
 | T21 | ~~存量测试环境隔离修复~~ **已完成（2026-08-19）**：test_llm_adapter fixture 隔离 apikey.json（load_config 会注入真实 key 覆盖 patch env，且真实 key 曾泄漏进失败输出）；test_data_analysis temp_db 补 4 张关联表（award_teacher_winners/award_supervisors/teachers/laboratories）。5 例存量失败清零，311 全绿 | 全量回归 2026-08-17 发现 | ✅ |
 | ~~T22~~ | ~~admin.py 4 处"重置为默认密码"改造为随机强密码一次性下发~~ **已完成（阶段二）**：admin 4 处重置改随机强密码 + needs_password_change 标记（配合首登强制改密），**默认密码引用清零** | P2-28 配套 | ✅ |
 | T23 | ~~存量 F821 未定义名清账~~ **已完成（2026-08-18）**：38 处全清——其中 20+ 处是 L3 批量替换事故残留真 bug（conn 未定义/return 短路/外键 pragma 死码）+ 2 处笔误 bug（ext_info/matched_template）+ 6 处字符串注解误报（TYPE_CHECKING 根治）；CI 豁免已转正 | ruff 全量 CI 抓出 2026-08-18 | ✅ |
-| T24 | 存量代码全量覆盖率提升（当前 12.85%；核心模块已 86%——存量路由/服务测试补齐后逐步提升全量指标） | CI cov 收窄 2026-08-18 | 二期 |
+| T24 | ~~存量代码全量覆盖率提升~~ **阶段达标（2026-08-22，P1）**：完整口径 `--cov=app --cov=backend` 实测 TOTAL **35%**（26575 语句，627 用例；旧口径 12.85% 为 2026-08-18 app+backend/utils 子集）；新增核心路由覆盖测试 test_core_routes_coverage（三角色列表页+守卫+越权，teacher/student 路由原 8%/12%）；持续提升转日常 | P1 | A 阶段测试资产 | ✅35% | 二期→常态 |
 
 ## 新增待办编排（阶段五收官 → 阶段六，2026-08-19 起）
 
@@ -139,3 +139,4 @@
 | T61 | ~~自动归档 granted_role 陈旧~~ **已完成（2026-08-22，49d9777）**：异步归档线程读内存缓存可能陈旧（多 worker/并发直连写库），新增 `PendingAchievementManager.reload_from_db`（回源 DB+替换缓存）供 `_auto_archive_pending_async` 强制读库刷新；恢复 `test_main_services.test_project_4` 执行并修补 P1-P4 数据链（关联学生补正+提交表单带 related_student_ids[]、link API 读 matched+实际更新 id、异常标记基线比较）——P1-P4 全绿；顺带挖出两严重存量 bug（见 R-031/R-032）。测试 test_pending_reload 4 例 | A 阶段 | T61 goal | ✅P4全绿 | 高 |
 | T62 | ~~历史 awards 数据恢复~~ **已完成（2026-08-22，P0）**：R-031 修复前入库从未落库，197 行历史成果在 pre-0010 备份——`scripts/restore_awards_history.py` 去重合并恢复（dry-run 预览/guard 备份/单事务/hash 冲突跳过/seq bump/自检），实际并入 **195 行**（2 条 hash 与现存重复跳过）+关联表（student_winners+189/teacher_winners+23/related_students+33），integrity ok/fk 空/幂等验证通过；awards 3→198，年份分布 2022-2025 | P0 | R-031 修复 | ✅198行 | 高 |
 | T63 | ~~本地每日自动备份~~ **已完成（2026-08-22，P0）**：backup.py 补文件日志（logs/backup.log，计划任务场景无控制台）；**主保障=log_scheduler 每日窗口挂 _daily_backup()**（subprocess 调 backup.py，服务常开即每日备份；run_daily 触发实测新备份生成+对账一致）；OS 计划任务（schtasks/PowerShell Register-ScheduledTask 均建过 AwardIE-DailyBackup 每日 02:00）在本机被安全策略拦截无法启动 python（LastTaskResult=1，最小探针同样失败）——保留任务定义作可选增强，环境放行后即生效 | P0 | backup WAL 修复 | ✅应用内每日 | 高 |
+| T57 | ~~review_logs 停写切换（M4）~~ **已完成（2026-08-22，P1）**：audit_log 已覆盖全部决策动作（1/2/6/7/8/9/10/11/12），`ReviewLogManager.create_log` 改 no-op（签名兼容唯一调用点 _log_review_action），历史数据只读可查、/admin/logs 展示不受影响（gui_smoke 留痕步骤实测）；附带消除 submitter_id NOT NULL 的 ERROR 噪音日志。测试 test_review_logs_freeze 3 例（停写不变/audit 接管增长/历史可查），相关回归 40 例全绿 | P1 | audit 全动作覆盖✅ | ✅3测试 | 上线后→完成 |
