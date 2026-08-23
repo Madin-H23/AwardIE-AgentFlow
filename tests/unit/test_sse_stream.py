@@ -43,18 +43,31 @@ def _login(client):
         s.update(user_type='student', user_id='7', role='student', logged_in=True)
 
 
-def test_sse_event_sequence(client):
+def test_sse_event_sequence(client, monkeypatch):
+    # T49：tools 已切真流式（AgentService.chat_stream），patch 其生成器验证协议序列
+    from backend.agent.service import AgentService
+
+    def fake_chat_stream(self, message, *, user_context=None, chat_history=None):
+        for piece in ("测试", "回答"):
+            yield {"delta": piece}
+        yield {"__final__": {"output": "测试回答", "intermediate_steps": ["step1"]}}
+
+    from app.routes import chat as chat_mod
+    monkeypatch.setattr(AgentService, "chat_stream", fake_chat_stream)
+    monkeypatch.setattr(chat_mod, "_ACTIVE_SSE", {})
     _login(client)
-    r = client.get("/assistant/chat/stream?message=hi&mode=tools")   # tools 仍走 _dispatch 路径（qa 已切真流式，见 test_true_stream）
+    r = client.get("/assistant/chat/stream?message=hi&mode=tools")
     assert r.status_code == 200
     assert r.mimetype == "text/event-stream"
     assert r.headers.get("Cache-Control") == "no-cache"
     events = _events(r.get_data(as_text=True))
     names = [e[0] for e in events]
     assert names[0] == "open" and names[-1] == "done"         # 协议首尾
-    assert "source" in names and "delta" in names
+    assert names.count("delta") == 2                          # 生成期真增量
+    assert "source" not in names                              # tools 无来源卡
     done = [e for e in events if e[0] == "done"][0][1]
-    assert done["answer"] == "测试回答" and done["mode_used"] == "tools"
+    assert done["answer"] == "测试回答" and done["mode_used"] == "single_agent"
+    assert done["steps"] == ["step1"]
 
 
 def test_empty_message_400(client):

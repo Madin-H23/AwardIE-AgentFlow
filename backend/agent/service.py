@@ -89,7 +89,8 @@ class AgentService:
         verbose = agent_cfg.get("verbose", False)
 
         # 2. 构造 LLM
-        llm = build_chat_model(config_loader, llm_provider)
+        # T49：streaming=True——agent 内部模型节点走流式，messages 通道才有增量
+        llm = build_chat_model(config_loader, llm_provider, streaming=True)
 
         # 3. 构造工具上下文 + 收集工具
         tool_context = ToolContext(config_loader)
@@ -152,6 +153,58 @@ class AgentService:
         output = _extract_final_answer(final_messages)
         steps = _extract_tool_steps(final_messages)
         return {"output": output, "intermediate_steps": steps}
+
+    def chat_stream(
+        self,
+        query: str,
+        *,
+        user_context: Optional[Dict[str, Any]] = None,
+        chat_history: Optional[List] = None,
+    ):
+        """T49 tools 真流式：messages 通道逐增量产出。
+
+        yield 契约：{"delta": text}（生成期增量，仅 content 非空的 AIMessageChunk；
+        tool_call_chunk/ToolMessage/空块静默——过滤规则见 T49 实施记录 §0.2）
+        → {"__final__": {"output": str, "intermediate_steps": list}}（与 chat() 同构）。
+        """
+        from langchain_core.messages import HumanMessage
+
+        messages = list(chat_history or [])
+        messages.append(HumanMessage(content=query))
+        config = {"recursion_limit": self.max_iterations * 4 + 2}
+
+        final_state = None
+        parts: List[str] = []
+        for mode, payload in self._agent_executor.stream(
+                {"messages": messages}, config=config,
+                stream_mode=["messages", "values"]):
+            if mode == "messages":
+                chunk, _meta = payload
+                # T49 台账教训：必须限 AIMessageChunk 类型——ToolMessage content
+                # 非空会混入答案流（护栏测试 test_tool_rounds_are_silent 抓出）
+                from langchain_core.messages import AIMessageChunk as _AIC
+                if not isinstance(chunk, _AIC):
+                    continue          # ToolMessage 等非答案消息：静默
+                if getattr(chunk, "tool_call_chunks", None):
+                    continue          # 工具决策块：静默
+                text = chunk.text() if callable(getattr(chunk, "text", None))                     else str(chunk.content or "")
+                if text:
+                    parts.append(text)
+                    yield {"delta": text}
+            else:
+                final_state = payload   # values 末次 = 终态
+
+        # T49 多轮语义定案：agent 可能「先解说→调工具→再作答」，各轮 content 均已
+        # 流式呈现给用户——done.output 必须等于用户所见（delta 拼接优先），
+        # 仅当零增量（降级路径）时回退到终态消息提取。
+        output = "".join(parts)
+        steps: List = []
+        if not output and final_state and final_state.get("messages"):
+            output = _extract_final_answer(final_state["messages"])
+            steps = _extract_tool_steps(final_state["messages"])
+        elif final_state and final_state.get("messages"):
+            steps = _extract_tool_steps(final_state["messages"])
+        yield {"__final__": {"output": output, "intermediate_steps": steps}}
 
     @property
     def tool_names(self) -> List[str]:

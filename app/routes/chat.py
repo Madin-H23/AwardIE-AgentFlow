@@ -181,10 +181,14 @@ def chat_stream():
                     NODE_LABELS = {"supervisor": "路由决策", "extraction": "AI 抽取中",
                                    "review": "AI 审核中", "qa": "知识检索中", "tools": "数据操作中"}
                     final = None
+                    saw_delta = False   # T49：qa 节点已真流式透出则跳过假分片
                     for ev in wf.run_stream(task_type="auto", message=message,
                                             user_context=user_context):
                         if "__final__" in ev:
                             final = ev["__final__"]
+                        elif "delta" in ev:
+                            saw_delta = True
+                            yield from sse("delta", {"text": ev["delta"]})
                         else:
                             yield from sse("progress", {"node": ev.get("node", ""),
                                                         "label": NODE_LABELS.get(ev.get("node", ""), ev.get("node", ""))})
@@ -202,14 +206,40 @@ def chat_stream():
                                   "review": review, "extraction": extraction}
                         if result.get("sources"):
                             yield from sse("source", {"docs": result["sources"]})
-                        for _piece in _answer_pieces(result["answer"]):
-                            yield from sse("delta", {"text": _piece})
+                        if not saw_delta:
+                            # T49：qa 白名单未产生增量（如路由到 review/extraction 的固定文案）
+                            # 才走 _answer_pieces 兜底假分片
+                            for _piece in _answer_pieces(result["answer"]):
+                                yield from sse("delta", {"text": _piece})
                         yield from sse("done", result)
                         return
                 except ImportError:
                     pass   # 回退 _dispatch
                 except Exception:
                     logger.exception("auto 流式执行异常，回退 _dispatch")
+            # T49 tools 真流式：messages 通道逐增量（过滤规则见 T49 实施记录 §0.2）
+            if mode == "tools":
+                try:
+                    from backend.agent.service import AgentService
+                    from config.loader import get_config_loader
+                    svc = AgentService.from_config(get_config_loader())
+                    result = None
+                    for ev in svc.chat_stream(message, user_context=user_context):
+                        if "__final__" in ev:
+                            result = ev["__final__"]
+                        else:
+                            yield from sse("delta", {"text": ev["delta"]})
+                    if result is not None:
+                        yield from sse("done", {
+                            "answer": result["output"],
+                            "sources": [],
+                            "steps": result["intermediate_steps"],
+                            "mode_used": "single_agent",
+                        })
+                        return
+                except Exception:
+                    logger.exception("tools 真流式异常，回退 _dispatch")
+
             result = _dispatch(message, mode, user_context)     # tools / auto 回退路径
             if result.get("sources"):
                 yield from sse("source", {"docs": result["sources"]})

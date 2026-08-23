@@ -18,15 +18,22 @@ class TestRunStream:
         from backend.agent.graph.workflow import MultiAgentWorkflow
 
         class FakeGraph:
+            invoked = False
             def stream(self, state, config=None, stream_mode=None):
-                yield {"supervisor": {}}
-                yield {"qa": {}}
+                # T49 新契约：三通道 (mode, payload)
+                assert set(stream_mode) == {"updates", "messages", "values"}
+                yield ("updates", {"supervisor": {}})
+                yield ("updates", {"qa": {}})
+                yield ("values", {"qa_context": {"answer": "最终回答", "sources": []},
+                                  "steps": []})
             def invoke(self, state, config=None):
-                return {"qa_context": {"answer": "最终回答", "sources": []}, "steps": []}
+                FakeGraph.invoked = True
+                return {}
 
         wf = MultiAgentWorkflow.__new__(MultiAgentWorkflow)
         wf.graph = FakeGraph()
         events = list(wf.run_stream(task_type="auto", message="hi"))
+        assert not FakeGraph.invoked, "T49 双跑应消灭：values 终态足够，无需 invoke"
         assert {"node": "supervisor"} in events and {"node": "qa"} in events
         assert "__final__" in events[-1]
         assert events[-1]["__final__"]["qa_context"]["answer"] == "最终回答"

@@ -84,7 +84,9 @@ class MultiAgentWorkflow:
             llm_provider = agent_cfg.get("default_llm_provider", "deepseek")
 
         # 构造共享 LLM
-        llm = build_chat_model(config_loader, llm_provider)
+        # T49：streaming=True——同步 invoke 也走流式 API 并逐 token 回调，
+        # 否则 messages 通道拿不到 qa 节点增量（实测坐实）
+        llm = build_chat_model(config_loader, llm_provider, streaming=True)
 
         # 构造 ToolContext（惰性：framework 只在真正抽取时才初始化 OCR）
         tool_context = ToolContext(config_loader)
@@ -179,16 +181,22 @@ class MultiAgentWorkflow:
         final_state = self.graph.invoke(initial_state, config=run_config)
         return final_state
 
+    # T49：答案节点白名单——auto 的 answer 取自终态 qa_context.answer，
+    # messages 通道仅透出该节点的 LLM 增量；supervisor/review/extraction 一律静默。
+    ANSWER_NODES = {"qa"}
+
     def run_stream(self, *, task_type: str = "qa", message: Optional[str] = None,
                    file_path: Optional[str] = None,
                    user_context: Optional[Dict[str, Any]] = None,
                    thread_id: Optional[str] = None):
-        """流式执行（T23 auto 模式）：逐节点 yield 进度，最终 yield 完整 state。
+        """流式执行（T49 auto 真流式）：单次三通道订阅，消灭 invoke 双跑。
 
-        yield：{"node": "supervisor"} / {"node": "extraction"} / ... / {"__final__": state}
-        节点级进度——多智能体场景用户要看"AI 正在抽取/审核"的过程；
-        诚实标注：LangGraph updates 模式不回传最终态，末尾补一次 invoke 取全量结果
-        （单机课程项目双跑成本可接受；生产可改 values 模式或状态累积）。
+        yield 契约（兼容旧消费方 + 新增 delta）：
+          {"node": name}                      updates 通道 → progress 节点事件
+          {"delta": text}                     messages 通道且 langgraph_node ∈ ANSWER_NODES
+                                              的 content 非空 AIMessageChunk 增量
+          {"__final__": state}                values 通道末次 = 终态
+        兜底：三通道流异常中断时保留一次 invoke（触发即记 warning 供量化）。
         """
         from langchain_core.messages import HumanMessage
 
@@ -205,17 +213,36 @@ class MultiAgentWorkflow:
         if thread_id:
             run_config["configurable"] = {"thread_id": thread_id}
 
+        final_state = None
         try:
-            for chunk in self.graph.stream(initial_state, config=run_config,
-                                           stream_mode="updates"):
-                for node_name in chunk:
-                    yield {"node": node_name}
+            for mode, payload in self.graph.stream(
+                    initial_state, config=run_config,
+                    stream_mode=["updates", "messages", "values"]):
+                if mode == "updates":
+                    for node_name in payload:
+                        yield {"node": node_name}
+                elif mode == "messages":
+                    from langchain_core.messages import AIMessageChunk as _AIC
+                    chunk, meta = payload
+                    if not isinstance(chunk, _AIC):
+                        continue      # ToolMessage 等：静默
+                    if meta.get("langgraph_node") not in self.ANSWER_NODES:
+                        continue
+                    if getattr(chunk, "tool_call_chunks", None):
+                        continue
+                    text = chunk.text() if callable(getattr(chunk, "text", None))                         else str(chunk.content or "")
+                    if text:
+                        yield {"delta": text}
+                else:
+                    final_state = payload      # values 末次 = 终态（双跑消灭）
         except Exception as e:
-            logger.warning("stream 执行异常（进度事件中断，结果走 invoke 兜底）: %s", e)
+            logger.warning("三通道流异常（结果走 invoke 兜底）: %s", e)
+            final_state = self.graph.invoke(initial_state, config=run_config)
 
-        final_state = self.graph.invoke(initial_state, config=run_config)
+        if final_state is None:
+            logger.warning("values 通道未取得终态，invoke 兜底")
+            final_state = self.graph.invoke(initial_state, config=run_config)
         yield {"__final__": final_state}
-
 
     @classmethod
     def get_default(cls, config_loader) -> "MultiAgentWorkflow":
