@@ -11,12 +11,12 @@ sys.path.insert(0, str(project_root))
 
 from backend.utils.competition_time_parser import parse_competition_time
 from backend.models.competition import CompetitionManager
-from config.loader import get_config
+from config.loader import get_config_loader
 
 
 def main():
     # 加载配置
-    config = get_config()
+    config = get_config_loader()
     db_path = config.get_path("database", "competitions_db")
 
     # 获取所有竞赛

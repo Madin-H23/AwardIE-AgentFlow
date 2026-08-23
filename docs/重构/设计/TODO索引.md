@@ -149,14 +149,14 @@
 
 | # | 事项 | 出处 | 触发/时点 |
 | --- | --- | --- | --- |
-| T65 | CDN 外链本地化收尾——bootstrap-icons(unpkg×6)/echarts(elemecdn·npmmirror×5)/bootstrap.bundle(jsdelivr×3) 约 10 个模板替换为 vendor 已有本地副本（含登录页 base_simple）；_ref 假数据页装饰图热链登记例外 | 决策分析 P0 | 高（1~2h） |
-| T66 | /student/activities 坏页处置：student skip_routes 加 'activities'（与 teacher.py:306 同法；三端 activities_ref.html 模板均不存在）；page_inventory 移出该 EXEMPT 条目，覆盖 97%→≥98%（剩余唯一豁免=lab data-analysis 种子形态，另案不动） | T64 登记 / 决策分析 P0 | 高 |
-| T67 | audit_log 测试噪音治理：历史 ~1063 条按保守特征打标 is_test 列（标记不物理删、迁移可回退，宁可漏标不可误标）+ AuditLogger pytest 运行态自动标记防复发 + log_query/timeline 默认过滤 | 决策分析 P1 | 高 |
-| T68 | 登录 410ms 结案归档（搭车）：压测报告补 scrypt 归因节（单次 ~290ms 实测/失败登录旧三表最多再哈希 2 次/安全特性不建议降参） | 决策分析拷问④ | 低（15min，随 P1） |
-| T69 | 覆盖率定向补测第一批：backend/models 写路径（award/laboratory save/update 分支，seeded_db 用例）；models 44%→≥60%，R-031 式回归护栏；完成后测试健壮性可复评 | 决策分析 P2 | 中高 |
-| T70 | 39 条死导入草稿归档：确认失效标准后 status pending→archived 带守卫备份（dry-run 默认），dashboard 导入草稿计数归零 | 决策分析 P2 | 中（0.25d） |
-| T71 | skip 零头清理：①images 测试图片入库或条件收集 ②update_teachers 待实现用例补数据或删除 ③RUN_AGENT_INTEGRATION=1 月度真 API 例行成文（8 例防 AI 层漂移）④140 冻结模块处置卡立条待 hewj | 决策分析 P2 | 中（0.5d） |
-| T72 | 双 get_config 同名异义收敛：config.loader.get_config 改名+全量引用替换逐一核对（config.flask.get_config 保持），根治 SECRET_KEY None 连环误判源 | 决策分析拷问① | 中（0.5d） |
+| ~~T65~~| ~~CDN 外链本地化收尾——bootstrap-icons(unpkg×6)/echarts(elemecdn·npmmirror×5)/bootstrap.bundle(jsdelivr×3) 约 10 个模板替换为 vendor 已有本地副本（含登录页 base_simple）；_ref 假数据页装饰图热链登记例外~~ **已完成（2026-08-23）**：11 模板 23 处外链切 vendor；断网模拟外部请求 0 个 | 决策分析 P0 | ✅ |
+| ~~T66~~| ~~/student/activities 坏页处置：student skip_routes 加 'activities'（与 teacher.py:306 同法；三端 activities_ref.html 模板均不存在）；page_inventory 移出该 EXEMPT 条目，覆盖 97%→≥98%（剩余唯一豁免=lab data-analysis 种子形态，另案不动）~~ **已完成（2026-08-23）**：student skip_routes 加 activities；覆盖分母 76、≥98%，唯一剩余豁免=lab data-analysis | T64 登记 / 决策分析 P0 | ✅ |
+| ~~T67~~| ~~audit_log 测试噪音治理：历史 ~1063 条按保守特征打标 is_test 列（标记不物理删、迁移可回退，宁可漏标不可误标）+ AuditLogger pytest 运行态自动标记防复发 + log_query/timeline 默认过滤~~ **已完成（2026-08-23）**：迁移 0012 真库 1290 标记/7 条真实删除史保留；pytest 运行态自动标记；查询层 5 处默认过滤 | 决策分析 P1 | ✅ |
+| ~~T68~~| ~~登录 410ms 结案归档（搭车）：压测报告补 scrypt 归因节（单次 ~290ms 实测/失败登录旧三表最多再哈希 2 次/安全特性不建议降参）~~ **已完成（2026-08-23）**：压测报告 §6 登录 410ms=scrypt ~290ms 安全特性结案 | 决策分析拷问④ | ✅ |
+| ~~T69~~| ~~覆盖率定向补测第一批：backend/models 写路径（award/laboratory save/update 分支，seeded_db 用例）；models 44%→≥60%，R-031 式回归护栏；完成后测试健壮性可复评~~ **已完成（2026-08-23）**：两文件 43 例护栏；backend/models TOTAL 44%→60%（3173/5263），award 缺口 56%→41%；删死代码 achievement×2 | 决策分析 P2 | ✅ |
+| ~~T70~~| ~~39 条死导入草稿归档：确认失效标准后 status pending→archived 带守卫备份（dry-run 默认），dashboard 导入草稿计数归零~~ **已完成（2026-08-23）**：--days 7 执行：39 条测试会话残留软归档，pending 39→0，备份 bak.2026-08-23-pre-archive-drafts.db | 决策分析 P2 | ✅ |
+| ~~T71~~| ~~skip 零头清理：①images 测试图片入库或条件收集 ②update_teachers 待实现用例补数据或删除 ③RUN_AGENT_INTEGRATION=1 月度真 API 例行成文（8 例防 AI 层漂移）④140 冻结模块处置卡立条待 hewj~~ **已完成（2026-08-23）**：四项全落地；skip 收敛=140 冻结+156 总跳过逐项有归属 | 决策分析 P2 | ✅ |
+| ~~T72~~| ~~双 get_config 同名异义收敛：config.loader.get_config 改名+全量引用替换逐一核对（config.flask.get_config 保持），根治 SECRET_KEY None 连环误判源~~ **已完成（2026-08-23）**：loader 版改名 get_config_loader（46 文件）；app.utils 版定名 get_app_config；模块级 def get_config 仅剩 flask 一处 | 决策分析拷问① | ✅ |
 | T73 | app.utils 包/模块同名双命名空间收敛：_managers 全局缓存单一真源（保持 import 兼容 re-export），seeded_db fixture 清理逻辑随之简化 | 决策分析拷问② | 中（0.5d） |
 | T74 | 旧基类 17 页分批迁 base_console（user_base×16+base_simple×1，每批 4~6 页亮暗双态冒烟）；base_simple 登录页轻量性单独评估，保留需落档决策 | 决策分析拷问③ / T9 续 | 按节奏 |
 | T75 | **140 冻结模块处置卡**（待 hewj 拍板）：tests/extract 系 5 文件级 skip 共 140 例（模板匹配/证书/创新 extractor「冻结模块预存缺陷」）。选项 A=排期解冻按新约定重写断言；选项 B=降级 xfail（真实执行+意外通过时报 XPASS，比 skip 防腐）；选项 C=维持 skip 并在测试方案标注永久豁免。当前默认 C | 决策分析 P2 批3 | 待 hewj |

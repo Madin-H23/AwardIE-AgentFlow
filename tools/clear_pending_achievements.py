@@ -16,7 +16,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from config.loader import get_config
+from config.loader import get_config_loader
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="仅统计条数，不执行删除")
     args = parser.parse_args()
 
-    config = get_config()
+    config = get_config_loader()
     db_path = config.get_path("database", "competitions_db")
     if not db_path.exists():
         print(f"数据库不存在: {db_path}")

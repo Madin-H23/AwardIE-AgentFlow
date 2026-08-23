@@ -224,10 +224,10 @@ def _compute_stats(results: list, label: str) -> dict:
 
 
 def main():
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.agent.tools.context import ToolContext
 
-    config_loader = get_config()
+    config_loader = get_config_loader()
     ctx = ToolContext(config_loader)
 
     print("=" * 60)

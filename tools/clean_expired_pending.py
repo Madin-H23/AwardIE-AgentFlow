@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 def _get_config():
     """从 config/settings.json 读取配置，禁止硬编码路径。"""
-    from config.loader import get_config
-    loader = get_config()
+    from config.loader import get_config_loader
+    loader = get_config_loader()
     config = loader.load_config()
     db_path = loader.get_path("database", "competitions_db")
     expire_minutes = config.get("pending_cleanup", {}).get("expire_minutes", 30)

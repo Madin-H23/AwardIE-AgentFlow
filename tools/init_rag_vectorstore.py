@@ -26,12 +26,12 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.rag.embeddings import build_embeddings
     from backend.rag.vectorstore import build_vectorstore
     from backend.rag.indexer import index_competition_levels, get_collection_stats
 
-    config_loader = get_config()
+    config_loader = get_config_loader()
 
     logger.info("=== RAG 知识库初始化 ===")
     logger.info("1. 构造 embedding 服务...")

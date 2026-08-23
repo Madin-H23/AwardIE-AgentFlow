@@ -244,7 +244,7 @@ from tools.update_teachers_from_contacts import main
 
 
 @patch('backend.models.teacher.TeacherManager')
-@patch('config.loader.get_config')
+@patch('config.loader.get_config_loader')
 def test_main_integration(mock_get_config, mock_teacher_manager_class):
     """测试主流程集成"""
     # 模拟配置
@@ -275,7 +275,7 @@ def test_main_integration(mock_get_config, mock_teacher_manager_class):
 
 
 @patch('backend.models.teacher.TeacherManager')
-@patch('config.loader.get_config')
+@patch('config.loader.get_config_loader')
 def test_main_with_real_updates(mock_get_config, mock_teacher_manager_class):
     """测试实际执行更新"""
     # 模拟配置

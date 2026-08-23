@@ -15,7 +15,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from config.loader import get_config
+from config.loader import get_config_loader
 
 
 def _is_valid(validation_result: str) -> bool:
@@ -27,7 +27,7 @@ def _is_valid(validation_result: str) -> bool:
 
 
 def main():
-    config = get_config()
+    config = get_config_loader()
     db_path = config.get_path("database", "competitions_db")
     path = Path(db_path)
     if not path.exists():

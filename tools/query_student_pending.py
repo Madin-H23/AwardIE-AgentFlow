@@ -7,12 +7,12 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from config.loader import get_config
+from config.loader import get_config_loader
 import sqlite3
 
 def main():
     student_no = sys.argv[1] if len(sys.argv) > 1 else "212306413"
-    cfg = get_config()
+    cfg = get_config_loader()
     db = cfg.get_path("database", "competitions_db")
     conn = sqlite3.connect(db)
     conn.row_factory = sqlite3.Row

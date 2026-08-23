@@ -226,8 +226,8 @@ def main(excel_file_path: str, dry_run: bool = False) -> Dict:
     print(f"找到教师记录: {total}条")
 
     # 2. 加载配置并获取数据库路径
-    from config.loader import get_config
-    config = get_config()
+    from config.loader import get_config_loader
+    config = get_config_loader()
     db_path = config.get_path("database", "competitions_db")
 
     if not db_path:
