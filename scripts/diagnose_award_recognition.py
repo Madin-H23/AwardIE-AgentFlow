@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 
 from backend.ocr import OCREngine
 from backend.extract.template.matcher import TypeMatcher, TemplateMatcher
-from config.loader import get_config
+from config.loader import get_config_loader
 
 def diagnose_award_recognition(image_path: str):
     """诊断奖状识别问题"""
@@ -21,7 +21,7 @@ def diagnose_award_recognition(image_path: str):
     print("=" * 60)
     
     # 1. 加载配置
-    config_loader = get_config()
+    config_loader = get_config_loader()
     config = config_loader.load_config()
     
     # 2. 执行OCR

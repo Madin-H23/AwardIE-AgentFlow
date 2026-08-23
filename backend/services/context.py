@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 # 延迟导入，避免循环依赖
 def _get_config_loader():
     """获取配置加载器（延迟导入）"""
-    from config.loader import get_config
-    return get_config()
+    from config.loader import get_config_loader
+    return get_config_loader()
 
 # 确保项目根目录在 Python 路径中
 # 项目根目录从配置加载器获取，而不是硬编码
@@ -88,9 +88,9 @@ class ServiceContext:
             from backend.extract.template.manager import TemplateManager
             from backend.extract import ExtractFramework
             from backend.extract.llm import LLMProvider, OllamaLLMProvider, ExtractCacheDB
-            from config.loader import get_config
+            from config.loader import get_config_loader
 
-            config_loader = get_config()
+            config_loader = get_config_loader()
 
             # 1. 初始化 OCR 引擎（使用配置驱动的工厂模式）
             logger.info("初始化 OCR 引擎...")

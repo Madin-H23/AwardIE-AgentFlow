@@ -422,8 +422,8 @@ class TemplateManager:
         # 获取竞赛数据库路径（用于加载竞赛数据）
         db_path = None
         try:
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
             db_path = str(config_loader.get_path("database", "competitions_db"))
         except Exception as e:
             logger.debug(f"无法从配置获取竞赛数据库路径，将跳过竞赛数据加载: {e}")

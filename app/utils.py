@@ -171,7 +171,7 @@ def get_app_context_instance():
     """
     return _get_managers()
 
-def get_config():
+def get_app_config():
     """获取配置（使用统一的配置加载器）"""
     global _config_cache
     # 在开发环境下每次都重新加载配置，避免缓存导致配置更新不生效
@@ -184,7 +184,7 @@ def get_config():
     
     if _config_cache is None or is_development:
         try:
-            from config.loader import get_config as get_config_loader
+            from config.loader import get_config_loader
             config_loader = get_config_loader()
             # 在开发环境下清除加载器的缓存，强制重新加载
             if is_development:
@@ -257,7 +257,7 @@ def _get_competition_levels_from_config():
     Returns:
         list: 竞赛等级配置列表，每个元素是包含 name, standardized, order, mapped_to 等的字典
     """
-    config = get_config()
+    config = get_app_config()
     
     if "competition_levels" not in config:
         raise ValueError(
@@ -282,7 +282,7 @@ def _get_award_levels_from_config():
     Returns:
         list: 奖项等级名称列表
     """
-    config = get_config()
+    config = get_app_config()
     
     if "award_levels" not in config:
         raise ValueError(
@@ -373,7 +373,7 @@ def get_competition_levels_for_ui():
     Returns:
         list: 标准化竞赛等级名称列表
     """
-    config = get_config()
+    config = get_app_config()
     
     # 优先从 validation.standardized_competition_levels 读取
     if "validation" in config and "standardized_competition_levels" in config["validation"]:
@@ -403,7 +403,7 @@ def get_default_password():
     Returns:
         str: 默认密码
     """
-    config = get_config()
+    config = get_app_config()
     
     if "system" not in config or "default_password" not in config["system"]:
         raise ValueError(

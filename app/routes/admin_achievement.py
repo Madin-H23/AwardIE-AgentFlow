@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from pathlib import Path
 from app.auth import require_role, require_role_api, require_admin_or_lab_view_api
 from backend.utils.users_sync import to_users_id
-from config.loader import get_config
+from config.loader import get_config_loader
 from app.utils import get_app_context_instance
 from app.routes.review_helpers import normalize_related_student_from_ids
 from app.routes.file_import_helpers import (
@@ -214,9 +214,9 @@ def api_achievements_counts():
             innovation_count = len(projects)
 
         other_count = 0
-        from config.loader import get_config
+        from config.loader import get_config_loader
         import sqlite3
-        config = get_config()
+        config = get_config_loader()
         db_path = config.get_path("database", "competitions_db")
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
@@ -251,14 +251,14 @@ def file_import():
 def file_import_manual_upload():
     """手动导入：上传单个文件到临时目录，返回 file_path"""
     from pathlib import Path
-    from config.loader import get_config
+    from config.loader import get_config_loader
     import uuid
     try:
         files = request.files.getlist('files')
         if not files or not any(f and f.filename for f in files):
             return jsonify({'success': False, 'message': '请选择文件'}), 400
         file = next(f for f in files if f and f.filename)
-        config_loader = get_config()
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
         manual_dir = base_temp_dir / "manual_import"
         manual_dir.mkdir(parents=True, exist_ok=True)
@@ -288,8 +288,8 @@ def file_import_manual_parse():
         if achievement_type not in ('award', 'patent', 'software'):
             return jsonify({'success': False, 'message': f'不支持的成果类型: {achievement_type}'}), 400
         from pathlib import Path
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
         full_path = Path(base_temp_dir) / file_path if not Path(file_path).is_absolute() else Path(file_path)
         if not full_path.exists():
@@ -330,7 +330,7 @@ def file_import_manual_parse():
             pending_item = pending_manager.create_from_extract_result(
                 result,
                 submitter_type='admin',
-                submitter_id=to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin') or 0,
+                submitter_id=to_users_id(str(get_config_loader().get_path('database', 'competitions_db')), session.get('user_id'), 'admin') or 0,
                 file_path=path_for_db,
                 file_hash=file_hash,
                 status='pending'
@@ -601,8 +601,8 @@ def file_import_upload():
         logger.info(f"[文件导入] lab_association_mode={lab_association_mode}, default_supervisor_name={default_supervisor_name}")
 
         # 从配置文件获取临时目录
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
 
         # 导入会话ID：前端可传 task_id 以便轮询进度，否则服务端生成
@@ -628,7 +628,7 @@ def file_import_upload():
             'other': {'valid': 0, 'invalid': 0}
         }
 
-        submitter_id = to_users_id(str(get_config().get_path('database', 'competitions_db')),
+        submitter_id = to_users_id(str(get_config_loader().get_path('database', 'competitions_db')),
                                   session.get('user_id'), 'admin')   # 业务号→users.id（路径A）
         submitter_type = 'admin'
 
@@ -967,11 +967,11 @@ def _compute_agent_review(current_item):
     """
     try:
         from backend.agent.review_api import review_extraction
-        from config.loader import get_config
+        from config.loader import get_config_loader
         from backend.rag.embeddings import build_embeddings
         from backend.rag.vectorstore import build_vectorstore
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         data = current_item.get_achievement_data() or {}
         doc_type = getattr(current_item, "achievement_type", None)
 
@@ -1179,8 +1179,8 @@ def file_import_file(file_path):
 
         # 3) 其他相对路径：在 config temp_dir 下（如手动导入）
         if full_path is None:
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
             base_temp_dir = config_loader.get_path("temp_dir")
             base_dir = Path(base_temp_dir)
             full_path = (base_dir / path_str).resolve()
@@ -2863,9 +2863,9 @@ def _get_review_service(app_context):
     ReviewService 提供了结构化的成果提交功能，每个类型有独立的提交方法。
     """
     from backend.services.review_service import ReviewService
-    from config.loader import get_config
+    from config.loader import get_config_loader
 
-    config_loader = get_config()
+    config_loader = get_config_loader()
     files_dir = config_loader.get_path("files")
 
     # 使用单例 AutoArchiveConfigManager，不重复创建实例

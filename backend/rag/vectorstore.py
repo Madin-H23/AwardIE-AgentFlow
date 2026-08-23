@@ -70,11 +70,11 @@ def build_vectorstore(
         ImportError: langchain-chroma 未安装
 
     Example:
-        >>> from config.loader import get_config
+        >>> from config.loader import get_config_loader
         >>> from backend.rag.embeddings import build_embeddings
         >>> from backend.rag.vectorstore import build_vectorstore
-        >>> emb = build_embeddings(get_config())
-        >>> vs = build_vectorstore(get_config(), emb)
+        >>> emb = build_embeddings(get_config_loader())
+        >>> vs = build_vectorstore(get_config_loader(), emb)
     """
     if not _CHROMA_AVAILABLE:
         raise ImportError(

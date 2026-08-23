@@ -127,9 +127,9 @@ def build_embeddings(config_loader, provider_name: Optional[str] = None):
         自建 SimpleOpenAIEmbeddings 直接调用 API，query 与 document 编码完全对称。
 
     Example:
-        >>> from config.loader import get_config
+        >>> from config.loader import get_config_loader
         >>> from backend.rag.embeddings import build_embeddings
-        >>> emb = build_embeddings(get_config())
+        >>> emb = build_embeddings(get_config_loader())
         >>> vec = emb.embed_query("挑战杯竞赛")
     """
     # 只依赖 openai SDK（项目已安装），不强制 langchain_openai

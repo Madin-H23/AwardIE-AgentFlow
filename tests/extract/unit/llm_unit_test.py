@@ -60,9 +60,9 @@ class LLMTester:
         """设置测试环境"""
         try:
             from backend.extract.llm import LLMEngine
-            from config.loader import get_config
+            from config.loader import get_config_loader
             
-            config_loader = get_config()
+            config_loader = get_config_loader()
             
             # 使用推荐的 from_config_loader 方式初始化
             try:
@@ -115,10 +115,10 @@ class LLMTester:
         
         try:
             from backend.extract.llm import LLMEngine
-            from config.loader import get_config
+            from config.loader import get_config_loader
             
             # 测试从配置加载器创建（推荐方式）
-            config_loader = get_config()
+            config_loader = get_config_loader()
             try:
                 engine = LLMEngine.from_config_loader(config_loader)
                 

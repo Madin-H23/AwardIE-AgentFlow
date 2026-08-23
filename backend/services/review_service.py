@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
 from flask import copy_current_request_context
-from config.loader import get_config
+from config.loader import get_config_loader
 
 logger = logging.getLogger(__name__)
 
@@ -458,7 +458,7 @@ class ReviewService:
                 logger.info(f"数据库配置判断: pending={pending_item.id}, auto_archive={should_auto_archive}")
             else:
                 # 回退到配置文件（向后兼容）
-                config_loader = get_config()
+                config_loader = get_config_loader()
                 config = config_loader.reload()
                 review_config = config.get("审核配置", {})
                 mode = review_config.get("审核模式", "manual_review")
@@ -537,7 +537,7 @@ class ReviewService:
         """
         try:
             from backend.agent.review_api import review_extraction
-            from config.loader import get_config as _get_config
+            from config.loader import get_config_loader as _get_config
             from backend.rag.embeddings import build_embeddings
             from backend.rag.vectorstore import build_vectorstore
 

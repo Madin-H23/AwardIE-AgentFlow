@@ -79,8 +79,8 @@ class UnifiedFileManager:
     def _load_config(self) -> None:
         """加载配置 - 严格模式，缺失抛出异常"""
         try:
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
             # get_path 已返回 resolve() 后的绝对路径
             self.files_root = config_loader.get_path("files")
         except Exception as e:

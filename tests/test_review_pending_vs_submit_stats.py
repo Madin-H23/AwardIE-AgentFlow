@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from config.loader import get_config
+from config.loader import get_config_loader
 from backend.models.pending_achievement import PendingAchievementManager
 from app.routes.review_helpers import query_pending_items
 
@@ -22,7 +22,7 @@ AWARD_FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "award_sampl
 
 @pytest.fixture(scope="module")
 def manager():
-    config = get_config()
+    config = get_config_loader()
     db_path = str(config.get_path("database", "competitions_db"))
     if not Path(db_path).exists():
         pytest.skip(f"数据库不存在: {db_path}")

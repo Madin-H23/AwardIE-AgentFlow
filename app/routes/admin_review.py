@@ -23,7 +23,7 @@ from app.routes.review_helpers import (
 )
 from backend.models.pending_achievement import PendingAchievementManager, PendingAchievement, PendingAchievementFilter
 from backend.services.review_service import ReviewService, Reviewer
-from config.loader import get_config
+from config.loader import get_config_loader
 
 logger = logging.getLogger(__name__)
 bp = Blueprint('admin_review', __name__)

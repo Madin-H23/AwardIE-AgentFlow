@@ -37,8 +37,8 @@ _ORDER = {"高": 0, "中": 1, "低": 2}
 
 def _default_db():
     try:
-        from config.loader import get_config
-        return get_config()["database"]["competitions_db"]
+        from config.loader import get_config_loader
+        return get_config_loader()["database"]["competitions_db"]
     except Exception:
         return "database/competitions.db"
 

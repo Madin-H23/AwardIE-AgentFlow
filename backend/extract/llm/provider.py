@@ -135,9 +135,9 @@ class LLMProvider:
             
         示例:
             >>> from backend.extract.llm import LLMProvider
-            >>> from config.loader import get_config
+            >>> from config.loader import get_config_loader
             >>> 
-            >>> config_loader = get_config()
+            >>> config_loader = get_config_loader()
             >>> provider = LLMProvider.from_config_loader(config_loader)
         """
         # 获取默认Provider名称

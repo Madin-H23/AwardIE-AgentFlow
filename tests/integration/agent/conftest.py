@@ -32,8 +32,8 @@ skip_if_no_integration = pytest.mark.skipif(
 
 @pytest.fixture(scope="session")
 def config_loader():
-    from config.loader import get_config
-    return get_config()
+    from config.loader import get_config_loader
+    return get_config_loader()
 
 
 @pytest.fixture(scope="session")

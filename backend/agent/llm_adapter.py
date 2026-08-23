@@ -256,10 +256,10 @@ def build_chat_model(
         ImportError: langchain_openai 未安装
 
     Example:
-        >>> from config.loader import get_config
+        >>> from config.loader import get_config_loader
         >>> from backend.agent.llm_adapter import build_chat_model
-        >>> llm = build_chat_model(get_config())          # 用默认 provider
-        >>> llm = build_chat_model(get_config(), "ollama") # 用本地 Ollama
+        >>> llm = build_chat_model(get_config_loader())          # 用默认 provider
+        >>> llm = build_chat_model(get_config_loader(), "ollama") # 用本地 Ollama
         >>> llm.invoke([{"role": "user", "content": "你好"}])
     """
     if not _LANGCHAIN_AVAILABLE:

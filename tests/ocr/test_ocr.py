@@ -137,9 +137,9 @@ class OCRTester:
         """设置测试环境"""
         try:
             from backend.ocr import OCREngine
-            from config.loader import get_config
+            from config.loader import get_config_loader
             
-            config_loader = get_config()
+            config_loader = get_config_loader()
             self.engine = OCREngine.from_config_loader(config_loader)
             logger.info("OCR引擎初始化成功")
             return True

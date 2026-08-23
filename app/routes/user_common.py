@@ -250,8 +250,8 @@ def shared_achievement_submit_upload(user_obj, user_type, redirect_bp):
                     pass
 
         # 从配置文件获取临时目录
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
 
         # 导入会话ID：前端可传 task_id 以便轮询进度，否则服务端生成

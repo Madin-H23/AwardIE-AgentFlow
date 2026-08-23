@@ -378,7 +378,7 @@ class ConfigLoader:
 # 全局单例
 _loader = None
 
-def get_config() -> ConfigLoader:
+def get_config_loader() -> ConfigLoader:
     """获取全局配置加载器实例"""
     global _loader
     if _loader is None:

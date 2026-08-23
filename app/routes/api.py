@@ -38,9 +38,9 @@ def audit_timeline(kind, entity_id):
         return jsonify({'success': False, 'message': f'无效成果类型: {kind}'}), 400
     try:
         from backend.utils.db_connection import get_connection
-        from config.loader import get_config
+        from config.loader import get_config_loader
         from backend.utils.audit_logger import ACTION_LABELS
-        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        conn = get_connection(get_config_loader().get_path('database', 'competitions_db'))
         rows = conn.execute(
             """SELECT id, action_type, action_result, operator_code, operator_name, operator_role,
                       trace_id, change_detail, remark, created_at
@@ -100,10 +100,10 @@ def _get_manager(laboratory_id=None):
     Returns:
         DataAnalysisManager实例
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.managers.data_analysis_manager import DataAnalysisManager
 
-    config = get_config()
+    config = get_config_loader()
     db_path = config.get_path("database", "competitions_db")
     return DataAnalysisManager(str(db_path), laboratory_id=laboratory_id)
 
@@ -235,10 +235,10 @@ def get_lab_competition_heatmap():
         white_list_only: 是否仅白名单竞赛，true/false（默认false）
         include_teacher_certificates: 是否包含教师证书，true/false（默认false）
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.services.heatmap_service import get_heatmap_service, HeatmapFilters
 
-    config = get_config()
+    config = get_config_loader()
     db_path = str(config.get_path("database", "competitions_db"))
 
     # 解析参数
@@ -481,10 +481,10 @@ def get_admin_laboratory_heatmap(lab_id):
         white_list_only: 是否仅白名单竞赛（默认false）
         include_teacher_certificates: 是否包含教师证书（默认false）
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.services.heatmap_service import get_heatmap_service, HeatmapFilters
 
-    config = get_config()
+    config = get_config_loader()
     db_path = str(config.get_path("database", "competitions_db"))
 
     # 解析参数

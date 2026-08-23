@@ -5,7 +5,7 @@
 """
 
 from .flask import Config, DevelopmentConfig, ProductionConfig, TestingConfig, get_config
-from .loader import ConfigLoader, get_config as get_loader
+from .loader import ConfigLoader, get_config_loader as get_loader
 
 __all__ = [
     'Config',

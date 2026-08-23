@@ -116,7 +116,7 @@ def patent_view(patent_id):
 def patent_create():
     """创建新专利"""
     from backend.utils.users_sync import to_users_id
-    from config.loader import get_config
+    from config.loader import get_config_loader
     if request.method == 'GET':
         # Get laboratories for dropdown
         try:
@@ -147,7 +147,7 @@ def patent_create():
             'application_date': request.form.get('application_date', '').strip() or None,
             'patentee': request.form.get('patentee', '').strip() or None,
             'submitter_type': 'admin',
-            'submitter_id': to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
+            'submitter_id': to_users_id(str(get_config_loader().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             'laboratory_id': request.form.get('laboratory_id', type=int) or None,
         }
 

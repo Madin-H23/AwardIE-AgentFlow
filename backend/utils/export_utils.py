@@ -409,9 +409,9 @@ def generate_heatmap_data(
     """
     try:
         from backend.services.heatmap_service import get_heatmap_service, HeatmapFilters
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
-        config = get_config()
+        config = get_config_loader()
         db_path = str(config.get_path("database", "competitions_db"))
 
         # 获取热力图服务（管理员视图）

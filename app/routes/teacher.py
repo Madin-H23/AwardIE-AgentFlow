@@ -1225,7 +1225,7 @@ def achievement_submit_manual_parse():
         from backend.services.manual_import_service import ManualImportService
         from backend.extract.types import ExtractStatus
         from pathlib import Path
-        from config.loader import get_config
+        from config.loader import get_config_loader
         import hashlib
         import shutil
         from datetime import datetime
@@ -1252,7 +1252,7 @@ def achievement_submit_manual_parse():
             return jsonify({'success': False, 'message': f'不支持的成果类型: {achievement_type}'}), 400
 
         # 解析文件
-        config_loader = get_config()
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
         full_path = Path(base_temp_dir) / file_path if not Path(file_path).is_absolute() else Path(file_path)
         if not full_path.exists():
@@ -1813,8 +1813,8 @@ def achievement_submit_file(file_path):
                 from flask import abort
                 abort(403)
         else:
-            from config.loader import get_config
-            base_temp_dir = get_config().get_path("temp_dir")
+            from config.loader import get_config_loader
+            base_temp_dir = get_config_loader().get_path("temp_dir")
             base_dir = Path(base_temp_dir)
             full_path = (base_dir / path_str).resolve()
             allowed_prefix = base_dir.resolve()

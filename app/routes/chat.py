@@ -142,12 +142,12 @@ def chat_stream():
             # T23：qa 模式真流式（逐 token delta）；auto/tools 仍整段（workflow 流式化另行）
             if mode == "qa":
                 try:
-                    from config.loader import get_config
+                    from config.loader import get_config_loader
                     from backend.agent.llm_adapter import build_chat_model
                     from backend.rag.embeddings import build_embeddings
                     from backend.rag.vectorstore import build_vectorstore
                     from backend.agent.qa_agent import stream_answer
-                    cl = get_config()
+                    cl = get_config_loader()
                     llm = build_chat_model(cl, streaming=True)
                     vs = build_vectorstore(cl, build_embeddings(cl))
                     if vs is None:
@@ -176,8 +176,8 @@ def chat_stream():
             if mode == "auto":
                 try:
                     from backend.agent.graph.workflow import MultiAgentWorkflow
-                    from config.loader import get_config
-                    wf = MultiAgentWorkflow.get_default(get_config())
+                    from config.loader import get_config_loader
+                    wf = MultiAgentWorkflow.get_default(get_config_loader())
                     NODE_LABELS = {"supervisor": "路由决策", "extraction": "AI 抽取中",
                                    "review": "AI 审核中", "qa": "知识检索中", "tools": "数据操作中"}
                     final = None
@@ -238,8 +238,8 @@ def health():
     # 数据层：主库可读（存在性预检——sqlite3.connect 对不存在文件会创建空库，探活不得有副作用）
     try:
         from pathlib import Path as _P
-        from config.loader import get_config
-        db_path = get_config().get_path('database', 'competitions_db')
+        from config.loader import get_config_loader
+        db_path = get_config_loader().get_path('database', 'competitions_db')
         if not _P(db_path).exists():
             result["db"] = False
         else:
@@ -297,8 +297,8 @@ def extract():
 
     try:
         from backend.agent.graph.workflow import MultiAgentWorkflow
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         wf = MultiAgentWorkflow.get_default(config_loader)
         state = wf.run(
             task_type="extract_and_review",
@@ -384,8 +384,8 @@ def _dispatch(message: str, mode: str, user_context: dict) -> dict:
     - qa:   直接走 RAG 问答
     - tools:直接走单 Agent 工具调用
     """
-    from config.loader import get_config
-    config_loader = get_config()
+    from config.loader import get_config_loader
+    config_loader = get_config_loader()
 
     if mode == "qa":
         return _run_qa(config_loader, message)

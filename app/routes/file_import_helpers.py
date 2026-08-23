@@ -17,8 +17,8 @@ FILE_IMPORT_FILE_ENDPOINT = "admin_achievement.file_import_file"
 
 def get_achievement_types_config():
     """从配置文件获取成果类型全局配置"""
-    from app.utils import get_config
-    config = get_config()
+    from app.utils import get_app_config
+    config = get_app_config()
 
     achievement_types_config = config.get('achievement_types')
     if not achievement_types_config:

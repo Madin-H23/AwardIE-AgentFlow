@@ -179,9 +179,9 @@ def _rag_cross_check(vectorstore, competition_name: str) -> Optional[Dict[str, A
     可能误匹配不相关竞赛产生误导 info）；top_k=3 给容错，threshold 拦截无关结果。
     """
     try:
-        from config.loader import get_config
+        from config.loader import get_config_loader
         from backend.rag.retriever import retrieve_with_scores
-        hits = retrieve_with_scores(get_config(), vectorstore,
+        hits = retrieve_with_scores(get_config_loader(), vectorstore,
                                     competition_name, top_k=3)
         if not hits:
             return None

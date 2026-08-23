@@ -46,7 +46,7 @@ def test_baidu_ocr():
 
     # 创建 Provider
     print("\n[3] 创建 Baidu OCR Provider:")
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.ocr.core.provider_factory import ProviderFactory
     from backend.ocr.config import OCRConfig
     from backend.ocr.core.ocr_engine import OCREngine
@@ -54,7 +54,7 @@ def test_baidu_ocr():
 
     logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
 
-    config_loader = get_config()
+    config_loader = get_config_loader()
     config = config_loader.load_config()
     baidu_config = config.get('ocr', {}).get('providers', {}).get('baidu', {})
 

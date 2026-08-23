@@ -18,8 +18,8 @@ except ImportError:
 def _get_paths_from_config():
     """从配置文件获取路径（延迟加载，避免循环依赖）"""
     try:
-        from .loader import get_config
-        config_loader = get_config()
+        from .loader import get_config_loader
+        config_loader = get_config_loader()
         return {
             'database_path': config_loader.get_path("database", "competitions_db"),
             'files_dir': config_loader.get_path("files"),
@@ -123,7 +123,7 @@ def get_config():
     """获取配置类。优先从 config/settings.json 的 flask.env 读取，否则用 FLASK_ENV。"""
     env = None
     try:
-        from .loader import get_config as get_loader
+        from .loader import get_config_loader as get_loader
         cfg = get_loader().load_config()
         env = (cfg.get('flask') or {}).get('env')
     except Exception:

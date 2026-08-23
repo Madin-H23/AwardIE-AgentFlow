@@ -33,8 +33,8 @@ def api_dashboard_overview():
     from datetime import date, timedelta
     months = request.args.get('months', type=int)
     try:
-        from config.loader import get_config
-        db_path = get_config()['database']['competitions_db']
+        from config.loader import get_config_loader
+        db_path = get_config_loader()['database']['competitions_db']
     except Exception:
         db_path = current_app.config.get('DATABASE', 'database/competitions.db')
     try:
@@ -118,9 +118,9 @@ def api_dashboard_overview():
 def api_get_competition_levels():
     """获取竞赛等级配置API（包括列表和颜色映射）"""
     try:
-        # 使用统一的 get_config() 函数，它会处理缓存和开发环境重新加载
-        from app.utils import get_config
-        config = get_config()
+        # 使用统一的 get_config_loader() 函数，它会处理缓存和开发环境重新加载
+        from app.utils import get_app_config
+        config = get_app_config()
         
         # 获取竞赛等级列表
         # 使用 validation.competition_levels（用于验证，更严格，不包含会被映射的等级如"区域赛"）
@@ -1087,10 +1087,10 @@ def settings():
     try:
         from pathlib import Path
         import json
-        from config.loader import get_config
+        from config.loader import get_config_loader
         
         # 使用统一的配置加载器获取配置
-        config_loader = get_config()
+        config_loader = get_config_loader()
         app_config = config_loader.load_config()
         
         # 加载 apikey.json（如果存在）以获取当前的 API Keys
@@ -1342,9 +1342,9 @@ def settings_ocr_status():
     """获取 OCR 供应商状态：当前使用的高精度供应商、各供应商可用/禁用及故障理由。"""
     try:
         from app.utils import get_doc_rec_context
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         app_config = config_loader.load_config()
         ocr_providers = app_config.get('ocr', {}).get('providers', {})
         default_ocr = app_config.get('ocr', {}).get('default_provider', '')
@@ -1407,14 +1407,14 @@ def settings_ocr_provider_disable():
     """手动禁用某 OCR 供应商（写入运行时状态，引擎将跳过该供应商）。"""
     try:
         from app.utils import get_doc_rec_context
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
         data = request.get_json() or {}
         provider = (data.get('provider') or '').strip()
         if not provider:
             return jsonify({'success': False, 'message': '请提供 provider'}), 400
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         app_config = config_loader.load_config()
         if provider not in app_config.get('ocr', {}).get('providers', {}):
             return jsonify({'success': False, 'message': f'供应商 {provider} 不在配置中'}), 400
@@ -1437,14 +1437,14 @@ def settings_ocr_provider_set_current():
     try:
         import json
         from app.utils import get_doc_rec_context
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
         data = request.get_json() or {}
         provider = (data.get('provider') or '').strip()
         if not provider:
             return jsonify({'success': False, 'message': '请提供 provider'}), 400
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         app_config = config_loader.load_config()
         if provider not in app_config.get('ocr', {}).get('providers', {}):
             return jsonify({'success': False, 'message': f'供应商 {provider} 不在配置中'}), 400
@@ -1484,7 +1484,7 @@ def settings_save():
     try:
         from pathlib import Path
         import json
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
         data = request.get_json()
         default_ocr = data.get('default_ocr_provider', '')
@@ -1497,7 +1497,7 @@ def settings_save():
         root_path = Path(current_app.root_path).parent
         
         # 1. 更新 settings.json (默认供应商)
-        config_loader = get_config()
+        config_loader = get_config_loader()
         settings_path = config_loader.config_path
         
         if settings_path.exists():
@@ -1581,12 +1581,12 @@ def auto_archive_settings_update():
     try:
         from pathlib import Path
         import json
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
         data = request.get_json()
 
         # 获取配置文件路径
-        config_loader = get_config()
+        config_loader = get_config_loader()
         settings_path = config_loader.config_path
 
         if not settings_path.exists():

@@ -1,12 +1,12 @@
 """admin settings 逻辑冒烟（pytest 函数式，T31-T34 批次3 转换）。"""
 import json
 
-from config.loader import get_config
+from config.loader import get_config_loader
 
 
 def test_settings_logic():
     """模拟 admin.py settings() 的 OCR provider 装配逻辑"""
-    config_loader = get_config()
+    config_loader = get_config_loader()
     app_config = config_loader.load_config()
 
     available_ocr_providers = []

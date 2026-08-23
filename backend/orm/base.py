@@ -21,8 +21,8 @@ def build_engine(db_path=None):
         db_path: 主库路径（默认从配置取）
     """
     if db_path is None:
-        from config.loader import get_config
-        db_path = get_config().get_path('database', 'competitions_db')
+        from config.loader import get_config_loader
+        db_path = get_config_loader().get_path('database', 'competitions_db')
     # Windows 路径须正斜杠（反斜杠在 sqlite URL 中解析错误）
     db_abs = str(Path(db_path).resolve()).replace("\\", "/")
     engine = create_engine(f"sqlite:///{db_abs}", future=True)

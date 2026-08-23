@@ -1355,8 +1355,8 @@ def achievement_submit_file(file_path):
             if full_path.exists():
                 allowed_prefix = temp_upload_prefix
             else:
-                from config.loader import get_config
-                base_temp_dir = get_config().get_path("temp_dir")
+                from config.loader import get_config_loader
+                base_temp_dir = get_config_loader().get_path("temp_dir")
                 if not base_temp_dir:
                     from flask import abort
                     abort(404)
@@ -1377,8 +1377,8 @@ def achievement_submit_file(file_path):
                 from flask import abort
                 abort(403)
         else:
-            from config.loader import get_config
-            base_temp_dir = get_config().get_path("temp_dir")
+            from config.loader import get_config_loader
+            base_temp_dir = get_config_loader().get_path("temp_dir")
             base_dir = Path(base_temp_dir)
             full_path = (base_dir / path_str).resolve()
             allowed_prefix = base_dir.resolve()

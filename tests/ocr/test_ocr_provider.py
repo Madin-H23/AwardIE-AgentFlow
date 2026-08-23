@@ -111,8 +111,8 @@ def run_test(image_files: List[str], providers_to_test: List[str] = None) -> Dic
     """运行 OCR 对比测试"""
 
     # 加载配置
-    from config.loader import get_config
-    config_loader = get_config()
+    from config.loader import get_config_loader
+    config_loader = get_config_loader()
     config = config_loader.load_config()
 
     # 获取所有 OCR 厂商配置
@@ -704,8 +704,8 @@ def main():
     report_path = project_root / "tests" / "reports" / "ocr对比报告.html"
 
     # 加载配置获取可用厂商（在菜单外加载一次）
-    from config.loader import get_config
-    config_loader = get_config()
+    from config.loader import get_config_loader
+    config_loader = get_config_loader()
     config = config_loader.load_config()
     ocr_providers = config.get('ocr', {}).get('providers', {})
 

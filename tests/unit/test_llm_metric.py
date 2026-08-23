@@ -21,8 +21,8 @@ def test_build_chat_model_attaches_metric_callbacks(monkeypatch):
     if not llm_adapter._LANGCHAIN_AVAILABLE:
         pytest.skip("langchain 未安装，跳过真实构造")
     try:
-        from config.loader import get_config
-        llm = build_chat_model(get_config())
+        from config.loader import get_config_loader
+        llm = build_chat_model(get_config_loader())
     except Exception:
         pytest.skip("无法构造（依赖缺失），跳过")
     handlers = getattr(llm, "callbacks", None) or []

@@ -108,7 +108,7 @@ def other_files_view(file_id):
 def other_files_upload():
     """上传其他类型文件"""
     from backend.utils.users_sync import to_users_id
-    from config.loader import get_config
+    from config.loader import get_config_loader
     if request.method == 'GET':
         # Get laboratories for dropdown
         try:
@@ -142,7 +142,7 @@ def other_files_upload():
         file_data = {
             'description': request.form.get('description', '').strip() or None,
             'submitter_type': 'admin',
-            'submitter_id': to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
+            'submitter_id': to_users_id(str(get_config_loader().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             'laboratory_id': request.form.get('laboratory_id', type=int) or None,
         }
 
@@ -296,7 +296,7 @@ def api_achievements_other():
     """API: 获取实验室下载文件管理内容。实验室视图（laboratory_id 在 query）时仅返回该实验室数据，可只读。"""
     try:
         import sqlite3
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
@@ -312,7 +312,7 @@ def api_achievements_other():
             can_edit = can_edit_laboratory(user_info, lab_id, laboratory_manager, teacher_manager) if user_info else False
             is_readonly = not can_edit
 
-        config = get_config()
+        config = get_config_loader()
         db_path = config.get_path("database", "competitions_db")
 
         conn = sqlite3.connect(db_path)

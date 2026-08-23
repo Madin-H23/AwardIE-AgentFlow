@@ -166,7 +166,7 @@ engine = OCREngine.from_config_loader(config_loader)
 ### 方式 1：使用配置加载器（推荐）
 
 ```python
-from config.loader import get_config
+from config.loader import get_config_loader
 from backend.ocr import OCREngine, OCRConfig
 from backend.services.context import ServiceContext
 

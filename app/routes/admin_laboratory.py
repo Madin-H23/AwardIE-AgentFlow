@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 
 from app.auth import require_role, require_role_api, require_login, require_can_edit_laboratory, require_can_edit_laboratory_api
 from backend.utils.users_sync import to_users_id
-from config.loader import get_config
+from config.loader import get_config_loader
 from app.utils import get_app_context_instance
 
 logger = logging.getLogger(__name__)
@@ -745,8 +745,8 @@ def laboratory_image_upload(lab_id):
         new_filename = f"lab_{lab_id}_{timestamp}.jpg"  # 统一保存为jpg
 
         # 保存到 files/laboratories/{lab_id}/photos/ 目录（迁移后的新目录结构）
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         files_base = config_loader.get_path("files")  # files 目录
         files_dir = files_base / "laboratories" / str(lab_id) / "photos"
         files_dir.mkdir(parents=True, exist_ok=True)
@@ -854,8 +854,8 @@ def laboratory_image_delete(lab_id):
         if success:
             # 删除文件
             # 从配置文件获取files目录，不允许硬编码
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
             files_dir = config_loader.get_path("files")
             file_path = files_dir / image_path
             if file_path.exists():
@@ -909,8 +909,8 @@ def laboratory_downloads_upload(lab_id):
         new_filename = f"download_{lab_id}_{timestamp}{ext}"
 
         # 保存到 files/laboratories/{lab_id}/downloads/ 目录
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         files_base = config_loader.get_path("files")
         files_dir = files_base / "laboratories" / str(lab_id) / "downloads"
         files_dir.mkdir(parents=True, exist_ok=True)
@@ -931,7 +931,7 @@ def laboratory_downloads_upload(lab_id):
             file_name=original_filename,
             file_size=file_size,
             submitter_type='admin',
-            submitter_id=to_users_id(str(get_config().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
+            submitter_id=to_users_id(str(get_config_loader().get_path('database', 'competitions_db')), session.get('user_id'), 'admin'),
             is_public=True
         )
 
@@ -980,8 +980,8 @@ def laboratory_downloads_delete(lab_id, download_id):
         success = laboratory_manager.delete_download_file(lab_id, download_id)
         if success:
             # 删除物理文件
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
             files_dir = config_loader.get_path("files")
             file_path = files_dir / download_info.get('file_path', '')
             if file_path.exists():
@@ -1055,8 +1055,8 @@ def laboratory_download_file(lab_id, download_id):
                 abort(403)
 
         # 获取文件路径
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         files_dir = config_loader.get_path("files")
         file_path = files_dir / download_info.get('file_path', '')
 
@@ -1093,13 +1093,13 @@ def laboratory_image_file(filename):
         import os
         import re
         from flask import abort, send_file
-        from config.loader import get_config
+        from config.loader import get_config_loader
         
         original_filename = filename
         # 统一将反斜杠转换为正斜杠（兼容 Windows 路径）
         filename = filename.replace('\\', '/')
         
-        config_loader = get_config()
+        config_loader = get_config_loader()
         files_base = config_loader.get_path("files")  # files 目录
         laboratories_base = files_base / "laboratories"
         
@@ -1165,11 +1165,11 @@ def laboratory_download_download(file_id):
     """下载实验室文件"""
     try:
         import sqlite3
-        from config.loader import get_config
+        from config.loader import get_config_loader
         from flask import send_file
         from pathlib import Path
 
-        config = get_config()
+        config = get_config_loader()
         db_path = config.get_path("database", "competitions_db")
         files_dir = config.get_path("files")
 
@@ -1203,10 +1203,10 @@ def laboratory_download_delete(file_id):
     """删除实验室文件"""
     try:
         import sqlite3
-        from config.loader import get_config
+        from config.loader import get_config_loader
         from pathlib import Path
 
-        config = get_config()
+        config = get_config_loader()
         db_path = config.get_path("database", "competitions_db")
         files_dir = config.get_path("files")
 

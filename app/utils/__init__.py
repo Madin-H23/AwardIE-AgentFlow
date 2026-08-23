@@ -28,7 +28,7 @@ if utils_file_path.exists():
     
     # 重新导出所有函数
     get_app_context_instance = utils_module.get_app_context_instance
-    get_config = utils_module.get_config
+    get_app_config = utils_module.get_app_config
     get_doc_rec_context = utils_module.get_doc_rec_context
     reset_doc_rec_context = utils_module.reset_doc_rec_context
     get_document_engine = utils_module.get_document_engine
@@ -46,7 +46,7 @@ __all__ = [
     'get_user_route_url',
     'get_user_route_name',
     'get_app_context_instance',
-    'get_config',
+    'get_app_config',
     'get_doc_rec_context',
     'reset_doc_rec_context',
     'get_document_engine',

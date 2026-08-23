@@ -294,8 +294,8 @@ def award_delete(award_id):
 
         # 防重复删除：仅当成果真实存在时删除并留痕；已删除/不存在 → 明确提示且不再写留痕
         from backend.utils.db_connection import get_connection
-        from config.loader import get_config
-        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        from config.loader import get_config_loader
+        conn = get_connection(get_config_loader().get_path('database', 'competitions_db'))
         try:
             exists = conn.execute("SELECT COUNT(*) FROM awards WHERE id=?", (award_id,)).fetchone()[0]
         finally:
@@ -334,8 +334,8 @@ def awards_batch_delete():
         # 防重复删除：仅真实存在的成果才删除并留痕；已不存在则跳过（不计成功、不再写留痕）
         from backend.utils.audit_logger import audit_log
         from backend.utils.db_connection import get_connection
-        from config.loader import get_config
-        conn = get_connection(get_config().get_path('database', 'competitions_db'))
+        from config.loader import get_config_loader
+        conn = get_connection(get_config_loader().get_path('database', 'competitions_db'))
         try:
             existing = {r[0] for r in conn.execute(
                 f"SELECT id FROM awards WHERE id IN ({','.join('?' * len(award_ids))})",

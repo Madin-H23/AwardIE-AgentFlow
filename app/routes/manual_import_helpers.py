@@ -20,13 +20,13 @@ def handle_manual_upload():
     Returns:
         tuple: (success: bool, file_path: str | None, error_message: str | None)
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     try:
         files = request.files.getlist('files')
         if not files or not any(f and f.filename for f in files):
             return False, None, '请选择文件'
         file = next(f for f in files if f and f.filename)
-        config_loader = get_config()
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
         manual_dir = base_temp_dir / "manual_import"
         manual_dir.mkdir(parents=True, exist_ok=True)
@@ -53,7 +53,7 @@ def handle_manual_parse(submitter_type: str, submitter_id: int):
         tuple: (success, session_id, achievement_type, error_message, path_for_db, achievement_data, ocr_text, template_type)
         成功时后四项为 (path_for_db, achievement_data, ocr_text, template_type)，失败时后四项为 None。
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from app.utils import get_app_context_instance, get_doc_rec_context, calculate_file_hash
     from backend.services.manual_import_service import ManualImportService
     from backend.services.unified_file_manager import get_unified_file_manager
@@ -70,7 +70,7 @@ def handle_manual_parse(submitter_type: str, submitter_id: int):
         if achievement_type not in ('award', 'patent', 'software'):
             return False, None, None, f'不支持的成果类型: {achievement_type}', None, None, None, None
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         base_temp_dir = config_loader.get_path("temp_dir")
         full_path = Path(base_temp_dir) / file_path if not Path(file_path).is_absolute() else Path(file_path)
         if not full_path.exists():

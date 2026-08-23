@@ -29,13 +29,13 @@ def _resolve_db_path():
     覆盖优先级：ALEMBIC_DB 环境变量 > -x db=<path> > config 默认路径
     （-x 在部分 alembic 子命令下解析不稳定，测试优先用环境变量）。
     """
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from pathlib import Path
     import os
     x_arg = os.environ.get("ALEMBIC_DB") or context.get_x_argument(as_dictionary=True).get("db")
     if x_arg:
         return Path(x_arg)
-    return get_config().get_path('database', 'competitions_db')
+    return get_config_loader().get_path('database', 'competitions_db')
 
 
 def _db_url():

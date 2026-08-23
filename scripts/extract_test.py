@@ -72,8 +72,8 @@ class ExtractTester:
 
     def load_config(self):
         """加载配置"""
-        from config.loader import get_config
-        config_loader = get_config()
+        from config.loader import get_config_loader
+        config_loader = get_config_loader()
         return config_loader.load_config()
 
     def get_providers(self) -> Tuple[str, str]:
@@ -308,12 +308,12 @@ class ExtractTester:
         if self._framework is None:
             from backend.extract import ExtractFramework, InnovationExtractor, PatentExtractor, SoftwareExtractor, AwardExtractor
             from backend.extract.template import TemplateManager
-            from config.loader import get_config
+            from config.loader import get_config_loader
             import json
             from pathlib import Path
 
             # 创建配置加载器
-            config_loader = get_config()
+            config_loader = get_config_loader()
             config = config_loader.load_config()
 
             # 创建抽取框架

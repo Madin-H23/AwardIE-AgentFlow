@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from backend.extract.template import TemplateManager
-from config.loader import get_config
+from config.loader import get_config_loader
 
 project_root = Path(__file__).parent.parent
 db_path = project_root / "database" / "competitions.db"
@@ -62,7 +62,7 @@ Certificate of Honor
 print(f"\n测试OCR文本（前200字符）:\n{test_ocr[:200]}...")
 
 # 加载模板管理器并测试匹配
-config_loader = get_config()
+config_loader = get_config_loader()
 config = config_loader.load_config()
 
 base_fields_map = {}

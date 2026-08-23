@@ -103,8 +103,8 @@ def get_tool_context(config_loader=None) -> ToolContext:
     global _tool_context
     if _tool_context is None:
         if config_loader is None:
-            from config.loader import get_config
-            config_loader = get_config()
+            from config.loader import get_config_loader
+            config_loader = get_config_loader()
         _tool_context = ToolContext(config_loader)
     return _tool_context
 

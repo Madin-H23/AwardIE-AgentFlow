@@ -24,10 +24,10 @@ PENDING_DAYS = 180
 
 def main(dry_run: bool = True):
     sys.path.insert(0, str(PROJECT_ROOT))
-    from config.loader import get_config
+    from config.loader import get_config_loader
     from backend.utils.db_connection import get_connection
 
-    cl = get_config()
+    cl = get_config_loader()
     files_root = Path(str(cl.get_path("files")))
     db = str(cl.get_path("database", "competitions_db"))
     conn = get_connection(db)

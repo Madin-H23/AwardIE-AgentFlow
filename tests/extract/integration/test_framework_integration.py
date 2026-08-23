@@ -119,9 +119,9 @@ def _test_pdf_processing(test_dir: Path, has_api_key: bool) -> IntegrationTestRe
         )
 
     try:
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         framework = ExtractFramework.from_config_loader(config_loader)
         framework.register(MockAwardExtractor())
 
@@ -171,9 +171,9 @@ def _test_normal_image(test_dir: Path, has_api_key: bool) -> IntegrationTestResu
         )
 
     try:
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         framework = ExtractFramework.from_config_loader(config_loader)
         framework.register(MockAwardExtractor())
 
@@ -222,9 +222,9 @@ def _test_award_image(test_dir: Path, has_api_key: bool) -> IntegrationTestResul
         )
 
     try:
-        from config.loader import get_config
+        from config.loader import get_config_loader
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         framework = ExtractFramework.from_config_loader(config_loader)
         framework.register(MockAwardExtractor())
 
@@ -263,10 +263,10 @@ def _test_unsupported_extension() -> IntegrationTestResult:
     start_time = time.time()
 
     try:
-        from config.loader import get_config
+        from config.loader import get_config_loader
         import tempfile
 
-        config_loader = get_config()
+        config_loader = get_config_loader()
         framework = ExtractFramework.from_config_loader(config_loader)
         framework.register(MockAwardExtractor())
 
