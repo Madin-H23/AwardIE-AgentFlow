@@ -1875,6 +1875,11 @@ def test_file_flow_integration():
     from tests.fixtures.schemas import require_real_db
     require_real_db()
     import pytest as _pytest
+    # T71-①：本测试是重流程集成（依赖真实库+业务文件+外部服务），改为显式门控收集，
+    # 避免资产齐备后自动真跑拖累全量基线。手动运行：
+    #   AWARDIE_RUN_FILE_FLOW=1 python -m pytest tests/test_files.py::test_file_flow_integration -v
+    if _os.environ.get("AWARDIE_RUN_FILE_FLOW") != "1":
+        _pytest.skip("文件流转集成测试为显式门控：设 AWARDIE_RUN_FILE_FLOW=1 启用")
     original_cwd = _os.getcwd()
     try:
         tester = FileFlowTester()

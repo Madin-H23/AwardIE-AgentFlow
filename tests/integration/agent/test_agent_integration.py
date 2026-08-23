@@ -5,6 +5,11 @@ Agent integration 测试
 固化了联调中验证的成果：工具调用、Supervisor 路由、抽取审核链路。
 
 运行：RUN_AGENT_INTEGRATION=1 python -m pytest tests/integration/agent/test_agent_integration.py -v
+
+月度例行（T71-③ 成文，2026-08 决策分析批3）：本地已配 DeepSeek key，每月手动执行一次——
+  RUN_AGENT_INTEGRATION=1 python -m pytest tests/integration/agent -q
+覆盖本文件与 test_rag_integration.py 共 8 例，防 AI 层接口漂移长期无感知。
+执行结果记入当月实施记录或周报；连续失败即触发依赖升级评估。
 """
 import pytest
 from pathlib import Path

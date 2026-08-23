@@ -43,10 +43,29 @@ def test_parse_excel_file():
     assert zhangsan['title'] == '教授'
 
 
-def test_parse_excel_with_empty_name():
-    """测试跳过空姓名记录"""
-    # TODO: 添加包含空姓名的测试数据，验证解析器能正确跳过
-    pytest.skip("待实现：需要创建包含空姓名的测试数据")
+def test_parse_excel_with_empty_name(tmp_path):
+    """测试跳过空姓名记录（T71 零头清理：原 skip 待实现已落地）"""
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    for _ in range(3):          # 前 3 行为标题区（解析器从索引 3 起读数据）
+        ws.append(["占位"] * 10)
+    ws.append([None, "有效教师", "02190001", "13800000999", "讲师",
+               None, None, None, None, None])            # 左块：有效行
+    ws.append([None, "   ", "02190002", "13800000002", None,
+               None, "王空名", "02190003", "13800000003", None])  # 左姓名空白+右块有效
+    ws.append([None, "", "", "", "",
+               None, "李亦空", "02190004", "", ""])       # 右块：下一行的左块全空
+    xlsx = tmp_path / "contacts_empty.xlsx"
+    wb.save(xlsx)
+
+    result = parse_contacts_excel(str(xlsx))
+    names = [r["name"] for r in result]
+    assert "有效教师" in names and "王空名" in names
+    assert all(n.strip() for n in names), f"空姓名未被跳过: {names}"
+    # 左块第2行姓名为纯空白 → 被跳过；其余 3 条（左1+右2）正常提取
+    assert len(result) == 3, f"应提取 3 条有效记录，实际 {len(result)}: {result}"
 
 
 # ============================================================================

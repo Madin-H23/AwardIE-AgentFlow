@@ -9,6 +9,11 @@
       "disabled": true,
       "disabled_reason": "PaddleOCR 未安装。请运行: pip install paddleocr",
       "disabled_at": "2026-07-09T06:56:58"
+    },
+    "baidu": {
+      "disabled": true,
+      "disabled_reason": "Baidu OCR failed: Baidu API Error: image size error",
+      "disabled_at": "2026-08-22T23:43:31"
     }
   }
 }

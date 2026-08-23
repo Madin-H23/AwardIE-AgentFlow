@@ -159,3 +159,4 @@
 | T72 | 双 get_config 同名异义收敛：config.loader.get_config 改名+全量引用替换逐一核对（config.flask.get_config 保持），根治 SECRET_KEY None 连环误判源 | 决策分析拷问① | 中（0.5d） |
 | T73 | app.utils 包/模块同名双命名空间收敛：_managers 全局缓存单一真源（保持 import 兼容 re-export），seeded_db fixture 清理逻辑随之简化 | 决策分析拷问② | 中（0.5d） |
 | T74 | 旧基类 17 页分批迁 base_console（user_base×16+base_simple×1，每批 4~6 页亮暗双态冒烟）；base_simple 登录页轻量性单独评估，保留需落档决策 | 决策分析拷问③ / T9 续 | 按节奏 |
+| T75 | **140 冻结模块处置卡**（待 hewj 拍板）：tests/extract 系 5 文件级 skip 共 140 例（模板匹配/证书/创新 extractor「冻结模块预存缺陷」）。选项 A=排期解冻按新约定重写断言；选项 B=降级 xfail（真实执行+意外通过时报 XPASS，比 skip 防腐）；选项 C=维持 skip 并在测试方案标注永久豁免。当前默认 C | 决策分析 P2 批3 | 待 hewj |
