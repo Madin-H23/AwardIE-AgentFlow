@@ -416,3 +416,15 @@ def get_default_password():
     
     return default_password
 
+
+
+def reset_runtime_caches():
+    """统一复位本模块全部进程级缓存（测试隔离用，生产不调用）。
+
+    单一真源后只需清这一处 _managers；_config_cache 一并复位，
+    替代旧"双命名空间各清一遍"的脆弱模式。
+    """
+    global _config_cache, _doc_rec_context
+    _managers.clear()
+    _config_cache = None
+    _doc_rec_context = None

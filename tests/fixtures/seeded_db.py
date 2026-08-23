@@ -134,17 +134,14 @@ def seeded_app(tmp_path_factory):
     cfg_cls.FILES_DIR = app.config["FILES_DIR"]
 
     reset_app_context()  # 清掉此前真库测试初始化的全局上下文
-    # 【关键】app.utils 的 _managers 字典缓存了首次创建的 AppContext 实例（指向真库），
+    # 【关键】app.utils._core 的 _managers 缓存了首次创建的 AppContext 实例（指向真库），
     # reset_app_context 只清 backend 侧全局单例——不清这里，冒烟将静默查真实库。
-    # 注意 app.utils 是 importlib 双加载模块（app/utils/__init__.py 动态加载 app/utils.py），
-    # 两个命名空间的缓存都要清。
-    for _mod_name in ("app.utils", "app.utils_module"):
-        _mod = sys.modules.get(_mod_name)
-        if _mod is not None and hasattr(_mod, "_managers"):
-            try:
-                _mod._managers.clear()
-            except Exception:
-                pass
+    # T73 单一真源：_managers 仅存于 app.utils._core，一处复位即可
+    try:
+        from app.utils._core import reset_runtime_caches
+        reset_runtime_caches()
+    except Exception:
+        pass
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
     app.config["SESSION_COOKIE_SECURE"] = False
@@ -156,13 +153,12 @@ def seeded_app(tmp_path_factory):
     cfg_cls.DATABASE_PATH = orig_db
     cfg_cls.FILES_DIR = orig_files
     reset_app_context()
-    for _mod_name in ("app.utils", "app.utils_module"):
-        _mod = sys.modules.get(_mod_name)
-        if _mod is not None and hasattr(_mod, "_managers"):
-            try:
-                _mod._managers.clear()
-            except Exception:
-                pass
+    # T73 单一真源：_managers 仅存于 app.utils._core，一处复位即可
+    try:
+        from app.utils._core import reset_runtime_caches
+        reset_runtime_caches()
+    except Exception:
+        pass
 
 
 @pytest.fixture()

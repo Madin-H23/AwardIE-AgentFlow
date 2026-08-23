@@ -1,46 +1,28 @@
 """
-用户工具模块
-包含路由工具和其他工具函数
+用户工具模块（T73 单一真源收敛）
 
-注意：由于 app/utils 现在是目录，而原来的 app/utils.py 是文件，
-我们需要通过 importlib 来导入原来的 utils.py 文件
+原实现：app/utils.py 文件与 app/utils/ 包同名并存，__init__ 用 importlib 以
+"app.utils_module" 第二命名空间加载文件版——全局 _managers 缓存因此存在两份，
+任何清缓存逻辑都必须记得清两处（T64 曾踩：漏一处=测试静默读真库）。
+
+现实现：原 utils.py 内容已迁移为包内子模块 app/utils/_core.py（git mv 保历史），
+__init__ 直接 re-export——_managers 全局仅 _core 一份。
 """
-# 导入用户路由工具
 from .user_routes import get_user_route_url, get_user_route_name
-
-# 从原来的 utils.py 文件导入所有函数（兼容性）
-import importlib.util
-import sys
-from pathlib import Path
-
-# 获取原来的 utils.py 文件路径
-# app/utils/__init__.py 在 app/utils/ 目录下
-# utils.py 在 app/ 目录下（上一级）
-parent_dir = Path(__file__).parent.parent
-utils_file_path = parent_dir / 'utils.py'
-
-# 使用 importlib 加载原来的 utils.py 模块
-if utils_file_path.exists():
-    spec = importlib.util.spec_from_file_location("app.utils_module", utils_file_path)
-    utils_module = importlib.util.module_from_spec(spec)
-    sys.modules["app.utils_module"] = utils_module
-    spec.loader.exec_module(utils_module)
-    
-    # 重新导出所有函数
-    get_app_context_instance = utils_module.get_app_context_instance
-    get_app_config = utils_module.get_app_config
-    get_doc_rec_context = utils_module.get_doc_rec_context
-    reset_doc_rec_context = utils_module.reset_doc_rec_context
-    get_document_engine = utils_module.get_document_engine
-    get_extractor = utils_module.get_extractor
-    calculate_file_hash = utils_module.calculate_file_hash
-    get_competition_level_badge_class = utils_module.get_competition_level_badge_class
-    get_competition_levels_for_ui = utils_module.get_competition_levels_for_ui
-    get_all_competition_levels = utils_module.get_all_competition_levels
-    get_default_password = utils_module.get_default_password
-else:
-    # 如果 utils.py 不存在，抛出错误
-    raise ImportError(f"找不到 utils.py 文件: {utils_file_path}")
+from ._core import (
+    get_app_context_instance,
+    get_app_config,
+    get_doc_rec_context,
+    reset_doc_rec_context,
+    get_document_engine,
+    get_extractor,
+    calculate_file_hash,
+    get_competition_level_badge_class,
+    get_competition_levels_for_ui,
+    get_all_competition_levels,
+    get_default_password,
+    reset_runtime_caches,
+)
 
 __all__ = [
     'get_user_route_url',
@@ -55,6 +37,6 @@ __all__ = [
     'get_competition_level_badge_class',
     'get_competition_levels_for_ui',
     'get_all_competition_levels',
-    'get_default_password'
+    'get_default_password',
+    'reset_runtime_caches',
 ]
-
