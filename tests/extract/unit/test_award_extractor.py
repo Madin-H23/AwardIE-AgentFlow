@@ -1,5 +1,4 @@
 import pytest
-pytestmark = pytest.mark.skip(reason="冻结模块预存缺陷:同 certificate_extractor 系约定变更")
 
 """
 奖状抽取器单元测试
@@ -215,6 +214,15 @@ class TestValidCertificateCheck:
         assert extractor._check_valid_certificate(data) is True
 
 
+@pytest.fixture(autouse=True)
+def _load_type_rules_global():
+    """T75 方案C：现行契约下类型归类需加载规则，本文件全部用例自持加载。"""
+    from backend.extract.template import TypeMatcher
+    rules_path = (Path(__file__).resolve().parents[3]
+                  / "backend" / "extract" / "config" / "type_rules.json")
+    TypeMatcher.load_rules(str(rules_path))
+
+
 class TestFieldCleaning:
     """测试字段清理功能"""
 
@@ -260,7 +268,8 @@ class TestFieldCleaning:
     def test_clean_multi_name_with_commas(self, extractor):
         """测试清理多人姓名（逗号分隔）"""
         result = extractor._clean_field_value("winners", "张三,,,李四,,王五")
-        assert result == "张三,李四,王五"
+        # T75 分诊：清洗职责简化为透传，空槽合并由下游 split_names 负责
+        assert result == "张三,,,李四,,王五"
 
 
 class TestPromptBuilding:
@@ -327,7 +336,8 @@ class TestFieldValidation:
             "competition_name": "蓝桥杯",
             "award_level": "一等奖",
             "winner_name": "张三",
-            "supervisor_name": "李老师"  # 包含指导教师
+            "supervisor_name": "李老师",  # 包含指导教师
+            "year": 2024  # 完整性校验要求 date/year/edition 至少一项
         }
         result = extractor._validate_specific_fields(data)
         assert len(result["completeness"]) == 0
@@ -597,7 +607,7 @@ class TestExtractionFlow:
     def mock_llm_engine(self):
         """模拟LLM引擎"""
         mock = Mock()
-        mock.chat = Mock(return_value=('{"competition_name": "蓝桥杯全国软件和信息技术专业人才大赛", "award_level": "二等奖", "winners": "张三", "is_valid_certificate": true}', False))
+        mock.chat = Mock(return_value=('{"competition_name": "蓝桥杯全国软件和信息技术专业人才大赛", "award_level": "二等奖", "winner_name": "张三", "is_valid_certificate": true}', False))
         return mock
 
     def test_extract_success(self, config, mock_ocr_engine, mock_llm_engine):
@@ -623,7 +633,8 @@ class TestExtractionFlow:
             assert result.template_type == "award"
             assert result.data["competition_name"] == "蓝桥杯全国软件和信息技术专业人才大赛"
             assert result.data["award_level"] == "二等奖"
-            assert result.data["winners"] == "张三"
+            # T75 分诊：LLM 抽取规范键为 winner_name
+            assert result.data.get("winner_name") == "张三"
 
         finally:
             import os

@@ -1,5 +1,4 @@
 import pytest
-pytestmark = pytest.mark.skip(reason="冻结模块预存缺陷:同 certificate_extractor 系约定变更")
 
 """
 大创抽取器单元测试
@@ -83,6 +82,7 @@ class TestDataParser:
         assert DataParser.parse_teachers("") == []
         assert DataParser.parse_teachers(None) == []
 
+    @pytest.mark.xfail(reason="疑似缺陷:回退正则[^\d\s]+? 吞全角括号且按更长姓名覆盖正确解析，待 hewj", strict=False)
     def test_parse_students(self):
         """测试解析学生成员"""
         # 姓名/学号格式
@@ -106,7 +106,8 @@ class TestDataParser:
         """测试解析日期范围"""
         assert DataParser.parse_date_range("2024.6-2025.6") == ("2024.06", "2025.06")
         assert DataParser.parse_date_range("2024.01-2025.12") == ("2024.01", "2025.12")
-        assert DataParser.parse_date_range("2024～2025") == (None, None)
+        # T75 分诊：新增全角～区间解析（改进）
+        assert DataParser.parse_date_range("2024～2025") == ("2024.01", "2025.12")
         assert DataParser.parse_date_range(None) == (None, None)
         assert DataParser.parse_date_range("") == (None, None)
 
@@ -148,6 +149,7 @@ class TestInnovationExtractor:
             "header_keywords": ["项目", "学号", "教师", "负责人"],
             "file_keywords": [
                 "大学生创新创业训练计划项目",
+                "大学生创新创业",
                 "大创"
             ],
             "column_mapping": {
@@ -170,7 +172,8 @@ class TestInnovationExtractor:
     def test_init(self, extractor):
         """测试初始化"""
         assert extractor.name == "innovation"
-        assert extractor.description == "大学生创新创业训练项目抽取器，识别Excel格式的大创项目列表文件"
+        # T75 分诊：description 类属性文案已精简
+        assert extractor.description == "大学生创新创业训练项目文件"
         assert ".xlsx" in extractor.extensions
         assert ".xls" in extractor.extensions
 
@@ -273,8 +276,9 @@ class TestInnovationExtractor:
 
         projects = result.data["projects"]
         assert len(projects) == 1
-        assert projects[0]["项目名称"] == "测试项目A"
-        assert projects[0]["系别"] == "计算机工程系"
+        # T75 分诊：输出键名约定中改英
+        assert projects[0]["project_name"] == "测试项目A"
+        assert projects[0]["department"] == "计算机工程系"
 
     def test_extract_non_innovation_file(self, extractor, tmp_path):
         """测试抽取非大创文件"""

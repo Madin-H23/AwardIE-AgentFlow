@@ -1,6 +1,6 @@
 # T31-T34 批次5：预存失败（TestExtractor 缺 description 类属性——冻结模块不改）
 import pytest
-pytestmark = pytest.mark.skip(reason="冻结模块预存缺陷:extractor description 类属性约定变更，批次5 登记不改逻辑")
+pytestmark = pytest.mark.xfail(reason="冻结模块约定大改（12/18 失败），待 hewj 定义现行契约后按 A 解冻分诊——T75 剩余项", strict=False)
 
 """
 专利和软著抽取器单元测试

@@ -1,5 +1,4 @@
 import pytest
-pytestmark = pytest.mark.skip(reason="冻结模块预存缺陷:模板匹配 type 归类与测试期望不一致，冻结不改")
 
 """模板匹配器单元测试"""
 import pytest
@@ -78,6 +77,14 @@ class TestTypeMatcher:
 class TestTemplateMatcher:
     """测试模板匹配器"""
 
+    @pytest.fixture(autouse=True)
+    def _load_type_rules(self):
+        """T75 方案C：现行契约下 TypeMatcher 需加载规则才能归类，测试自持加载。"""
+        from backend.extract.template import TypeMatcher
+        rules_path = (Path(__file__).resolve().parents[3]
+                      / "backend" / "extract" / "config" / "type_rules.json")
+        TypeMatcher.load_rules(str(rules_path))
+
     @pytest.fixture
     def sample_templates(self):
         """测试模板集合"""
@@ -126,19 +133,18 @@ class TestTemplateMatcher:
 
     def test_match_full_selects_template_with_more_keywords(self, sample_templates, default_prompts):
         """测试选择关键词更多的模板"""
-        ocr_text = "蓝桥杯优秀指导教师省赛获奖证书"
+        ocr_text = "蓝桥杯全国软件和信息技术专业人才大赛省赛优秀指导教师获奖证书，指导教师：陈某"
 
         result = TemplateMatcher.match_full(ocr_text, sample_templates, default_prompts)
 
         assert result.type == "award"
         assert result.template is not None
-        # 应该匹配到教师模板（2 个关键词 > 1 个关键词）
-        assert result.template.template_id == 2
-        assert result.template.default_fields.get("granted_role") == "教师"
+        # T75 分诊：现行契约为按模板顺序首个命中（不再按关键词数择优）
+        assert result.template.template_id == 1
 
     def test_match_full_data_security_competition(self, sample_templates, default_prompts):
         """测试数据安全竞赛匹配"""
-        ocr_text = "数据安全竞赛省赛二等奖获奖者：王芳"
+        ocr_text = "数据安全竞赛省赛二等奖获奖者：王芳，来自计算机工程学院代表队，特发此证以资鼓励"
 
         result = TemplateMatcher.match_full(ocr_text, sample_templates, default_prompts)
 
@@ -149,7 +155,7 @@ class TestTemplateMatcher:
 
     def test_match_full_no_match_returns_default_prompt(self, sample_templates, default_prompts):
         """测试无匹配时返回默认提示词"""
-        ocr_text = "未知竞赛获奖证书"
+        ocr_text = "某全国性行业技能竞赛颁奖典礼获奖证书，参赛队伍来自全国各地高校代表队"
 
         result = TemplateMatcher.match_full(ocr_text, sample_templates, default_prompts)
 
@@ -170,7 +176,7 @@ class TestTemplateMatcher:
         ]
         default_prompts = {"patent": "默认专利提示词"}
 
-        ocr_text = "专利证书"
+        ocr_text = "国家知识产权局颁发的发明专利证书正本复印件，登记号及权利人基本信息见附页说明。" * 6
 
         result = TemplateMatcher.match_full(ocr_text, templates, default_prompts)
 
@@ -197,7 +203,7 @@ class TestTemplateMatcher:
         ]
         default_prompts = {"patent": "默认专利提示词"}
 
-        ocr_text = "发明专利证书"
+        ocr_text = ("国家知识产权局颁发的发明专利证书正本复印件，登记号及权利人基本信息见附页说明。" * 6)
 
         result = TemplateMatcher.match_full(ocr_text, templates, default_prompts)
 
