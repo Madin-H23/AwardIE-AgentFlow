@@ -1,6 +1,5 @@
 # T31-T34 批次5：预存失败（TestExtractor 缺 description 类属性——冻结模块不改）
 import pytest
-pytestmark = pytest.mark.xfail(reason="冻结模块约定大改（12/18 失败），待 hewj 定义现行契约后按 A 解冻分诊——T75 剩余项", strict=False)
 
 """
 专利和软著抽取器单元测试
@@ -52,24 +51,29 @@ class TestCertificateExtractor:
             "text": "测试OCR文本内容\n包含专利信息\n申请号：202310123456.7",
             "from_cache": False
         })
+        # T75 收尾：对齐 certificate.py 实际调用契约 get_text -> (text, from_cache)
+        mock.get_text = Mock(return_value=(
+            "测试证书OCR文本内容\n包含专利信息\n申请号：202310123456.7", False))
         return mock
 
     @pytest.fixture
     def mock_llm_engine(self):
         """模拟LLM引擎"""
         mock = Mock()
-        mock.call = Mock(return_value={
-            "content": '{"patent_name": "测试专利", "patent_type": "发明专利"}',
-            "from_cache": False
-        })
+        # T75 收尾：对齐 LLMEngine.chat 契约 chat(messages=...) -> (content, from_cache)
+        mock.chat = Mock(return_value=(
+            '{"patent_name": "测试专利", "patent_type": "发明专利"}', False))
         return mock
 
     def test_init(self, mock_config):
         """测试初始化"""
         # 创建一个测试子类
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -80,8 +84,11 @@ class TestCertificateExtractor:
     def test_matches_extension(self, mock_config):
         """测试扩展名匹配"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -93,8 +100,11 @@ class TestCertificateExtractor:
     def test_matches_keywords(self, mock_config):
         """测试关键词匹配"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -106,8 +116,11 @@ class TestCertificateExtractor:
     def test_parse_llm_response_json(self, mock_config):
         """测试LLM响应解析 - 标准JSON"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -119,8 +132,11 @@ class TestCertificateExtractor:
     def test_parse_llm_response_code_block(self, mock_config):
         """测试LLM响应解析 - 代码块"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -137,8 +153,11 @@ class TestCertificateExtractor:
     def test_parse_llm_response_invalid(self, mock_config):
         """测试LLM响应解析 - 无效格式"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -150,30 +169,40 @@ class TestCertificateExtractor:
     def test_validate_data_valid(self, mock_config):
         """测试数据验证 - 有效数据"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
         data = {"patent_name": "测试", "patent_type": "发明专利"}
-        assert extractor._validate_data(data) == True
+        # T75 收尾：现行契约返回 ValidationResult 对象
+        assert extractor._validate_data(data).is_valid is True
 
     def test_validate_data_all_null(self, mock_config):
         """测试数据验证 - 全部为null"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
         data = {"patent_name": None, "patent_type": None}
-        assert extractor._validate_data(data) == False
+        assert extractor._validate_data(data).is_valid is False
 
     def test_extract_success(self, mock_config, mock_ocr_engine, mock_llm_engine):
         """测试成功抽取"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -204,8 +233,11 @@ class TestCertificateExtractor:
     def test_extract_unsupported_extension(self, mock_config, mock_ocr_engine, mock_llm_engine):
         """测试不支持的扩展名"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -235,8 +267,11 @@ class TestCertificateExtractor:
     def test_extract_no_keywords(self, mock_config, mock_ocr_engine, mock_llm_engine):
         """测试关键词不匹配"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 
@@ -245,6 +280,9 @@ class TestCertificateExtractor:
             "text": "这是一段普通文本，没有关键词",
             "from_cache": False
         })
+        # T75 收尾：同步覆盖 get_text（fixture 版文本含关键词会误入成功路径）
+        mock_ocr_engine.get_text = Mock(return_value=(
+            "这是一段普通文本，没有关键词", False))
 
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
             temp_path = f.name
@@ -271,8 +309,11 @@ class TestCertificateExtractor:
     def test_extract_with_preloaded_ocr(self, mock_config, mock_llm_engine):
         """测试使用预加载的OCR文本"""
         class TestExtractor(CertificateExtractor):
+            # T75 收尾：按已签认契约补齐强制类属性
             template_type = "test"
             fields_name = "patent"
+            description = "测试证书"
+            judgment_text = "测试判断文本"
 
         extractor = TestExtractor(mock_config)
 

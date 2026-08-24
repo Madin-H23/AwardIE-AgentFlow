@@ -62,6 +62,7 @@
 注：`_other_result` 返回 `status=SUCCESS + template_type=OTHER + data.note=message`
 （沿用 award 同款约定：识别失败不算执行失败）。
 
+
 ## §7 工厂与已知合规子类
 
 - `from_config_loader(cls, config_loader)`：读 `settings.json → extract.{template_type}` 作为 config；
@@ -88,3 +89,11 @@
 - [ ] （可选）对 §6 手动导入模式 force_type 跳过关键词检查等现行行为补充说明。
 
 签认结果：＿＿＿＿＿＿＿＿＿＿＿＿ 日期：＿＿＿＿＿＿
+
+---
+
+## 签认结果（2026-08-24）
+
+§9 三项**全部确认**（hewj 本人在场）：fail-fast 契约生效 / 修复方案批准 /
+现行行为补充说明认可。已按 §8 执行完毕：12 例修复、18 例转正、CI 收编，
+五文件口径 153→**171 passed**（含本文件签认后新增覆盖），T75 全事项清账。

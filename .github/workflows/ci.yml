@@ -53,6 +53,7 @@ jobs:
             tests/unit/test_core_routes_coverage.py tests/unit/test_review_logs_freeze.py \
             tests/extract/template/test_manager.py tests/extract/template/test_matcher.py \
             tests/extract/unit/test_award_extractor.py tests/extract/unit/test_innovation_extractor.py \
+            tests/extract/unit/test_certificate_extractor.py \
             --cov=backend.utils.db_connection --cov=backend.utils.idempotency --cov=backend.utils.metrics \
             --cov=backend.utils.seed --cov=backend.utils.users_sync --cov=backend.utils.app_error \
             --cov=backend.utils.circuit_breaker --cov=backend.utils.audit_logger --cov=backend.agent.decision \
