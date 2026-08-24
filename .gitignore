@@ -121,3 +121,6 @@ pyrightconfig.json
 .playwright-cli/
 database/backups/
 .coverage
+
+# T35-T37 归档区（历史资料集中地，同上不入仓库）
+docs/归档/
