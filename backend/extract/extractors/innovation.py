@@ -158,18 +158,19 @@ class DataParser:
         students = []
         seen_ids = {}
 
-        # 多种正则模式
+        # 多种正则模式（T49/T75 挂账修复：每项附 (姓名组号, 学号组号)——
+        # 原 P3「学号+姓名」分组序反排，旧循环统一按 g1=姓名 消费致该格式整体失效）
         patterns = [
-            r'([^\d\s\(\)]+?)\s*/\s*(\d{9})',         # 姓名/学号
-            r'([^\d\s\(\)]+?)\s*[\(（]\s*(\d{9})\s*[\)）]',  # 姓名（学号）
-            r'(\d{9})\s*([^\d\s\(\)]+)',              # 学号+姓名
-            r'([^\d\s]+?)(\d{9})',                    # 姓名直接连接学号
+            (r'([^\d\s\(\)]+?)\s*/\s*(\d{9})', 1, 2),         # 姓名/学号
+            (r'([^\d\s\(\)]+?)\s*[\(（]\s*(\d{9})\s*[\)）]', 1, 2),  # 姓名（学号）
+            (r'(\d{9})\s*([^\d\s（）()]*)', 2, 1),             # 学号+姓名
+            (r'([^\d\s（）()]+?)(\d{9})', 1, 2),               # 姓名直接连接学号（排除括号防吞全角括号）
         ]
 
-        for pattern in patterns:
+        for pattern, name_g, id_g in patterns:
             for match in re.finditer(pattern, text):
-                name = match.group(1).strip()
-                student_id = match.group(2).strip()
+                name = match.group(name_g).strip()
+                student_id = match.group(id_g).strip()
                 name = name.rstrip('/,，;、；').strip()
 
                 # 验证姓名格式
@@ -197,7 +198,7 @@ class DataParser:
             (r'([^\d\s\(\)]+?)\s*/\s*(\d{9})', 1, 2),        # 姓名/学号
             (r'([^\d\s\(\)]+?)\s*[\(（]\s*(\d{9})\s*[\)）]', 1, 2),  # 姓名（学号）
             (r'(\d{9})\s*([^\d\s\(\)]+)', 1, 2),             # 学号+姓名
-            (r'([^\d\s]+?)(\d{9})', 1, 2),                   # 姓名直接连接学号
+            (r'([^\d\s（）()]+?)(\d{9})', 1, 2),              # 姓名直接连接学号（同上：排除括号）
         ]
 
         for pattern, name_group, id_group in patterns:

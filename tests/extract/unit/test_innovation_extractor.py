@@ -82,7 +82,6 @@ class TestDataParser:
         assert DataParser.parse_teachers("") == []
         assert DataParser.parse_teachers(None) == []
 
-    @pytest.mark.xfail(reason="疑似缺陷:回退正则[^\d\s]+? 吞全角括号且按更长姓名覆盖正确解析，待 hewj", strict=False)
     def test_parse_students(self):
         """测试解析学生成员"""
         # 姓名/学号格式
@@ -95,6 +94,23 @@ class TestDataParser:
 
         # 学号+姓名格式
         result = DataParser.parse_students("212203227张三")
+        assert result == [{"姓名": "张三", "学号": "212203227"}]
+
+    def test_parse_students_fullwidth_parens_regression(self):
+        """T49/T75 挂账修复回归：全角括号无分隔符串不再被兜底正则污染。"""
+        # 无分隔符连续串（原缺陷触发形态）
+        result = DataParser.parse_students("张三（212203227）李四（212203228）")
+        assert result == [
+            {"姓名": "张三", "学号": "212203227"},
+            {"姓名": "李四", "学号": "212203228"},
+        ]
+
+        # 半角括号形态（防修复只顾全角）
+        result = DataParser.parse_students("张三(212203227)")
+        assert result == [{"姓名": "张三", "学号": "212203227"}]
+
+        # 单个全角括号串（原缺陷最小复现）
+        result = DataParser.parse_students("张三（212203227）")
         assert result == [{"姓名": "张三", "学号": "212203227"}]
 
         # 多个学生逗号分隔
@@ -371,3 +387,4 @@ def create_normal_xlsx(path: Path):
 if __name__ == "__main__":
     # 运行测试
     pytest.main([__file__, "-v"])
+
