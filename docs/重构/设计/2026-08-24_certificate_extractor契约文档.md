@@ -3,7 +3,7 @@
 > **目的**：T75 剩余项的前置——以源码实测（certificate.py 全部 499 行）+ 18 例冻结测试实跑为据，
 > 固化 `CertificateExtractor` 及其子类的**现行行为契约**；hewj 签认后即作为解冻分诊的唯一裁决标准。
 > **效力**：签认前本文档为"代拟稿"；签认后为权威契约，任何"期望过时 vs 模块缺陷"的争议以此裁定。
-> 编写：2026-08-23 | 依据：`backend/extract/extractors/certificate.py` + `tests/extract/unit/test_certificate_extractor.py` 实跑
+> 编写：2026-08-24 | 依据：`backend/extract/extractors/certificate.py` + `tests/extract/unit/test_certificate_extractor.py` 实跑
 
 ---
 
