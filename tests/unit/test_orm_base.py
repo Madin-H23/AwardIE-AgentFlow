@@ -92,9 +92,25 @@ class TestCoreModels:
         from sqlalchemy import func, select
         s = get_session()
         assert s.scalar(select(func.count()).select_from(PendingAchievement)) >= 0
-        # is_valid 生成列 ORM 可读
+        # is_valid 生成列 ORM 可读；真库全 archived 且 vr 全空时自建探针行验证
+        probe_inserted = False
+        if s.execute(select(PendingAchievement.id).limit(1)).first() is None:
+            from sqlalchemy import text as _text
+            s.execute(_text(
+                """INSERT INTO pending_achievements
+                   (achievement_type, achievement_data, status, submitter_type,
+                    submitter_id, file_hash, session_id, validation_result)
+                   VALUES ('award', '{"t":"orm-probe"}', 'pending', 'admin',
+                           1, 'hash-orm-probe', 'orm-session',
+                           '{"is_valid": true}')"""))
+            s.commit()
+            probe_inserted = True
         row = s.execute(select(PendingAchievement.is_valid).limit(1)).first()
         assert row is not None
+        if probe_inserted:
+            s.execute(_text(
+                "DELETE FROM pending_achievements WHERE file_hash='hash-orm-probe'"))
+            s.commit()
         s.close()
 
     def test_audit_log_model(self):

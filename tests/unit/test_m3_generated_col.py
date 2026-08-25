@@ -28,10 +28,30 @@ class TestGeneratedColumn:
         gen_col = [r for r in gen if r[1] == "is_valid"][0]
         # xinfo: (cid,name,type,notnull,dflt,pk,hidden)——hidden 在索引 6
         assert gen_col[6] == 2, f"is_valid 应为 VIRTUAL 生成列(hidden=2)，实际 hidden={gen_col[6]}"
-        # 已有数据推导正确
-        row = conn.execute("""SELECT is_valid, json_extract(validation_result,'$.is_valid')
-            FROM pending_achievements WHERE validation_result IS NOT NULL LIMIT 1""").fetchone()
-        assert row[0] == row[1], f"生成列与 json_extract 不一致: {row}"
+        # 生成列自动推导（含更新跟随）：自建临时行驱动，不依赖真库数据形态
+        vr_a = '{"is_valid": true, "reason": "t75"}'
+        vr_b = '{"is_valid": false, "reason": "t75-update"}'
+        conn.execute(
+            """INSERT INTO pending_achievements
+               (achievement_type, achievement_data, status, submitter_type,
+                submitter_id, file_hash, session_id, validation_result)
+               VALUES ('award', '{"t": "m3-probe"}', 'pending', 'admin',
+                       1, 'hash-m3-probe', 'm3-session', ?)""",
+            (vr_a,))
+        pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        try:
+            row = conn.execute(
+                "SELECT is_valid, json_extract(validation_result,'$.is_valid') "
+                "FROM pending_achievements WHERE id=?", (pid,)).fetchone()
+            assert row == (1, True), f"生成列初值不一致: {row}"
+            # 更新跟随：validation_result 变更后生成列同步
+            conn.execute("UPDATE pending_achievements SET validation_result=? WHERE id=?",
+                         (vr_b.replace("false", "true").replace("true", "false"), pid))
+            row = conn.execute("SELECT is_valid FROM pending_achievements WHERE id=?", (pid,)).fetchone()
+            assert row[0] in (0, False), f"更新后生成列未跟随: {row}"
+        finally:
+            conn.execute("DELETE FROM pending_achievements WHERE id=?", (pid,))
+            conn.commit()
         conn.close()
 
     def test_index_present(self):

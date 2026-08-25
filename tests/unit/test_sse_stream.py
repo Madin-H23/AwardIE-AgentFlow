@@ -48,13 +48,22 @@ def test_sse_event_sequence(client, monkeypatch):
     from backend.agent.service import AgentService
 
     def fake_chat_stream(self, message, *, user_context=None, chat_history=None):
+        print("\nDBG fake_chat_stream ENTERED")
         for piece in ("测试", "回答"):
             yield {"delta": piece}
         yield {"__final__": {"output": "测试回答", "intermediate_steps": ["step1"]}}
 
-    from app.routes import chat as chat_mod
+    # T49 CI 修复：必须连同 from_config 一起打桩——CI 无 .env/API key 时
+    # 真实 from_config 抛异常 → tools 分支回退 _dispatch，patch 不生效
+    def fake_from_config(cls, cfg):
+        svc = cls.__new__(cls)
+        svc.max_iterations = 8   # chat_stream 体需要；__new__ 裸实例需手工补
+        return svc
+    monkeypatch.setattr(AgentService, "from_config",
+                        classmethod(fake_from_config))
     monkeypatch.setattr(AgentService, "chat_stream", fake_chat_stream)
-    monkeypatch.setattr(chat_mod, "_ACTIVE_SSE", {})
+
+    from app.routes import chat as chat_mod
     _login(client)
     r = client.get("/assistant/chat/stream?message=hi&mode=tools")
     assert r.status_code == 200
@@ -67,6 +76,7 @@ def test_sse_event_sequence(client, monkeypatch):
     assert "source" not in names                              # tools 无来源卡
     done = [e for e in events if e[0] == "done"][0][1]
     assert done["answer"] == "测试回答" and done["mode_used"] == "single_agent"
+    assert done["steps"] == ["step1"]
     assert done["steps"] == ["step1"]
 
 

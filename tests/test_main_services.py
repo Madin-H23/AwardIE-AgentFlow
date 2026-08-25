@@ -1867,8 +1867,13 @@ def test_core_services_integration():
     依赖真实库与业务文件（CI 无库环境自动 skip）。运行结束恢复工作目录。
     """
     import os as _os
+    import pytest as _pytest
     from tests.fixtures.schemas import require_real_db
     require_real_db()
+    # T75 收尾教训：破坏性全流程集成与 test_files 同款显式门控，
+    # 防止日常全量误触清库（多次咬人后固化）
+    if _os.environ.get("AWARDIE_RUN_CORE_FLOW") != "1":
+        _pytest.skip("核心业务集成为破坏性显式门控：设 AWARDIE_RUN_CORE_FLOW=1 启用")
     original_cwd = _os.getcwd()
     try:
         tester = CoreBusinessTester()
