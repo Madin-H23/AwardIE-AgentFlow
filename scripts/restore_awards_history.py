@@ -25,7 +25,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MAIN_DB = PROJECT_ROOT / "database" / "competitions.db"
-DEFAULT_BACKUP = PROJECT_ROOT / "database" / "bak.2026-08-21-pre-0010.db"
+DEFAULT_BACKUP = PROJECT_ROOT / "database" / "snapshots" / "bak.2026-08-21-pre-0010.db"
 
 RELATED_TABLES = (
     "award_student_winners",
@@ -90,7 +90,7 @@ def run(backup_path: Path, apply: bool):
 
     # 安全网：恢复前再留一份带时间戳的主库备份
     stamp = time.strftime("%Y%m%d_%H%M%S")
-    guard = PROJECT_ROOT / "database" / f"bak.pre-restore-{stamp}.db"
+    guard = PROJECT_ROOT / "database" / "snapshots" / f"bak.pre-restore-{stamp}.db"
     shutil.copy2(MAIN_DB, guard)
     print(f"[guard] 恢复前备份 -> {guard.name}")
 

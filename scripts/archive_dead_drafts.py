@@ -74,7 +74,9 @@ def main():
         return
 
     stamp = date.today().isoformat()
-    bak = db.parent / f"bak.{stamp}-pre-archive-drafts.db"
+    snap = db.parent / "snapshots"
+    snap.mkdir(exist_ok=True)
+    bak = snap / f"bak.{stamp}-pre-archive-drafts.db"
     _checkpoint_copy(db, bak)
     print(f"[guard] 备份完成: {bak.name}")
 
