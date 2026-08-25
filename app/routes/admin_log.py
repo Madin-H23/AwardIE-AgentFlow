@@ -188,8 +188,12 @@ def plan_acknowledge(plan_id):
     plans = [p for p in generate() if p["id"] == plan_id]
     if not plans:
         return _ok(None, message=f"计划项不存在或已流转: {plan_id}")
-    transition(plans[0], "acknowledged")
-    return _ok(plans[0])
+    p = plans[0]
+    if p["status"] in ("resolved", "ignored"):
+        # 幂等处理：已结束流转的计划重复确认不再抛 500
+        return _ok(p, message=f"计划已处于 {p['status']} 状态，无需确认")
+    transition(p, "acknowledged")
+    return _ok(p)
 
 
 @bp.route('/api/logs/plan/<plan_id>/resolve', methods=['POST'])
@@ -199,9 +203,14 @@ def plan_resolve(plan_id):
     plans = [p for p in generate() if p["id"] == plan_id]
     if not plans:
         return _ok(None, message=f"计划项不存在或已流转: {plan_id}")
-    transition(plans[0], "acknowledged")
-    transition(plans[0], "resolved")
-    return _ok(plans[0])
+    p = plans[0]
+    if p["status"] in ("resolved",):
+        return _ok(p, message="计划已解决")
+    if p["status"] == "ignored":
+        return _ok(p, message="计划已忽略，7 天后重评估")
+    transition(p, "acknowledged")
+    transition(p, "resolved")
+    return _ok(p)
 
 
 # ==================== SSE 实时流 ====================
