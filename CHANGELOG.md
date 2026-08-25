@@ -3,6 +3,14 @@
 > 一页式阶段汇总；逐日细节见 `docs/重构/实施记录/` 各篇。
 > 本文件由 T37 于 2026-08-24 建立，此后重大变更按阶段追加。
 
+## 2026-08-25 · 重构全景总结 + CI 补漏 + 数据库快照整理
+
+- 重构全景总结成文（1f55a73）：七阶段时间线 / 八大域资产对照 / 十事故诚实复盘 / 八条方法论，全部事实溯源至实施记录与 git 历史
+- fix(ci)：data_export 500 根因=requirements-test 缺 pandas——export_utils 顶层 import 致蓝图导入期 ImportError，CI 最小依赖集补 `pandas>=2.0.0`
+- parse_students 缺陷修复配套收尾（cb7ed72）：真库守卫用例去数据化（自建探针行驱动），破坏性入口加门控
+- database 存量清理：两旧版结构说明删除入归档；54 个 bak.* 快照（含 -wal/-shm）整理入 `database/snapshots/`（整目录 gitignore），restore_awards_history / archive_dead_drafts 脚本路径同步
+- docs 路由与根 README 对齐现状：端口 5001 / CPU 依赖与 RAG 补装 / 测试账号 / 破坏性回归纪律
+
 ## 2026-08-24 · 冻结期收官（T35-T37 / T75 收尾 / parse_students 缺陷修复）
 
 - 文档体系整理：docs 根层 12 散文件归位（用户指南/运维指南），设计文档 41+plans 15+database 两旧版

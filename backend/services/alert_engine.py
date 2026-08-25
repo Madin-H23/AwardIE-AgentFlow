@@ -72,9 +72,12 @@ def _auth_failures_5m(db_path) -> int:
 def _db_errors_recent(db_path) -> int:
     conn = get_connection(db_path)
     try:
+        # 近 1h 窗口（UTC 与 created_at 基准一致）——曾因无窗口把 08-21 测试
+        # 产物（not_exist_dir 连接失败用例）的 2 条历史 db error 永久计入告警
         return conn.execute(
             "SELECT COUNT(*) FROM system_event_log "
-            "WHERE event_category='db' AND event_level='error'").fetchone()[0]
+            "WHERE event_category='db' AND event_level='error' "
+            "AND created_at >= datetime('now','-1 hour')").fetchone()[0]
     except Exception:   # 缺表（老库）——0 次不告警
         return 0
     finally:

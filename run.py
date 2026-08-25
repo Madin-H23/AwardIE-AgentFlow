@@ -118,7 +118,7 @@ def _should_enable_debug() -> bool:
 
 
 if __name__ == '__main__':
-    # 从环境变量获取端口，默认5000
+    # 从环境变量获取端口，默认5001
     port = int(os.environ.get('PORT', 5001))
     debug = _should_enable_debug()  # 安全硬约束 (P0-3)：调试器=RCE，禁止配置文件隐式开启
 
