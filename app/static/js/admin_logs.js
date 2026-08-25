@@ -300,15 +300,26 @@
     api('/admin/api/logs/plan').then(function (d) {
       if (!d.total) { box.innerHTML = emptyBox('暂无待办计划——没有需要处理的事项'); return; }
       box.innerHTML = d.items.map(function (p) {
+        var actions = '';
+        var statusChip = '';
+        if (p.status === 'resolved') {
+          statusChip = '<span class="sev-chip sev-success">已解决</span>';
+        } else if (p.status === 'ignored') {
+          statusChip = '<span class="sev-chip sev-info">已忽略</span>';
+        } else if (p.status === 'acknowledged') {
+          statusChip = '<span class="sev-chip sev-info">已确认</span>';
+          actions = '<button class="c-btn btn-sm" data-plan-resolve="' + esc(p.id) + '">标记已解决</button>';
+        } else {
+          actions = '<button class="c-btn c-btn-primary btn-sm" data-plan-ack="' + esc(p.id) + '">确认</button> ' +
+                    '<button class="c-btn btn-sm" data-plan-resolve="' + esc(p.id) + '">标记已解决</button>';
+        }
         return '<div class="c-panel p-3 mb-2">' +
           '<div class="d-flex align-items-center gap-2 mb-1">' +
           '<span class="sev-chip sev-' + (p.priority === '高' ? 'critical' : 'warning') + '">' + esc(p.priority) + '优先</span>' +
           '<span class="sev-chip sev-info">' + esc(p.category) + '</span>' +
-          '<strong style="font-size:.9rem">' + esc(p.title) + '</strong></div>' +
+          '<strong style="font-size:.9rem">' + esc(p.title) + '</strong>' + statusChip + '</div>' +
           '<div style="font-size:.84rem;color:var(--ink);margin-bottom:4px">' + esc(p.description) + '</div>' +
-          '<div style="font-size:.78rem;color:var(--ink-2);margin-bottom:8px">建议：' + esc((p.suggested_actions || []).join('；')) + '</div>' +
-          '<button class="c-btn c-btn-primary btn-sm" data-plan-ack="' + esc(p.id) + '">确认</button> ' +
-          '<button class="c-btn btn-sm" data-plan-resolve="' + esc(p.id) + '">标记已解决</button></div>';
+          '<div style="font-size:.78rem;color:var(--ink-2);margin-bottom:8px">建议：' + esc((p.suggested_actions || []).join('；')) + '</div>' + actions + '</div>';
       }).join('');
     }).catch(function (e) { box.innerHTML = emptyBox('加载失败：' + e.message); });
   }
