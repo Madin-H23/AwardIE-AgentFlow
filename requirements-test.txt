@@ -21,3 +21,5 @@ iniconfig>=2.0.0
 openpyxl>=3.1.0
 sqlalchemy>=2.0
 flask-migrate>=4.0
+# data_export/导出类页面依赖（export_utils 顶层 import；缺则蓝图导入期 ImportError → 路由 500）
+pandas>=2.0.0
