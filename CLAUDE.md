@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent skills
+
+### Issue tracker
+
+Issues 存放在 GitHub Issues（repo: Madin-H23/AwardIE-AgentFlow，经 `gh` CLI 操作）。See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+五个 canonical triage roles 使用默认 label 字符串（needs-triage / needs-info / ready-for-agent / ready-for-human / wontfix）。See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout：repo 根 `CONTEXT.md` + `docs/adr/`。See `docs/agents/domain.md`.
+
 ## Project Overview
 
 AwardIE-AgentFlow (信息抽取与多智能体协作的奖状智能管理系统) - A Flask-based web application for managing student competition activities, award records, and related statistical information, powered by LLM-driven information extraction, RAG knowledge base, and multi-agent collaboration.
