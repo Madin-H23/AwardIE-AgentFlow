@@ -127,3 +127,6 @@ docs/归档/
 
 # 快照归档（bak.* 手工/守卫快照集中存放）
 database/snapshots/
+
+# CodeGraph 本地索引缓存（MCP 检索用，机器本地产物不入库）
+.codegraph/
