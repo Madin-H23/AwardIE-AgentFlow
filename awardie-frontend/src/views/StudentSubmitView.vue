@@ -85,37 +85,24 @@ async function onSubmit() {
 <template>
   <div class="submit-page">
     <el-card class="pane">
-      <h2>提交奖状(award)</h2>
+      <h2>提交成果</h2>
       <el-form label-position="top">
-        <el-form-item label="竞赛名称">
-          <el-input
-            v-model="form.competition_name"
-            placeholder="如:挑战杯"
-          />
+        <el-form-item label="成果类型">
+          <el-select v-model="achievementType">
+            <el-option
+              v-for="t in typeOptions"
+              :key="t.value"
+              :value="t.value"
+              :label="t.label"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="获奖等级">
-          <el-input v-model="form.award_level" />
-        </el-form-item>
-        <el-form-item label="竞赛级别">
-          <el-input
-            v-model="form.competition_level"
-            placeholder="如:A类"
-          />
-        </el-form-item>
-        <el-form-item label="获奖人">
-          <el-input v-model="form.winner_name" />
-        </el-form-item>
-        <el-form-item label="指导教师">
-          <el-input v-model="form.supervisor_name" />
-        </el-form-item>
-        <el-form-item label="证书编号">
-          <el-input v-model="form.certificate_id" />
-        </el-form-item>
-        <el-form-item label="获奖日期(YYYY-MM 或 YYYY-MM-DD)">
-          <el-input v-model="form.date" />
-        </el-form-item>
-        <el-form-item label="项目名称">
-          <el-input v-model="form.project_title" />
+        <el-form-item
+          v-for="f in typeFields[achievementType]"
+          :key="f.key"
+          :label="f.label"
+        >
+          <el-input v-model="form[f.key]" />
         </el-form-item>
         <el-form-item label="证书文件(jpg/png/pdf,≤10MB)">
           <input
