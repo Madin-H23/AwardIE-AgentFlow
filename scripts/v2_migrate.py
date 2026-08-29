@@ -14,6 +14,7 @@
   5. 校验:30 表行数 / BLOB md5 / FK 存量 / 抽样字段
 """
 import argparse
+import datetime
 import hashlib
 import json
 import re
@@ -120,19 +121,20 @@ def column_type_map(cur, tables, cols):
                         except Exception:
                             bad += 1
                     result[t][name] = ("jsonb_fix" if bad else "jsonb", bad)
-                continue
-            # 时间列:值全部 ISO 可解析 → timestamptz
-            if any(k in name.lower() for k in ("_at", "_time")) and "text" in ctype.lower() or ctype == "TIMESTAMP":
-                vals = [r[0] for r in cur.execute(f'SELECT DISTINCT "{name}" FROM "{t}" WHERE "{name}" IS NOT NULL')]
-                ok = all(_is_iso(v) for v in vals)
-                if ok and vals:
+                    continue
+            # 时间列:值全部 ISO 可解析才升 timestamptz(值是唯一门槛,列名仅作初筛)
+            if any(k in name.lower() for k in ("_at", "_time"))                     and (ctype in ("TEXT", "TIMESTAMP", "DATETIME", "") or "CHAR" in ctype):
+                vals = [r[0] for r in cur.execute(
+                    f'SELECT DISTINCT "{name}" FROM "{t}" WHERE "{name}" IS NOT NULL')]
+                if vals and all(_is_iso(v) for v in vals):
                     result[t][name] = ("timestamptz", 0)
     return result
 
 
 def _is_iso(v):
+    import datetime as _dt  # 函数内自包含导入:模块级 datetime 曾被绑定为类(污染),NameError 被 except 吞掉致恒 False
     try:
-        datetime.datetime.fromisoformat(v)
+        _dt.datetime.fromisoformat(v)
         return True
     except Exception:
         return False
