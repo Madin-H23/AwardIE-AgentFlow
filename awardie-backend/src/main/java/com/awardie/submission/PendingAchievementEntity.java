@@ -70,6 +70,7 @@ public class PendingAchievementEntity {
     private Integer version;
 
     public Integer getId() { return id; }
+    public void setId(Integer v) { this.id = v; }
     public String getAchievementType() { return achievementType; }
     public void setAchievementType(String v) { this.achievementType = v; }
     public String getAchievementData() { return achievementData; }

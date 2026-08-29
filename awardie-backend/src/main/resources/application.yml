@@ -32,3 +32,9 @@ management:
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+
+ai:
+  worker:
+    mode: fake   # fake=确定性事件流(开发/CI);grpc=真实 Worker(127.0.0.1:50060)
+    host: 127.0.0.1
+    port: 50060
