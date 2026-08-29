@@ -26,7 +26,8 @@ public class GlobalExceptionHandler {
                 .map(f -> new FieldError(f.getField(), f.getDefaultMessage()))
                 .toArray(FieldError[]::new);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(4000, "参数校验失败"));
+                .body(new ApiResponse<>(4000, "参数校验失败", errors,
+                        TraceIdFilter.currentTraceId(), java.time.Instant.now().toString()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

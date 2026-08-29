@@ -92,6 +92,10 @@ def column_type_map(cur, tables, cols):
         for c in cols[t]:
             name, ctype = c["name"], (c["type"] or "").upper()
             if "INT" in ctype:
+                # int 布尔语义列(0/1 存真假)→ BOOLEAN 目标形态
+                if re.search(r"needs_|_activated|_public|(^|_)is_", name):
+                    result[t][name] = ("bool_int", 0)
+                    continue
                 # 混型列:'admin' 文本 → 值清洗为 NULL,保列型 INTEGER
                 bad = cur.execute(
                     f'SELECT COUNT(*) FROM "{t}" WHERE typeof("{name}") NOT IN (\'integer\',\'null\')'
@@ -148,14 +152,22 @@ def gen_baseline(tables, ddl, cols, colmap, fks, indexes, views):
         sql = RE_VIRTUAL_GEN.sub("", sql)
         sql = RE_BOOL_DEFAULT.sub(lambda m: m.group(1) + ("true" if m.group(2) == "1" else "false"), sql)
         sql = re.sub(r"\bBLOB\b", "BYTEA", sql, flags=re.I)
-        # 列型替换:jsonb / timestamptz;混型清洗列同步放宽 NOT NULL(v1 事实行为:'admin' 审核无 id)
+        # 列型替换:jsonb / timestamptz / int 布尔语义列;混型清洗列放宽 NOT NULL
         for name, (target, _) in colmap[t].items():
             if target == "clean_null":
                 sql = re.sub(rf"(\"?{name}\"?\s+INTEGER)(\s+NOT\s+NULL)", r"\1", sql, count=1, flags=re.I)
+            elif target == "bool_int":
+                sql = re.sub(rf"(\"?{name}\"?\s+)INTEGER", rf"\1BOOLEAN", sql, count=1, flags=re.I)
+                # CHECK(name IN (0,1)) 等字面量随列型同步转布尔
+                sql = re.sub(rf"({name}\s+IN\s*\()\s*0\s*,\s*1\s*(\))", r"\1true, false\2", sql, flags=re.I)
+                sql = re.sub(rf"({name}\s*=\s*)0\b", r"\1false", sql, flags=re.I)
+                sql = re.sub(rf"({name}\s*=\s*)1\b", r"\1true", sql, flags=re.I)
             elif target in ("jsonb", "jsonb_fix"):
                 sql = re.sub(rf"(\"?{name}\"?\s+)(?:TEXT|VARCHAR\(\d+\))", rf"\1JSONB", sql, count=1, flags=re.I)
             elif target == "timestamptz":
                 sql = re.sub(rf"(\"?{name}\"?\s+)(?:TEXT|TIMESTAMP)", rf"\1TIMESTAMPTZ", sql, count=1, flags=re.I)
+        # 列型替换后,新 BOOLEAN 列的 0/1 默认值需二次改写(第一次只覆盖原生 BOOLEAN 声明)
+        sql = RE_BOOL_DEFAULT.sub(lambda m: m.group(1) + ("true" if m.group(2) == "1" else "false"), sql)
         out.append(sql.rstrip().rstrip(";") + ";")
     # 索引(谓词布尔改写;idx_pending_is_valid 依赖生成列,延后到 ADD COLUMN 之后)
     for r in indexes:
@@ -191,6 +203,9 @@ def load_data(sq, cur, tables, colmap, pgcur, seq):
         names = [c["name"] for c in col_info]
         json_cols = {n for n, (tg, _) in colmap.get(t, {}).items() if tg in ("jsonb", "jsonb_fix")}
         clean_cols = {n for n, (tg, _) in colmap.get(t, {}).items() if tg == "clean_null"}
+        bool_cols = {n for n, (tg, _) in colmap.get(t, {}).items() if tg == "bool_int"} | {
+            c["name"] for c in col_info if (c["type"] or "").upper() == "BOOLEAN"
+        }
         batch = []
         for row in cur.execute(f'SELECT * FROM "{t}"'):
             vals = []
@@ -202,7 +217,7 @@ def load_data(sq, cur, tables, colmap, pgcur, seq):
                         json.loads(v)
                     except Exception:
                         v = None  # 非法 JSON 修复(如 awards.llm_response 1/79)
-                if isinstance(v, int) and v in (0, 1) and _col_is_bool(col_info, n):
+                if n in bool_cols and isinstance(v, int) and v in (0, 1):
                     v = bool(v)
                 elif isinstance(v, (bytes, memoryview)):
                     v = psycopg2.Binary(v)

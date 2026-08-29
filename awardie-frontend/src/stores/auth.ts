@@ -1,25 +1,71 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+export interface UserInfo {
+  id: number
+  name: string
+  role: 'student' | 'teacher' | 'admin'
+  needsPasswordChange: boolean
+}
+
 /**
- * 认证状态占位:P0 骨架阶段无后端,dev 登录仅置本地状态。
- * T4(登录端到端)接线 Spring Security 后替换为本真实现。
+ * 认证状态(会话制):登录态经 /api/v2/auth/* 与 Spring Security JSESSIONID 绑定。
+ * 刷新后由 /me 恢复(路由守卫调用 ensureLoaded)。
  */
 export const useAuthStore = defineStore('auth', () => {
-  const username = ref<string | null>(null)
-  const role = ref<'student' | 'teacher' | 'admin' | null>(null)
+  const user = ref<UserInfo | null>(null)
+  const loaded = ref(false)
 
-  const isLoggedIn = computed(() => username.value !== null)
+  const isLoggedIn = computed(() => user.value !== null)
+  const needsPasswordChange = computed(() => user.value?.needsPasswordChange ?? false)
 
-  function devLogin(name: string, r: 'student' | 'teacher' | 'admin') {
-    username.value = name
-    role.value = r
+  async function ensureLoaded() {
+    if (loaded.value) return
+    try {
+      const resp = await fetch('/api/v2/auth/me', { credentials: 'include' })
+      const body = await resp.json()
+      user.value = body.code === 0 ? (body.data as UserInfo) : null
+    } catch {
+      user.value = null
+    }
+    loaded.value = true
   }
 
-  function logout() {
-    username.value = null
-    role.value = null
+  async function login(account: string, password: string): Promise<{ ok: boolean; message: string }> {
+    const resp = await fetch('/api/v2/auth/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account, password }),
+    })
+    const body = await resp.json()
+    if (body.code === 0) {
+      user.value = body.data as UserInfo
+      loaded.value = true
+      return { ok: true, message: body.message }
+    }
+    return { ok: false, message: body.message }
   }
 
-  return { username, role, isLoggedIn, devLogin, logout }
+  async function changePassword(oldPassword: string, newPassword: string): Promise<{ ok: boolean; message: string }> {
+    const resp = await fetch('/api/v2/auth/password', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    })
+    const body = await resp.json()
+    if (body.code === 0 && user.value) {
+      user.value.needsPasswordChange = false
+    }
+    return { ok: body.code === 0, message: body.message }
+  }
+
+  async function logout() {
+    await fetch('/api/v2/auth/logout', { method: 'POST', credentials: 'include' })
+    user.value = null
+    loaded.value = false
+  }
+
+  return { user, isLoggedIn, needsPasswordChange, ensureLoaded, login, changePassword, logout }
 })

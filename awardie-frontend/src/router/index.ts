@@ -5,18 +5,23 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
+    { path: '/change-password', name: 'change-password', component: () => import('../views/ChangePasswordView.vue') },
     { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
   ],
 })
 
-// 守卫占位:P0 仅拦截未登录访问首页;真实鉴权在 T4(登录端到端)接线
-router.beforeEach((to) => {
+// 守卫:未登录拦截;BR-4 首登强制改密(needs_password_change)
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  await auth.ensureLoaded()
   if (to.name !== 'login' && !auth.isLoggedIn) {
     return { name: 'login' }
   }
   if (to.name === 'login' && auth.isLoggedIn) {
-    return { name: 'home' }
+    return { name: auth.needsPasswordChange ? 'change-password' : 'home' }
+  }
+  if (auth.isLoggedIn && auth.needsPasswordChange && to.name !== 'change-password') {
+    return { name: 'change-password' }
   }
 })
 

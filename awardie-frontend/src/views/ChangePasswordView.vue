@@ -7,23 +7,22 @@ import { useAuthStore } from '../stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 const loading = ref(false)
-const form = reactive({ account: '', password: '' })
+const form = reactive({ oldPassword: '', newPassword: '', confirm: '' })
 
 async function onSubmit() {
-  if (!form.account || !form.password) {
-    ElMessage.warning('请输入账号与密码')
+  if (form.newPassword !== form.confirm) {
+    ElMessage.warning('两次输入的新密码不一致')
     return
   }
   loading.value = true
   try {
-    const result = await auth.login(form.account, form.password)
+    const result = await auth.changePassword(form.oldPassword, form.newPassword)
     if (!result.ok) {
       ElMessage.error(result.message)
       return
     }
-    ElMessage.success('登录成功')
-    // BR-4:首登强制改密
-    router.push({ name: auth.needsPasswordChange ? 'change-password' : 'home' })
+    ElMessage.success('密码已更新')
+    router.push({ name: 'home' })
   } finally {
     loading.value = false
   }
@@ -34,38 +33,43 @@ async function onSubmit() {
   <div class="login-page">
     <el-card class="login-card">
       <h1 class="login-title">
-        AwardIE
+        修改密码
       </h1>
       <p class="login-sub">
-        成果管理 · v2
+        首次登录需修改初始密码(BR-4 · 至少 8 位且含字母与数字)
       </p>
       <el-form
         label-position="top"
         @submit.prevent
       >
-        <el-form-item label="账号">
+        <el-form-item label="原密码">
           <el-input
-            v-model="form.account"
-            placeholder="学号 / 工号"
-            data-testid="login-account"
-          />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input
-            v-model="form.password"
+            v-model="form.oldPassword"
             type="password"
             show-password
-            data-testid="login-password"
+          />
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input
+            v-model="form.newPassword"
+            type="password"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码">
+          <el-input
+            v-model="form.confirm"
+            type="password"
+            show-password
           />
         </el-form-item>
         <el-button
           type="primary"
           class="login-btn"
           :loading="loading"
-          data-testid="login-submit"
           @click="onSubmit"
         >
-          登 录
+          确认修改
         </el-button>
       </el-form>
     </el-card>
@@ -78,8 +82,8 @@ async function onSubmit() {
   display: flex; align-items: center; justify-content: center;
   background: var(--bg);
 }
-.login-card { width: 360px; background: var(--panel); }
-.login-title { margin: 0; text-align: center; color: var(--ink); letter-spacing: 2px; }
+.login-card { width: 380px; background: var(--panel); }
+.login-title { margin: 0; text-align: center; color: var(--ink); }
 .login-sub { margin: 4px 0 16px; text-align: center; color: var(--ink-2); font-size: 13px; }
 .login-btn { width: 100%; }
 </style>

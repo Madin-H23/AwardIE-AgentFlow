@@ -20,7 +20,7 @@
     "JSON 列: templates.sample_extracted → jsonb",
     "JSON 列: templates.default_fields → jsonb",
     "JSON 列: templates.llm_fields → jsonb",
-    "awardie-backend\\src\\main\\resources\\db\\migration\\V1__baseline.sql (22721 bytes)",
+    "awardie-backend\\src\\main\\resources\\db\\migration\\V1__baseline.sql (22750 bytes)",
     "baseline 执行成功(30 表+索引+生成列+FK)",
     "装载 9353 行",
     "30 表行数全部一致",

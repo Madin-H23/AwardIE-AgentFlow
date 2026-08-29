@@ -21,7 +21,7 @@ spring:
     baseline-version: 1
 
 server:
-  port: 8080
+  port: 18080  # 8080 被本机未知 python http.server 长期占用(2026-08-29 实测),dev 用 18080;生产/Nginx 配置按部署环境定
 
 management:
   endpoints:
