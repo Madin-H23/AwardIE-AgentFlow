@@ -50,7 +50,7 @@
 | # | 问题 | 关联风险 | 探针形态 |
 | --- | --- | --- | --- |
 | P1 | gRPC server-streaming 经 Nginx 透传是否稳定（缓冲/断流行为） | R-045 | throwaway：Java gRPC client + Python server + Nginx 配置，curl 观察 delta 间隔 |
-| P2 | pgloader 迁移 v1 SQLite（jsonb/生成列/BLOB）真实坑位 | R-046 | throwaway：对 database/competitions.db 副本实跑 pgloader，记录失败清单 |
+| P2 | SQLite→PG 迁移真实坑位（jsonb/生成列/BLOB/序列） | R-046 | throwaway：对 database/competitions.db 副本实跑 Python ETL 脚本（sqlite3→psycopg2，本机免安装 zip 版 PG16 承接），记录失败清单；pgloader 原生不支持 Windows 且依赖 Docker，工具选型在 spec 阶段凭本探针结论重新论证 |
 | P3 | 虚拟线程 + JPA 在真实负载下的 P95 | R-041 | 可推迟到 P0 脚手架后测，不必前置 |
 
 纪律：探针代码放 `prototype/<name>` 分支，答案折进真实设计后 prototype 保留为 primary source（v1"探针先行定案"方法论同构）。

@@ -130,3 +130,15 @@ database/snapshots/
 
 # CodeGraph 本地索引缓存（MCP 检索用，机器本地产物不入库）
 .codegraph/
+
+# ===== v2 三线(#2/#3/#4)与探针 =====
+awardie-frontend/node_modules/
+awardie-frontend/dist/
+awardie-frontend/npm-*.log
+awardie-frontend/vite-dev.log
+awardie-backend/target/
+prototype/**/.venv/
+prototype/**/work/
+prototype/**/probe_run.log
+prototype/**/nginx-win/
+.playwright-mcp/
