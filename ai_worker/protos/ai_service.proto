@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package awardie.ai;
+
+// AI Worker 契约(v1 LangGraph 编排 1:1 保留,仅接口层 gRPC 化,N1 非目标)
+// 流式口径与探针 P1 结论一致:server-streaming 走 Nginx 需 grpc_read_timeout>=300s。
+service AiService {
+  // 抽取:文件 → 结构化数据(unary,v1 framework.extract 同步语义)
+  rpc Extract (ExtractRequest) returns (ExtractResponse);
+  // 抽取+审核全链:流式过程事件(node 进度/答案增量)+ 最终审核结论(server-streaming)
+  rpc ExtractAndReview (ExtractRequest) returns (stream WorkflowEvent);
+  // AI 问答(RAG):流式答案增量(server-streaming)
+  rpc Ask (AskRequest) returns (stream AnswerEvent);
+  // 健康探针
+  rpc Health (HealthRequest) returns (HealthResponse);
+}
+
+message ExtractRequest {
+  string file_path = 1;
+  bool use_ocr_cache = 2;
+  bool use_llm_cache = 3;
+  string trace_id = 4;
+}
+
+message ExtractResponse {
+  int32 code = 1;            // 0 成功;4003=AI 不可用(沿 v1 语义);5xxx=内部错误
+  string message = 2;
+  string doc_type = 3;       // award/patent/software/innovation/other/空=未识别
+  string data_json = 4;      // 结构化抽取结果
+  double confidence = 5;
+  string ocr_text = 6;       // 截断至 500 字符(对齐 v1 AgentState 语义)
+  string status = 7;
+  string error_message = 8;
+  string trace_id = 9;
+}
+
+message WorkflowEvent {
+  string trace_id = 10;
+  oneof event {
+    NodeEvent node = 1;      // LangGraph 节点进度(extraction/review/supervisor...)
+    TextDelta delta = 2;     // 答案节点增量(白名单节点,T49 语义)
+    ReviewFinal final = 3;   // 终态:审核结论
+  }
+}
+
+message NodeEvent { string node = 1; }
+
+message TextDelta { string text = 1; }
+
+message ReviewFinal {
+  string decision = 1;          // pass / reject / need_manual
+  string issues_json = 2;       // [{"field","issue","severity"}]
+  string suggestion = 3;        // 自然语言建议
+  string extraction_json = 4;   // {doc_type,data,confidence,ocr_text}
+  int32 code = 5;               // 0 正常;4003=Worker 降级
+  string message = 6;
+  string disclaimer = 7;        // BR-2:AI 建议仅辅助参考
+}
+
+message AskRequest {
+  string question = 1;
+  string trace_id = 2;
+}
+
+message AnswerEvent {
+  string trace_id = 10;
+  oneof event {
+    NodeEvent node = 1;
+    TextDelta delta = 2;
+    AnswerFinal final = 3;
+  }
+}
+
+message AnswerFinal {
+  string answer = 1;
+  string sources_json = 2;      // RAG 检索片段
+  int32 code = 3;
+  string message = 4;
+  string disclaimer = 5;        // BR-2
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool ok = 1;
+  string version = 2;
+  bool langgraph_available = 3;
+}
