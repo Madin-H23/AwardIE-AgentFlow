@@ -4,15 +4,42 @@ import { ElMessage } from 'element-plus'
 
 const API = '/api/v2'
 const submitting = ref(false)
-const form = reactive({
-  competition_name: '',
-  award_level: '省级一等奖',
-  competition_level: 'A类',
-  winner_name: '',
-  supervisor_name: '',
-  certificate_id: '',
-  date: '',
-  project_title: '',
+const achievementType = ref('award')
+const typeOptions = [
+  { value: 'award', label: '奖状' },
+  { value: 'patent', label: '专利' },
+  { value: 'software', label: '软件著作权' },
+  { value: 'innovation', label: '创新创业项目' },
+  { value: 'other', label: '其他' },
+]
+const typeFields: Record<string, Array<{ key: string; label: string }>> = {
+  award: [
+    { key: 'competition_name', label: '竞赛名称' },
+    { key: 'award_level', label: '获奖等级' },
+    { key: 'competition_level', label: '竞赛级别' },
+    { key: 'winner_name', label: '获奖人' },
+    { key: 'supervisor_name', label: '指导教师' },
+    { key: 'certificate_id', label: '证书编号' },
+    { key: 'date', label: '获奖日期(YYYY-MM)' },
+    { key: 'project_title', label: '项目名称' },
+  ],
+  patent: [
+    { key: 'patent_name', label: '专利名称' },
+    { key: 'application_number', label: '申请号(CN 开头)' },
+    { key: 'patent_type', label: '专利类型(发明专利/实用新型/外观设计)' },
+  ],
+  software: [
+    { key: 'software_name', label: '软件名称' },
+    { key: 'registration_number', label: '登记号(11 位,如 2023SR123456)' },
+  ],
+  innovation: [{ key: 'project_name', label: '项目名称' }],
+  other: [{ key: 'title', label: '成果名称' }],
+}
+const form = reactive<Record<string, string>>({
+  competition_name: '', award_level: '省级一等奖', competition_level: 'A类',
+  winner_name: '', supervisor_name: '', certificate_id: '', date: '', project_title: '',
+  patent_name: '', application_number: '', patent_type: '',
+  software_name: '', registration_number: '', title: '',
 })
 const file = ref<File | null>(null)
 const submissions = ref<Array<Record<string, unknown>>>([])
@@ -39,7 +66,7 @@ async function onSubmit() {
   try {
     const fd = new FormData()
     fd.append('file', file.value)
-    fd.append('achievement_type', 'award')
+    fd.append('achievement_type', achievementType.value)
     fd.append('data', JSON.stringify(form))
     const resp = await fetch(`${API}/student/submit`, { method: 'POST', credentials: 'include', body: fd })
     const body = await resp.json()

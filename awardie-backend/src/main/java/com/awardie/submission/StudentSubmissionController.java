@@ -57,7 +57,8 @@ public class StudentSubmissionController {
         return ApiResponse.ok(reviewService.timeline(id));
     }
 
-    public record SubmitResponse(Integer id, String status, boolean isValid, String fileHash) {}
+    public record SubmitResponse(Integer id, String status, boolean isValid, String fileHash,
+            String achievementType, String issues) {}
 
     @PostMapping(value = "/student/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<SubmitResponse> submit(@RequestParam("file") MultipartFile file,
@@ -66,16 +67,20 @@ public class StudentSubmissionController {
             Authentication auth) throws IOException {
         UserEntity user = submissions.requireUser(auth.getName());
         requireRole(auth, "student");
-        if (!"award".equals(achievementType)) {
-            return ApiResponse.error(4000, "P0 纵切面仅开放 award 类型,其余四类在高频扩展阶段");
+        if (!achievementType.matches("award|patent|software|innovation|other")) {
+            return ApiResponse.error(4000, "未知成果类型");
         }
         byte[] bytes = file.getBytes();
         try {
-            SubmissionService.SubmissionResult result = submissions.submitAward(
-                    user.getId(), file.getOriginalFilename(), bytes, data);
+            SubmissionService.SubmissionResult result = submissions.submit(
+                    user.getId(), achievementType, file.getOriginalFilename(), bytes, data);
+            var issues = new java.util.ArrayList<String>();
+            issues.addAll(result.completenessIssues());
+            issues.addAll(result.contentIssues());
             return ApiResponse.ok(new SubmitResponse(result.entity().getId(), result.entity().getStatus(),
                     result.contentIssues().isEmpty() && result.completenessIssues().isEmpty(),
-                    result.entity().getFileHash()),
+                    result.entity().getFileHash(), result.entity().getAchievementType(),
+                    String.join(";", issues)),
                     "提交成功");
         } catch (IllegalArgumentException e) {
             return ApiResponse.error(4000, e.getMessage());

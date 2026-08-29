@@ -179,8 +179,52 @@ class StudentSubmissionTest extends BaseIntegrationTest {
         assertThat(resp.getBody()).contains("student");
     }
 
+    private ResponseEntity<String> submitType(String type, String data) {
+        byte[] tail = String.valueOf(System.nanoTime()).getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = new byte[PNG_BYTES.length + tail.length];
+        System.arraycopy(PNG_BYTES, 0, bytes, 0, PNG_BYTES.length);
+        System.arraycopy(tail, 0, bytes, PNG_BYTES.length, tail.length);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("Cookie", studentCookie());
+        MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+        form.add("file", new ByteArrayResource(bytes) {
+            @Override
+            public String getFilename() {
+                return type + ".png";
+            }
+        });
+        form.add("achievement_type", type);
+        form.add("data", data);
+        return rest.postForEntity("/api/v2/student/submit", new HttpEntity<>(form, headers), String.class);
+    }
+
     @Test
     @Order(9)
+    void fourTypesGeneralized() {
+        assertThat(submitType("patent", "{\"patent_name\":\"一种测试装置\"}").getBody())
+                .contains("\"code\":0").contains("\"achievementType\":\"patent\"");
+        assertThat(submitType("software", "{\"software_name\":\"测试软件\"}").getBody())
+                .contains("\"code\":0");
+        assertThat(submitType("innovation", "{\"project_name\":\"测试大创\"}").getBody())
+                .contains("\"code\":0");
+        assertThat(submitType("other", "{\"title\":\"其他成果\"}").getBody())
+                .contains("\"code\":0");
+    }
+
+    @Test
+    @Order(10)
+    void patentValidationAlignedWithV1() {
+        // CN 前缀 + 类型枚举(v1 _validate_patent_data 语义)
+        assertThat(submitType("patent", "{\"patent_name\":\"X\",\"application_number\":\"US123\",\"patent_type\":\"外观设计X\"}")
+                .getBody()).contains("申请号应以CN开头").contains("专利类型应为");
+        // 软著登记号(v1 _validate_software_data 语义)
+        assertThat(submitType("software", "{\"software_name\":\"Y\",\"registration_number\":\"12345\"}")
+                .getBody()).contains("登记号格式不正确");
+    }
+
+    @Test
+    @Order(11)
     void validationPersistsToGeneratedColumn() {
         // 提交合法数据后,JSONB validation_result → 生成列 is_valid=1(直接 SQL 验证)
         Integer valid = jdbc.queryForObject(

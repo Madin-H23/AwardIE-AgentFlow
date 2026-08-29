@@ -44,24 +44,24 @@ public class SubmissionService {
     public record SubmissionResult(PendingAchievementEntity entity, List<String> contentIssues,
             List<String> completenessIssues) {}
 
+    /** v1 语义泛化(#8):五类成果的字段校验分发,规则对齐 _validate_*_data。 */
     @Transactional
-    public SubmissionResult submitAward(Integer studentId, String filename, byte[] fileBytes, String dataJson)
-            throws java.io.IOException {
+    public SubmissionResult submit(Integer studentId, String achievementType, String filename,
+            byte[] fileBytes, String dataJson) throws java.io.IOException {
         // 1. 文件三校验
         storage.assertAllowed(filename, fileBytes);
 
-        // 2. 字段校验(v1 语义:必填 + date 多格式 + 年份区间)
+        // 2. 字段校验(按类型分发)
         List<String> completeness = new ArrayList<>();
         List<String> content = new ArrayList<>();
         var data = parseData(dataJson);
-        for (String field : AWARD_REQUIRED) {
-            if (isBlank(data, field)) {
-                completeness.add("缺少必填字段: " + field);
-            }
-        }
-        String date = str(data, "date");
-        if (!date.isBlank() && !validDate(date)) {
-            content.add("日期格式不正确,支持格式:YYYY-MM-DD、YYYY-MM、YYYY-M");
+        switch (achievementType) {
+            case "award" -> validateAward(data, completeness, content);
+            case "patent" -> validatePatent(data, completeness, content);
+            case "software" -> validateSoftware(data, completeness, content);
+            case "innovation" -> requireField(data, "project_name", "项目名称不能为空", completeness);
+            case "other" -> requireField(data, "title", "成果名称不能为空", completeness);
+            default -> throw new IllegalArgumentException("未知成果类型: " + achievementType);
         }
         boolean isValid = content.isEmpty() && completeness.isEmpty();
 
@@ -73,7 +73,7 @@ public class SubmissionService {
 
         // 4. 入库
         PendingAchievementEntity e = new PendingAchievementEntity();
-        e.setAchievementType("award");
+        e.setAchievementType(achievementType);
         e.setAchievementData(dataJson == null || dataJson.isBlank() ? "{}" : dataJson);
         e.setValidationResult("{\"is_valid\":" + isValid
                 + ",\"content_issues\":" + toJsonArray(content)
@@ -111,6 +111,50 @@ public class SubmissionService {
 
     public UserEntity requireUser(String loginCode) {
         return users.findByLoginCode(loginCode).orElseThrow(() -> new IllegalStateException("用户不存在"));
+    }
+
+    private static void validateAward(Map<String, Object> data, List<String> completeness, List<String> content) {
+        for (String field : AWARD_REQUIRED) {
+            if (isBlank(data, field)) {
+                completeness.add("缺少必填字段: " + field);
+            }
+        }
+        String date = str(data, "date");
+        if (!date.isBlank() && !validDate(date)) {
+            content.add("日期格式不正确,支持格式:YYYY-MM-DD、YYYY-MM、YYYY-M");
+        }
+    }
+
+    private static void validatePatent(Map<String, Object> data, List<String> completeness, List<String> content) {
+        requireField(data, "patent_name", "专利名称不能为空", completeness);
+        String appNo = str(data, "application_number");
+        if (!appNo.isBlank()) {
+            if (!appNo.startsWith("CN")) {
+                content.add("申请号应以CN开头");
+            }
+            if (appNo.length() < 5) {
+                content.add("申请号格式不正确");
+            }
+        }
+        String ptype = str(data, "patent_type");
+        if (!ptype.isBlank() && !List.of("发明专利", "实用新型", "外观设计").contains(ptype)) {
+            content.add("专利类型应为:发明专利、实用新型或外观设计");
+        }
+    }
+
+    private static void validateSoftware(Map<String, Object> data, List<String> completeness, List<String> content) {
+        requireField(data, "software_name", "软件名称不能为空", completeness);
+        String reg = str(data, "registration_number");
+        if (!reg.isBlank() && (!reg.startsWith("20") || reg.length() != 11)) {
+            content.add("登记号格式不正确,应为11位数字,如2023SR123456");
+        }
+    }
+
+    private static void requireField(Map<String, Object> data, String field, String message,
+            List<String> completeness) {
+        if (isBlank(data, field)) {
+            completeness.add(message);
+        }
     }
 
     private static boolean validDate(String s) {
