@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package probe;
+
+// 探针 P1:gRPC server-streaming 经 Nginx 透传验证
+service Streamer {
+  // 短流:20 个 delta,间隔 200ms(验证缓冲行为)
+  rpc StreamDeltas (StreamReq) returns (stream Delta);
+  // 长 idle 流:3 个 delta,间隔 35s(验证 grpc_read_timeout 断流)
+  rpc StreamSlow (StreamReq) returns (stream Delta);
+}
+
+message StreamReq {
+  int32 count = 1;
+  int32 interval_ms = 2;
+  int32 payload_bytes = 3;
+}
+
+message Delta {
+  int32 seq = 1;
+  string ts = 2;
+  bytes payload = 3;
+}
