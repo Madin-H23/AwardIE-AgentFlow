@@ -8,6 +8,7 @@ const router = createRouter({
     { path: '/change-password', name: 'change-password', component: () => import('../views/ChangePasswordView.vue') },
     { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
     { path: '/submit', name: 'submit', component: () => import('../views/StudentSubmitView.vue') },
+    { path: '/teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue') },
   ],
 })
 

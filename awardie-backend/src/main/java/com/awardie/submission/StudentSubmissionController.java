@@ -29,12 +29,32 @@ public class StudentSubmissionController {
     private final SubmissionService submissions;
     private final PendingAchievementRepository pendingRepo;
     private final FileStorageService storage;
+    private final ReviewService reviewService;
 
     public StudentSubmissionController(SubmissionService submissions, PendingAchievementRepository pendingRepo,
-            FileStorageService storage) {
+            FileStorageService storage, ReviewService reviewService) {
         this.submissions = submissions;
         this.pendingRepo = pendingRepo;
         this.storage = storage;
+        this.reviewService = reviewService;
+    }
+
+    /** 时间线(#11):留痕事件按时间正序;本人/教师/管理员可见。 */
+    @GetMapping("/student/timeline/{id}")
+    public ApiResponse<java.util.List<ReviewService.AuditLog>> timeline(@PathVariable Integer id,
+            Authentication auth) throws IOException {
+        UserEntity user = submissions.requireUser(auth.getName());
+        PendingAchievementEntity e = pendingRepo.findById(id).orElse(null);
+        if (e == null) {
+            return ApiResponse.error(4004, "记录不存在");
+        }
+        boolean owner = user.getId().equals(e.getSubmitterId());
+        boolean staff = user.getRole() != null
+                && (user.getRole().equalsIgnoreCase("teacher") || user.getRole().equalsIgnoreCase("admin"));
+        if (!owner && !staff) {
+            return ApiResponse.error(4030, "无权查看他人时间线");
+        }
+        return ApiResponse.ok(reviewService.timeline(id));
     }
 
     public record SubmitResponse(Integer id, String status, boolean isValid, String fileHash) {}

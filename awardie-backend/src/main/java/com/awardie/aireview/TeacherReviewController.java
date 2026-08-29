@@ -1,6 +1,7 @@
 package com.awardie.aireview;
 
 import java.io.IOException;
+import com.awardie.auth.UserEntity;
 import java.util.List;
 
 import org.springframework.http.MediaType;
@@ -24,11 +25,32 @@ public class TeacherReviewController {
 
     private final PendingAchievementRepository pendingRepo;
     private final AiProxyService ai;
+    private final com.awardie.submission.ReviewService reviewService;
+    private final com.awardie.auth.UserRepository users;
 
-    public TeacherReviewController(PendingAchievementRepository pendingRepo, AiProxyService ai) {
+    public TeacherReviewController(PendingAchievementRepository pendingRepo, AiProxyService ai,
+            com.awardie.submission.ReviewService reviewService, com.awardie.auth.UserRepository users) {
         this.pendingRepo = pendingRepo;
         this.ai = ai;
+        this.reviewService = reviewService;
+        this.users = users;
     }
+
+    /** 审核闭环(#11):批准→archived / 驳回→rejected(BR-5:驳回必须填写原因)。 */
+    @org.springframework.web.bind.annotation.PostMapping("/review/{id}")
+    public ApiResponse<PendingAchievementEntity> review(@PathVariable Integer id,
+            @org.springframework.web.bind.annotation.RequestBody ReviewRequest req, Authentication auth) {
+        requireRole(auth, "teacher");
+        UserEntity operator = users.findByLoginCode(auth.getName()).orElseThrow();
+        PendingAchievementEntity e = switch (req.action()) {
+            case "approve" -> reviewService.approve(id, operator, req.comment());
+            case "reject" -> reviewService.reject(id, operator, req.comment());
+            default -> throw new IllegalArgumentException("action 仅允许 approve/reject");
+        };
+        return ApiResponse.ok(e, "审核完成");
+    }
+
+    public record ReviewRequest(@jakarta.validation.constraints.NotBlank String action, String comment) {}
 
     @GetMapping("/pending")
     public ApiResponse<List<PendingAchievementEntity>> pendingList(Authentication auth) {

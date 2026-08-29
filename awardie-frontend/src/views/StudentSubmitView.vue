@@ -17,8 +17,9 @@ const form = reactive({
 const file = ref<File | null>(null)
 const submissions = ref<any[]>([])
 
-function onFileChange(f: any) {
-  file.value = f.raw ?? f
+function onFileChange(evt: Event) {
+  const target = evt.target as HTMLInputElement
+  file.value = target.files?.[0] ?? null
 }
 
 async function loadMine() {

@@ -31,11 +31,14 @@ public class SubmissionService {
     private final PendingAchievementRepository pendingRepo;
     private final FileStorageService storage;
     private final UserRepository users;
+    private final AuditLogRepository auditRepo;
 
-    public SubmissionService(PendingAchievementRepository pendingRepo, FileStorageService storage, UserRepository users) {
+    public SubmissionService(PendingAchievementRepository pendingRepo, FileStorageService storage,
+            UserRepository users, AuditLogRepository auditRepo) {
         this.pendingRepo = pendingRepo;
         this.storage = storage;
         this.users = users;
+        this.auditRepo = auditRepo;
     }
 
     public record SubmissionResult(PendingAchievementEntity entity, List<String> contentIssues,
@@ -84,6 +87,21 @@ public class SubmissionService {
         e.setFileHash(stored.sha256());
         e.setVersion(1);
         pendingRepo.save(e);
+        // 留痕 action_type=1(提交),v1 ACTION_LABELS 单一真源
+        UserEntity operator = users.findById(Long.valueOf(studentId)).orElse(null);
+        if (operator != null) {
+            AuditLogEntity a = new AuditLogEntity();
+            a.setAchievementId(e.getId());
+            a.setAchievementKind("award");
+            a.setActionType(1);
+            a.setActionResult(1);
+            a.setOperatorId(operator.getId());
+            a.setOperatorCode(operator.getLoginCode());
+            a.setOperatorName(operator.getName());
+            a.setChangeDetail("{\"message\":\"提交成果\"}");
+            a.setCreatedAt(Instant.now());
+            auditRepo.save(a);
+        }
         return new SubmissionResult(e, content, completeness);
     }
 
