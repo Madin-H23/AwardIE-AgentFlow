@@ -158,6 +158,40 @@ class ReviewLoopTest extends BaseIntegrationTest {
     }
 
     @Test
+    @Order(6)
+    void materializeWritesAwardsAndIdempotent() {
+        int id = submitAsStudent();
+        assertThat(review(cookie("02110606"), id, "approve", "通过").getBody()).contains("\"code\":0");
+        // 物化:awards 出现对应行(image_hash=文件 sha),学生关联建立
+        Integer awardId = jdbc.queryForObject(
+                "SELECT a.id FROM awards a JOIN award_student_winners w ON w.award_id=a.id "
+                + "WHERE a.image_hash=(SELECT file_hash FROM pending_achievements WHERE id=?)",
+                Integer.class, id);
+        assertThat(awardId).isNotNull();
+        // 幂等:重复批准不重复入库
+        Integer before = jdbc.queryForObject("SELECT COUNT(*) FROM awards", Integer.class);
+        review(cookie("02110606"), id, "approve", "重复"); // 状态机拒绝,不该有副作用
+        // 直接验证 audit 8 只有一条(入库留痕幂等)
+        Integer m = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM achievement_audit_log WHERE achievement_id=? AND action_type=8",
+                Integer.class, id);
+        assertThat(m).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM awards", Integer.class)).isEqualTo(before);
+    }
+
+    @Test
+    @Order(6)
+    void studentSeesOwnAwards() {
+        int id = submitAsStudent();
+        review(cookie("02110606"), id, "approve", "");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", cookie("212306413"));
+        ResponseEntity<String> resp = rest.exchange("/api/v2/student/awards",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        assertThat(resp.getBody()).contains("闭环测试赛");
+    }
+
+    @Test
     @Order(7)
     void studentCannotReview() {
         int id = submitAsStudent();

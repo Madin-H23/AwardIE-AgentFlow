@@ -30,13 +30,32 @@ public class StudentSubmissionController {
     private final PendingAchievementRepository pendingRepo;
     private final FileStorageService storage;
     private final ReviewService reviewService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public StudentSubmissionController(SubmissionService submissions, PendingAchievementRepository pendingRepo,
-            FileStorageService storage, ReviewService reviewService) {
+            FileStorageService storage, ReviewService reviewService,
+            org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.submissions = submissions;
         this.pendingRepo = pendingRepo;
         this.storage = storage;
         this.reviewService = reviewService;
+        this.jdbc = jdbc;
+    }
+
+    /** 我的成果(#14):批准物化后走 awards 维度(join 获奖关联)。 */
+    @GetMapping("/student/awards")
+    public ApiResponse<java.util.List<java.util.Map<String, Object>>> myAwards(Authentication auth)
+            throws IOException {
+        UserEntity user = submissions.requireUser(auth.getName());
+        var rows = jdbc.queryForList("""
+                SELECT a.id, a.competition_name_in_file AS competition_name, a.award_level,
+                       a.winner_name, a.date, a.created_at
+                FROM awards a
+                JOIN award_student_winners w ON w.award_id = a.id
+                WHERE w.student_id = ?
+                ORDER BY a.id DESC
+                """, user.getId());
+        return ApiResponse.ok(rows);
     }
 
     /** 时间线(#11):留痕事件按时间正序;本人/教师/管理员可见。 */

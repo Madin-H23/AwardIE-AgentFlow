@@ -2,6 +2,7 @@ package com.awardie.submission;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -21,16 +22,19 @@ public class ReviewService {
     public static final int ACTION_SUBMIT = 1;
     public static final int ACTION_APPROVE = 6;
     public static final int ACTION_REJECT = 7;
+    public static final int ACTION_MATERIALIZE = 8;
 
     private final PendingAchievementRepository pendingRepo;
     private final AuditLogRepository auditRepo;
     private final UserRepository users;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public ReviewService(PendingAchievementRepository pendingRepo, AuditLogRepository auditRepo,
-            UserRepository users) {
+            UserRepository users, org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.pendingRepo = pendingRepo;
         this.auditRepo = auditRepo;
         this.users = users;
+        this.jdbc = jdbc;
     }
 
     @Transactional
@@ -41,8 +45,67 @@ public class ReviewService {
         e.setReviewTime(Instant.now());
         e.setReviewComment(comment == null ? "" : comment);
         pendingRepo.save(e);
-        audit(e, operator, ACTION_APPROVE, "{\"message\":\"审核通过\"}" + (comment == null || comment.isBlank() ? "" : "").replace("{", "{"));
+        audit(e, operator, ACTION_APPROVE, jsonDetail("审核通过", comment));
+        materialize(e, operator); // #14:批准即入库(awards 物化)
         return e;
+    }
+
+    /**
+     * #14 物化:pending → awards(成果资产)+ award_student_winners(学生关联)。
+     * 幂等:audit 已有 action_type=8(入库)则跳过;竞赛按名匹配,缺失自动建(is_auto_added,v1 语义)。
+     */
+    @SuppressWarnings("unchecked")
+    private void materialize(PendingAchievementEntity e, UserEntity operator) {
+        Integer done = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM achievement_audit_log WHERE achievement_id=? AND action_type=8",
+                Integer.class, e.getId());
+        if (done != null && done > 0) {
+            return; // 幂等
+        }
+        Map<String, Object> data;
+        try {
+            data = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                    e.getAchievementData() == null ? "{}" : e.getAchievementData(), Map.class);
+        } catch (Exception ex) {
+            throw new IllegalStateException("achievement_data 不是合法 JSON", ex);
+        }
+        // 竞赛按名匹配,缺失自动建(competitions.competition_name 唯一;is_auto_added 沿 v1 语义)
+        String compName = str(data.get("competition_name"));
+        java.util.List<Integer> found = jdbc.queryForList(
+                "SELECT id FROM competitions WHERE competition_name=?", Integer.class, compName);
+        Integer competitionId = found.isEmpty() ? null : found.get(0);
+        if (competitionId == null) {
+            jdbc.update("INSERT INTO competitions (competition_name, is_auto_added) VALUES (?, TRUE)", compName);
+            competitionId = jdbc.queryForObject(
+                    "SELECT id FROM competitions WHERE competition_name=?", Integer.class, compName);
+        }
+        jdbc.update("""
+                INSERT INTO awards (image_hash, certificate_id, competition_name_in_file, track, issuer,
+                    province, group_name, winner_name, supervisor_name, award_level, competition_level,
+                    date, project_title, competition_id, submitter_type, submitter_id, submit_time,
+                    created_at, updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+                """,
+                e.getFileHash(), str(data.get("certificate_id")), compName, str(data.get("track")),
+                str(data.get("issuer")), str(data.get("province")), str(data.get("group_name")),
+                str(data.get("winner_name")), str(data.get("supervisor_name")), str(data.get("award_level")),
+                str(data.get("competition_level")), str(data.get("date")), str(data.get("project_title")),
+                competitionId, e.getSubmitterType(), e.getSubmitterId(),
+                java.sql.Timestamp.from(e.getSubmitTime() == null ? Instant.now() : e.getSubmitTime()),
+                java.sql.Timestamp.from(Instant.now()));
+        Integer awardId = jdbc.queryForObject(
+                "SELECT id FROM awards WHERE image_hash=? ORDER BY id DESC LIMIT 1", Integer.class, e.getFileHash());
+        // 学生获奖关联(submitter 为学生时)
+        if ("student".equals(e.getSubmitterType()) && e.getSubmitterId() != null) {
+            Integer exists = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM award_student_winners WHERE award_id=? AND student_id=?",
+                    Integer.class, awardId, e.getSubmitterId());
+            if (exists != null && exists == 0) {
+                jdbc.update("INSERT INTO award_student_winners (award_id, student_id, created_at) VALUES (?,?,NOW())",
+                        awardId, e.getSubmitterId());
+            }
+        }
+        audit(e, operator, ACTION_MATERIALIZE, jsonDetail("入库", "awards#" + awardId));
     }
 
     @Transactional
@@ -92,6 +155,10 @@ public class ReviewService {
     private String jsonDetail(String message, String comment) {
         String c = comment == null ? "" : comment.replace("\"", "'");
         return "{\"message\":\"" + message + "\",\"comment\":\"" + c + "\"}";
+    }
+
+    private static String str(Object v) {
+        return v == null ? null : String.valueOf(v);
     }
 
     private void audit(PendingAchievementEntity e, UserEntity operator, int actionType, String detail) {
