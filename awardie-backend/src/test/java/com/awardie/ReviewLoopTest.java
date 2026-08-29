@@ -128,7 +128,7 @@ class ReviewLoopTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         headers.set("Cookie", cookie("212306413"));
-        byte[] same = "same-bytes-for-br5".getBytes(StandardCharsets.UTF_8);
+        byte[] same = ("same-bytes-for-br5-" + System.nanoTime()).getBytes(StandardCharsets.UTF_8);
         byte[] head = {(byte) 0x89, 0x50, 0x4E, 0x47};
         byte[] bytes = new byte[head.length + same.length];
         System.arraycopy(head, 0, bytes, 0, head.length);

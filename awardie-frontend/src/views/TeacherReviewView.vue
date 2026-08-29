@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const API = '/api/v2'
-const rows = ref<any[]>([])
+const rows = ref<Array<Record<string, unknown>>>([])
 const aiText = ref('')
 const aiRunning = ref(false)
 const aiId = ref<number | null>(null)
@@ -12,8 +12,8 @@ const rejectId = ref<number | null>(null)
 
 async function load() {
   const resp = await fetch(`${API}/teacher/pending`, { credentials: 'include' })
-  const body = await resp.json()
-  rows.value = body.code === 0 ? body.data : []
+  const body = (await resp.json()) as { code: number; data?: Array<Record<string, unknown>> }
+  rows.value = body.code === 0 ? (body.data ?? []) : []
 }
 onMounted(load)
 

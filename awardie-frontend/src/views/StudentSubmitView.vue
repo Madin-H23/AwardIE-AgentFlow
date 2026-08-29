@@ -15,7 +15,7 @@ const form = reactive({
   project_title: '',
 })
 const file = ref<File | null>(null)
-const submissions = ref<any[]>([])
+const submissions = ref<Array<Record<string, unknown>>>([])
 
 function onFileChange(evt: Event) {
   const target = evt.target as HTMLInputElement
@@ -24,8 +24,8 @@ function onFileChange(evt: Event) {
 
 async function loadMine() {
   const resp = await fetch(`${API}/student/pending`, { credentials: 'include' })
-  const body = await resp.json()
-  submissions.value = body.code === 0 ? body.data : []
+  const body = (await resp.json()) as { code: number; data?: Array<Record<string, unknown>> }
+  submissions.value = body.code === 0 ? (body.data ?? []) : []
 }
 
 onMounted(loadMine)
