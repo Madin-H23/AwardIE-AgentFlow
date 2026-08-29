@@ -1,0 +1,66 @@
+/* ============================================================
+   tokens.css —— v2 前端设计 token
+   继承 v1 console_tokens.css 的亮/暗成对体系与铁律:
+   暗黑禁纯黑/纯白(#141414 / #1f1f1f),AI 紫、severity 五级全保留。
+   Element Plus 变量桥接见文件尾部(--el-* → --*)。
+   ============================================================ */
+
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --line: #e6e8eb;
+  --brand: #1677ff;
+  --brand-hover: #4096ff;
+  --ink: #1f2329;
+  --ink-2: #646a73;
+  --sb-bg: #ffffff;
+  --sb-ink: #2b3440;
+  --sb-hover: rgba(22, 119, 255, .08);
+  --sb-hover-ink: #1677ff;
+  --sb-muted: rgba(43, 52, 64, .5);
+  --sb-muted-strong: rgba(43, 52, 64, .78);
+  --sb-line: #eef0f3;
+  --sb-foot: #f7f8fa;
+  --ok: #0f766e;
+  --ai: #7222d1;
+  --sev-debug: #94a3b8;
+  --sev-info: #2563eb;      --sev-info-bg: #eff6ff;
+  --sev-warning: #d97706;   --sev-warning-bg: #fffbeb;
+  --sev-error: #dc2626;     --sev-error-bg: #fef2f2;
+  --sev-critical: #7f1d1d;  --sev-critical-bg: #fee2e2;
+}
+
+[data-theme='dark'] {
+  --bg: #141414;
+  --panel: #1f1f1f;
+  --line: #303030;
+  --ink: rgba(255, 255, 255, .85);
+  --ink-2: rgba(255, 255, 255, .55);
+  --sb-bg: #141414;
+  --sb-ink: rgba(255, 255, 255, .78);
+  --sb-hover: rgba(255, 255, 255, .08);
+  --sb-hover-ink: #ffffff;
+  --sb-muted: rgba(255, 255, 255, .42);
+  --sb-muted-strong: rgba(255, 255, 255, .78);
+  --sb-line: rgba(255, 255, 255, .1);
+  --sb-foot: #141414;
+  --ai: #a78bfa;
+  --sev-info: #60a5fa;      --sev-info-bg: rgba(37, 99, 235, .15);
+  --sev-warning: #fbbf24;   --sev-warning-bg: rgba(217, 119, 6, .15);
+  --sev-error: #f87171;     --sev-error-bg: rgba(220, 38, 38, .15);
+  --sev-critical: #fca5a5;  --sev-critical-bg: rgba(127, 29, 29, .25);
+}
+
+/* ---------- Element Plus 桥接(亮/暗成对) ---------- */
+:root {
+  --el-color-primary: var(--brand);
+  --el-color-primary-light-3: var(--brand-hover);
+  --el-bg-color: var(--panel);
+  --el-border-color: var(--line);
+  --el-text-color-primary: var(--ink);
+  --el-text-color-regular: var(--ink-2);
+  --el-fill-color-blank: var(--panel);
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+}
