@@ -23,7 +23,7 @@ import org.springframework.util.MultiValueMap;
 /** #11 审核闭环:状态机 pending→archived/rejected + BR-5 + 时间线 RBAC。 */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ReviewLoopTest {
+class ReviewLoopTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate rest;
@@ -71,6 +71,11 @@ class ReviewLoopTest {
                 new HttpEntity<>(Map.of("action", action, "comment", comment == null ? "" : comment),
                         headers),
                 String.class);
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void seedBase() {
+        seedAccounts();
     }
 
     @Test

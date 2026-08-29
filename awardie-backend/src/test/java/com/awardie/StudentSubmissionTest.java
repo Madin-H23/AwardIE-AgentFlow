@@ -22,7 +22,7 @@ import org.springframework.util.MultiValueMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class StudentSubmissionTest {
+class StudentSubmissionTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate rest;
@@ -86,6 +86,11 @@ class StudentSubmissionTest {
         System.arraycopy(PNG_BYTES, 0, out, 0, PNG_BYTES.length);
         System.arraycopy(tail, 0, out, PNG_BYTES.length, tail.length);
         return out;
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void seedBase() {
+        seedAccounts();
     }
 
     @Test

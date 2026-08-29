@@ -1,0 +1,56 @@
+# v2 CI(Ticket #12):Java 测试 + 前端门禁
+# 与 v1 的 ci.yml(Python,main 维护常态)并存;触发 v2 分支
+name: ci-v2
+
+on:
+  push:
+    branches: ['refactor/v2-stack-migration', 'main']
+  pull_request:
+
+jobs:
+  backend-v2:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: awardie_dev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Backend tests (Flyway V1 baseline + fixture self-seeding,32 例)
+        run: mvn -B test
+        working-directory: awardie-backend
+
+  frontend-v2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        run: npm install
+        working-directory: awardie-frontend
+      - name: Lint
+        run: npm run lint
+        working-directory: awardie-frontend
+      - name: Build (vue-tsc + vite)
+        run: npm run build
+        working-directory: awardie-frontend
+
+  # Playwright 三条(tracer 演示主线,脚本已入库 awardie-frontend/e2e/tracer.spec.js)
+  # P1 迁入:需全栈服务编排(Java+PG+前端);等价内容已由 ZCode Playwright 浏览器实测覆盖(2026-08-29)

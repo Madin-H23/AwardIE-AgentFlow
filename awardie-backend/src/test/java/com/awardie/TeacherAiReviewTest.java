@@ -23,7 +23,7 @@ import com.awardie.submission.PendingAchievementEntity;
 
 /** #9:AI 建议(fake 模式确定性行为)+ 教师端点 RBAC + SSE 冒烟。 */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TeacherAiReviewTest {
+class TeacherAiReviewTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate rest;
@@ -57,6 +57,11 @@ class TeacherAiReviewTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Cookie", cookie);
         return rest.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void seedBase() {
+        seedAccounts();
     }
 
     @Test

@@ -26,7 +26,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class LoginAuthTest {
+class LoginAuthTest extends BaseIntegrationTest {
 
     @Autowired
     private TestRestTemplate rest;
@@ -38,6 +38,7 @@ class LoginAuthTest {
 
     @BeforeEach
     void seedFixtures() {
+        seedAccounts();
         jdbc.update("""
                 INSERT INTO users (login_code, name, role, password_hash, user_activated, needs_password_change)
                 SELECT 'v2t_user', '测试用户', 'student', password_hash, TRUE, FALSE FROM users WHERE login_code='admin'
