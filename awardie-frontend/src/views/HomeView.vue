@@ -17,7 +17,14 @@ async function logout() {
     <p v-if="auth.user">
       当前用户:<b>{{ auth.user.name }}</b> · 角色:{{ auth.user.role }} · 学工号:{{ auth.user.id }}
     </p>
-    <p>纵切面链路(提交→AI 审核→时间线)由 T5-T9 逐张接入。</p>
+    <p>
+      纵切面:<el-link
+        type="primary"
+        href="/submit"
+      >
+        提交奖状
+      </el-link>(教师审核与时间线由后续 ticket 接入)
+    </p>
     <el-button
       data-testid="logout"
       @click="logout"
