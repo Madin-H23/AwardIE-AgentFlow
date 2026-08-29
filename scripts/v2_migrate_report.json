@@ -1,0 +1,31 @@
+{
+  "fail": [],
+  "cleaned": [
+    "混型清洗: achievement_audit_log.operator_id 有 3 个非整数值→NULL(保 INTEGER 列型)",
+    "JSON 修复: awards.llm_response 有 1 行非法→NULL 后转 jsonb",
+    "混型清洗: review_logs.reviewer_id 有 435 个非整数值→NULL(保 INTEGER 列型)"
+  ],
+  "info": [
+    "JSON 列: achievement_audit_log.change_detail → jsonb",
+    "JSON 列: action_plans.evidence → jsonb",
+    "JSON 列: action_plans.suggested_actions → jsonb",
+    "JSON 列: awards.validation_result → jsonb",
+    "JSON 列: innovation_projects.other_members → jsonb",
+    "JSON 列: pending_achievements.achievement_data → jsonb",
+    "JSON 列: pending_achievements.validation_result → jsonb",
+    "JSON 列: pending_achievements.llm_response → jsonb",
+    "JSON 列: pending_achievements.ext_info → jsonb",
+    "JSON 列: system_event_log.detail → jsonb",
+    "JSON 列: templates.keywords → jsonb",
+    "JSON 列: templates.sample_extracted → jsonb",
+    "JSON 列: templates.default_fields → jsonb",
+    "JSON 列: templates.llm_fields → jsonb",
+    "awardie-backend\\src\\main\\resources\\db\\migration\\V1__baseline.sql (22721 bytes)",
+    "baseline 执行成功(30 表+索引+生成列+FK)",
+    "装载 9353 行",
+    "30 表行数全部一致",
+    "BLOB md5 一致 (b97acf7bd8)",
+    "生成列 is_valid: 45/45 行非 NULL(45 行中按内容可有 NULL,符合语义)",
+    "生成列逐行与 SQLite 引擎一致"
+  ]
+}
