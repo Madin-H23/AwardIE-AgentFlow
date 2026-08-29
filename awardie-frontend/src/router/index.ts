@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/v2/'),
   routes: [
     { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
     { path: '/change-password', name: 'change-password', component: () => import('../views/ChangePasswordView.vue') },

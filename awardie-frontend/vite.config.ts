@@ -6,6 +6,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // Element Plus 按需引入:AutoImport(api)+ Components(组件)双 resolver
 export default defineConfig({
+  base: '/v2/',
   plugins: [
     vue(),
     AutoImport({ resolvers: [ElementPlusResolver()] }),
