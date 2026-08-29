@@ -1,0 +1,30 @@
+== 影子比对:30 表 ==
+
+一致 10/30 表
+差异表(共存期分叉定位):
+  - achievement_audit_log: 行数 sqlite=1693 pg=1845(共存期分叉或清洗差异)
+  - action_plans: 行数同(1)但内容指纹不同(逐字段有差异)
+  - auto_archive_config: 行数同(8)但内容指纹不同(逐字段有差异)
+  - award_related_students: 行数同(34)但内容指纹不同(逐字段有差异)
+  - award_student_winners: 行数 sqlite=192 pg=196(共存期分叉或清洗差异)
+  - award_teacher_winners: 行数同(24)但内容指纹不同(逐字段有差异)
+  - awards: 行数 sqlite=197 pg=201(共存期分叉或清洗差异)
+  - competitions: 行数 sqlite=130 pg=131(共存期分叉或清洗差异)
+  - failed_logins: 行数同(3)但内容指纹不同(逐字段有差异)
+  - innovation_projects: 行数同(20)但内容指纹不同(逐字段有差异)
+  - laboratories: 行数同(4)但内容指纹不同(逐字段有差异)
+  - laboratory_downloads: 行数同(1)但内容指纹不同(逐字段有差异)
+  - laboratory_images: 行数同(4)但内容指纹不同(逐字段有差异)
+  - other_files: 行数同(1)但内容指纹不同(逐字段有差异)
+  - pending_achievements: 行数 sqlite=45 pg=163(共存期分叉或清洗差异)
+  - review_logs: 行数同(1955)但内容指纹不同(逐字段有差异)
+  - software_copyrights: 行数同(1)但内容指纹不同(逐字段有差异)
+  - system_event_log: 行数 sqlite=1404 pg=1323(共存期分叉或清洗差异)
+  - templates: 行数同(20)但内容指纹不同(逐字段有差异)
+  - users: 行数同(1834)但内容指纹不同(逐字段有差异)
+
+口径说明:
+  - 纵切面域(pending_achievements/awards/achievement_audit_log):v1 冻结后应零分叉;
+    冻结前的新提交分叉为预期(增量补迁覆盖,见窗口切换 runbook)
+  - 长尾域(v1 继续写入):分叉为预期,不属于缺陷
+
