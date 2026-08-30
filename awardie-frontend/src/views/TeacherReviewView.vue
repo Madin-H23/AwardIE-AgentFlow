@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { apiJson } from '../composables/useCsrf'
 
 const API = '/api/v2'
 const rows = ref<Array<Record<string, unknown>>>([])
@@ -53,12 +54,7 @@ function aiSuggest(id: number) {
 
 async function review(id: number, action: string) {
   const comment = action === 'reject' ? rejectComment.value : '同意,材料齐全'
-  const resp = await fetch(`${API}/teacher/review/${id}`, {
-    method: 'POST', credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, comment }),
-  })
-  const body = await resp.json()
+  const body = await apiJson('POST', `${API}/teacher/review/${id}`, { action, comment })
   if (body.code === 0) {
     ElMessage.success(`已${action === 'approve' ? '批准' : '驳回'} #${id}`)
     rejectId.value = null

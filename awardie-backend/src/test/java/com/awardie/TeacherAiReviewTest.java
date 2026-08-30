@@ -32,25 +32,15 @@ class TeacherAiReviewTest extends BaseIntegrationTest {
     private AiProxyService ai;
 
     private String teacherCookie() {
-        return cookieOf(post("/api/v2/auth/login", Map.of("account", "02110606", "password", "P@ss301")));
+        return loginAs("02110606", "P@ss301");
     }
 
     private String studentCookie() {
-        return cookieOf(post("/api/v2/auth/login", Map.of("account", "212306413", "password", "P@ss301")));
+        return loginAs("212306413", "P@ss301");
     }
 
     private String adminCookie() {
-        return cookieOf(post("/api/v2/auth/login", Map.of("account", "admin", "password", "Mayy123")));
-    }
-
-    private ResponseEntity<String> post(String uri, Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return rest.postForEntity(uri, new HttpEntity<>(body, headers), String.class);
-    }
-
-    private String cookieOf(ResponseEntity<String> resp) {
-        return resp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        return loginAs("admin", "Mayy123");
     }
 
     private ResponseEntity<String> get(String uri, String cookie) {
@@ -90,20 +80,9 @@ class TeacherAiReviewTest extends BaseIntegrationTest {
 
     @Test
     void teacherPendingListRequiresTeacherRole() {
-        // 学生 → 403;教师 → 200
+        // 学生 → 403;教师 → 200;admin(超集)→ 200
         assertThat(get("/api/v2/teacher/pending", studentCookie()).getStatusCode().value()).isEqualTo(403);
-        ResponseEntity<String> teacherLogin = post("/api/v2/auth/login",
-                Map.of("account", "02110606", "password", "P@ss301"));
-        System.out.println("[diag] teacher login = " + teacherLogin.getBody()
-                + " hasCookie=" + (teacherLogin.getHeaders().getFirst(HttpHeaders.SET_COOKIE) != null));
-        ResponseEntity<String> teacherList = get("/api/v2/teacher/pending", cookieOf(teacherLogin));
-        System.out.println("[diag] teacher pending = " + teacherList.getBody());
-        assertThat(teacherList.getStatusCode().value()).isEqualTo(200);
-        ResponseEntity<String> adminLogin = post("/api/v2/auth/login",
-                Map.of("account", "admin", "password", "Mayy123"));
-        System.out.println("[diag] admin login = " + adminLogin.getBody());
-        ResponseEntity<String> adminList = get("/api/v2/teacher/pending", cookieOf(adminLogin));
-        System.out.println("[diag] admin list status=" + adminList.getStatusCode().value() + " body=" + adminList.getBody());
-        assertThat(adminList.getStatusCode().value()).isEqualTo(200);
+        assertThat(get("/api/v2/teacher/pending", teacherCookie()).getStatusCode().value()).isEqualTo(200);
+        assertThat(get("/api/v2/teacher/pending", adminCookie()).getStatusCode().value()).isEqualTo(200);
     }
 }

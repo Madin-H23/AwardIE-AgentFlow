@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { ensureCsrf, xsrfToken } from '../composables/useCsrf'
 
 const API = '/api/v2'
 const submitting = ref(false)
@@ -64,11 +65,15 @@ async function onSubmit() {
   }
   submitting.value = true
   try {
+    await ensureCsrf()
     const fd = new FormData()
     fd.append('file', file.value)
     fd.append('achievement_type', achievementType.value)
     fd.append('data', JSON.stringify(form))
-    const resp = await fetch(`${API}/student/submit`, { method: 'POST', credentials: 'include', body: fd })
+    const resp = await fetch(`${API}/student/submit`, {
+      method: 'POST', credentials: 'include', body: fd,
+      headers: { 'X-XSRF-TOKEN': xsrfToken() },
+    })
     const body = await resp.json()
     if (body.code === 0) {
       ElMessage.success(`提交成功(#${body.data.id})${body.data.isValid ? '' : ',存在待人工确认项'}`)

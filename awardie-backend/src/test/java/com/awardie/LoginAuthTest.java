@@ -57,9 +57,7 @@ class LoginAuthTest extends BaseIntegrationTest {
     }
 
     private ResponseEntity<String> post(String uri, Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return rest.postForEntity(uri, new HttpEntity<>(body, headers), String.class);
+        return postJson(uri, body, null); // 匿名 POST:自动带 CSRF
     }
 
     private ResponseEntity<String> getWithSession(String uri, String cookie) {
@@ -140,8 +138,8 @@ class LoginAuthTest extends BaseIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Cookie", cookie);
-        ResponseEntity<String> resp = rest.exchange("/api/v2/auth/password", HttpMethod.POST,
-                new HttpEntity<>(Map.of("oldPassword", "Mayy123", "newPassword", "short1"), headers), String.class);
+        ResponseEntity<String> resp = postJson("/api/v2/auth/password",
+                Map.of("oldPassword", "Mayy123", "newPassword", "short1"), cookie);
         assertThat(resp.getBody()).contains("BR-6");
     }
 
@@ -158,14 +156,14 @@ class LoginAuthTest extends BaseIntegrationTest {
         String cookie = login("v2t_user", "Mayy123").getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
         headers.set("Cookie", cookie);
 
-        // 改密:旧密码错误 → 4012(带会话)
-        ResponseEntity<String> badOld = rest.exchange("/api/v2/auth/password", HttpMethod.POST,
-                new HttpEntity<>(Map.of("oldPassword", "nope", "newPassword", "NewPass123"), headers), String.class);
+        // 改密:旧密码错误 → 4012(带会话+CSRF)
+        ResponseEntity<String> badOld = postJson("/api/v2/auth/password",
+                Map.of("oldPassword", "nope", "newPassword", "NewPass123"), cookie);
         assertThat(badOld.getBody()).contains("\"code\":4012");
 
         // 正确改密 → 新密码可登录、旧密码失效;新哈希仍为 werkzeug scrypt 格式(v1 兼容)
-        ResponseEntity<String> change = rest.exchange("/api/v2/auth/password", HttpMethod.POST,
-                new HttpEntity<>(Map.of("oldPassword", "Mayy123", "newPassword", "NewPass123"), headers), String.class);
+        ResponseEntity<String> change = postJson("/api/v2/auth/password",
+                Map.of("oldPassword", "Mayy123", "newPassword", "NewPass123"), cookie);
         assertThat(change.getBody()).contains("\"code\":0");
         assertThat(jdbc.queryForObject("SELECT password_hash FROM users WHERE login_code='v2t_user'", String.class))
                 .startsWith("scrypt:"); // v1 兼容:改密后 v1 仍可登录该账号
@@ -175,8 +173,8 @@ class LoginAuthTest extends BaseIntegrationTest {
         // v2t_br4 改密后 BR-4 标记清除(重新登录验证)
         String br4Cookie = login("v2t_br4", "Mayy123").getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
         headers.set("Cookie", br4Cookie);
-        ResponseEntity<String> br4Change = rest.exchange("/api/v2/auth/password", HttpMethod.POST,
-                new HttpEntity<>(Map.of("oldPassword", "Mayy123", "newPassword", "NewPass123"), headers), String.class);
+        ResponseEntity<String> br4Change = postJson("/api/v2/auth/password",
+                Map.of("oldPassword", "Mayy123", "newPassword", "NewPass123"), br4Cookie);
         assertThat(br4Change.getBody()).contains("\"code\":0");
         assertThat(login("v2t_br4", "NewPass123").getBody()).contains("\"needsPasswordChange\":false");
     }

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { apiJson } from '../composables/useCsrf'
 
 export interface UserInfo {
   id: number
@@ -32,13 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login(account: string, password: string): Promise<{ ok: boolean; message: string }> {
-    const resp = await fetch('/api/v2/auth/login', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ account, password }),
-    })
-    const body = await resp.json()
+    const body = await apiJson('POST', '/api/v2/auth/login', { account, password })
     if (body.code === 0) {
       user.value = body.data as UserInfo
       loaded.value = true
@@ -48,13 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function changePassword(oldPassword: string, newPassword: string): Promise<{ ok: boolean; message: string }> {
-    const resp = await fetch('/api/v2/auth/password', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    })
-    const body = await resp.json()
+    const body = await apiJson('POST', '/api/v2/auth/password', { oldPassword, newPassword })
     if (body.code === 0 && user.value) {
       user.value.needsPasswordChange = false
     }
@@ -62,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    await fetch('/api/v2/auth/logout', { method: 'POST', credentials: 'include' })
+    await apiJson('POST', '/api/v2/auth/logout')
     user.value = null
     loaded.value = false
   }

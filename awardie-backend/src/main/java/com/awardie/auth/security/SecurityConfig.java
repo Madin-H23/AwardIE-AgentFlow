@@ -34,9 +34,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // TODO(P1):会话 cookie 上线后补 Synchronizer Token(v1 有 CSRF,不可缺位到 P1 之后)
+                // #16:Cookie 方案 CSRF(前端读 XSRF-TOKEN cookie 回传 X-XSRF-TOKEN 头)
+                .csrf(csrf -> {
+                    // 禁用 deferred token(6.1 默认):保证 GET 即落 XSRF cookie
+                    var handler = new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler();
+                    handler.setCsrfRequestAttributeName(null);
+                    csrf.csrfTokenRepository(
+                            org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                            .csrfTokenRequestHandler(handler);
+                })
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v2/auth/login", "/actuator/health").permitAll()
+                        .requestMatchers("/api/v2/auth/login", "/api/v2/auth/csrf", "/actuator/health")
+                        .permitAll()
                         .requestMatchers("/api/v2/**").authenticated()
                         .anyRequest().permitAll()) // 非 /api/v2 路径归 v1/Nginx 分流管
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {

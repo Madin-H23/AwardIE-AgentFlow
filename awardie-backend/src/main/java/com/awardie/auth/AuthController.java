@@ -46,6 +46,19 @@ public class AuthController {
         this.authProvider = authProvider;
     }
 
+    /** CSRF 签发:显式 saveToken(免疫 6.1 deferred 机制),前端读 cookie 回传 header。 */
+    @GetMapping("/csrf")
+    public Map<String, String> csrf(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        var repo = org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse();
+        org.springframework.security.web.csrf.CsrfToken token = (org.springframework.security.web.csrf.CsrfToken) request
+                .getAttribute(org.springframework.security.web.csrf.CsrfToken.class.getName());
+        if (token == null) {
+            token = repo.generateToken(request);
+        }
+        repo.saveToken(token, request, response);
+        return Map.of("headerName", token.getHeaderName(), "token", token.getToken());
+    }
+
     @PostMapping("/login")
     public ApiResponse<Map<String, Object>> login(@RequestBody LoginRequest req, HttpServletRequest request) {
         // 走 DaoAuthenticationProvider:透明重哈希(UserDetailsPasswordService)由此触发,勿手工 matches 绕过

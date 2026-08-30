@@ -31,18 +31,19 @@ class ReviewLoopTest extends BaseIntegrationTest {
     private static final byte[] PNG_BYTES = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 9, 9};
 
     private String cookie(String account) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<String> resp = rest.postForEntity("/api/v2/auth/login",
-                new HttpEntity<>(Map.of("account", account, "password",
-                        account.equals("admin") ? "Mayy123" : "P@ss301"), headers), String.class);
-        return resp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        return loginAs(account, account.equals("admin") ? "Mayy123" : "P@ss301");
+    }
+
+    private String studentCookie() {
+        return cookie("212306413");
     }
 
     private int submitAsStudent() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Cookie", cookie("212306413"));
+        String ck = studentCookie(); // 只调一次:两次调用=两次匿名签发,token 必失配
+        headers.set("Cookie", ck);
+        headers.set("X-XSRF-TOKEN", xsrfFrom(ck));
         byte[] tail = String.valueOf(System.nanoTime()).getBytes(StandardCharsets.UTF_8);
         byte[] bytes = new byte[PNG_BYTES.length + tail.length];
         System.arraycopy(PNG_BYTES, 0, bytes, 0, PNG_BYTES.length);
@@ -64,13 +65,8 @@ class ReviewLoopTest extends BaseIntegrationTest {
     }
 
     private ResponseEntity<String> review(String cookie, int id, String action, String comment) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Cookie", cookie);
-        return rest.exchange("/api/v2/teacher/review/" + id, org.springframework.http.HttpMethod.POST,
-                new HttpEntity<>(Map.of("action", action, "comment", comment == null ? "" : comment),
-                        headers),
-                String.class);
+        return postJson("/api/v2/teacher/review/" + id,
+                Map.of("action", action, "comment", comment == null ? "" : comment), cookie);
     }
 
     @org.junit.jupiter.api.BeforeEach
@@ -125,9 +121,11 @@ class ReviewLoopTest extends BaseIntegrationTest {
         int id = submitAsStudent();
         assertThat(review(cookie("02110606"), id, "reject", "需补指导教师").getBody()).contains("\"code\":0");
         // BR-5:同文件(被驳回行不参与 pending 去重)修改后重新提交 → 新 pending 行
+        String ckBr5 = studentCookie();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Cookie", cookie("212306413"));
+        headers.set("Cookie", ckBr5);
+        headers.set("X-XSRF-TOKEN", xsrfFrom(ckBr5));
         byte[] same = ("same-bytes-for-br5-" + System.nanoTime()).getBytes(StandardCharsets.UTF_8);
         byte[] head = {(byte) 0x89, 0x50, 0x4E, 0x47};
         byte[] bytes = new byte[head.length + same.length];

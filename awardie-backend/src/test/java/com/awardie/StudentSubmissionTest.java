@@ -39,13 +39,11 @@ class StudentSubmissionTest extends BaseIntegrationTest {
     }
 
     private String studentCookie() {
-        ResponseEntity<String> resp = post("/api/v2/auth/login", Map.of("account", "212306413", "password", "P@ss301"));
-        return cookieOf(resp);
+        return loginAs("212306413", "P@ss301");
     }
 
     private String adminCookie() {
-        ResponseEntity<String> resp = post("/api/v2/auth/login", Map.of("account", "admin", "password", "Mayy123"));
-        return cookieOf(resp);
+        return loginAs("admin", "Mayy123");
     }
 
     private String cookieOf(ResponseEntity<String> resp) {
@@ -61,7 +59,8 @@ class StudentSubmissionTest extends BaseIntegrationTest {
     private ResponseEntity<String> submitMultipart(String cookie, String filename, byte[] bytes, String data) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Cookie", cookie);
+        headers.set("Cookie", cookie); // loginAs 串内已含 XSRF-TOKEN
+        headers.set("X-XSRF-TOKEN", xsrfFrom(cookie));
         MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
         form.add("file", new ByteArrayResource(bytes) {
             @Override
@@ -184,9 +183,11 @@ class StudentSubmissionTest extends BaseIntegrationTest {
         byte[] bytes = new byte[PNG_BYTES.length + tail.length];
         System.arraycopy(PNG_BYTES, 0, bytes, 0, PNG_BYTES.length);
         System.arraycopy(tail, 0, bytes, PNG_BYTES.length, tail.length);
+        String ck = studentCookie();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Cookie", studentCookie());
+        headers.set("Cookie", ck);
+        headers.set("X-XSRF-TOKEN", xsrfFrom(ck));
         MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
         form.add("file", new ByteArrayResource(bytes) {
             @Override
