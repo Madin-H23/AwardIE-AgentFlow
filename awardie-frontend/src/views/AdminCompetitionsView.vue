@@ -12,13 +12,20 @@ interface Competition {
   isAutoAdded: boolean
 }
 const rows = ref<Competition[]>([])
+const total = ref(0)
+const page = ref(1)
 const q = ref('')
 const newName = ref('')
 const newWhite = ref(true)
 
 async function load() {
-  const body = await apiJson('GET', `${API}${q.value ? `?q=${encodeURIComponent(q.value)}` : ''}`)
-  if (body.code === 0) rows.value = body.data
+  const qs = new URLSearchParams({ page: String(page.value), size: '20' })
+  if (q.value) qs.set('q', q.value)
+  const body = await apiJson('GET', `${API}?${qs}`)
+  if (body.code === 0) {
+    rows.value = body.data.content
+    total.value = body.data.totalElements
+  }
 }
 onMounted(load)
 
@@ -123,6 +130,14 @@ async function create() {
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        layout="prev, pager, next"
+        :total="total"
+        :page-size="20"
+        :current-page="page"
+        style="margin-top: 12px"
+        @current-change="(p: number) => { page = p; load() }"
+      />
     </el-card>
   </div>
 </template>

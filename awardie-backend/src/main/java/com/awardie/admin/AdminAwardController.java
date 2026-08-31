@@ -1,7 +1,5 @@
 package com.awardie.admin;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -38,26 +36,65 @@ public class AdminAwardController {
         this.users = users;
     }
 
-    /** 列表:分页 + 可选 status 筛选(pending/archived/rejected)+ 可选类型。 */
+    /**
+     * 列表(#26 真分页):Specification 下推全部筛选——status/achievementType 等值,
+     * keyword 对 jsonb 文本模糊(对照 v1 winner_name/supervisor_name 能力),
+     * dateFrom/dateTo(yyyy-MM-dd,上海墙上时间)作用于 submit_time。
+     */
     @GetMapping("/achievements")
     public ApiResponse<Page<PendingAchievementEntity>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String achievementType,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
             Authentication auth) {
         requireAdmin(auth);
-        var spec = pendingRepo.findAll(PageRequest.of(page, Math.min(size, 100), Sort.by(Sort.Direction.DESC, "id")));
-        if ((status == null || status.isBlank()) && (achievementType == null || achievementType.isBlank())) {
-            return ApiResponse.ok(spec);
+        // 日期解析前移(参数校验期抛 IllegalArgumentException→4000),Specification 内不懒解析
+        var zone = java.time.ZoneId.of("Asia/Shanghai");
+        java.time.Instant from = parseDate(dateFrom, zone, false);
+        java.time.Instant to = parseDate(dateTo, zone, true);
+        var spec = pendingAchievementSpec(status, achievementType, keyword, from, to);
+        return ApiResponse.ok(pendingRepo.findAll(spec,
+                PageRequest.of(page, Math.min(size, 100), Sort.by(Sort.Direction.DESC, "id"))));
+    }
+
+    private java.time.Instant parseDate(String raw, java.time.ZoneId zone, boolean endOfDay) {
+        if (raw == null || raw.isBlank()) {
+            return null;
         }
-        // 内存过滤(数据量小;P2 后期如超千行改 Specification)
-        List<PendingAchievementEntity> filtered = spec.getContent().stream()
-                .filter(e -> status == null || status.isBlank() || status.equals(e.getStatus()))
-                .filter(e -> achievementType == null || achievementType.isBlank()
-                        || achievementType.equals(e.getAchievementType()))
-                .toList();
-        return ApiResponse.ok(new org.springframework.data.domain.PageImpl<>(filtered, spec.getPageable(), filtered.size()));
+        try {
+            var d = java.time.LocalDate.parse(raw.trim());
+            return (endOfDay ? d.plusDays(1) : d).atStartOfDay(zone).toInstant();
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException("日期格式须为 yyyy-MM-dd");
+        }
+    }
+
+    private org.springframework.data.jpa.domain.Specification<PendingAchievementEntity> pendingAchievementSpec(
+            String status, String achievementType, String keyword, java.time.Instant from, java.time.Instant to) {
+        return (root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            if (status != null && !status.isBlank()) {
+                predicates.add(cb.equal(root.get("status"), status.trim()));
+            }
+            if (achievementType != null && !achievementType.isBlank()) {
+                predicates.add(cb.equal(root.get("achievementType"), achievementType.trim()));
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                predicates.add(cb.like(root.get("achievementData").as(String.class),
+                        "%" + keyword.trim() + "%"));
+            }
+            if (from != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("submitTime"), from));
+            }
+            if (to != null) {
+                predicates.add(cb.lessThan(root.get("submitTime"), to));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     @GetMapping("/achievements/{id}")

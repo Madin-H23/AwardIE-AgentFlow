@@ -81,4 +81,23 @@ class AdminCompetitionTest extends BaseIntegrationTest {
                 "SELECT COUNT(*) FROM competitions WHERE is_auto_added=TRUE", Integer.class);
         assertThat(autoAdded).isGreaterThanOrEqualTo(1);
     }
+
+    /** #26:列表真分页——q 模糊命中 + PageView 结构(content/totalElements/totalPages/page/size)。 */
+    @Test
+    @Order(4)
+    void listPaginatedPageView() {
+        String name = "E2E分页竞赛-" + System.nanoTime();
+        op("POST", "/api/v2/admin/competitions",
+                Map.of("competitionName", name, "whiteList", true, "watchList", false));
+
+        String hit = op("GET", "/api/v2/admin/competitions?page=1&size=20&q=" + name, null).getBody();
+        assertThat(hit).contains("\"code\":0")
+                .contains("\"content\":[").contains(name)
+                .contains("\"totalElements\":1").contains("\"totalPages\":1")
+                .contains("\"page\":0").contains("\"size\":20");
+
+        // q 无命中 → 空 content
+        String miss = op("GET", "/api/v2/admin/competitions?q=E2E分页绝不存在的竞赛" + System.nanoTime(), null).getBody();
+        assertThat(miss).contains("\"content\":[]").contains("\"totalElements\":0");
+    }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.awardie.common.ApiResponse;
+import com.awardie.common.PageView;
 
 /** 竞赛管理(#20,BR-1 口径源头):CRUD + 白名单/观察名单切换。 */
 @RestController
@@ -31,16 +32,31 @@ public class AdminCompetitionController {
         this.jdbc = jdbc;
     }
 
+    /** 列表(#26 真分页):page 1 基 + size + q 模糊;替换原 LIMIT 200 硬截。 */
     @GetMapping
-    public ApiResponse<List<CompetitionView>> list(Authentication auth, @RequestParam(required = false) String q) {
+    public ApiResponse<PageView<CompetitionView>> list(Authentication auth,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
         requireAdmin(auth);
-        String sql = "SELECT id, competition_name, white_list, watch_list, is_auto_added FROM competitions"
-                + (q == null || q.isBlank() ? " ORDER BY id DESC LIMIT 200" : " WHERE competition_name LIKE ? ORDER BY id DESC LIMIT 200");
-        Object[] args = q == null || q.isBlank() ? new Object[0] : new Object[] {"%" + q + "%"};
-        List<CompetitionView> rows = jdbc.query(sql, (rs, i) -> new CompetitionView(
+        int p = Math.max(page, 1);
+        int s = Math.min(Math.max(size, 1), 100);
+        boolean hasQ = q != null && !q.isBlank();
+        String where = hasQ ? " WHERE competition_name LIKE ?" : "";
+        String countSql = "SELECT COUNT(*) FROM competitions" + where;
+        String listSql = "SELECT id, competition_name, white_list, watch_list, is_auto_added FROM competitions"
+                + where + " ORDER BY id DESC LIMIT ? OFFSET ?";
+        Object[] countArgs = hasQ ? new Object[] {"%" + q + "%"} : new Object[0];
+        Object[] listArgs = hasQ
+                ? new Object[] {"%" + q + "%", s, (long) (p - 1) * s}
+                : new Object[] {s, (long) (p - 1) * s};
+        Integer total = jdbc.queryForObject(countSql, Integer.class, countArgs);
+        long totalElements = total == null ? 0 : total;
+        var rows = jdbc.query(listSql, (rs, i) -> new CompetitionView(
                 rs.getInt("id"), rs.getString("competition_name"),
-                rs.getBoolean("white_list"), rs.getBoolean("watch_list"), rs.getBoolean("is_auto_added")), args);
-        return ApiResponse.ok(rows);
+                rs.getBoolean("white_list"), rs.getBoolean("watch_list"), rs.getBoolean("is_auto_added")), listArgs);
+        int totalPages = totalElements == 0 ? 0 : (int) ((totalElements + s - 1) / s);
+        return ApiResponse.ok(new PageView<>(rows, totalElements, totalPages, p - 1, s));
     }
 
     @PostMapping

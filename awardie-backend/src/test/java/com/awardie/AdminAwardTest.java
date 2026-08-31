@@ -177,4 +177,39 @@ class AdminAwardTest extends BaseIntegrationTest {
         assertThat(get("/api/v2/admin/achievements", loginAs("212306413", "P@ss301")).getStatusCode().value())
                 .isEqualTo(403);
     }
+
+    /** #26:Specification 真分页——keyword 命中 jsonb 文本、时间窗外过滤、type 组合。 */
+    @Test
+    @Order(5)
+    void adminListSpecFilters() {
+        String marker = "规格测试" + System.nanoTime();
+        int id = submitType("award", "{\"competition_name\":\"" + marker + "\",\"award_level\":\"二等奖\","
+                + "\"winner_name\":\"规格学生\",\"date\":\"2026-03\"}");
+
+        // keyword 命中(藏在 jsonb achievementData 里)
+        String hit = get("/api/v2/admin/achievements?keyword=" + marker + "&size=50", cookie("admin")).getBody();
+        assertThat(hit).contains("\"code\":0").contains("\"id\":" + id).contains(marker);
+
+        // keyword 无命中
+        assertThat(get("/api/v2/admin/achievements?keyword=规格测试绝不存在的词" + System.nanoTime(),
+                cookie("admin")).getBody()).doesNotContain(marker);
+
+        // 时间窗外(dateFrom=明天)不出现
+        String tomorrow = java.time.LocalDate.now().plusDays(1).toString();
+        assertThat(get("/api/v2/admin/achievements?keyword=" + marker + "&dateFrom=" + tomorrow,
+                cookie("admin")).getBody()).doesNotContain("\"id\":" + id);
+
+        // 时间窗内(dateFrom=今天)命中
+        String today = java.time.LocalDate.now().toString();
+        assertThat(get("/api/v2/admin/achievements?keyword=" + marker + "&dateFrom=" + today,
+                cookie("admin")).getBody()).contains("\"id\":" + id);
+
+        // 非法日期 → 4000
+        assertThat(get("/api/v2/admin/achievements?dateFrom=2026/01/01", cookie("admin")).getBody())
+                .contains("\"code\":4000");
+
+        // 分页语义:size=1 时 content 只有一条且 totalElements>=1
+        String paged = get("/api/v2/admin/achievements?keyword=" + marker + "&size=1", cookie("admin")).getBody();
+        assertThat(paged).contains("\"size\":1").contains("\"totalPages\":1");
+    }
 }

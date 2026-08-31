@@ -108,10 +108,22 @@ public class StudentSubmissionController {
         }
     }
 
+    /** 我的提交(#26):默认全量(tracer/时间线兼容);带 page/size 时分页(单用户量小)。 */
     @GetMapping("/student/pending")
-    public ApiResponse<java.util.List<PendingAchievementEntity>> myPending(Authentication auth) {
+    public ApiResponse<Object> myPending(Authentication auth,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         UserEntity user = submissions.requireUser(auth.getName());
-        return ApiResponse.ok(submissions.mySubmissions(user.getId()));
+        var all = submissions.mySubmissions(user.getId());
+        if (page == null && size == null) {
+            return ApiResponse.ok(all);
+        }
+        int p = Math.max(page == null ? 0 : page, 0);
+        int s = Math.min(Math.max(size == null ? 20 : size, 1), 100);
+        int from = Math.min(p * s, all.size());
+        int to = Math.min(from + s, all.size());
+        int totalPages = all.isEmpty() ? 0 : (all.size() + s - 1) / s;
+        return ApiResponse.ok(new com.awardie.common.PageView<>(all.subList(from, to), all.size(), totalPages, p, s));
     }
 
     /** BR-7:下载一律 attachment;本人或教师/管理员可下载。 */
