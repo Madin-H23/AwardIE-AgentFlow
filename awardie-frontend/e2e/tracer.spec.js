@@ -11,7 +11,7 @@ test('学生登录 v1 原口令', async ({ page }) => {
   await page.getByTestId('login-account').fill('212306413')
   await page.getByTestId('login-password').fill('P@ss301')
   await page.getByTestId('login-submit').click()
-  await expect(page.locator('.home')).toContainText('陈品天') // 学号在 .home 不展示,断言姓名(本地存量;CI 自举库用 seedAccounts 同学号)
+  await expect(page.locator('.home')).toContainText('student') // 环境×数据无关:本地存量与 CI 自举均为 student 角色
 })
 
 async function loginAsStudent(page) {
