@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ensureCsrf, xsrfToken } from '../composables/useCsrf'
+import { ensureCsrf, xsrfToken, apiJson } from '../composables/useCsrf'
 
 const API = '/api/v2'
 const submitting = ref(false)
@@ -44,6 +44,16 @@ const form = reactive<Record<string, string>>({
 })
 const file = ref<File | null>(null)
 const submissions = ref<Array<Record<string, unknown>>>([])
+const myAwards = ref<Array<Record<string, unknown>>>([])
+
+// 时间线(#11 UI 补齐)
+const timelineVisible = ref(false)
+const timelineFor = ref<number | null>(null)
+const timeline = ref<Array<Record<string, unknown>>>([])
+const ACTION_LABELS: Record<number, string> = {
+  1: '提交', 2: 'AI 审核', 3: 'AI 通过', 4: 'AI 驳回', 5: '教师复核',
+  6: '审核通过', 7: '驳回打回', 8: '入库', 9: '修改字段', 10: '删除/放弃',
+}
 
 function onFileChange(evt: Event) {
   const target = evt.target as HTMLInputElement
@@ -56,7 +66,23 @@ async function loadMine() {
   submissions.value = body.code === 0 ? (body.data ?? []) : []
 }
 
-onMounted(loadMine)
+async function loadAwards() {
+  const body = await apiJson('GET', `${API}/student/awards`)
+  myAwards.value = body.code === 0 ? (body.data ?? []) : []
+}
+
+async function openTimeline(id: number) {
+  const body = await apiJson('GET', `${API}/student/timeline/${id}`)
+  if (body.code === 0) {
+    timeline.value = body.data
+    timelineFor.value = id
+    timelineVisible.value = true
+  } else {
+    ElMessage.error(body.message)
+  }
+}
+
+onMounted(() => { loadMine(); loadAwards() })
 
 async function onSubmit() {
   if (!file.value) {
@@ -149,10 +175,23 @@ async function onSubmit() {
         />
         <el-table-column
           label="文件"
-          width="110"
+          width="80"
         >
           <template #default="scope">
             <a :href="`${API}/files/${scope.row.id}/download`">下载</a>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="时间线"
+          width="90"
+        >
+          <template #default="scope">
+            <el-button
+              size="small"
+              @click="openTimeline(scope.row.id)"
+            >
+              查看
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -160,7 +199,68 @@ async function onSubmit() {
           label="提交时间"
         />
       </el-table>
+
+      <h2 style="margin-top: 20px">
+        我的成果(已入库)
+      </h2>
+      <el-table
+        :data="myAwards"
+        size="small"
+      >
+        <el-table-column
+          prop="id"
+          label="#"
+          width="70"
+        />
+        <el-table-column
+          prop="competition_name"
+          label="竞赛"
+        />
+        <el-table-column
+          prop="award_level"
+          label="等级"
+          width="120"
+        />
+        <el-table-column
+          prop="winner_name"
+          label="获奖人"
+          width="100"
+        />
+        <el-table-column
+          prop="date"
+          label="日期"
+          width="100"
+        />
+      </el-table>
     </el-card>
+
+    <el-dialog
+      v-model="timelineVisible"
+      :title="`时间线 #${timelineFor ?? ''}`"
+      width="480px"
+    >
+      <el-timeline v-if="timeline.length">
+        <el-timeline-item
+          v-for="(ev, i) in timeline"
+          :key="i"
+          :timestamp="String(ev.createdAt ?? '')"
+        >
+          <b>[{{ ACTION_LABELS[Number(ev.actionType)] ?? ev.actionType }}]</b>
+          {{ ev.changeDetail && String(ev.changeDetail).includes('"message"')
+            ? JSON.parse(String(ev.changeDetail)).message : ev.changeDetail }}
+          <span class="op">{{ ev.operatorName ? `(${ev.operatorName})` : '' }}</span>
+        </el-timeline-item>
+      </el-timeline>
+      <el-empty
+        v-else
+        description="暂无留痕记录(该行创建于留痕功能上线前)"
+      />
+      <template #footer>
+        <el-button @click="timelineVisible = false">
+          关闭
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -168,4 +268,5 @@ async function onSubmit() {
 .submit-page { display: flex; gap: 16px; max-width: 1100px; margin: 24px auto; }
 .pane { flex: 1; background: var(--panel); }
 h2 { margin-top: 0; color: var(--ink); }
+.op { color: var(--ink-2); font-size: 12px; }
 </style>
