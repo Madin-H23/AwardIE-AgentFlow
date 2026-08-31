@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { apiJson } from '../composables/useCsrf'
 
 // #35 师生门户壳(对照 v1 user_base.html:顶部固定导航+内容区;区别于 admin 的 Console 侧边栏)。
 // v1 师生主色 orange;导航项按角色:仪表板/成果展示/成果提交/[教师:成果审核]/AI 助手/个人资料。
@@ -33,8 +32,6 @@ const navItems = computed<NavItem[]>(() => {
     { path: '/profile', label: '个人资料' },
   ]
 })
-
-const activePath = computed(() => '/' + route.path.replace(/^\//, ''))
 
 function isActive(item: NavItem): boolean {
   return route.path === item.path || route.path.startsWith(item.path + '/')
