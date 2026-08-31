@@ -123,7 +123,8 @@ test('数据分析三tab渲染', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '数据分析与导出' })).toBeVisible()
   await expect(page.locator('.el-tabs__item', { hasText: '竞赛分析' })).toBeVisible()
   await page.locator('.el-tabs__item', { hasText: '竞赛分析' }).click()
-  await expect(page.locator('.year-tags')).toBeVisible()
+  // CI 空库年份池为空(year-tags 零高度),断言恒在的筛选面板
+  await expect(page.locator('.filter-panel')).toBeVisible({ timeout: 10_000 })
 })
 
 test('数据导出页渲染', async ({ page }) => {
