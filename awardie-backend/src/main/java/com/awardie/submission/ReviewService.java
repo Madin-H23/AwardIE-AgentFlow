@@ -69,16 +69,33 @@ public class ReviewService {
         } catch (Exception ex) {
             throw new IllegalStateException("achievement_data 不是合法 JSON", ex);
         }
-        // 竞赛按名匹配,缺失自动建(competitions.competition_name 唯一;is_auto_added 沿 v1 语义)
-        String compName = str(data.get("competition_name"));
+        // #19:按类型分发物化到各自资产表(v1 五表结构);空串转 NULL 避免撞 UNIQUE 约束
+        String ref = switch (e.getAchievementType()) {
+            case "award" -> materializeAward(e, data);
+            case "patent" -> materializePatent(e, data);
+            case "software" -> materializeSoftware(e, data);
+            case "innovation" -> "skipped"; // v1 语义:innovation_projects 限 admin(Excel 导入通道),学生归档不物化
+            case "other" -> materializeOther(e, data);
+            default -> throw new IllegalStateException("未知类型不可物化: " + e.getAchievementType());
+        };
+        audit(e, operator, ACTION_MATERIALIZE, jsonDetail("入库", ref));
+    }
+
+    /** 竞赛按名匹配,缺失自动建;返回 competition_id。 */
+    private Integer resolveCompetition(String compName) {
         java.util.List<Integer> found = jdbc.queryForList(
                 "SELECT id FROM competitions WHERE competition_name=?", Integer.class, compName);
-        Integer competitionId = found.isEmpty() ? null : found.get(0);
-        if (competitionId == null) {
-            jdbc.update("INSERT INTO competitions (competition_name, is_auto_added) VALUES (?, TRUE)", compName);
-            competitionId = jdbc.queryForObject(
-                    "SELECT id FROM competitions WHERE competition_name=?", Integer.class, compName);
+        if (!found.isEmpty()) {
+            return found.get(0);
         }
+        jdbc.update("INSERT INTO competitions (competition_name, is_auto_added) VALUES (?, TRUE)", compName);
+        return jdbc.queryForList("SELECT id FROM competitions WHERE competition_name=?",
+                Integer.class, compName).get(0);
+    }
+
+    private String materializeAward(PendingAchievementEntity e, Map<String, Object> data) {
+        String compName = str(data.get("competition_name"));
+        Integer competitionId = resolveCompetition(compName);
         jdbc.update("""
                 INSERT INTO awards (image_hash, certificate_id, competition_name_in_file, track, issuer,
                     province, group_name, winner_name, supervisor_name, award_level, competition_level,
@@ -91,8 +108,7 @@ public class ReviewService {
                 str(data.get("winner_name")), str(data.get("supervisor_name")), str(data.get("award_level")),
                 str(data.get("competition_level")), str(data.get("date")), str(data.get("project_title")),
                 competitionId, e.getSubmitterType(), e.getSubmitterId(),
-                java.sql.Timestamp.from(e.getSubmitTime() == null ? Instant.now() : e.getSubmitTime()),
-                java.sql.Timestamp.from(Instant.now()));
+                ts(e.getSubmitTime()), ts(Instant.now()));
         Integer awardId = jdbc.queryForObject(
                 "SELECT id FROM awards WHERE image_hash=? ORDER BY id DESC LIMIT 1", Integer.class, e.getFileHash());
         // 学生获奖关联(submitter 为学生时)
@@ -105,7 +121,53 @@ public class ReviewService {
                         awardId, e.getSubmitterId());
             }
         }
-        audit(e, operator, ACTION_MATERIALIZE, jsonDetail("入库", "awards#" + awardId));
+        return "awards#" + awardId;
+    }
+
+    private String materializePatent(PendingAchievementEntity e, Map<String, Object> data) {
+        jdbc.update("""
+                INSERT INTO patents (patent_name, patent_type, application_number, inventor, patentee,
+                    certificate_file, submitter_type, submitter_id, created_at, updated_at)
+                VALUES (?,?,?,?,?,?,?,?,NOW(),NOW())
+                """,
+                str(data.get("patent_name")), str(data.get("patent_type")),
+                nullable(str(data.get("application_number"))), str(data.get("inventor")),
+                str(data.get("patentee")), e.getFilePath(),
+                e.getSubmitterType(), e.getSubmitterId());
+        return "patents#" + jdbc.queryForObject("SELECT MAX(id) FROM patents", Integer.class);
+    }
+
+    private String materializeSoftware(PendingAchievementEntity e, Map<String, Object> data) {
+        jdbc.update("""
+                INSERT INTO software_copyrights (software_name, software_version, registration_number,
+                    copyright_owner, certificate_file, submitter_type, submitter_id, submit_time,
+                    created_at, updated_at)
+                VALUES (?,?,?,?,?,?,?,?,NOW(),NOW())
+                """,
+                str(data.get("software_name")), str(data.get("software_version")),
+                nullable(str(data.get("registration_number"))), str(data.get("copyright_owner")),
+                e.getFilePath(), e.getSubmitterType(), e.getSubmitterId(), ts(Instant.now()));
+        return "software_copyrights#" + jdbc.queryForObject(
+                "SELECT MAX(id) FROM software_copyrights", Integer.class);
+    }
+
+    private String materializeOther(PendingAchievementEntity e, Map<String, Object> data) {
+        jdbc.update("""
+                INSERT INTO other_files (file_name, file_path, file_hash, description,
+                    submitter_type, submitter_id, submit_time, created_at)
+                VALUES (?,?,?,?,?,?,?,NOW())
+                """,
+                str(data.get("title")), e.getFilePath(), e.getFileHash(),
+                str(data.get("title")), e.getSubmitterType(), e.getSubmitterId(), ts(Instant.now())); // description 回填 title(v1 语义:成果名即描述)
+        return "other_files#" + jdbc.queryForObject("SELECT MAX(id) FROM other_files", Integer.class);
+    }
+
+    private static String nullable(String v) {
+        return v == null || v.isBlank() ? null : v; // 空串撞 UNIQUE 约束,统一转 NULL
+    }
+
+    private static java.sql.Timestamp ts(Instant t) {
+        return java.sql.Timestamp.from(t);
     }
 
     @Transactional
