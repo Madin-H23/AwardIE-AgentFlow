@@ -65,6 +65,16 @@
   color-scheme: dark;
 }
 
+/* ---------- 师生门户主题(#35,对照 v1 user_base.html:学生 orange 体系) ---------- */
+:root {
+  --portal-accent: #f97316;
+  --portal-accent-hover: #fb923c;
+}
+[data-theme='dark'] {
+  --portal-accent: #fb923c;
+  --portal-accent-hover: #fdba74;
+}
+
 /* ============================================================
    控制台骨架(#25 Console Shell,对照 v1 console_tokens.css L56-153)
    侧边栏 240px 固定 + 顶栏 52px + 内容区;选择器挂 .console-shell 零污染。

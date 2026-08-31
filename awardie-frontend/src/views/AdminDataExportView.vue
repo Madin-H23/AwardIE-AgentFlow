@@ -30,7 +30,10 @@ function exportSummary() {
     </div>
 
     <el-tabs model-value="summary">
-      <el-tab-pane label="系年度总结" name="summary">
+      <el-tab-pane
+        label="系年度总结"
+        name="summary"
+      >
         <div class="c-panel pad">
           <div class="form-row">
             <span class="label">年份</span>
@@ -65,7 +68,10 @@ function exportSummary() {
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="学生事务" name="student">
+      <el-tab-pane
+        label="学生事务"
+        name="student"
+      >
         <div class="c-panel pad">
           <p class="hint">
             导出全部学生获奖明细(学号/姓名/竞赛/获奖等级/年份)。
@@ -80,7 +86,10 @@ function exportSummary() {
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="教师个人" name="teacher">
+      <el-tab-pane
+        label="教师个人"
+        name="teacher"
+      >
         <div class="c-panel pad">
           <p class="hint">
             导出教师指导获奖明细(工号/姓名/竞赛/获奖等级/年份)。

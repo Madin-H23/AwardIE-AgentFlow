@@ -11,7 +11,7 @@ test('学生登录 v1 原口令', async ({ page }) => {
   await page.getByTestId('login-account').fill('212306413')
   await page.getByTestId('login-password').fill('P@ss301')
   await page.getByTestId('login-submit').click()
-  await expect(page.locator('.home')).toContainText('student') // 环境×数据无关:本地存量与 CI 自举均为 student 角色
+  await expect(page.locator('.portal-nav')).toBeVisible() // 学生落门户仪表板(#35);环境×数据无关
 })
 
 async function loginAsStudent(page) {
@@ -19,7 +19,7 @@ async function loginAsStudent(page) {
   await page.getByTestId('login-account').fill('212306413')
   await page.getByTestId('login-password').fill('P@ss301')
   await page.getByTestId('login-submit').click()
-  await expect(page.locator('.home')).toBeVisible() // 登录完成的唯一可靠信号
+  await expect(page.locator('.portal-nav')).toBeVisible() // 登录完成信号(学生落门户,#35)
 }
 
 test('提交奖状并出现在列表', async ({ page }) => {

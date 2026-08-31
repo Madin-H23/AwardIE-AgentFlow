@@ -74,8 +74,13 @@ async function confirmImport() {
       <h1>成果/文件导入</h1>
     </div>
 
-    <div class="c-panel pad" style="margin-bottom: 14px">
-      <h3 class="blk-title">大创项目 xlsx 导入(v1 真语义:大创走 admin 导入通道)</h3>
+    <div
+      class="c-panel pad"
+      style="margin-bottom: 14px"
+    >
+      <h3 class="blk-title">
+        大创项目 xlsx 导入(v1 真语义:大创走 admin 导入通道)
+      </h3>
       <p class="hint">
         列序:项目编号 | 项目名称 | 项目类型(国家级/省级/院级) | 起始日期 | 结束日期 | 负责人姓名 | 负责人学号 | 其他成员(顿号分隔) | 指导教师 | 经费(万元)。首行为表头;编号重复的行自动跳过(幂等)。
       </p>
@@ -86,27 +91,87 @@ async function confirmImport() {
         :show-file-list="false"
         :on-change="(f: any) => onFileChange(f.raw)"
       >
-        <el-icon :size="34" style="color: var(--brand)"><UploadFilled /></el-icon>
-        <div class="el-upload__text">拖拽 xlsx 到此处,或<em>点击选择文件</em></div>
+        <el-icon
+          :size="34"
+          style="color: var(--brand)"
+        >
+          <UploadFilled />
+        </el-icon>
+        <div class="el-upload__text">
+          拖拽 xlsx 到此处,或<em>点击选择文件</em>
+        </div>
       </el-upload>
-      <p v-if="fileName" class="hint" style="margin-top: 8px">
+      <p
+        v-if="fileName"
+        class="hint"
+        style="margin-top: 8px"
+      >
         已解析:{{ fileName }}({{ rows.length }} 行)
       </p>
     </div>
 
-    <div v-if="rows.length" class="c-panel pad" style="margin-bottom: 14px">
-      <h3 class="blk-title">解析预览</h3>
-      <el-table :data="rows" size="small" max-height="360">
-        <el-table-column prop="rowNo" label="行" width="60" />
-        <el-table-column prop="projectNo" label="项目编号" width="130" />
-        <el-table-column prop="projectName" label="项目名称" min-width="200" />
-        <el-table-column prop="projectType" label="类型" width="90" />
-        <el-table-column prop="leaderName" label="负责人" width="100" />
-        <el-table-column prop="supervisors" label="指导教师" width="140" />
-        <el-table-column label="校验" width="200">
+    <div
+      v-if="rows.length"
+      class="c-panel pad"
+      style="margin-bottom: 14px"
+    >
+      <h3 class="blk-title">
+        解析预览
+      </h3>
+      <el-table
+        :data="rows"
+        size="small"
+        max-height="360"
+      >
+        <el-table-column
+          prop="rowNo"
+          label="行"
+          width="60"
+        />
+        <el-table-column
+          prop="projectNo"
+          label="项目编号"
+          width="130"
+        />
+        <el-table-column
+          prop="projectName"
+          label="项目名称"
+          min-width="200"
+        />
+        <el-table-column
+          prop="projectType"
+          label="类型"
+          width="90"
+        />
+        <el-table-column
+          prop="leaderName"
+          label="负责人"
+          width="100"
+        />
+        <el-table-column
+          prop="supervisors"
+          label="指导教师"
+          width="140"
+        />
+        <el-table-column
+          label="校验"
+          width="200"
+        >
           <template #default="scope">
-            <el-tag v-if="scope.row.error" type="danger" size="small">{{ scope.row.error }}</el-tag>
-            <el-tag v-else type="success" size="small">通过</el-tag>
+            <el-tag
+              v-if="scope.row.error"
+              type="danger"
+              size="small"
+            >
+              {{ scope.row.error }}
+            </el-tag>
+            <el-tag
+              v-else
+              type="success"
+              size="small"
+            >
+              通过
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -121,13 +186,23 @@ async function confirmImport() {
       </el-button>
     </div>
 
-    <div v-if="result" class="c-panel pad">
-      <h3 class="blk-title">导入结果</h3>
+    <div
+      v-if="result"
+      class="c-panel pad"
+    >
+      <h3 class="blk-title">
+        导入结果
+      </h3>
       <p class="hint">
         成功 {{ result.imported }} 行 · 跳过 {{ result.skipped }} 行 · 失败 {{ result.errors.length }} 行
       </p>
       <ul class="err-list">
-        <li v-for="e in result.errors" :key="e">{{ e }}</li>
+        <li
+          v-for="e in result.errors"
+          :key="e"
+        >
+          {{ e }}
+        </li>
       </ul>
     </div>
   </div>

@@ -61,23 +61,35 @@ onMounted(load)
     </div>
 
     <el-tabs v-model="activeTab">
-      <el-tab-pane label="通用设置" name="general">
+      <el-tab-pane
+        label="通用设置"
+        name="general"
+      >
         <div class="c-panel pad info-card">
-          <h3 class="blk-title">系统默认密码</h3>
+          <h3 class="blk-title">
+            系统默认密码
+          </h3>
           <p>
             新建账号的默认口令与口令重置属<b>部署配置</b>(v2 由 application.yml / 环境变量管理),不在页面修改;
             兼容约束见 ADR-0002(v2 恒产 werkzeug scrypt 格式,v1/v2 双登录)。
           </p>
-          <h3 class="blk-title">缓存清理</h3>
+          <h3 class="blk-title">
+            缓存清理
+          </h3>
           <p>
             v2 纵切面暂无 OCR/抽取缓存表,该分区随对应功能迁移后开放。
           </p>
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="供应商设置" name="providers">
+      <el-tab-pane
+        label="供应商设置"
+        name="providers"
+      >
         <div class="c-panel pad info-card">
-          <h3 class="blk-title">OCR / LLM 供应商</h3>
+          <h3 class="blk-title">
+            OCR / LLM 供应商
+          </h3>
           <p>
             供应商与密钥属<b>外部化配置</b>(AI Worker 侧环境变量;Java 经 ai.worker.mode=gRPC 接入),页面不展示密钥明文。
             当前模式可在登录后由 /actuator/info 与部署清单核对。
@@ -85,7 +97,10 @@ onMounted(load)
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="自动归档" name="archive">
+      <el-tab-pane
+        label="自动归档"
+        name="archive"
+      >
         <div class="c-panel pad">
           <p class="hint">
             学生提交自动归档开关:开启后对应类型×校验状态的提交免人工审核直接入库(仅学生提交生效;v1 真语义:大创走 admin 导入通道)。
@@ -95,12 +110,18 @@ onMounted(load)
             :data="MATRIX"
             size="default"
           >
-            <el-table-column label="成果类型" width="140">
+            <el-table-column
+              label="成果类型"
+              width="140"
+            >
               <template #default="scope">
                 {{ TYPE_LABELS[scope.row.type] }}
               </template>
             </el-table-column>
-            <el-table-column label="校验状态" width="140">
+            <el-table-column
+              label="校验状态"
+              width="140"
+            >
               <template #default="scope">
                 {{ scope.row.status ? (scope.row.status === 'valid' ? '校验通过' : '校验存疑') : '不区分' }}
               </template>

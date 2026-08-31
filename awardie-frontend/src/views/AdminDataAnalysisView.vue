@@ -216,38 +216,77 @@ onBeforeUnmount(() => {
 
     <el-tabs v-model="activeTab">
       <!-- Tab1 竞赛信息 -->
-      <el-tab-pane label="竞赛信息" name="tab1">
-        <div class="c-panel pad" style="margin-bottom: 14px">
-          <h3 class="blk-title">竞赛获奖体量(前 15)</h3>
-          <div ref="t1ChartEl" style="height: 400px" />
+      <el-tab-pane
+        label="竞赛信息"
+        name="tab1"
+      >
+        <div
+          class="c-panel pad"
+          style="margin-bottom: 14px"
+        >
+          <h3 class="blk-title">
+            竞赛获奖体量(前 15)
+          </h3>
+          <div
+            ref="t1ChartEl"
+            style="height: 400px"
+          />
         </div>
         <div class="c-panel pad">
-          <el-table :data="comps" size="small">
-            <el-table-column prop="name" label="竞赛名称" min-width="260" />
-            <el-table-column label="时间范围" width="150">
+          <el-table
+            :data="comps"
+            size="small"
+          >
+            <el-table-column
+              prop="name"
+              label="竞赛名称"
+              min-width="260"
+            />
+            <el-table-column
+              label="时间范围"
+              width="150"
+            >
               <template #default="scope">
                 {{ scope.row.timeRaw || '-' }}
               </template>
             </el-table-column>
-            <el-table-column label="官网" min-width="180">
+            <el-table-column
+              label="官网"
+              min-width="180"
+            >
               <template #default="scope">
                 <span class="muted">{{ scope.row.website }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="白名单" width="90">
+            <el-table-column
+              label="白名单"
+              width="90"
+            >
               <template #default="scope">
-                <el-tag :type="scope.row.whiteList ? 'success' : 'info'" size="small">
+                <el-tag
+                  :type="scope.row.whiteList ? 'success' : 'info'"
+                  size="small"
+                >
                   {{ scope.row.whiteList ? '是' : '否' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="awardCount" label="获奖数" width="90" align="right" />
+            <el-table-column
+              prop="awardCount"
+              label="获奖数"
+              width="90"
+              align="right"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- Tab2 竞赛分析 -->
-      <el-tab-pane label="竞赛分析" name="tab2" lazy>
+      <el-tab-pane
+        label="竞赛分析"
+        name="tab2"
+        lazy
+      >
         <div class="c-panel pad filter-panel">
           <span class="label">年份筛选</span>
           <div class="year-tags">
@@ -266,54 +305,119 @@ onBeforeUnmount(() => {
           <el-checkbox v-model="includeTeacher">
             包含教师证书
           </el-checkbox>
-          <el-button type="primary" style="margin-left: auto" @click="loadTab2">
+          <el-button
+            type="primary"
+            style="margin-left: auto"
+            @click="loadTab2"
+          >
             更新
           </el-button>
         </div>
-        <div class="c-panel pad" style="margin-bottom: 14px">
-          <h3 class="blk-title">竞赛贡献度</h3>
-          <div ref="contribChartEl" style="height: 500px" />
+        <div
+          class="c-panel pad"
+          style="margin-bottom: 14px"
+        >
+          <h3 class="blk-title">
+            竞赛贡献度
+          </h3>
+          <div
+            ref="contribChartEl"
+            style="height: 500px"
+          />
         </div>
         <div class="c-panel pad">
-          <h3 class="blk-title">竞赛×实验室 获奖数量热力图</h3>
-          <div ref="heatChartEl" style="height: 650px" />
+          <h3 class="blk-title">
+            竞赛×实验室 获奖数量热力图
+          </h3>
+          <div
+            ref="heatChartEl"
+            style="height: 650px"
+          />
         </div>
       </el-tab-pane>
 
       <!-- Tab3 获奖数据分析 -->
-      <el-tab-pane label="获奖数据分析" name="tab3" lazy>
+      <el-tab-pane
+        label="获奖数据分析"
+        name="tab3"
+        lazy
+      >
         <el-row :gutter="14">
           <el-col :span="6">
             <div class="c-panel pad">
-              <h3 class="blk-title">图表设置</h3>
+              <h3 class="blk-title">
+                图表设置
+              </h3>
               <div class="field">
-                <div class="label">X 轴</div>
-                <el-select v-model="xAxisBy" style="width: 100%">
-                  <el-option label="年份" value="year" />
-                  <el-option label="实验室" value="laboratory" />
+                <div class="label">
+                  X 轴
+                </div>
+                <el-select
+                  v-model="xAxisBy"
+                  style="width: 100%"
+                >
+                  <el-option
+                    label="年份"
+                    value="year"
+                  />
+                  <el-option
+                    label="实验室"
+                    value="laboratory"
+                  />
                 </el-select>
               </div>
               <div class="field">
-                <div class="label">颜色分组</div>
-                <el-select v-model="colorBy" style="width: 100%">
-                  <el-option label="实验室" value="laboratory" />
-                  <el-option label="年份" value="year" />
-                  <el-option label="竞赛等级" value="competition_level" />
+                <div class="label">
+                  颜色分组
+                </div>
+                <el-select
+                  v-model="colorBy"
+                  style="width: 100%"
+                >
+                  <el-option
+                    label="实验室"
+                    value="laboratory"
+                  />
+                  <el-option
+                    label="年份"
+                    value="year"
+                  />
+                  <el-option
+                    label="竞赛等级"
+                    value="competition_level"
+                  />
                 </el-select>
               </div>
               <div class="field">
-                <div class="label">图表类型</div>
-                <el-select v-model="chartType" style="width: 100%">
-                  <el-option label="分组柱状图" value="grouped_bar" />
-                  <el-option label="折线图" value="line" />
-                  <el-option label="甜甜圈图" value="donut" />
+                <div class="label">
+                  图表类型
+                </div>
+                <el-select
+                  v-model="chartType"
+                  style="width: 100%"
+                >
+                  <el-option
+                    label="分组柱状图"
+                    value="grouped_bar"
+                  />
+                  <el-option
+                    label="折线图"
+                    value="line"
+                  />
+                  <el-option
+                    label="甜甜圈图"
+                    value="donut"
+                  />
                 </el-select>
               </div>
             </div>
           </el-col>
           <el-col :span="18">
             <div class="c-panel pad">
-              <div ref="dynChartEl" style="height: 720px" />
+              <div
+                ref="dynChartEl"
+                style="height: 720px"
+              />
             </div>
           </el-col>
         </el-row>
