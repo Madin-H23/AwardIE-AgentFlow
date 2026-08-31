@@ -87,8 +87,10 @@ jobs:
           npm install --prefix awardie-frontend
           nohup npm run dev --prefix awardie-frontend -- --port 5199 --host > vite.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://localhost:5199/v2/ > /dev/null && break; sleep 2; done
-          npx playwright install --with-deps chromium --prefix awardie-frontend
-          npx playwright test --prefix awardie-frontend 2>&1 || (cat vite.log backend.log && exit 1)
+          cd awardie-frontend
+          npx playwright install --with-deps chromium
+          npx playwright test 2>&1 || (cat vite.log ../backend.log && exit 1)
+          cd ..
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
