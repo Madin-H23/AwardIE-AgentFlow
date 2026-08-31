@@ -150,9 +150,15 @@ onBeforeUnmount(() => {
       </div>
       <div class="vital-card">
         <div class="vital-label">
-          <span class="pulse-dot" :class="{ down: (data?.summary.pendingSubmit ?? 0) > 0 }" />待审核
+          <span
+            class="pulse-dot"
+            :class="{ down: (data?.summary.pendingSubmit ?? 0) > 0 }"
+          />待审核
         </div>
-        <div class="vital-value mono-data" :class="{ alarming: (data?.summary.pendingSubmit ?? 0) > 0 }">
+        <div
+          class="vital-value mono-data"
+          :class="{ alarming: (data?.summary.pendingSubmit ?? 0) > 0 }"
+        >
           {{ fmt(data?.summary.pendingSubmit) }}
         </div>
         <div class="vital-sub">

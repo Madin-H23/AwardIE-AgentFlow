@@ -5,6 +5,7 @@ import { apiJson } from '../composables/useCsrf'
 
 const API = '/api/v2'
 const rows = ref<Array<Record<string, unknown>>>([])
+const loading = ref(false)
 const aiText = ref('')
 const aiRunning = ref(false)
 const aiId = ref<number | null>(null)
@@ -12,9 +13,14 @@ const rejectComment = ref('')
 const rejectId = ref<number | null>(null)
 
 async function load() {
-  const resp = await fetch(`${API}/teacher/pending`, { credentials: 'include' })
-  const body = (await resp.json()) as { code: number; data?: Array<Record<string, unknown>> }
-  rows.value = body.code === 0 ? (body.data ?? []) : []
+  loading.value = true
+  try {
+    const resp = await fetch(`${API}/teacher/pending`, { credentials: 'include' })
+    const body = (await resp.json()) as { code: number; data?: Array<Record<string, unknown>> }
+    rows.value = body.code === 0 ? (body.data ?? []) : []
+  } finally {
+    loading.value = false
+  }
 }
 onMounted(load)
 
@@ -71,6 +77,7 @@ async function review(id: number, action: string) {
     <el-card>
       <h2>待审列表(教师)</h2>
       <el-table
+        v-loading="loading"
         :data="rows"
         size="small"
       >

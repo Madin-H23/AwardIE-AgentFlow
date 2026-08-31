@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
+import { useTablePage } from '../composables/useTablePage'
 
 const API = '/api/v2/admin/competitions'
 interface Competition {
@@ -11,23 +12,12 @@ interface Competition {
   watchList: boolean
   isAutoAdded: boolean
 }
-const rows = ref<Competition[]>([])
-const total = ref(0)
-const page = ref(1)
-const q = ref('')
+
+// #27:useTablePage 统一分页+筛选(q 竞赛名模糊)+loading
+const tp = useTablePage<Competition>({ api: API, filters: { q: '' } })
+
 const newName = ref('')
 const newWhite = ref(true)
-
-async function load() {
-  const qs = new URLSearchParams({ page: String(page.value), size: '20' })
-  if (q.value) qs.set('q', q.value)
-  const body = await apiJson('GET', `${API}?${qs}`)
-  if (body.code === 0) {
-    rows.value = body.data.content
-    total.value = body.data.totalElements
-  }
-}
-onMounted(load)
 
 async function toggle(c: Competition) {
   const body = await apiJson('PUT', `${API}/${c.id}`, {
@@ -44,11 +34,12 @@ async function create() {
   if (body.code === 0) {
     ElMessage.success('已创建')
     newName.value = ''
-    await load()
+    await tp.load()
   } else {
     ElMessage.error(body.message)
   }
 }
+onMounted(tp.load)
 </script>
 
 <template>
@@ -57,11 +48,13 @@ async function create() {
       <h2>竞赛管理(白名单 = BR-1 级别认定唯一口径)</h2>
       <div class="toolbar">
         <el-input
-          v-model="q"
+          v-model="tp.filters.q"
           placeholder="搜索竞赛名"
           style="width: 220px"
           clearable
-          @change="load"
+          data-testid="comp-q"
+          @keyup.enter="tp.search()"
+          @clear="tp.search()"
         />
         <el-input
           v-model="newName"
@@ -80,7 +73,8 @@ async function create() {
         </el-button>
       </div>
       <el-table
-        :data="rows"
+        v-loading="tp.loading.value"
+        :data="tp.rows.value"
         size="small"
         style="margin-top: 12px"
       >
@@ -132,11 +126,11 @@ async function create() {
       </el-table>
       <el-pagination
         layout="prev, pager, next"
-        :total="total"
-        :page-size="20"
-        :current-page="page"
+        :total="tp.total.value"
+        :page-size="tp.size.value"
+        :current-page="tp.page.value"
         style="margin-top: 12px"
-        @current-change="(p: number) => { page = p; load() }"
+        @current-change="tp.go"
       />
     </el-card>
   </div>
