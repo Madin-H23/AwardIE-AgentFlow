@@ -37,6 +37,30 @@ public class UserEntity {
     @Column(name = "needs_password_change")
     private Boolean needsPasswordChange;
 
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "qq")
+    private String qq;
+
+    @Column(name = "skills")
+    private String skills;
+
+    @Column(name = "profile_is_public")
+    private Boolean profileIsPublic;
+
+    @Column(name = "major")
+    private String major;
+
+    @Column(name = "grade")
+    private String grade;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "department")
+    private String department;
+
     @Column(name = "updated_at")
     private Instant updatedAt;
 
@@ -51,4 +75,12 @@ public class UserEntity {
     public void setNeedsPasswordChange(Boolean needsPasswordChange) { this.needsPasswordChange = needsPasswordChange; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public String getPhone() { return phone; }
+    public String getQq() { return qq; }
+    public String getSkills() { return skills; }
+    public Boolean getProfileIsPublic() { return profileIsPublic; }
+    public String getMajor() { return major; }
+    public String getGrade() { return grade; }
+    public String getTitle() { return title; }
+    public String getDepartment() { return department; }
 }
