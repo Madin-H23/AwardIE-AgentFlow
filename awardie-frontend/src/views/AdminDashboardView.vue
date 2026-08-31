@@ -108,6 +108,14 @@ async function load() {
   }
 }
 
+/** #31:导出按钮接真实系年度总结 CSV */
+function exportCsv() {
+  const a = document.createElement('a')
+  a.href = '/api/v2/admin/export/department-summary.csv'
+  a.download = 'department-summary.csv'
+  a.click()
+}
+
 watch(gran, () => {
   chart?.dispose()
   chart = null
@@ -260,19 +268,13 @@ onBeforeUnmount(() => {
           />
         </el-select>
         <span class="spacer" />
-        <el-tooltip
-          content="数据导出纵切面待接入 v2"
-          placement="top"
+        <el-button
+          :icon="undefined"
+          data-testid="dash-export"
+          @click="exportCsv"
         >
-          <span>
-            <el-button
-              :icon="undefined"
-              disabled
-            >
-              导出
-            </el-button>
-          </span>
-        </el-tooltip>
+          导出
+        </el-button>
       </div>
       <div class="panel-body">
         <div class="panel-head">

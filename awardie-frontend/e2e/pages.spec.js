@@ -112,6 +112,31 @@ test('实验室与奖状模板页渲染', async ({ page }) => {
 test('未迁移菜单落占位页', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/admin/logs`)
-  await page.locator('.console-sidebar .nav-link', { hasText: '数据分析' }).click()
+  await page.locator('.console-sidebar .nav-link', { hasText: 'AI 智能体协作' }).click()
   await expect(page.getByRole('heading', { name: /迁移中/ })).toBeVisible()
+})
+
+// Goal A 第二批:#30-#32 三页冒烟
+test('数据分析三tab渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/data-analysis`)
+  await expect(page.getByRole('heading', { name: '数据分析与导出' })).toBeVisible()
+  await expect(page.locator('.el-tabs__item', { hasText: '竞赛分析' })).toBeVisible()
+  await page.locator('.el-tabs__item', { hasText: '竞赛分析' }).click()
+  await expect(page.locator('.year-tags')).toBeVisible()
+})
+
+test('数据导出页渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/data-export`)
+  await expect(page.getByRole('heading', { name: '数据导出' })).toBeVisible()
+  await expect(page.getByTestId('export-summary')).toBeVisible()
+})
+
+test('系统设置自动归档矩阵渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/settings`)
+  await expect(page.getByRole('heading', { name: '系统设置' })).toBeVisible()
+  await page.locator('.el-tabs__item', { hasText: '自动归档' }).click()
+  await expect(page.getByTestId('settings-save')).toBeVisible({ timeout: 10_000 })
 })

@@ -70,6 +70,15 @@ public class SeedRunner implements CommandLineRunner {
                     """, "{\"competition_name\":\"种子竞赛-白名单\",\"award_level\":\"一等奖\","
                     + "\"winner_name\":\"种子获奖人\",\"date\":\"2026-08\"}", adminId);
         }
+        // 自动归档默认配置行(#32):五类型矩阵,默认全关(v1 同构;幂等)
+        jdbc.update("""
+                INSERT INTO auto_archive_config (achievement_type, validation_status, auto_archive_enabled) VALUES
+                ('award', 'valid', FALSE), ('award', 'invalid', FALSE),
+                ('patent', 'valid', FALSE), ('patent', 'invalid', FALSE),
+                ('software', 'valid', FALSE), ('software', 'invalid', FALSE),
+                ('innovation', NULL, FALSE), ('other', NULL, FALSE)
+                ON CONFLICT (achievement_type, validation_status) DO NOTHING
+                """);
         System.out.println("[seed] accounts + business data seeded, exiting");
         SpringApplication.exit(context, () -> 0);
     }

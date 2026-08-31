@@ -78,14 +78,14 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
         items: [
           { path: '/admin/students', label: '学生管理', icon: User },
           { path: '/admin/teachers', label: '教师管理', icon: Avatar },
-          { path: '/coming-soon?title=数据分析', label: '数据分析', icon: DataAnalysis, soon: true },
-          { path: '/coming-soon?title=数据导出', label: '数据导出', icon: Download, soon: true },
+          { path: '/admin/data-analysis', label: '数据分析', icon: DataAnalysis },
+          { path: '/admin/data-export', label: '数据导出', icon: Download },
         ],
       },
       {
         title: '系统设置',
         items: [
-          { path: '/coming-soon?title=系统设置', label: '系统设置', icon: Setting, soon: true },
+          { path: '/admin/settings', label: '系统设置', icon: Setting },
         ],
       },
     ],
@@ -130,6 +130,9 @@ const pageTitle = computed(() => {
     'admin-teachers': '教师管理',
     'admin-laboratories': '实验室管理',
     'admin-templates': '奖状模板管理',
+    'admin-data-analysis': '数据分析与导出',
+    'admin-data-export': '数据导出',
+    'admin-settings': '系统设置',
     'coming-soon': '功能迁移',
   }
   return titles[String(route.name)] ?? '控制台'
