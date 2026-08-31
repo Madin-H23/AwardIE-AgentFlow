@@ -82,6 +82,8 @@ jobs:
       - name: E2E full-stack run (backend + vite + playwright in one step)
         run: |
           mvn -B -q package -DskipTests -f awardie-backend/pom.xml
+          java -jar awardie-backend/target/awardie-backend-0.1.0-SNAPSHOT.jar --spring.profiles.active=seed > seed.log 2>&1 || true
+          grep -q "seeded" seed.log && echo "[seed] OK"
           nohup java -jar awardie-backend/target/awardie-backend-0.1.0-SNAPSHOT.jar > backend.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:18080/actuator/health && break; sleep 2; done
           npm install --prefix awardie-frontend
