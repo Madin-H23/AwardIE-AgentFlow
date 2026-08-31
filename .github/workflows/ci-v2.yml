@@ -79,22 +79,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Start backend (jar, real AI-free fake mode)
+      - name: E2E full-stack run (backend + vite + playwright in one step)
         run: |
           mvn -B -q package -DskipTests -f awardie-backend/pom.xml
           nohup java -jar awardie-backend/target/awardie-backend-0.1.0-SNAPSHOT.jar > backend.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:18080/actuator/health && break; sleep 2; done
-      - name: Start frontend dev server
-        run: |
           npm install --prefix awardie-frontend
-          nohup npm run dev --prefix awardie-frontend -- --port 5199 > vite.log 2>&1 &
+          nohup npm run dev --prefix awardie-frontend -- --port 5199 --host > vite.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://localhost:5199/v2/ > /dev/null && break; sleep 2; done
-      - name: Install chromium
-        run: npx playwright install --with-deps chromium
-        working-directory: awardie-frontend
-      - name: Run tracer E2E (3 tests)
-        run: npx playwright test
-        working-directory: awardie-frontend
+          npx playwright install --with-deps chromium --prefix awardie-frontend
+          npx playwright test --prefix awardie-frontend 2>&1 || (cat vite.log backend.log && exit 1)
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
