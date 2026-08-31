@@ -64,6 +64,6 @@ async function onSave() {
 </template>
 
 <style scoped>
-.profile-page { max-width: 640px; margin: 24px auto; }
+.profile-page { }
 h2 { margin-top: 0; color: var(--ink); }
 </style>

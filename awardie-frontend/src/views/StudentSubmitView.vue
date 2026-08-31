@@ -265,7 +265,7 @@ async function onSubmit() {
 </template>
 
 <style scoped>
-.submit-page { display: flex; gap: 16px; max-width: 1100px; margin: 24px auto; }
+.submit-page { display: flex; gap: 16px; }
 .pane { flex: 1; background: var(--panel); }
 h2 { margin-top: 0; color: var(--ink); }
 .op { color: var(--ink-2); font-size: 12px; }

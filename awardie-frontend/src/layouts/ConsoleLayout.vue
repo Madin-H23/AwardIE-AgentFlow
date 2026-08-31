@@ -4,15 +4,24 @@ import { useRoute, useRouter } from 'vue-router'
 import type { Component } from 'vue'
 import {
   ArrowDown,
+  Avatar,
+  ChatDotRound,
+  DataAnalysis,
+  Document,
   DocumentChecked,
+  Download,
   House,
   Medal,
   Moon,
   Odometer,
+  OfficeBuilding,
+  Postcard,
+  Setting,
   Sunny,
   SwitchButton,
   Trophy,
   Upload,
+  UploadFilled,
   User,
 } from '@element-plus/icons-vue'
 import { useTheme } from '../composables/useTheme'
@@ -27,14 +36,16 @@ interface MenuItem {
   path: string
   label: string
   icon: Component
+  /** 未迁移功能:落"迁移中"占位页,侧边栏仍全量对照 v1(#29) */
+  soon?: boolean
 }
 interface MenuGroup {
   title?: string
   items: MenuItem[]
 }
 
-// 对照 v1 layout/sidebar.html:admin 分组式(置顶总览+常用+基础数据管理),
-// teacher/student 平铺;菜单只挂 v2 纵切面真实路由(v1 独有页不渲染,避免死链)。
+// 对照 v1 layout/sidebar.html 完整菜单结构(admin 六组);迁移完成项挂真实路由,
+// 未迁移项带 soon 落占位页——菜单视觉完整且不撒谎。
 const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
   admin: {
     overview: { path: '/admin/dashboard', label: '数据总览', icon: Odometer },
@@ -44,11 +55,38 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
         items: [
           { path: '/admin/awards', label: '成果管理', icon: Medal },
           { path: '/teacher/review', label: '成果审核', icon: DocumentChecked },
+          { path: '/admin/logs', label: '日志管理', icon: Document },
+        ],
+      },
+      {
+        title: '智能体',
+        items: [
+          { path: '/coming-soon?title=AI 智能体协作', label: 'AI 智能体协作', icon: ChatDotRound, soon: true },
         ],
       },
       {
         title: '基础数据管理',
-        items: [{ path: '/admin/competitions', label: '竞赛管理', icon: Trophy }],
+        items: [
+          { path: '/coming-soon?title=成果/文件导入', label: '成果/文件导入', icon: UploadFilled, soon: true },
+          { path: '/admin/templates', label: '奖状模板管理', icon: Postcard },
+          { path: '/admin/competitions', label: '竞赛管理', icon: Trophy },
+          { path: '/admin/laboratories', label: '实验室管理', icon: OfficeBuilding },
+        ],
+      },
+      {
+        title: '用户数据',
+        items: [
+          { path: '/admin/students', label: '学生管理', icon: User },
+          { path: '/admin/teachers', label: '教师管理', icon: Avatar },
+          { path: '/coming-soon?title=数据分析', label: '数据分析', icon: DataAnalysis, soon: true },
+          { path: '/coming-soon?title=数据导出', label: '数据导出', icon: Download, soon: true },
+        ],
+      },
+      {
+        title: '系统设置',
+        items: [
+          { path: '/coming-soon?title=系统设置', label: '系统设置', icon: Setting, soon: true },
+        ],
       },
     ],
   },
@@ -87,6 +125,12 @@ const pageTitle = computed(() => {
     'admin-awards': '成果管理',
     'admin-competitions': '竞赛管理',
     'admin-dashboard': '数据总览',
+    'admin-logs': '日志管理',
+    'admin-students': '学生管理',
+    'admin-teachers': '教师管理',
+    'admin-laboratories': '实验室管理',
+    'admin-templates': '奖状模板管理',
+    'coming-soon': '功能迁移',
   }
   return titles[String(route.name)] ?? '控制台'
 })
@@ -147,12 +191,16 @@ async function onUserCommand(command: string) {
                 v-for="item in group.items"
                 :key="item.path"
                 class="nav-link"
-                :class="{ active: isActive(item.path) }"
+                :class="{ active: isActive(item.path), soon: item.soon }"
                 :to="item.path"
               >
                 <el-icon class="sb-ic">
                   <component :is="item.icon" />
                 </el-icon>{{ item.label }}
+                <span
+                  v-if="item.soon"
+                  class="soon-chip"
+                >迁移中</span>
               </router-link>
             </div>
           </div>
@@ -161,7 +209,7 @@ async function onUserCommand(command: string) {
               v-for="item in group.items"
               :key="item.path"
               class="nav-link"
-              :class="{ active: isActive(item.path) }"
+              :class="{ active: isActive(item.path), soon: item.soon }"
               :to="item.path"
             >
               <el-icon class="sb-ic">

@@ -137,7 +137,7 @@ onMounted(tp.load)
 </template>
 
 <style scoped>
-.comp-page { max-width: 1000px; margin: 24px auto; }
+.comp-page { }
 h2 { margin-top: 0; color: var(--ink); }
 .toolbar { display: flex; gap: 12px; align-items: center; }
 </style>

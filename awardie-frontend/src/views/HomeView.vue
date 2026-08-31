@@ -68,7 +68,7 @@ async function logout() {
 </template>
 
 <style scoped>
-.home { max-width: 720px; margin: 48px auto; padding: 24px; background: var(--panel); border-radius: 8px; }
+.home { padding: 4px 0; }
 h2, h3 { color: var(--ink); margin: 12px 0; }
 .links { list-style: none; padding: 0; }
 .links li { padding: 4px 0; }

@@ -71,3 +71,46 @@ test('admin 看板渲染(ECharts)', async ({ page }) => {
   await expect(page.getByText('成果总数')).toBeVisible()
   await expect(page.locator('div[ref] canvas, .dash-page canvas').first()).toBeVisible({ timeout: 10_000 })
 })
+
+// #29 侧边栏补全批次:五新页冒烟
+test('侧边栏对照 v1 全量菜单', async ({ page }) => {
+  await loginAsAdmin(page)
+  const sidebar = page.locator('.console-sidebar')
+  for (const label of ['数据总览', '成果管理', '成果审核', '日志管理', 'AI 智能体协作', '成果/文件导入',
+    '奖状模板管理', '竞赛管理', '实验室管理', '学生管理', '教师管理', '数据分析', '数据导出', '系统设置']) {
+    await expect(sidebar.locator('.nav-link', { hasText: label }).first()).toBeVisible()
+  }
+})
+
+test('日志管理双源渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/logs`)
+  await expect(page.locator('.log-stream').locator('.log-line').first()).toBeVisible({ timeout: 10_000 })
+  await page.locator('.el-radio-button', { hasText: '系统事件' }).click()
+  await expect(page.locator('.log-stream')).toBeVisible()
+})
+
+test('学生管理与教师管理渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/students`)
+  await expect(page.getByRole('heading', { name: '学生管理' })).toBeVisible()
+  await expect(page.locator('.el-table').locator('tbody tr').first()).toBeVisible({ timeout: 10_000 })
+  await page.goto(`${BASE}/admin/teachers`)
+  await expect(page.getByRole('heading', { name: '教师管理' })).toBeVisible()
+})
+
+test('实验室与奖状模板页渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/laboratories`)
+  await expect(page.getByRole('heading', { name: '实验室管理' })).toBeVisible()
+  await page.goto(`${BASE}/admin/templates`)
+  await expect(page.getByRole('heading', { name: '奖状模板管理' })).toBeVisible()
+  await expect(page.locator('.el-table').first()).toBeVisible()
+})
+
+test('未迁移菜单落占位页', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/logs`)
+  await page.locator('.console-sidebar .nav-link', { hasText: '数据分析' }).click()
+  await expect(page.getByRole('heading', { name: /迁移中/ })).toBeVisible()
+})

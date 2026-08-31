@@ -228,7 +228,7 @@ onMounted(tp.load)
 </template>
 
 <style scoped>
-.admin-page { max-width: 1200px; }
+.admin-page { }
 h2 { margin-top: 0; color: var(--ink); }
 .filter-form { margin-bottom: 4px; }
 </style>

@@ -18,6 +18,13 @@ const router = createRouter({
         { path: 'admin/awards', name: 'admin-awards', component: () => import('../views/AdminAwardsView.vue') },
         { path: 'admin/competitions', name: 'admin-competitions', component: () => import('../views/AdminCompetitionsView.vue') },
         { path: 'admin/dashboard', name: 'admin-dashboard', component: () => import('../views/AdminDashboardView.vue') },
+        // #29 侧边栏补全批次
+        { path: 'admin/logs', name: 'admin-logs', component: () => import('../views/AdminLogsView.vue') },
+        { path: 'admin/students', name: 'admin-students', component: () => import('../views/AdminStudentsView.vue') },
+        { path: 'admin/teachers', name: 'admin-teachers', component: () => import('../views/AdminTeachersView.vue') },
+        { path: 'admin/laboratories', name: 'admin-laboratories', component: () => import('../views/AdminLaboratoriesView.vue') },
+        { path: 'admin/templates', name: 'admin-templates', component: () => import('../views/AdminTemplatesView.vue') },
+        { path: 'coming-soon', name: 'coming-soon', component: () => import('../views/ComingSoonView.vue') },
       ],
     },
   ],

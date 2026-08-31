@@ -106,6 +106,17 @@
 }
 .console-shell .nav-link:hover { background: var(--sb-hover); color: var(--sb-hover-ink); }
 .console-shell .nav-link.active { background: var(--brand); color: #fff; }
+/* 未迁移功能弱化显示(v1 菜单完整性对照,#29) */
+.console-shell .nav-link.soon { opacity: 0.62; }
+.console-shell .nav-link.soon:hover { opacity: 1; }
+.console-shell .soon-chip {
+  margin-left: auto;
+  font-size: 0.62rem;
+  color: var(--ink-2);
+  border: 1px solid var(--sb-line);
+  border-radius: 4px;
+  padding: 0 4px;
+}
 .console-shell .sb-ic {
   font-size: 0.92rem;
   width: 16px;
@@ -245,3 +256,87 @@
   margin-left: 240px;
   padding: 72px 24px 32px;
 }
+
+/* ============================================================
+   页面视觉基因(#29 排版统一,移植 v1 console_tokens.css L281-327;
+   v1 内容区全宽无各页 max-width——v2 各页自创宽度一并废除)
+   ============================================================ */
+.console-shell .console-main h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.01em;
+}
+.console-shell .console-main h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.console-shell .console-main h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* 统一面板(c-panel 等价;非控件,门禁不涉) */
+.console-shell .c-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.console-shell .c-panel.pad {
+  padding: 16px;
+}
+
+/* el-card 对齐 c-panel 基因:白底/细边框/去阴影 */
+.console-shell .console-main .el-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+.console-shell .console-main .el-card__body { padding: 16px; }
+
+/* el-table 灰表头基因 */
+.console-shell .console-main .el-table {
+  --el-table-border-color: var(--line);
+  --el-table-header-bg-color: color-mix(in srgb, var(--ink) 3%, transparent);
+  --el-table-header-text-color: var(--ink-2);
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--brand) 5%, transparent);
+  --el-table-bg-color: var(--panel);
+  --el-table-tr-bg-color: var(--panel);
+  font-size: 0.86rem;
+}
+.console-shell .console-main .el-table th.el-table__cell {
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+/* 页面头标题行(v1 惯例:h1 与主操作按钮两端对齐) */
+.console-shell .page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.console-shell .page-head h1 { margin: 0; }
+
+/* 页面信息提示条(v1 page-alert 通用化;dashboard 同款样式提升为全局) */
+.console-shell .page-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: color-mix(in srgb, var(--brand) 6%, var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.console-shell .page-alert .el-icon { color: var(--brand); }
+
+/* 表格行内文字按钮(v1 c-text-btn 语义→el-button link 承担) */
+.console-shell .console-main .el-table .el-button.is-link,
+.console-shell .console-main .el-table .el-button.is-text { padding: 2px 6px; font-size: 0.85rem; }

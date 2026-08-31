@@ -348,7 +348,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* 五区块样式对照 v1 dashboard.html 内联样式 + console_tokens.css 生命体征带/筛选栏 */
-.dash-page { max-width: 1200px; }
+.dash-page { }
 h1 { font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
 
 .page-alert {

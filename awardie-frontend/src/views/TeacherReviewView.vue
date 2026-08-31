@@ -157,7 +157,7 @@ async function review(id: number, action: string) {
 </template>
 
 <style scoped>
-.review-page { max-width: 1100px; margin: 24px auto; }
+.review-page { }
 h2 { margin-top: 0; color: var(--ink); }
 .ai-box { white-space: pre-wrap; background: var(--sb-foot); padding: 12px; border-radius: 6px; max-height: 300px; overflow: auto; }
 </style>
