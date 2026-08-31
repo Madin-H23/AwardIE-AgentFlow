@@ -89,6 +89,9 @@ jobs:
           npm install --prefix awardie-frontend
           nohup npm run dev --prefix awardie-frontend -- --port 5199 > vite.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://localhost:5199/v2/ > /dev/null && break; sleep 2; done
+      - name: Install chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: awardie-frontend
       - name: Run tracer E2E (3 tests)
         run: npx playwright test
         working-directory: awardie-frontend
