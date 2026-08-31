@@ -48,6 +48,8 @@ jobs:
       - name: Lint
         run: npm run lint
         working-directory: awardie-frontend
+      - name: Raw-control gate (Element Plus whitelist convention)
+        run: python scripts/check_raw_controls.py
       - name: Build (vue-tsc + vite)
         run: npm run build
         working-directory: awardie-frontend
