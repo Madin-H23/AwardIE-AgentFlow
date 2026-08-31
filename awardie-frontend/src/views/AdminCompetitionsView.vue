@@ -107,7 +107,7 @@ async function create() {
           <template #default="scope">
             <el-switch
               v-model="scope.row.whiteList"
-              @change="toggle(scope.row, 'whiteList')"
+              @change="toggle(scope.row)"
             />
           </template>
         </el-table-column>
@@ -118,7 +118,7 @@ async function create() {
           <template #default="scope">
             <el-switch
               v-model="scope.row.watchList"
-              @change="toggle(scope.row, 'watchList')"
+              @change="toggle(scope.row)"
             />
           </template>
         </el-table-column>
