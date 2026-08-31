@@ -35,4 +35,35 @@ class AdminStatsTest extends BaseIntegrationTest {
                 org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
         assertThat(resp.getStatusCode().value()).isEqualTo(403);
     }
+
+    /** #28 总览聚合:五区块取数——summary/category/trend/compare/byCompetition + 权限。 */
+    @Test
+    void overviewAggregatesFiveBlocks() {
+        HttpHeaders headers = new HttpHeaders();
+        String ck = loginAs("admin", "Mayy123");
+        headers.set("Cookie", ck);
+        ResponseEntity<String> resp = rest.exchange("/api/v2/admin/stats/overview?months=6&gran=month",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        String body = resp.getBody();
+        assertThat(body).contains("\"code\":0")
+                .contains("\"summary\":").contains("totalAwards").contains("pendingSubmit")
+                .contains("whitelist").contains("awardTeacher")
+                .contains("\"category\":").contains("\"patent\"").contains("\"innovation\"")
+                .contains("\"trend\":").contains("\"compare\":").contains("deltaPct")
+                .contains("\"byCompetition\":");
+        // 按年粒度:period 形如 YYYY(4 位,无连字符)
+        ResponseEntity<String> yearly = rest.exchange("/api/v2/admin/stats/overview?gran=year",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        assertThat(yearly.getBody()).contains("\"code\":0").contains("\"period\":\"20");
+        // gran 非法 → 4000
+        ResponseEntity<String> bad = rest.exchange("/api/v2/admin/stats/overview?gran=week",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        assertThat(bad.getBody()).contains("\"code\":4000");
+        // 非管理员 → 403
+        HttpHeaders stu = new HttpHeaders();
+        stu.set("Cookie", loginAs("212306413", "P@ss301"));
+        ResponseEntity<String> forbidden = rest.exchange("/api/v2/admin/stats/overview",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(stu), String.class);
+        assertThat(forbidden.getStatusCode().value()).isEqualTo(403);
+    }
 }
