@@ -55,6 +55,15 @@ public class AiWorkerClient implements AutoCloseable {
         }
     }
 
+    /** AI 问答流(#33,契约 Ask);调用方负责把 AnswerEvent 映射为 SSE。 */
+    public Iterator<AiServiceOuterClass.AnswerEvent> ask(String question, String traceId, long deadlineSeconds) {
+        return stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS)
+                .ask(AiServiceOuterClass.AskRequest.newBuilder()
+                        .setQuestion(question)
+                        .setTraceId(traceId)
+                        .build());
+    }
+
     @Override
     public void close() {
         channel.shutdown();

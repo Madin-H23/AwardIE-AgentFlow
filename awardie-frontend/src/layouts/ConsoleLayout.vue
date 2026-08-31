@@ -61,13 +61,13 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
       {
         title: '智能体',
         items: [
-          { path: '/coming-soon?title=AI 智能体协作', label: 'AI 智能体协作', icon: ChatDotRound, soon: true },
+          { path: '/chat', label: 'AI 智能体协作', icon: ChatDotRound },
         ],
       },
       {
         title: '基础数据管理',
         items: [
-          { path: '/coming-soon?title=成果/文件导入', label: '成果/文件导入', icon: UploadFilled, soon: true },
+          { path: '/admin/import', label: '成果/文件导入', icon: UploadFilled },
           { path: '/admin/templates', label: '奖状模板管理', icon: Postcard },
           { path: '/admin/competitions', label: '竞赛管理', icon: Trophy },
           { path: '/admin/laboratories', label: '实验室管理', icon: OfficeBuilding },
@@ -133,6 +133,8 @@ const pageTitle = computed(() => {
     'admin-data-analysis': '数据分析与导出',
     'admin-data-export': '数据导出',
     'admin-settings': '系统设置',
+    chat: 'AI 智能体协作',
+    'admin-import': '成果/文件导入',
     'coming-soon': '功能迁移',
   }
   return titles[String(route.name)] ?? '控制台'

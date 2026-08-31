@@ -109,10 +109,9 @@ test('实验室与奖状模板页渲染', async ({ page }) => {
   await expect(page.locator('.el-table').first()).toBeVisible()
 })
 
-test('未迁移菜单落占位页', async ({ page }) => {
+test('未迁移占位路由可直达', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.goto(`${BASE}/admin/logs`)
-  await page.locator('.console-sidebar .nav-link', { hasText: 'AI 智能体协作' }).click()
+  await page.goto(`${BASE}/coming-soon?title=测试占位`)
   await expect(page.getByRole('heading', { name: /迁移中/ })).toBeVisible()
 })
 
@@ -140,4 +139,21 @@ test('系统设置自动归档矩阵渲染', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '系统设置' })).toBeVisible()
   await page.locator('.el-tabs__item', { hasText: '自动归档' }).click()
   await expect(page.getByTestId('settings-save')).toBeVisible({ timeout: 10_000 })
+})
+
+// Goal B:#33/#34 两页冒烟
+test('智能体页 fake 对话渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/chat`)
+  await expect(page.getByRole('heading', { name: /AI 智能助手/ })).toBeVisible()
+  await page.getByTestId('chat-input').fill('白名单赛事有哪些?')
+  await page.getByTestId('chat-send').click()
+  await expect(page.getByTestId('chat-messages')).toContainText('fake 模式', { timeout: 15_000 })
+})
+
+test('导入页上传区渲染', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/import`)
+  await expect(page.getByRole('heading', { name: '成果/文件导入' })).toBeVisible()
+  await expect(page.locator('.el-upload')).toBeVisible()
 })

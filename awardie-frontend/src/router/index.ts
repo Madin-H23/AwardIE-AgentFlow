@@ -27,6 +27,8 @@ const router = createRouter({
         { path: 'admin/data-analysis', name: 'admin-data-analysis', component: () => import('../views/AdminDataAnalysisView.vue') },
         { path: 'admin/data-export', name: 'admin-data-export', component: () => import('../views/AdminDataExportView.vue') },
         { path: 'admin/settings', name: 'admin-settings', component: () => import('../views/AdminSettingsView.vue') },
+        { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue') },
+        { path: 'admin/import', name: 'admin-import', component: () => import('../views/AdminImportView.vue') },
         { path: 'coming-soon', name: 'coming-soon', component: () => import('../views/ComingSoonView.vue') },
       ],
     },
