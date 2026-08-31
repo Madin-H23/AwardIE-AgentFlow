@@ -11,6 +11,8 @@ const router = createRouter({
     { path: '/teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue') },
     { path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue') },
     { path: '/admin/awards', name: 'admin-awards', component: () => import('../views/AdminAwardsView.vue') },
+    { path: '/admin/competitions', name: 'admin-competitions', component: () => import('../views/AdminCompetitionsView.vue') },
+    { path: '/admin/dashboard', name: 'admin-dashboard', component: () => import('../views/AdminDashboardView.vue') },
   ],
 })
 

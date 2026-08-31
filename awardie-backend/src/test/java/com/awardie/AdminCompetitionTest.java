@@ -1,0 +1,84 @@
+package com.awardie;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+/** #20 竞赛管理:CRUD + 白名单切换(BR-1 口径源头)。 */
+class AdminCompetitionTest extends BaseIntegrationTest {
+
+    @Autowired
+    private TestRestTemplate rest;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    private String adminCk() {
+        return loginAs("admin", "Mayy123");
+    }
+
+    private ResponseEntity<String> op(String method, String uri, Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String ck = adminCk();
+        headers.set("Cookie", ck);
+        headers.set("X-XSRF-TOKEN", xsrfFrom(ck));
+        return rest.exchange(uri, org.springframework.http.HttpMethod.valueOf(method),
+                new HttpEntity<>(body, headers), String.class);
+    }
+
+    @Test
+    @Order(1)
+    void createAndToggleWhitelist() {
+        String name = "E2E竞赛-" + System.nanoTime();
+        // 创建(默认白名单开)
+        ResponseEntity<String> created = op("POST", "/api/v2/admin/competitions",
+                Map.of("competitionName", name, "whiteList", true, "watchList", false));
+        assertThat(created.getBody()).contains("\"code\":0").contains("已创建");
+        Integer id = jdbc.queryForObject(
+                "SELECT id FROM competitions WHERE competition_name=?", Integer.class, name);
+        assertThat(id).isNotNull();
+        assertThat(jdbc.queryForObject(
+                "SELECT white_list FROM competitions WHERE id=?", Boolean.class, id)).isTrue();
+
+        // 切白名单关
+        ResponseEntity<String> toggled = op("PUT", "/api/v2/admin/competitions/" + id,
+                Map.of("competitionName", name, "whiteList", false, "watchList", true));
+        assertThat(toggled.getBody()).contains("\"code\":0");
+        assertThat(jdbc.queryForObject(
+                "SELECT white_list FROM competitions WHERE id=?", Boolean.class, id)).isFalse();
+        assertThat(jdbc.queryForObject(
+                "SELECT watch_list FROM competitions WHERE id=?", Boolean.class, id)).isTrue();
+    }
+
+    @Test
+    @Order(2)
+    void duplicateNameRejected() {
+        String name = "E2E重复竞赛-" + System.nanoTime();
+        op("POST", "/api/v2/admin/competitions", Map.of("competitionName", name, "whiteList", true));
+        String dup = op("POST", "/api/v2/admin/competitions", Map.of("competitionName", name, "whiteList", false))
+                .getBody();
+        assertThat(dup).contains("\"code\":4009").contains("已存在");
+    }
+
+    @Test
+    @Order(3)
+    void autoAddedFlagDistinct() {
+        // #14 自动建的竞赛 is_auto_added=TRUE;手工创建应为 FALSE——口径区分可见
+        Integer autoAdded = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM competitions WHERE is_auto_added=TRUE", Integer.class);
+        assertThat(autoAdded).isGreaterThanOrEqualTo(1);
+    }
+}
