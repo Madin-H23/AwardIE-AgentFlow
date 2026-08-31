@@ -50,6 +50,8 @@ jobs:
         working-directory: awardie-frontend
       - name: Raw-control gate (Element Plus whitelist convention)
         run: python scripts/check_raw_controls.py
+      - name: JDBC placeholder audit (columns/?/args three-way)
+        run: python scripts/check_jdbc_placeholders.py
       - name: Build (vue-tsc + vite)
         run: npm run build
         working-directory: awardie-frontend

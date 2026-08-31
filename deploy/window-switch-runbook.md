@@ -35,6 +35,13 @@ D:/venvs/awardie/Scripts/python scripts/v2_migrate.py --skip-baseline
 - 冻结/接管步骤:dev 环境按本 runbook 走通(nginx 维护页→补迁→浏览器真实提交→PG 新行)
 - 回退:Nginx upstream 恢复验证 ✓
 
+## P3 触发监控(#23)
+
+```bash
+D:/venvs/awardie/Scripts/python scripts/tail_traffic_report.py
+```
+解析 nginx 8090 access.log,输出 v2/v1 长尾分类统计与 Top 路径。**P3 触发观测口径**:v1 长尾占比持续 ~0% 且绝对量趋零(建议按周观察)→ 再评估稳态收束。
+
 ## 已知边界
 
 - 增量补迁当前实现为**全量重灌**(幂等),分钟级;大库需改水位增量(P2 优化)

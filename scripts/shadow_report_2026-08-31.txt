@@ -1,0 +1,19 @@
+== 影子比对:30 表 ==
+
+一致 21/30 表
+差异表(共存期分叉定位):
+  - achievement_audit_log: 行数 sqlite=1693 pg=2389(共存期分叉或清洗差异)
+  - award_student_winners: 行数 sqlite=192 pg=266(共存期分叉或清洗差异)
+  - awards: 行数 sqlite=197 pg=271(共存期分叉或清洗差异)
+  - competitions: 行数 sqlite=130 pg=136(共存期分叉或清洗差异)
+  - other_files: 行数 sqlite=1 pg=4(共存期分叉或清洗差异)
+  - patents: 行数 sqlite=0 pg=10(共存期分叉或清洗差异)
+  - pending_achievements: 行数 sqlite=45 pg=487(共存期分叉或清洗差异)
+  - software_copyrights: 行数 sqlite=1 pg=9(共存期分叉或清洗差异)
+  - system_event_log: 行数 sqlite=1534 pg=1323(共存期分叉或清洗差异)
+
+口径说明:
+  - 纵切面域(pending_achievements/awards/achievement_audit_log):v1 冻结后应零分叉;
+    冻结前的新提交分叉为预期(增量补迁覆盖,见窗口切换 runbook)
+  - 长尾域(v1 继续写入):分叉为预期,不属于缺陷
+
