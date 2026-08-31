@@ -13,7 +13,6 @@ interface Competition {
 }
 const rows = ref<Competition[]>([])
 const q = ref('')
-const creating = ref(false)
 const newName = ref('')
 const newWhite = ref(true)
 
@@ -23,7 +22,7 @@ async function load() {
 }
 onMounted(load)
 
-async function toggle(c: Competition, field: 'whiteList' | 'watchList') {
+async function toggle(c: Competition) {
   const body = await apiJson('PUT', `${API}/${c.id}`, {
     competitionName: c.competitionName, whiteList: c.whiteList, watchList: c.watchList,
   })
