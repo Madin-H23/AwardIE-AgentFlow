@@ -142,3 +142,4 @@ prototype/**/work/
 prototype/**/probe_run.log
 prototype/**/nginx-win/
 .playwright-mcp/
+awardie-frontend/test-results/
