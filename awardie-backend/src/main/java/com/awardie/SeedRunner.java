@@ -44,7 +44,33 @@ public class SeedRunner implements CommandLineRunner {
                 VALUES ('02110606', '测试教师', 'teacher', ?, TRUE, FALSE)
                 ON CONFLICT (login_code) DO NOTHING
                 """, encoder.encode("P@ss301"));
-        System.out.println("[seed] accounts seeded, exiting");
+
+        // 业务种子(CI E2E 列表页断言依赖;幂等):2 竞赛 + admin 1 条 pending 提交
+        jdbc.update("""
+                INSERT INTO competitions (competition_name, white_list, watch_list, is_auto_added)
+                VALUES ('种子竞赛-白名单', TRUE, FALSE, FALSE)
+                ON CONFLICT (competition_name) DO NOTHING
+                """);
+        jdbc.update("""
+                INSERT INTO competitions (competition_name, white_list, watch_list, is_auto_added)
+                VALUES ('种子竞赛-观察', FALSE, TRUE, FALSE)
+                ON CONFLICT (competition_name) DO NOTHING
+                """);
+        Integer seeded = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM pending_achievements WHERE file_hash='seed-e2e-admin-0001'", Integer.class);
+        if (seeded != null && seeded == 0) {
+            Integer adminId = jdbc.queryForObject(
+                    "SELECT id FROM users WHERE login_code='admin'", Integer.class);
+            jdbc.update("""
+                    INSERT INTO pending_achievements
+                        (achievement_type, achievement_data, submitter_type, submitter_id,
+                         submit_time, status, file_path, file_hash, version, created_at)
+                    VALUES ('award', ?::jsonb, 'admin', ?,
+                            NOW(), 'pending', 'seed/e2e-admin.png', 'seed-e2e-admin-0001', 1, NOW())
+                    """, "{\"competition_name\":\"种子竞赛-白名单\",\"award_level\":\"一等奖\","
+                    + "\"winner_name\":\"种子获奖人\",\"date\":\"2026-08\"}", adminId);
+        }
+        System.out.println("[seed] accounts + business data seeded, exiting");
         SpringApplication.exit(context, () -> 0);
     }
 }
