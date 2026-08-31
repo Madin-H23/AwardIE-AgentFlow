@@ -10,6 +10,7 @@ const router = createRouter({
     { path: '/submit', name: 'submit', component: () => import('../views/StudentSubmitView.vue') },
     { path: '/teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue') },
     { path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue') },
+    { path: '/admin/awards', name: 'admin-awards', component: () => import('../views/AdminAwardsView.vue') },
   ],
 })
 
