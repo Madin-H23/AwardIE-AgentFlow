@@ -85,7 +85,8 @@ test('侧边栏对照 v1 全量菜单', async ({ page }) => {
 test('日志管理双源渲染', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/admin/logs`)
-  await expect(page.locator('.log-stream').locator('.log-line').first()).toBeVisible({ timeout: 10_000 })
+  // CI 空库无留痕行:数据行或空态二选一(环境×数据无关)
+  await expect(page.locator('.log-stream .log-line, .log-stream .empty-state').first()).toBeVisible({ timeout: 10_000 })
   await page.locator('.el-radio-button', { hasText: '系统事件' }).click()
   await expect(page.locator('.log-stream')).toBeVisible()
 })
