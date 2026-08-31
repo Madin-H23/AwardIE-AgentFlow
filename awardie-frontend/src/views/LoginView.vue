@@ -23,7 +23,19 @@ async function onSubmit() {
     }
     ElMessage.success('登录成功')
     // BR-4:首登强制改密
-    router.push({ name: auth.needsPasswordChange ? 'change-password' : 'home' })
+    if (auth.needsPasswordChange) {
+      router.push({ name: 'change-password' })
+      return
+    }
+    // 登录后按角色落对应门户(#35/#36):学生/教师→门户仪表板,admin→控制台工作台
+    const role = auth.user?.role
+    if (role === 'student') {
+      router.push('/portal/student/dashboard')
+    } else if (role === 'teacher') {
+      router.push('/portal/teacher/dashboard')
+    } else {
+      router.push({ name: 'home' })
+    }
   } finally {
     loading.value = false
   }

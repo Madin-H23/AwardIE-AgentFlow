@@ -17,9 +17,10 @@ interface NavItem {
 const navItems = computed<NavItem[]>(() => {
   if (auth.user?.role === 'teacher') {
     return [
-      // 教师仪表板(Goal D)上线后补首位
+      { path: '/teacher/dashboard', label: '仪表板' },
       { path: '/teacher/achievements', label: '成果展示' },
       { path: '/teacher/review', label: '成果审核' },
+      { path: '/teacher/export', label: '数据导出' },
       { path: '/chat', label: 'AI 助手' },
       { path: '/profile', label: '个人资料' },
     ]

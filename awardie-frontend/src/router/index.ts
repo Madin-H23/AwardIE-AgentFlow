@@ -37,6 +37,9 @@ const router = createRouter({
         { path: 'student/dashboard', name: 'student-dashboard', component: () => import('../views/StudentDashboardView.vue') },
         { path: 'student/achievements', name: 'student-achievements', component: () => import('../views/StudentAchievementsView.vue') },
         { path: 'submit', name: 'submit', component: () => import('../views/StudentSubmitView.vue') },
+        { path: 'teacher/dashboard', name: 'teacher-dashboard', component: () => import('../views/TeacherDashboardView.vue') },
+        { path: 'teacher/achievements', name: 'teacher-achievements', component: () => import('../views/TeacherAchievementsView.vue') },
+        { path: 'teacher/export', name: 'teacher-export', component: () => import('../views/TeacherExportView.vue') },
         { path: 'teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue') },
         { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue') },
         { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue') },
@@ -46,6 +49,9 @@ const router = createRouter({
     { path: '/student/dashboard', redirect: '/portal/student/dashboard' },
     { path: '/student/achievements', redirect: '/portal/student/achievements' },
     { path: '/submit', redirect: '/portal/submit' },
+    { path: '/teacher/dashboard', redirect: '/portal/teacher/dashboard' },
+    { path: '/teacher/achievements', redirect: '/portal/teacher/achievements' },
+    { path: '/teacher/export', redirect: '/portal/teacher/export' },
     { path: '/teacher/review', redirect: '/portal/teacher/review' },
     { path: '/profile', redirect: '/portal/profile' },
     { path: '/chat', redirect: '/portal/chat' },
@@ -63,8 +69,15 @@ router.beforeEach(async (to) => {
     if (auth.needsPasswordChange) {
       return { name: 'change-password' }
     }
-    // 学生落门户仪表板(#35);教师仪表板属 Goal D,暂落工作台
-    return auth.user?.role === 'student' ? '/portal/student/dashboard' : { name: 'home' }
+    // 登录后按角色落门户(#35/#36):学生→学生仪表板,教师→教师仪表板,admin→控制台工作台
+    const role = auth.user?.role
+    if (role === 'student') {
+      return '/portal/student/dashboard'
+    }
+    if (role === 'teacher') {
+      return '/portal/teacher/dashboard'
+    }
+    return { name: 'home' }
   }
   if (auth.isLoggedIn && auth.needsPasswordChange && to.name !== 'change-password') {
     return { name: 'change-password' }
@@ -72,6 +85,9 @@ router.beforeEach(async (to) => {
   // 学生访问 console 根 → 门户仪表板(admin/教师不受影响)
   if (to.path === '/' && auth.user?.role === 'student') {
     return '/portal/student/dashboard'
+  }
+  if (to.path === '/' && auth.user?.role === 'teacher') {
+    return '/portal/teacher/dashboard'
   }
 })
 
