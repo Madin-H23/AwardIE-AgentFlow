@@ -7,6 +7,7 @@ import { ElMessage } from 'element-plus'
 // 格式偏差:CSV 起步(v1 xlsx 模板报告挂账),见对照记录。附件下载统一 a 标签直连(GET)。
 const year = ref<number | null>(new Date().getFullYear())
 const dateRange = ref<[string, string] | null>(null)
+const format = ref<'xlsx' | 'csv'>('xlsx') // #41:xlsx 默认,csv 次选
 
 function downloadDirect(endpoint: string, name: string) {
   const a = document.createElement('a')
@@ -19,7 +20,12 @@ function downloadDirect(endpoint: string, name: string) {
 function exportSummary() {
   const qs = new URLSearchParams()
   if (year.value) qs.set('year', String(year.value))
-  downloadDirect(`/api/v2/admin/export/department-summary.csv?${qs}`, 'department-summary')
+  const ext = format.value
+  downloadDirect(`/api/v2/admin/export/department-summary.${ext}?${qs}`, 'department-summary')
+}
+
+function exportTab(endpointBase: string) {
+  downloadDirect(`/api/v2/admin/export/${endpointBase}.${format.value}`, endpointBase)
 }
 </script>
 
@@ -44,26 +50,26 @@ function exportSummary() {
               controls-position="right"
               style="width: 130px"
             />
-            <span class="label">起止日期(预留)</span>
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              value-format="YYYY-MM-DD"
-              start-placeholder="开始"
-              end-placeholder="结束"
-              disabled
-            />
+            <span class="label">格式</span>
+            <el-radio-group v-model="format">
+              <el-radio-button value="xlsx">
+                xlsx(带样式)
+              </el-radio-button>
+              <el-radio-button value="csv">
+                CSV
+              </el-radio-button>
+            </el-radio-group>
             <el-button
               type="primary"
               :icon="Download"
               data-testid="export-summary"
               @click="exportSummary"
             >
-              导出 CSV
+              导出
             </el-button>
           </div>
           <p class="hint">
-            按竞赛×年份×获奖等级汇总获奖数量;xlsx 模板化报告(含图片打包)按批次迁移中,当前提供 CSV(Excel 可直开)。
+            按竞赛×年份×获奖等级汇总获奖数量;xlsx 为带样式多 sheet 报告(汇总+明细),CSV 为次选格式。
           </p>
         </div>
       </el-tab-pane>
@@ -79,9 +85,9 @@ function exportSummary() {
           <el-button
             type="primary"
             :icon="Download"
-            @click="downloadDirect('/api/v2/admin/export/student-affairs.csv', 'student-affairs')"
+            @click="exportTab('student-affairs')"
           >
-            导出 CSV
+            导出
           </el-button>
         </div>
       </el-tab-pane>
@@ -97,9 +103,9 @@ function exportSummary() {
           <el-button
             type="primary"
             :icon="Download"
-            @click="downloadDirect('/api/v2/admin/export/teacher-personal.csv', 'teacher-personal')"
+            @click="exportTab('teacher-personal')"
           >
-            导出 CSV
+            导出
           </el-button>
         </div>
       </el-tab-pane>

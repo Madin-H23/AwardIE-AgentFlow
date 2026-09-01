@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { apiJson } from '../composables/useCsrf'
 
@@ -57,6 +57,50 @@ function switchSource(s: 'audit' | 'system') {
 }
 
 onMounted(load)
+
+// #42 实时流(对照 v1 日志四源之"实时流"):SSE 增量追加 system_event_log,可暂停;应用日志(文件 tail)属 v1 Python 资产不迁移。
+interface StreamLine {
+  id: number
+  level: string
+  category: string
+  message: string
+  trace: string
+  module: string
+  time: string
+}
+const streamLines = ref<StreamLine[]>([])
+const streamPaused = ref(false)
+const streamRunning = ref(false)
+const streamEl = ref<HTMLDivElement>()
+let es: EventSource | null = null
+
+function startStream() {
+  if (es) return
+  streamRunning.value = true
+  es = new EventSource(`/api/v2/admin/logs/stream?afterId=0`, { withCredentials: true })
+  es.addEventListener('anchor', () => { /* 锚点:仅初始化游标,不回放历史 */ })
+  es.addEventListener('log', (e) => {
+    if (streamPaused.value) return
+    const line = JSON.parse((e as MessageEvent).data) as StreamLine
+    streamLines.value.push(line)
+    if (streamLines.value.length > 500) streamLines.value.splice(0, streamLines.value.length - 500)
+    nextTick(() => streamEl.value?.scrollTo({ top: streamEl.value.scrollHeight }))
+  })
+  es.onerror = () => stopStream()
+}
+
+function stopStream() {
+  es?.close()
+  es = null
+  streamRunning.value = false
+}
+
+function toggleStream() {
+  if (streamRunning.value) stopStream()
+  else startStream()
+}
+
+onBeforeUnmount(() => stopStream())
 </script>
 
 <template>
@@ -186,6 +230,32 @@ onMounted(load)
           <el-empty description="行动计划迁移中" />
         </div>
       </el-tab-pane>
+
+      <el-tab-pane label="实时流" name="stream" lazy>
+        <div class="c-panel pad stream-head">
+          <el-button
+            :type="streamRunning ? 'warning' : 'primary'"
+            data-testid="stream-toggle"
+            @click="toggleStream"
+          >
+            {{ streamRunning ? '⏸ 暂停' : '▶ 开始实时流' }}
+          </el-button>
+          <span class="muted-xs">
+            {{ streamRunning ? '连接中,每 2 秒推送系统事件增量' : '已断开(点击开始)' }};应用日志(文件)属 v1 资产不迁移。
+          </span>
+        </div>
+        <div ref="streamEl" class="c-panel log-stream" :data-running="streamRunning">
+          <div v-if="!streamLines.length" class="empty-state">
+            {{ streamRunning ? '等待新事件…' : '点击上方开始按钮接入实时流' }}
+          </div>
+          <div v-for="line in streamLines" :key="line.id" class="log-line mono-data">
+            <span class="log-time">{{ line.time }}</span>
+            <span class="lv-tag" :class="LEVEL_CLASS[line.level] ?? ''">{{ line.level }}</span>
+            <span class="log-main">{{ line.message }}</span>
+            <span class="log-sub">{{ line.category }}<template v-if="line.module"> · {{ line.module }}</template></span>
+          </div>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -233,4 +303,8 @@ onMounted(load)
 }
 .status { font-size: 0.78rem; color: var(--ink-2); }
 .mono-data { font-variant-numeric: tabular-nums; }
+.stream-head {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.muted-xs { font-size: 0.75rem; color: var(--ink-2); }
 </style>

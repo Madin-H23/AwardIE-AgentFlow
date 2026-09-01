@@ -26,6 +26,43 @@ const fileName = ref('')
 const result = ref<{ imported: number; skipped: number; errors: string[] } | null>(null)
 const busy = ref(false)
 
+// #40 图片批量导入(对照 v1 自动导入通道):多图逐张走三校验/存储/去重,admin pending 归档
+interface BatchItem {
+  filename: string
+  ok: boolean
+  pendingId: number | null
+  message: string
+}
+const batchFiles = ref<File[]>([])
+const batchResults = ref<BatchItem[] | null>(null)
+const batchBusy = ref(false)
+
+function onBatchChange(files: File[]) {
+  batchFiles.value = files
+  batchResults.value = null
+}
+
+async function importBatch() {
+  if (!batchFiles.value.length) return
+  batchBusy.value = true
+  try {
+    const fd = new FormData()
+    batchFiles.value.forEach((f) => fd.append('files', f))
+    const resp = await fetch('/api/v2/admin/import/awards/batch', {
+      method: 'POST', body: fd, credentials: 'include',
+    })
+    const body = await resp.json()
+    if (body.code === 0) {
+      batchResults.value = body.data
+      ElMessage.success(`处理 ${body.data.length} 个文件`)
+    } else {
+      ElMessage.error(body.message)
+    }
+  } finally {
+    batchBusy.value = false
+  }
+}
+
 async function onFileChange(file: File) {
   rows.value = []
   result.value = null
@@ -74,6 +111,8 @@ async function confirmImport() {
       <h1>成果/文件导入</h1>
     </div>
 
+    <el-tabs model-value="xlsx">
+      <el-tab-pane label="大创 xlsx 导入" name="xlsx">
     <div
       class="c-panel pad"
       style="margin-bottom: 14px"
@@ -185,6 +224,53 @@ async function confirmImport() {
         确认导入有效行
       </el-button>
     </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="图片批量导入" name="batch" lazy>
+        <div class="c-panel pad" style="margin-bottom: 14px">
+          <h3 class="blk-title">奖状图片批量导入(v1 自动导入通道)</h3>
+          <p class="hint">
+            多选 jpg/png/pdf(单批 ≤20 个),逐张校验/去重后进入待审池(submitter=admin);OCR 字段自动抽取待 AI Worker 扩 extract 通道,当前为上传归档+人工补录。
+          </p>
+          <el-upload
+            drag
+            multiple
+            accept=".jpg,.jpeg,.png,.pdf"
+            :auto-upload="false"
+            :show-file-list="false"
+            :on-change="(f: any, list: any) => onBatchChange(list.map((x: any) => x.raw))"
+          >
+            <el-icon :size="34" style="color: var(--brand)"><UploadFilled /></el-icon>
+            <div class="el-upload__text">拖拽图片到此处,或<em>点击多选文件</em>(已选 {{ batchFiles.length }} 个)</div>
+          </el-upload>
+          <el-button
+            type="primary"
+            style="margin-top: 12px"
+            data-testid="batch-import"
+            :disabled="!batchFiles.length || batchBusy"
+            :loading="batchBusy"
+            @click="importBatch"
+          >
+            开始批量导入
+          </el-button>
+        </div>
+
+        <div v-if="batchResults" class="c-panel pad">
+          <h3 class="blk-title">导入结果控制台</h3>
+          <el-table :data="batchResults" size="small">
+            <el-table-column prop="filename" label="文件" min-width="220" />
+            <el-table-column label="结果" width="90">
+              <template #default="scope">
+                <el-tag :type="scope.row.ok ? 'success' : 'danger'" size="small">
+                  {{ scope.row.ok ? '已入库' : '未入库' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="message" label="说明" min-width="260" />
+          </el-table>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
 
     <div
       v-if="result"

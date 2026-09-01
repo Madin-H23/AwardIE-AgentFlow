@@ -48,6 +48,13 @@ public class SubmissionService {
     @Transactional
     public SubmissionResult submit(Integer studentId, String achievementType, String filename,
             byte[] fileBytes, String dataJson) throws java.io.IOException {
+        return submit(studentId, achievementType, filename, fileBytes, dataJson, "student");
+    }
+
+    /** #40:submitterType 可指(admin 批量图片导入通道);student 调用走上方重载保持原语义。 */
+    @Transactional
+    public SubmissionResult submit(Integer studentId, String achievementType, String filename,
+            byte[] fileBytes, String dataJson, String submitterType) throws java.io.IOException {
         // 1. 文件三校验
         storage.assertAllowed(filename, fileBytes);
 
@@ -78,7 +85,7 @@ public class SubmissionService {
         e.setValidationResult("{\"is_valid\":" + isValid
                 + ",\"content_issues\":" + toJsonArray(content)
                 + ",\"completeness_issues\":" + toJsonArray(completeness) + "}");
-        e.setSubmitterType("student");
+        e.setSubmitterType(submitterType);
         e.setSubmitterId(studentId);
         e.setSubmitTime(Instant.now());
         e.setCreatedAt(Instant.now());

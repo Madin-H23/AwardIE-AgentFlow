@@ -22,10 +22,13 @@ import com.awardie.common.ApiResponse;
 public class AdminImportController {
 
     private final InnovationImportService service;
+    private final com.awardie.admin.BatchImportService batchService;
     private final UserRepository users;
 
-    public AdminImportController(InnovationImportService service, UserRepository users) {
+    public AdminImportController(InnovationImportService service,
+            com.awardie.admin.BatchImportService batchService, UserRepository users) {
         this.service = service;
+        this.batchService = batchService;
         this.users = users;
     }
 
@@ -35,6 +38,28 @@ public class AdminImportController {
             Authentication auth) throws Exception {
         requireAdmin(auth);
         return ApiResponse.ok(service.preview(file.getBytes()));
+    }
+
+    /** 图片批量导入(#40,对照 v1 自动导入):多图逐张走三校验/存储/去重,admin pending 归档。 */
+    @PostMapping("/awards/batch")
+    public ApiResponse<List<com.awardie.admin.BatchImportService.BatchItem>> importBatch(
+            @RequestParam("files") org.springframework.web.multipart.MultipartFile[] files,
+            Authentication auth) throws Exception {
+        requireAdmin(auth);
+        if (files.length == 0) {
+            return ApiResponse.error(4000, "请选择至少一个文件");
+        }
+        if (files.length > 20) {
+            return ApiResponse.error(4000, "单批最多 20 个文件");
+        }
+        UserEntity operator = users.findByLoginCode(auth.getName()).orElseThrow();
+        List<byte[]> bytes = new java.util.ArrayList<>();
+        List<String> names = new java.util.ArrayList<>();
+        for (MultipartFile f : files) {
+            bytes.add(f.getBytes());
+            names.add(f.getOriginalFilename() == null ? "unnamed" : f.getOriginalFilename());
+        }
+        return ApiResponse.ok(batchService.importBatch(bytes, names, operator));
     }
 
     public record ConfirmRequest(String sha256, List<InnovationImportService.ImportRow> rows) {}
