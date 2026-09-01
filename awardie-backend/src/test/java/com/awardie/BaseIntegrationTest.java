@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import org.junit.jupiter.api.BeforeEach;
+
 import java.util.Map;
 
 /**
@@ -101,6 +103,12 @@ public abstract class BaseIntegrationTest {
         String js = sessionCookie(resp); // 仅 JSESSIONID(login 响应无 XSRF cookie)
         String[] c = fetchCsrf(null);    // 匿名 GET /csrf 显式签发(XSRF cookie 与登录无关,token 全局有效)
         return js + "; " + c[0];
+    }
+
+    /** Fix-A:每个测试方法前统一自举三角色(幂等)——新类不再依赖隐式执行顺序。 */
+    @BeforeEach
+    void seedAccountsAuto() {
+        seedAccounts();
     }
 
     /** 三角色测试账号:不存在则建(口令与本地约定一致)。 */
