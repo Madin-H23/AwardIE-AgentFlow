@@ -96,7 +96,8 @@ class AdminCompetitionTest extends BaseIntegrationTest {
                 Map.of("competitionName", name, "whiteList", true, "watchList", false)).getBody();
         assertThat(createdBody).contains("\"code\":0");
 
-        String hit = op("GET", "/api/v2/admin/competitions?page=1&size=20&q=" + name, null).getBody();
+        String qEnc = java.net.URLEncoder.encode(name, java.nio.charset.StandardCharsets.UTF_8);
+        String hit = op("GET", "/api/v2/admin/competitions?page=1&size=20&q=" + qEnc, null).getBody();
         assertThat(hit).contains("\"code\":0")
                 .contains("\"content\":[").contains(name)
                 .contains("\"totalElements\":1").contains("\"totalPages\":1")
