@@ -38,11 +38,19 @@ test('提交页含表单/我的提交/我的成果', async ({ page }) => {
 test('时间线对话框展示事件', async ({ page }) => {
   await loginAsStudent(page)
   await page.goto(`${BASE}/submit`)
-  // Fix-A 数据清理后 admin 可能无提交行:数据行或空态二选一
-  await expect(page.locator('table tbody tr, .el-table__empty-block').first()).toBeVisible()
+  // 自给自足:先提交一笔(文件掺时间戳防 sha 去重),再开时间线
+  const tag = String(Date.now())
+  await page.locator('input[type="file"]').setInputFiles({
+    name: `tl-${tag}.png`, mimeType: 'image/png',
+    buffer: Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, ...Buffer.from(tag)]),
+  })
+  await page.getByRole('textbox', { name: '竞赛名称' }).fill(`时间线E2E赛-${tag}`)
+  await page.getByRole('textbox', { name: '获奖人' }).fill('时间线学生')
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.locator('.el-message').last()).toContainText('提交成功', { timeout: 10_000 })
+  await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10_000 })
   await page.locator('button', { hasText: '查看' }).first().click()
   await expect(page.locator('.el-dialog__title')).toContainText('时间线')
-  // 事件或空态二选一可见(老测试行无留痕)
   await expect(page.locator('.el-timeline, .el-empty').first()).toBeVisible({ timeout: 10_000 })
 })
 
