@@ -85,14 +85,16 @@ public class StudentSubmissionController {
             @RequestParam("data") String data,
             Authentication auth) throws IOException {
         UserEntity user = submissions.requireUser(auth.getName());
-        requireRole(auth, "student");
+        // D2:教师也可提交成果(v1 语义);submitter_type 按实际角色落库
+        requireRole(auth, "student", "teacher");
         if (!achievementType.matches("award|patent|software|innovation|other")) {
             return ApiResponse.error(4000, "未知成果类型");
         }
         byte[] bytes = file.getBytes();
         try {
             SubmissionService.SubmissionResult result = submissions.submit(
-                    user.getId(), achievementType, file.getOriginalFilename(), bytes, data);
+                    user.getId(), achievementType, file.getOriginalFilename(), bytes, data,
+                    user.getRole().toLowerCase());
             var issues = new java.util.ArrayList<String>();
             issues.addAll(result.completenessIssues());
             issues.addAll(result.contentIssues());
@@ -148,10 +150,13 @@ public class StudentSubmissionController {
                 .body(bytes);
     }
 
-    private void requireRole(Authentication auth, String role) {
-        if (!hasRole(auth, role)) {
-            throw new org.springframework.security.access.AccessDeniedException("需要 " + role + " 角色");
+    private void requireRole(Authentication auth, String... roles) {
+        for (String role : roles) {
+            if (hasRole(auth, role)) {
+                return;
+            }
         }
+        throw new org.springframework.security.access.AccessDeniedException("需要 " + String.join("/", roles) + " 角色");
     }
 
     private boolean hasRole(Authentication auth, String role) {

@@ -26,6 +26,9 @@ const router = createRouter({
         { path: 'admin/data-export', name: 'admin-data-export', component: () => import('../views/AdminDataExportView.vue') },
         { path: 'admin/settings', name: 'admin-settings', component: () => import('../views/AdminSettingsView.vue') },
         { path: 'admin/import', name: 'admin-import', component: () => import('../views/AdminImportView.vue') },
+        // Fix-B:审核/Chat 回 console 壳(admin 视角;同组件双注册,师生走 portal 路由)
+        { path: 'admin/review', name: 'admin-review', component: () => import('../views/TeacherReviewView.vue') },
+        { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue') },
         { path: 'coming-soon', name: 'coming-soon', component: () => import('../views/ComingSoonView.vue') },
       ],
     },
@@ -34,18 +37,18 @@ const router = createRouter({
       path: '/portal',
       component: () => import('../layouts/PortalLayout.vue'),
       children: [
-        { path: 'student/dashboard', name: 'student-dashboard', component: () => import('../views/StudentDashboardView.vue') },
-        { path: 'student/achievements', name: 'student-achievements', component: () => import('../views/StudentAchievementsView.vue') },
-        { path: 'submit', name: 'submit', component: () => import('../views/StudentSubmitView.vue') },
-        { path: 'teacher/dashboard', name: 'teacher-dashboard', component: () => import('../views/TeacherDashboardView.vue') },
-        { path: 'teacher/achievements', name: 'teacher-achievements', component: () => import('../views/TeacherAchievementsView.vue') },
-        { path: 'teacher/export', name: 'teacher-export', component: () => import('../views/TeacherExportView.vue') },
-        { path: 'teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue') },
+        { path: 'student/dashboard', name: 'student-dashboard', component: () => import('../views/StudentDashboardView.vue'), meta: { roles: ['student'] } },
+        { path: 'student/achievements', name: 'student-achievements', component: () => import('../views/StudentAchievementsView.vue'), meta: { roles: ['student'] } },
+        { path: 'submit', name: 'submit', component: () => import('../views/StudentSubmitView.vue'), meta: { roles: ['student', 'teacher'] } },
+        { path: 'teacher/dashboard', name: 'teacher-dashboard', component: () => import('../views/TeacherDashboardView.vue'), meta: { roles: ['teacher'] } },
+        { path: 'teacher/achievements', name: 'teacher-achievements', component: () => import('../views/TeacherAchievementsView.vue'), meta: { roles: ['teacher'] } },
+        { path: 'teacher/export', name: 'teacher-export', component: () => import('../views/TeacherExportView.vue'), meta: { roles: ['teacher'] } },
+        { path: 'teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue'), meta: { roles: ['teacher', 'admin'] } },
         { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue') },
-        { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue') },
+        { path: 'chat', name: 'portal-chat', component: () => import('../views/ChatView.vue') },
       ],
     },
-    // 旧路径重定向到门户壳(路径本体不变,E2E/书签兼容)
+    // 旧路径重定向:师生落 portal,admin 视角的审核落 console(按请求无法判角色,守卫二次校正)
     { path: '/student/dashboard', redirect: '/portal/student/dashboard' },
     { path: '/student/achievements', redirect: '/portal/student/achievements' },
     { path: '/submit', redirect: '/portal/submit' },
@@ -58,7 +61,7 @@ const router = createRouter({
   ],
 })
 
-// 守卫:未登录拦截;BR-4 首登强制改密;登录后根路径按角色落对应门户(#35)
+// 守卫:未登录拦截;BR-4 首登强制改密;登录后按角色落门户;portal 角色守卫(#Fix-B)
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   await auth.ensureLoaded()
@@ -82,12 +85,26 @@ router.beforeEach(async (to) => {
   if (auth.isLoggedIn && auth.needsPasswordChange && to.name !== 'change-password') {
     return { name: 'change-password' }
   }
-  // 学生访问 console 根 → 门户仪表板(admin/教师不受影响)
+  // 师生访问 console 根 → 各自门户仪表板(admin 留控制台)
   if (to.path === '/' && auth.user?.role === 'student') {
     return '/portal/student/dashboard'
   }
   if (to.path === '/' && auth.user?.role === 'teacher') {
     return '/portal/teacher/dashboard'
+  }
+  // portal 角色守卫(meta.roles 声明;越权重定向本角色首页)
+  if (to.meta?.roles && auth.user) {
+    const allowed = to.meta.roles as string[]
+    const role = auth.user.role
+    if (!allowed.includes(role)) {
+      if (role === 'student') {
+        return '/portal/student/dashboard'
+      }
+      if (role === 'teacher') {
+        return '/portal/teacher/dashboard'
+      }
+      return { name: 'home' }
+    }
   }
 })
 

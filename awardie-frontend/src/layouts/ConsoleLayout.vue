@@ -54,7 +54,7 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
         title: '常用',
         items: [
           { path: '/admin/awards', label: '成果管理', icon: Medal },
-          { path: '/teacher/review', label: '成果审核', icon: DocumentChecked },
+          { path: '/admin/review', label: '成果审核', icon: DocumentChecked },
           { path: '/admin/logs', label: '日志管理', icon: Document },
         ],
       },

@@ -15,10 +15,19 @@ interface NavItem {
   label: string
 }
 const navItems = computed<NavItem[]>(() => {
+  if (auth.user?.role === 'admin') {
+    // Fix-B:admin 误入 portal 壳时的兜底导航(不再显示学生菜单)
+    return [
+      { path: '/admin/review', label: '返回控制台审核' },
+      { path: '/portal/chat', label: 'AI 助手' },
+      { path: '/portal/profile', label: '个人资料' },
+    ]
+  }
   if (auth.user?.role === 'teacher') {
     return [
       { path: '/teacher/dashboard', label: '仪表板' },
       { path: '/teacher/achievements', label: '成果展示' },
+      { path: '/portal/submit', label: '成果提交' },
       { path: '/teacher/review', label: '成果审核' },
       { path: '/teacher/export', label: '数据导出' },
       { path: '/chat', label: 'AI 助手' },
