@@ -76,7 +76,12 @@ class AdminCompetitionTest extends BaseIntegrationTest {
     @Test
     @Order(3)
     void autoAddedFlagDistinct() {
-        // #14 自动建的竞赛 is_auto_added=TRUE;手工创建应为 FALSE——口径区分可见
+        // 自给自足:CI 空库先种一行(幂等),再断言计数
+        jdbc.update("""
+                INSERT INTO competitions (competition_name, white_list, watch_list, is_auto_added)
+                VALUES ('E2E自动建赛-' || EXTRACT(EPOCH FROM NOW())::BIGINT, TRUE, FALSE, TRUE)
+                ON CONFLICT (competition_name) DO NOTHING
+                """);
         Integer autoAdded = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM competitions WHERE is_auto_added=TRUE", Integer.class);
         assertThat(autoAdded).isGreaterThanOrEqualTo(1);
@@ -87,8 +92,9 @@ class AdminCompetitionTest extends BaseIntegrationTest {
     @Order(4)
     void listPaginatedPageView() {
         String name = "E2E分页竞赛-" + System.nanoTime();
-        op("POST", "/api/v2/admin/competitions",
-                Map.of("competitionName", name, "whiteList", true, "watchList", false));
+        String createdBody = op("POST", "/api/v2/admin/competitions",
+                Map.of("competitionName", name, "whiteList", true, "watchList", false)).getBody();
+        assertThat(createdBody).contains("\"code\":0");
 
         String hit = op("GET", "/api/v2/admin/competitions?page=1&size=20&q=" + name, null).getBody();
         assertThat(hit).contains("\"code\":0")
