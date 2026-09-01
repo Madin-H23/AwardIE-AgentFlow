@@ -62,6 +62,12 @@ class VaultWithdrawTest extends BaseIntegrationTest {
     void awardEditAndDelete() {
         String ck = adminCk();
         // 先造一条测试 award(直插测试库,隔离无污染)
+        // CI 空库:先保证 competitions 存在引用行(FK 依赖)
+        jdbc.update("""
+                INSERT INTO competitions (id, competition_name, white_list, is_auto_added)
+                VALUES (1, 'Vault测试竞赛', TRUE, FALSE)
+                ON CONFLICT (id) DO NOTHING
+                """);
         jdbc.update("""
                 INSERT INTO awards (competition_name_in_file, competition_level, award_level, winner_name,
                                     competition_id, granted_role, created_at)
