@@ -20,7 +20,11 @@ import java.util.Map;
  * 也是"测试不依赖本地库存量数据"的边界。密码哈希用 v2 的 werkzeug scrypt
  * 兼容编码器生成,与存量 1834 条同构。
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        // Fix-A 测试库隔离:集成测试写 awardie_test(独立库,Flyway 空库自建表),
+        // 不再触开发库 awardie_dev——根除"测试数据写入真实库"的污染源
+        "spring.datasource.url=jdbc:postgresql://127.0.0.1:5433/awardie_test"
+})
 public abstract class BaseIntegrationTest {
 
     @Autowired

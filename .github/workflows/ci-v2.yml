@@ -31,6 +31,10 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      # Fix-A 测试库隔离:集成测试写 awardie_test(独立库),与 awardie_dev 互不污染
+      - name: Create isolated test database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -c "CREATE DATABASE awardie_test"
       - name: Backend tests (Flyway V1 baseline + fixture self-seeding,32 例)
         run: mvn -B test
         working-directory: awardie-backend
