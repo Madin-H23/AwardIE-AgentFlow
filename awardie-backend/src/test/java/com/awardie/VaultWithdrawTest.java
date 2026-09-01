@@ -62,17 +62,19 @@ class VaultWithdrawTest extends BaseIntegrationTest {
     void awardEditAndDelete() {
         String ck = adminCk();
         // 先造一条测试 award(直插测试库,隔离无污染)
-        // CI 空库:先保证 competitions 存在引用行(FK 依赖)
+        // CI 空库:先保证 competitions 存在引用行(FK 依赖);不显式插 id(避免与自增序列冲突)
         jdbc.update("""
-                INSERT INTO competitions (id, competition_name, white_list, is_auto_added)
-                VALUES (1, 'Vault测试竞赛', TRUE, FALSE)
-                ON CONFLICT (id) DO NOTHING
+                INSERT INTO competitions (competition_name, white_list, is_auto_added)
+                VALUES ('Vault测试竞赛', TRUE, FALSE)
+                ON CONFLICT (competition_name) DO NOTHING
                 """);
+        Integer compId = jdbc.queryForObject(
+                "SELECT id FROM competitions WHERE competition_name='Vault测试竞赛'", Integer.class);
         jdbc.update("""
                 INSERT INTO awards (competition_name_in_file, competition_level, award_level, winner_name,
                                     competition_id, granted_role, created_at)
-                VALUES ('Vault测试赛', '省赛', '一等奖', 'Vault学生', 1, NULL, NOW())
-                """);
+                VALUES ('Vault测试赛', '省赛', '一等奖', 'Vault学生', ?, NULL, NOW())
+                """, compId);
         Integer id = jdbc.queryForObject(
                 "SELECT MAX(id) FROM awards WHERE competition_name_in_file='Vault测试赛'", Integer.class);
         // 编辑

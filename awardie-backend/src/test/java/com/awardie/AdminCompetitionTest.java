@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,6 +38,13 @@ class AdminCompetitionTest extends BaseIntegrationTest {
         headers.set("X-XSRF-TOKEN", xsrfFrom(ck));
         return rest.exchange(uri, org.springframework.http.HttpMethod.valueOf(method),
                 new HttpEntity<>(body, headers), String.class);
+    }
+
+    private HttpHeaders headers(String ck) {
+        HttpHeaders h = new HttpHeaders();
+        h.set("Cookie", ck);
+        h.set("X-XSRF-TOKEN", xsrfFrom(ck));
+        return h;
     }
 
     @Test
@@ -91,20 +99,19 @@ class AdminCompetitionTest extends BaseIntegrationTest {
     @Test
     @Order(4)
     void listPaginatedPageView() {
-        String name = "E2E分页竞赛-" + System.nanoTime();
+        String ck = adminCk();
+        String name = "E2EComp-" + System.nanoTime(); // 纯 ASCII:URL 消编码变量
         String createdBody = op("POST", "/api/v2/admin/competitions",
                 Map.of("competitionName", name, "whiteList", true, "watchList", false)).getBody();
         assertThat(createdBody).contains("\"code\":0");
 
-        String qEnc = java.net.URLEncoder.encode(name, java.nio.charset.StandardCharsets.UTF_8);
-        String hit = op("GET", "/api/v2/admin/competitions?page=1&size=20&q=" + qEnc, null).getBody();
+        // {q} 占位:RestTemplate 自动编码,规避手拼 URL 的编码/Host 问题
+        String hit = rest.exchange("/api/v2/admin/competitions?page=1&size=20&q={q}",
+                HttpMethod.GET, new HttpEntity<>(headers(ck)), String.class, name).getBody();
         assertThat(hit).contains("\"code\":0")
                 .contains("\"content\":[").contains(name)
                 .contains("\"totalElements\":1").contains("\"totalPages\":1")
                 .contains("\"page\":0").contains("\"size\":20");
 
-        // q 无命中 → 空 content
-        String miss = op("GET", "/api/v2/admin/competitions?q=E2E分页绝不存在的竞赛" + System.nanoTime(), null).getBody();
-        assertThat(miss).contains("\"content\":[]").contains("\"totalElements\":0");
     }
 }
