@@ -2,6 +2,8 @@
 export default {
   testDir: './e2e',
   timeout: 60_000,
+  // CI 上 vite 依赖 optimize 偶发中途 reload 打断 goto(ERR_ABORTED),重试一次
+  retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: 'http://localhost:5199',
     screenshot: 'only-on-failure',
