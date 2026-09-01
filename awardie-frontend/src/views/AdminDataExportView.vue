@@ -6,7 +6,6 @@ import { ElMessage } from 'element-plus'
 // #31 对照 v1 admin/data_export/main.html:三 tab(系年度总结/学生事务/教师个人)。
 // 格式偏差:CSV 起步(v1 xlsx 模板报告挂账),见对照记录。附件下载统一 a 标签直连(GET)。
 const year = ref<number | null>(new Date().getFullYear())
-const dateRange = ref<[string, string] | null>(null)
 const format = ref<'xlsx' | 'csv'>('xlsx') // #41:xlsx 默认,csv 次选
 
 function downloadDirect(endpoint: string, name: string) {
