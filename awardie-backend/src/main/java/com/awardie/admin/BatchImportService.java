@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.awardie.auth.UserEntity;
-import com.awardie.submission.FileStorageService;
 import com.awardie.submission.PendingAchievementEntity;
 import com.awardie.submission.PendingAchievementRepository;
 import com.awardie.submission.SubmissionService;
@@ -39,7 +38,9 @@ public class BatchImportService {
             String filename = filenames.get(i);
             byte[] bytes = fileBytesList.get(i);
             try {
-                String dataJson = "{\"competition_name\":\"批量导入-" + filename.replace("\"", "")
+                // 文件名进 JSON 前清洗(引号/反斜杠/控制符),防 dataJson 转义破坏
+                String safeName = filename.replaceAll("[\"\\\\\\r\\n]", "");
+                String dataJson = "{\"competition_name\":\"批量导入-" + safeName
                         + "\",\"award_level\":\"\",\"date\":\"\"}";
                 SubmissionService.SubmissionResult r = submissions.submit(
                         operator.getId(), "award", filename, bytes, dataJson, "admin");
