@@ -9,7 +9,6 @@
 import { test, expect } from '@playwright/test'
 
 const BASE = 'http://localhost:5199/v2'
-const API = '/api/v2'
 const TAG = 'BF' + Date.now().toString().slice(-6)
 
 async function login(page, account, password) {
