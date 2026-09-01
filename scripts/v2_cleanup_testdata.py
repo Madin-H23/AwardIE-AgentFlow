@@ -16,6 +16,7 @@
 用法:python scripts/v2_cleanup_testdata.py --apply   (不带 --apply 仅预览)
 """
 import argparse
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -28,8 +29,18 @@ CUTOFF = "2026-08-29"
 
 
 def q(sql):
-    r = subprocess.run([PG] + CONN + [sql], capture_output=True, text=True,
-                       encoding="utf-8", errors="replace")
+    # 经 UTF-8 临时文件传 SQL:Windows 命令行参数走 GBK 管道,内嵌中文会被破坏
+    # (本坑第三次出现,根治于此)
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".sql", encoding="utf-8", delete=False) as f:
+        f.write(sql)
+        tmp = f.name
+    try:
+        r = subprocess.run([PG, "-p", "5433", "-U", "postgres", "-d", "awardie_dev",
+                            "-t", "-A", "-f", tmp], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+    finally:
+        os.unlink(tmp)
     if r.returncode != 0:
         raise RuntimeError(r.stderr.strip()[:300])
     return r.stdout.strip()
@@ -42,16 +53,32 @@ def rows(sql):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="实际执行清理(默认仅预览)")
+    ap.add_argument("--tagged", action="store_true",
+                    help="标记口径:仅删含测试标记(E2E/BF/时间线等)的行——供 E2E teardown 使用,保护真实提交")
     args = ap.parse_args()
 
     # 基线最大 award id(迁移行)
     baseline_max = q("SELECT COALESCE(MAX(id), 0) FROM awards WHERE created_at < '2026-08-29'")
     print(f"迁移基线最大 award id = {baseline_max}")
 
+    # --tagged 模式:只删带测试标记的行(OCR 审查 medium 修复:防日期口径误删真实提交)。
+    # 标记覆盖:E2E/BF 前缀、时间线/撤回/教师提交 E2E、批量导入、种子、TRACER、巡检/回归/测试字样。
+    tagged_pending = (" AND (achievement_data::text LIKE '%E2E%' OR achievement_data::text LIKE '%BF%'"
+                      " OR achievement_data::text LIKE '%批量导入%' OR achievement_data::text LIKE '%种子%'"
+                      " OR achievement_data::text LIKE '%TRACER%' OR file_path LIKE '%batch-%'"
+                      " OR file_path LIKE '%tl-%' OR file_path LIKE '%bf-%' OR file_path LIKE '%teacher-e2e%')")
+    tagged_awards = (" AND (competition_name_in_file LIKE '%E2E%' OR competition_name_in_file LIKE '%BF%'"
+                     " OR competition_name_in_file LIKE '%批量导入%' OR competition_name_in_file LIKE '%种子%'"
+                     " OR competition_name_in_file LIKE '%TRACER%')")
+    tagged_where_pending = f" created_at > '{CUTOFF}'" + (tagged_pending if args.tagged else "")
+    tagged_where_awards = f" id > {baseline_max}" + (tagged_awards if args.tagged else "")
+    if args.tagged:
+        print("[tagged 模式] 仅清理带测试标记的行(真实提交不受影响)")
+
     # SQL 内禁用中文(Windows psql 管道 GBK 编码会破坏 UTF8);中文标签在 Python 侧映射
     stats = rows(f"""
-        SELECT 'pending_new', COUNT(*) FROM pending_achievements WHERE created_at > '{CUTOFF}'
-        UNION ALL SELECT 'awards_new', COUNT(*) FROM awards WHERE id > {baseline_max}
+        SELECT 'pending_new', COUNT(*) FROM pending_achievements WHERE{tagged_where_pending}
+        UNION ALL SELECT 'awards_new', COUNT(*) FROM awards WHERE{tagged_where_awards}
         UNION ALL SELECT 'student_winners_new', COUNT(*) FROM award_student_winners WHERE award_id > {baseline_max}
         UNION ALL SELECT 'supervisors_new', COUNT(*) FROM award_supervisors WHERE award_id > {baseline_max}
         UNION ALL SELECT 'audit_new', COUNT(*) FROM achievement_audit_log WHERE created_at > '{CUTOFF}'
@@ -88,12 +115,12 @@ def main():
 
     # 2. 清理(顺序:关联表→主表,避免 FK 残留)
     cleanup = f"""
-    DELETE FROM award_student_winners WHERE award_id > {baseline_max};
-    DELETE FROM award_supervisors WHERE award_id > {baseline_max};
-    DELETE FROM award_teacher_winners WHERE award_id > {baseline_max};
+    DELETE FROM award_student_winners WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
+    DELETE FROM award_supervisors WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
+    DELETE FROM award_teacher_winners WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
     DELETE FROM achievement_audit_log WHERE created_at > '{CUTOFF}';
-    DELETE FROM pending_achievements WHERE created_at > '{CUTOFF}';
-    DELETE FROM awards WHERE id > {baseline_max};
+    DELETE FROM pending_achievements WHERE{tagged_where_pending};
+    DELETE FROM awards WHERE{tagged_where_awards};
     DELETE FROM users WHERE id > (SELECT COALESCE(MAX(id), 0) FROM users WHERE created_at < '2026-08-29')
       AND login_code NOT IN ('admin', '212306413', '02110606');
     """

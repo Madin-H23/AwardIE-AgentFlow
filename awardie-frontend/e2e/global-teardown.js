@@ -15,7 +15,9 @@ export default async function () {
     return
   }
   for (const py of ['python', 'python3']) {
-    const r = spawnSync(py, [script, '--apply'], { encoding: 'utf8' })
+    const r = spawnSync(py, [script, '--apply', '--tagged'], {
+      encoding: 'utf8', timeout: 120_000, // 防 psql 挂起阻塞 teardown(OCR low 修复)
+    })
     if (r.status === 0) {
       console.log('[e2e-teardown] 测试数据已清理(v2_cleanup_testdata --apply)')
       return
