@@ -60,6 +60,10 @@ function onFileChange(evt: Event) {
   file.value = target.files?.[0] ?? null
 }
 
+function countBy(status: string): number {
+  return submissions.value.filter((r) => r.status === status).length
+}
+
 async function loadMine() {
   const resp = await fetch(`${API}/student/pending`, { credentials: 'include' })
   const body = (await resp.json()) as { code: number; data?: Array<Record<string, unknown>> }
@@ -150,6 +154,45 @@ async function onSubmit() {
           提交审核
         </el-button>
       </el-form>
+    </el-card>
+
+    <!-- #37 对照 v1 student/submissions.html:统计卡四列(基于全部提交) -->
+    <el-card class="pane">
+      <h2>提交统计</h2>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="num ink">
+            {{ submissions.length }}
+          </div>
+          <div class="lbl">
+            全部提交
+          </div>
+        </div>
+        <div class="stat">
+          <div class="num yellow">
+            {{ countBy('pending') }}
+          </div>
+          <div class="lbl">
+            待审核
+          </div>
+        </div>
+        <div class="stat">
+          <div class="num green">
+            {{ countBy('archived') }}
+          </div>
+          <div class="lbl">
+            已通过
+          </div>
+        </div>
+        <div class="stat">
+          <div class="num red">
+            {{ countBy('rejected') }}
+          </div>
+          <div class="lbl">
+            已驳回
+          </div>
+        </div>
+      </div>
     </el-card>
 
     <el-card class="pane">
@@ -269,4 +312,14 @@ async function onSubmit() {
 .pane { flex: 1; background: var(--panel); }
 h2 { margin-top: 0; color: var(--ink); }
 .op { color: var(--ink-2); font-size: 12px; }
+.stat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.stat { text-align: center; }
+.num { font-size: 1.7rem; font-weight: 700; }
+.num.ink { color: var(--ink); }
+.num.yellow { color: var(--sev-warning); }
+.num.green { color: #16a34a; }
+.num.red { color: var(--sev-error); }
+.lbl { font-size: 0.82rem; color: var(--ink-2); margin-top: 4px; }
 </style>

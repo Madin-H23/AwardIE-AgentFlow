@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.awardie.auth.UserEntity;
 import com.awardie.auth.UserRepository;
 import com.awardie.common.ApiResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 /** 学生门户聚合(#35,对照 v1 student/dashboard_ref):信息卡/统计/成果四表数据——只读。 */
 @RestController
@@ -109,5 +112,52 @@ public class StudentPortalController {
             throw new org.springframework.security.access.AccessDeniedException("仅学生可访问");
         }
         return me;
+    }
+
+    /** 导出全部(#37,对照 v1 student.export_all):四类成果汇总 CSV。 */
+    @GetMapping("/export.csv")
+    public ResponseEntity<byte[]> exportAll(Authentication auth) {
+        UserEntity me = requireStudent(auth);
+        StringBuilder sb = new StringBuilder("\ufeff类别,名称,级别/类型,等级/登记号,年份/状态\r\n");
+        jdbc.queryForList("""
+                SELECT c.competition_name AS name, a.competition_level AS lv, a.award_level AS extra, a.year AS y
+                FROM award_student_winners w
+                INNER JOIN awards a ON w.award_id = a.id
+                LEFT JOIN competitions c ON a.competition_id = c.id
+                WHERE w.student_id = ?
+                """, me.getId())
+                .forEach(r -> sb.append("获奖记录,").append(csv(r.get("name"))).append(',')
+                        .append(csv(r.get("lv"))).append(',').append(csv(r.get("extra"))).append(',')
+                        .append(csv(r.get("y"))).append("\r\n"));
+        jdbc.queryForList("""
+                SELECT p.project_name AS name, p.project_type AS lv, p.supervisors AS extra, p.status AS y
+                FROM innovation_project_students s
+                INNER JOIN innovation_projects p ON s.project_id = p.id
+                WHERE s.student_id = ?
+                """, me.getId())
+                .forEach(r -> sb.append("大创项目,").append(csv(r.get("name"))).append(',')
+                        .append(csv(r.get("lv"))).append(',').append(csv(r.get("extra"))).append(',')
+                        .append(csv(r.get("y"))).append("\r\n"));
+        jdbc.queryForList("""
+                SELECT patent_name AS name, patent_type AS lv FROM patents
+                WHERE submitter_type = 'student' AND submitter_id = ?
+                """, me.getId())
+                .forEach(r -> sb.append("专利,").append(csv(r.get("name"))).append(",,")
+                        .append(csv(r.get("lv"))).append(",-\r\n"));
+        jdbc.queryForList("""
+                SELECT software_name AS name, registration_number AS lv FROM software_copyrights
+                WHERE submitter_type = 'student' AND submitter_id = ?
+                """, me.getId())
+                .forEach(r -> sb.append("软著,").append(csv(r.get("name"))).append(",,")
+                        .append(csv(r.get("lv"))).append(",-\r\n"));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"my-achievements.csv\"")
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .body(sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private String csv(Object v) {
+        String s = v == null ? "" : String.valueOf(v);
+        return s.contains(",") || s.contains("\"") ? '"' + s.replace("\"", "\"\"") + '"' : s;
     }
 }

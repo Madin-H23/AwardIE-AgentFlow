@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
 
 // #35 对照 v1 student/dashboard_ref.html:个人信息卡(头像+公开主页开关+年级专业学号+实验室/技能标签)
@@ -55,6 +56,26 @@ onMounted(async () => {
   if (a.code === 0) ach.value = a.data
   loading.value = false
 })
+
+/** #37:公开主页开关(v1 togglePublicProfile 的 TODO 落地)——GET /profile 全量合并后 PUT。 */
+async function togglePublic(v: boolean | string | number) {
+  const p = await apiJson('GET', '/api/v2/profile')
+  if (p.code !== 0) {
+    ElMessage.error('读取资料失败')
+    return
+  }
+  const save = await apiJson('PUT', '/api/v2/profile', { ...p.data, profileIsPublic: Boolean(v) })
+  if (save.code === 0) ElMessage.success(Boolean(v) ? '已设为公开' : '已设为私密')
+  else ElMessage.error(save.message)
+}
+
+/** #37:导出全部(对照 v1 student.export_all)——四类成果汇总 CSV。 */
+function exportAll() {
+  const a = document.createElement('a')
+  a.href = '/api/v2/student/portal/export.csv'
+  a.download = 'my-achievements.csv'
+  a.click()
+}
 </script>
 
 <template>
@@ -72,7 +93,7 @@ onMounted(async () => {
           <el-switch
             :model-value="summary?.publicProfile ?? false"
             size="small"
-            disabled
+            @change="(v: boolean | string | number) => togglePublic(v)"
           />
           <span class="muted-xs">公开主页</span>
         </div>
@@ -141,6 +162,13 @@ onMounted(async () => {
       <h2 class="sec-title">
         我的成果
       </h2>
+      <el-button
+        type="primary"
+        data-testid="export-all"
+        @click="exportAll"
+      >
+        导出全部
+      </el-button>
     </div>
 
     <div
