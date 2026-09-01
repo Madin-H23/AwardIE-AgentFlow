@@ -53,8 +53,9 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
       {
         title: '常用',
         items: [
-          { path: '/admin/awards', label: '成果管理', icon: Medal },
+          { path: '/admin/achievements', label: '成果管理', icon: Medal },
           { path: '/admin/review', label: '成果审核', icon: DocumentChecked },
+          { path: '/admin/awards', label: '待审管理', icon: Document },
           { path: '/admin/logs', label: '日志管理', icon: Document },
         ],
       },
@@ -122,7 +123,8 @@ const pageTitle = computed(() => {
     submit: '提交成果',
     'teacher-review': '成果审核',
     profile: '个人资料',
-    'admin-awards': '成果管理',
+    'admin-awards': '待审管理',
+    'admin-achievements': '成果管理(成果库)',
     'admin-competitions': '竞赛管理',
     'admin-dashboard': '数据总览',
     'admin-logs': '日志管理',

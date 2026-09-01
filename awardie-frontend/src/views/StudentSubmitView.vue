@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ensureCsrf, xsrfToken, apiJson } from '../composables/useCsrf'
 
 const API = '/api/v2'
@@ -58,6 +58,20 @@ const ACTION_LABELS: Record<number, string> = {
 function onFileChange(evt: Event) {
   const target = evt.target as HTMLInputElement
   file.value = target.files?.[0] ?? null
+}
+
+/** Fix-E:撤回自己的待审提交(对照 v1 withdraw_submission)。 */
+async function withdraw(id: number) {
+  const ok = await ElMessageBox.confirm(`确定撤回提交 #${id} 吗?撤回后需重新提交。`, '撤回确认', { type: 'warning' })
+    .catch(() => false)
+  if (!ok) return
+  const body = await apiJson('DELETE', `${API}/student/pending/${id}`)
+  if (body.code === 0) {
+    ElMessage.success('已撤回')
+    await loadMine()
+  } else {
+    ElMessage.error(body.message)
+  }
 }
 
 function countBy(status: string): number {
@@ -235,6 +249,23 @@ async function onSubmit() {
             >
               查看
             </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="撤回"
+          width="90"
+        >
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.status === 'pending'"
+              size="small"
+              type="danger"
+              text
+              @click="withdraw(scope.row.id)"
+            >
+              撤回
+            </el-button>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column

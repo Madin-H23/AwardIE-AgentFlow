@@ -128,6 +128,27 @@ public class StudentSubmissionController {
         return ApiResponse.ok(new com.awardie.common.PageView<>(all.subList(from, to), all.size(), totalPages, p, s));
     }
 
+    /**
+     * 撤回提交(Fix-E,对照 v1 withdraw_submission):仅本人且 status=pending 可撤回;
+     * 撤回=删除该 pending 行(审核留痕保留)。
+     */
+    @org.springframework.web.bind.annotation.DeleteMapping("/student/pending/{id}")
+    public ApiResponse<Integer> withdraw(@PathVariable Integer id, Authentication auth) {
+        UserEntity user = submissions.requireUser(auth.getName());
+        PendingAchievementEntity e = pendingRepo.findById(id).orElse(null);
+        if (e == null) {
+            return ApiResponse.error(4004, "记录不存在");
+        }
+        if (!user.getId().equals(e.getSubmitterId())) {
+            return ApiResponse.error(4030, "仅可撤回自己的提交");
+        }
+        if (!"pending".equals(e.getStatus())) {
+            return ApiResponse.error(4009, "仅待审状态可撤回");
+        }
+        pendingRepo.delete(e);
+        return ApiResponse.ok(1, "已撤回");
+    }
+
     /** BR-7:下载一律 attachment;本人或教师/管理员可下载。 */
     @GetMapping("/files/{id}/download")
     public ResponseEntity<byte[]> download(@PathVariable Integer id, Authentication auth) throws IOException {

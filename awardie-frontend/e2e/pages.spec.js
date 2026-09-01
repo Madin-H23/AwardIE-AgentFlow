@@ -12,6 +12,14 @@ async function loginAsAdmin(page) {
   await expect(page.locator('.home')).toBeVisible()
 }
 
+async function loginAsStudent(page) {
+  await page.goto(`${BASE}/login`)
+  await page.getByTestId('login-account').fill('212306413')
+  await page.getByTestId('login-password').fill('P@ss301')
+  await page.getByTestId('login-submit').click()
+  await page.locator('.portal-nav').waitFor({ state: 'visible', timeout: 10_000 })
+}
+
 test('首页展示业务入口与管理端入口', async ({ page }) => {
   await loginAsAdmin(page)
   await expect(page.locator('.home')).toContainText('业务入口')
@@ -20,7 +28,7 @@ test('首页展示业务入口与管理端入口', async ({ page }) => {
 })
 
 test('提交页含表单/我的提交/我的成果', async ({ page }) => {
-  await loginAsAdmin(page)
+  await loginAsStudent(page)
   await page.goto(`${BASE}/submit`)
   await expect(page.getByRole('heading', { name: '提交成果' })).toBeVisible()
   await expect(page.getByRole('heading', { name: '我的提交' })).toBeVisible()
@@ -28,9 +36,10 @@ test('提交页含表单/我的提交/我的成果', async ({ page }) => {
 })
 
 test('时间线对话框展示事件', async ({ page }) => {
-  await loginAsAdmin(page)
+  await loginAsStudent(page)
   await page.goto(`${BASE}/submit`)
-  await expect(page.locator('table tbody tr').first()).toBeVisible()
+  // Fix-A 数据清理后 admin 可能无提交行:数据行或空态二选一
+  await expect(page.locator('table tbody tr, .el-table__empty-block').first()).toBeVisible()
   await page.locator('button', { hasText: '查看' }).first().click()
   await expect(page.locator('.el-dialog__title')).toContainText('时间线')
   // 事件或空态二选一可见(老测试行无留痕)
@@ -156,4 +165,33 @@ test('导入页上传区渲染', async ({ page }) => {
   await page.goto(`${BASE}/admin/import`)
   await expect(page.getByRole('heading', { name: '成果/文件导入' })).toBeVisible()
   await expect(page.locator('.el-upload')).toBeVisible()
+})
+
+// Goal 修复批:Fix-B 守卫与 D2 教师提交
+test('守卫:admin 访问学生提交页被重定向', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/portal/submit`)
+  await page.waitForTimeout(1000)
+  // admin 越权访问学生页 → 重定向回 admin 首页(不显示学生提交表单)
+  expect(page.url()).not.toContain('/portal/submit')
+})
+
+test('教师提交通道可用(D2)', async ({ page }) => {
+  await page.goto(`${BASE}/login`)
+  await page.getByTestId('login-account').fill('02110606')
+  await page.getByTestId('login-password').fill('P@ss301')
+  await page.getByTestId('login-submit').click()
+  await page.locator('.portal-nav').waitFor({ state: 'visible', timeout: 10_000 })
+  await page.goto(`${BASE}/portal/submit`)
+  await page.getByRole('heading', { name: '提交成果' }).waitFor({ state: 'visible', timeout: 10_000 })
+  // 尾部掺时间戳:sha 每次不同,避免跨运行去重拦截
+  const pngBytes = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x54, 0x45,
+    ...Buffer.from(String(Date.now()))])
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'teacher-e2e.png', mimeType: 'image/png', buffer: pngBytes,
+  })
+  await page.getByRole('textbox', { name: '竞赛名称' }).fill('教师提交E2E赛')
+  await page.getByRole('textbox', { name: '获奖人' }).fill('巡检教师')
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.locator('.el-message').last()).toContainText('提交成功', { timeout: 10_000 })
 })
