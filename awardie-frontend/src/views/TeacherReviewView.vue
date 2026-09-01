@@ -10,6 +10,14 @@ const aiText = ref('')
 const aiRunning = ref(false)
 const aiId = ref<number | null>(null)
 const rejectComment = ref('')
+/** jsonb 提取竞赛名称。 */
+function compName(row: Record<string, unknown>): string {
+  try {
+    return JSON.parse(String(row.achievementData ?? '{}')).competition_name ?? '-'
+  } catch {
+    return '-'
+  }
+}
 const rejectId = ref<number | null>(null)
 
 async function load() {
@@ -81,6 +89,11 @@ async function review(id: number, action: string) {
         :data="rows"
         size="small"
       >
+        <el-table-column label="竞赛名称" min-width="200">
+          <template #default="scope">
+            {{ compName(scope.row) }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="id"
           label="#"
@@ -125,26 +138,40 @@ async function review(id: number, action: string) {
           min-width="220"
         >
           <template #default="scope">
-            <el-button
-              size="small"
-              type="success"
-              @click="review(scope.row.id, 'approve')"
-            >
-              批准
-            </el-button>
-            <el-button
-              size="small"
-              type="danger"
-              @click="rejectId = scope.row.id"
-            >
-              驳回
-            </el-button>
-            <el-input
-              v-if="rejectId === scope.row.id"
-              v-model="rejectComment"
-              size="small"
-              placeholder="驳回原因(BR-5 必填)"
-            />
+            <div class="op-cell">
+              <el-button
+                size="small"
+                type="success"
+                @click="review(scope.row.id, 'approve')"
+              >
+                批准
+              </el-button>
+              <el-button
+                size="small"
+                type="danger"
+                @click="rejectId = scope.row.id"
+              >
+                驳回
+              </el-button>
+              <el-input
+                v-if="rejectId === scope.row.id"
+                v-model="rejectComment"
+                size="small"
+                style="margin-top: 6px"
+                placeholder="驳回原因(BR-5 必填)"
+              />
+              <el-button
+                v-if="rejectId === scope.row.id"
+                size="small"
+                type="danger"
+                style="margin-top: 6px"
+                data-testid="reject-confirm"
+                :disabled="!rejectComment.trim()"
+                @click="review(scope.row.id, 'reject')"
+              >
+                确认驳回
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

@@ -74,6 +74,16 @@ async function withdraw(id: number) {
   }
 }
 
+/** 从 jsonb 字段提取竞赛名称(无则 '-')。 */
+function compName(row: Record<string, unknown>): string {
+  try {
+    const d = JSON.parse(String(row.achievementData ?? '{}'))
+    return d.competition_name ?? '-'
+  } catch {
+    return '-'
+  }
+}
+
 function countBy(status: string): number {
   return submissions.value.filter((r) => r.status === status).length
 }
@@ -225,6 +235,11 @@ async function onSubmit() {
           label="类型"
           width="90"
         />
+        <el-table-column label="竞赛名称" min-width="180">
+          <template #default="scope">
+            {{ compName(scope.row) }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="status"
           label="状态"

@@ -29,7 +29,7 @@ const router = createRouter({
         { path: 'admin/import', name: 'admin-import', component: () => import('../views/AdminImportView.vue') },
         // Fix-B:审核/Chat 回 console 壳(admin 视角;同组件双注册,师生走 portal 路由)
         { path: 'admin/review', name: 'admin-review', component: () => import('../views/TeacherReviewView.vue') },
-        { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue') },
+        { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue'), meta: { roles: ['admin'] } },
         { path: 'coming-soon', name: 'coming-soon', component: () => import('../views/ComingSoonView.vue') },
       ],
     },
@@ -92,6 +92,10 @@ router.beforeEach(async (to) => {
   }
   if (to.path === '/' && auth.user?.role === 'teacher') {
     return '/portal/teacher/dashboard'
+  }
+  // AI 助手对所有角色可用:师生访问 console 版 /chat 时引导回 portal 版
+  if (to.path === '/chat' && auth.user?.role !== 'admin') {
+    return '/portal/chat'
   }
   // portal 角色守卫(meta.roles 声明;越权重定向本角色首页)
   if (to.meta?.roles && auth.user) {
