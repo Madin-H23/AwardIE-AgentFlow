@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { OfficeBuilding } from '@element-plus/icons-vue'
 import { apiJson } from '../composables/useCsrf'
 
-// #29 对照 v1 admin/laboratories/list.html:页头+创建按钮/实验室卡片网格(图片区+名称+简介)/空态。详情与编辑挂后续票。
+// #29/#38 对照 v1 laboratories/list:卡片网格+创建/编辑/删除(v1 laboratory_edit 同款字段:名称+简介)。
 interface Lab {
   id: number
   name: string
@@ -15,6 +16,10 @@ const total = ref(0)
 const page = ref(1)
 const size = ref(12)
 const loading = ref(false)
+
+const dialogVisible = ref(false)
+const editingId = ref<number | null>(null)
+const form = reactive({ name: '', description: '' })
 
 async function load() {
   loading.value = true
@@ -29,6 +34,49 @@ async function load() {
   }
 }
 
+function openCreate() {
+  editingId.value = null
+  Object.assign(form, { name: '', description: '' })
+  dialogVisible.value = true
+}
+
+function openEdit(lab: Lab) {
+  editingId.value = lab.id
+  Object.assign(form, { name: lab.name, description: lab.description ?? '' })
+  dialogVisible.value = true
+}
+
+async function save() {
+  if (!form.name.trim()) {
+    ElMessage.warning('实验室名称必填')
+    return
+  }
+  const body = editingId.value === null
+    ? await apiJson('POST', '/api/v2/admin/laboratories', { ...form })
+    : await apiJson('PUT', `/api/v2/admin/laboratories/${editingId.value}`, { ...form })
+  if (body.code === 0) {
+    ElMessage.success(body.message ?? '已保存')
+    dialogVisible.value = false
+    await load()
+  } else {
+    ElMessage.error(body.message)
+  }
+}
+
+async function remove(lab: Lab) {
+  const ok = await ElMessageBox.confirm(
+    `确定删除实验室 ${lab.name} 吗?存在关联数据时将拒绝。`, '删除确认', { type: 'warning' },
+  ).catch(() => false)
+  if (!ok) return
+  const body = await apiJson('DELETE', `/api/v2/admin/laboratories/${lab.id}`)
+  if (body.code === 0) {
+    ElMessage.success('已删除')
+    await load()
+  } else {
+    ElMessage.error(body.message)
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -36,12 +84,13 @@ onMounted(load)
   <div>
     <div class="page-head">
       <h1>实验室管理</h1>
-      <el-tooltip content="实验室创建/编辑按批次迁移中">
-        <span><el-button
-          type="primary"
-          disabled
-        >创建实验室</el-button></span>
-      </el-tooltip>
+      <el-button
+        type="primary"
+        data-testid="lab-create"
+        @click="openCreate"
+      >
+        创建实验室
+      </el-button>
     </div>
 
     <div
@@ -63,9 +112,7 @@ onMounted(load)
         >
           <div class="lab-card">
             <div class="lab-cover">
-              <el-icon :size="34">
-                <OfficeBuilding />
-              </el-icon>
+              <el-icon :size="34"><OfficeBuilding /></el-icon>
             </div>
             <div class="lab-body">
               <div class="lab-name">
@@ -74,8 +121,26 @@ onMounted(load)
               <div class="lab-desc">
                 {{ lab.description || '暂无简介' }}
               </div>
-              <div class="lab-time">
-                建于 {{ String(lab.created_at).slice(0, 10) }}
+              <div class="lab-foot">
+                <span class="lab-time">建于 {{ String(lab.created_at).slice(0, 10) }}</span>
+                <span>
+                  <el-button
+                    size="small"
+                    text
+                    type="primary"
+                    @click="openEdit(lab)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    size="small"
+                    text
+                    type="danger"
+                    @click="remove(lab)"
+                  >
+                    删除
+                  </el-button>
+                </span>
               </div>
             </div>
           </div>
@@ -91,6 +156,43 @@ onMounted(load)
         @current-change="(p: number) => { page = p; load() }"
       />
     </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editingId === null ? '创建实验室' : '编辑实验室'"
+      width="460px"
+    >
+      <el-form label-width="80px">
+        <el-form-item
+          label="名称"
+          required
+        >
+          <el-input
+            v-model="form.name"
+            data-testid="lab-name"
+          />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            :rows="3"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          data-testid="lab-save"
+          @click="save"
+        >
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -101,7 +203,6 @@ onMounted(load)
   border-radius: 8px;
   overflow: hidden;
   transition: border-color 0.15s;
-  cursor: default;
 }
 .lab-card:hover { border-color: var(--brand); }
 .lab-cover {
@@ -128,10 +229,15 @@ onMounted(load)
   overflow: hidden;
   min-height: 2.4em;
 }
+.lab-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
 .lab-time {
   font-size: 0.72rem;
   color: var(--ink-2);
-  margin-top: 8px;
 }
 .empty-state {
   padding: 40px 20px;

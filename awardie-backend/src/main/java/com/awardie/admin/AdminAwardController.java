@@ -1,8 +1,9 @@
 package com.awardie.admin;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.awardie.auth.UserEntity;
 import com.awardie.auth.UserRepository;
 import com.awardie.common.ApiResponse;
+import com.awardie.common.PageView;
 import com.awardie.submission.PendingAchievementEntity;
 import com.awardie.submission.PendingAchievementRepository;
 import com.awardie.submission.ReviewService;
@@ -28,21 +30,24 @@ public class AdminAwardController {
     private final PendingAchievementRepository pendingRepo;
     private final ReviewService reviewService;
     private final UserRepository users;
+    private final JdbcTemplate jdbc;
 
     public AdminAwardController(PendingAchievementRepository pendingRepo, ReviewService reviewService,
-            UserRepository users) {
+            UserRepository users, JdbcTemplate jdbc) {
         this.pendingRepo = pendingRepo;
         this.reviewService = reviewService;
         this.users = users;
+        this.jdbc = jdbc;
     }
 
     /**
-     * 列表(#26 真分页):Specification 下推全部筛选——status/achievementType 等值,
-     * keyword 对 jsonb 文本模糊(对照 v1 winner_name/supervisor_name 能力),
-     * dateFrom/dateTo(yyyy-MM-dd,上海墙上时间)作用于 submit_time。
+     * 列表(#37 十维筛选对照 v1 achievements):列级 status/type/keyword/dateFrom-dateTo +
+     * jsonb 下推 competitionName(LIKE)/year(date 前 4 位)/competitionLevel/awardLevel(等值)/
+     * winnerName/supervisorName(LIKE)。track/laboratory_id/is_abnormal/certificate_type
+     * 不在 pending 语义内(对照记录声明)。JdbcTemplate 手写分页(同 #26 competitions 口径)。
      */
     @GetMapping("/achievements")
-    public ApiResponse<Page<PendingAchievementEntity>> list(
+    public ApiResponse<PageView<Map<String, Object>>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
@@ -50,15 +55,85 @@ public class AdminAwardController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateFrom,
             @RequestParam(required = false) String dateTo,
+            @RequestParam(required = false) String competitionName,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String competitionLevel,
+            @RequestParam(required = false) String awardLevel,
+            @RequestParam(required = false) String winnerName,
+            @RequestParam(required = false) String supervisorName,
             Authentication auth) {
         requireAdmin(auth);
-        // 日期解析前移(参数校验期抛 IllegalArgumentException→4000),Specification 内不懒解析
         var zone = java.time.ZoneId.of("Asia/Shanghai");
         java.time.Instant from = parseDate(dateFrom, zone, false);
         java.time.Instant to = parseDate(dateTo, zone, true);
-        var spec = pendingAchievementSpec(status, achievementType, keyword, from, to);
-        return ApiResponse.ok(pendingRepo.findAll(spec,
-                PageRequest.of(page, Math.min(size, 100), Sort.by(Sort.Direction.DESC, "id"))));
+        int p = Math.max(page, 0);
+        int s = Math.min(Math.max(size, 1), 100);
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        List<Object> args = new java.util.ArrayList<>();
+        if (status != null && !status.isBlank()) {
+            where.append(" AND status = ?");
+            args.add(status.trim());
+        }
+        if (achievementType != null && !achievementType.isBlank()) {
+            where.append(" AND achievement_type = ?");
+            args.add(achievementType.trim());
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            where.append(" AND achievement_data::text LIKE ?");
+            args.add("%" + keyword.trim() + "%");
+        }
+        if (from != null) {
+            where.append(" AND submit_time >= ?");
+            args.add(java.sql.Timestamp.from(from));
+        }
+        if (to != null) {
+            where.append(" AND submit_time < ?");
+            args.add(java.sql.Timestamp.from(to));
+        }
+        like(where, args, "competition_name", competitionName);
+        if (year != null && !year.isBlank()) {
+            where.append(" AND achievement_data->>'date' LIKE ?");
+            args.add(year.trim() + "%");
+        }
+        eq(where, args, "competition_level", competitionLevel);
+        eq(where, args, "award_level", awardLevel);
+        like(where, args, "winner_name", winnerName);
+        like(where, args, "supervisor_name", supervisorName);
+
+        Integer total = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM pending_achievements" + where, Integer.class, args.toArray());
+        List<Object> listArgs = new java.util.ArrayList<>(args);
+        listArgs.add(s);
+        listArgs.add((long) p * s);
+        List<Map<String, Object>> content = jdbc.queryForList("""
+                SELECT id, achievement_type AS "achievementType", submitter_type AS "submitterType",
+                       submitter_id AS "submitterId", status, submit_time AS "submitTime",
+                       achievement_data->>'competition_name' AS "competitionName",
+                       achievement_data->>'competition_level' AS "competitionLevel",
+                       achievement_data->>'award_level' AS "awardLevel",
+                       achievement_data->>'winner_name' AS "winnerName",
+                       achievement_data->>'supervisor_name' AS "supervisorName",
+                       achievement_data->>'date' AS "awardDate"
+                FROM pending_achievements
+                """ + where + " ORDER BY id DESC LIMIT ? OFFSET ?", listArgs.toArray());
+        int totalPages = total == null || total == 0 ? 0 : (total + s - 1) / s;
+        return ApiResponse.ok(new PageView<>(
+                content, total == null ? 0 : total, totalPages, p, s));
+    }
+
+    private void like(StringBuilder where, List<Object> args, String jsonbKey, String value) {
+        if (value != null && !value.isBlank()) {
+            where.append(" AND achievement_data->>'").append(jsonbKey).append("' LIKE ?");
+            args.add("%" + value.trim() + "%");
+        }
+    }
+
+    private void eq(StringBuilder where, List<Object> args, String jsonbKey, String value) {
+        if (value != null && !value.isBlank()) {
+            where.append(" AND achievement_data->>'").append(jsonbKey).append("' = ?");
+            args.add(value.trim());
+        }
     }
 
     private java.time.Instant parseDate(String raw, java.time.ZoneId zone, boolean endOfDay) {
@@ -71,30 +146,6 @@ public class AdminAwardController {
         } catch (java.time.format.DateTimeParseException e) {
             throw new IllegalArgumentException("日期格式须为 yyyy-MM-dd");
         }
-    }
-
-    private org.springframework.data.jpa.domain.Specification<PendingAchievementEntity> pendingAchievementSpec(
-            String status, String achievementType, String keyword, java.time.Instant from, java.time.Instant to) {
-        return (root, query, cb) -> {
-            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
-            if (status != null && !status.isBlank()) {
-                predicates.add(cb.equal(root.get("status"), status.trim()));
-            }
-            if (achievementType != null && !achievementType.isBlank()) {
-                predicates.add(cb.equal(root.get("achievementType"), achievementType.trim()));
-            }
-            if (keyword != null && !keyword.isBlank()) {
-                predicates.add(cb.like(root.get("achievementData").as(String.class),
-                        "%" + keyword.trim() + "%"));
-            }
-            if (from != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("submitTime"), from));
-            }
-            if (to != null) {
-                predicates.add(cb.lessThan(root.get("submitTime"), to));
-            }
-            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-        };
     }
 
     @GetMapping("/achievements/{id}")

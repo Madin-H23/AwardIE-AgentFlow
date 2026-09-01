@@ -14,6 +14,12 @@ const total = ref(0)
 const page = ref(1)
 const size = ref(20)
 const loading = ref(false)
+const dateRange = ref<[string, string] | null>(null)
+
+function reloadFromFirst() {
+  page.value = 1
+  load()
+}
 
 const ACTION_LABELS: Record<number, string> = {
   1: '提交', 6: '审核通过', 7: '驳回', 8: '物化入库',
@@ -32,6 +38,8 @@ async function load() {
     const qs = new URLSearchParams({ source: source.value, page: String(page.value), size: String(size.value) })
     if (level.value) qs.set('level', level.value)
     if (keyword.value) qs.set('keyword', keyword.value)
+    if (dateRange.value?.[0]) qs.set('dateFrom', dateRange.value[0])
+    if (dateRange.value?.[1]) qs.set('dateTo', dateRange.value[1])
     const body = await apiJson('GET', `/api/v2/admin/logs?${qs}`)
     if (body.code === 0) {
       rows.value = body.data.content
@@ -82,13 +90,21 @@ onMounted(load)
             :placeholder="source === 'audit' ? '操作者 / 成果ID / trace_id' : '消息 / trace_id'"
             style="width: 240px"
             clearable
-            @keyup.enter="page = 1; load()"
-            @clear="page = 1; load()"
+            @keyup.enter="reloadFromFirst"
+            @clear="reloadFromFirst"
+          />
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            start-placeholder="开始"
+            end-placeholder="结束"
+            style="width: 240px"
           />
           <el-button
             type="primary"
             :icon="Search"
-            @click="page = 1; load()"
+            @click="reloadFromFirst"
           >
             查询
           </el-button>
