@@ -136,16 +136,22 @@ class VaultWithdrawTest extends BaseIntegrationTest {
     @Test
     @Order(4)
     void cannotWithdrawOthersOrArchived() {
+        // 自给自足:CI 类顺序不保证 BatchStream 先行,自己种 admin pending
+        jdbc.update("""
+                INSERT INTO pending_achievements (achievement_type, achievement_data, submitter_type,
+                    submitter_id, submit_time, status, file_path, file_hash, version, created_at)
+                SELECT 'award', '{"competition_name":"withdraw-guard"}', 'admin', u.id, NOW(), 'pending',
+                       'diag/w.png', 'withdraw-guard-' || EXTRACT(EPOCH FROM NOW())::BIGINT, 1, NOW()
+                FROM users u WHERE u.login_code='admin'
+                  AND NOT EXISTS (SELECT 1 FROM pending_achievements WHERE file_hash LIKE 'withdraw-guard-%')
+                """);
         String stu = loginAs("212306413", "P@ss301");
-        // 种子管理员有一条 admin pending(Fix-A 种子),学生撤它 → 4030
         Integer adminPending = jdbc.queryForObject(
                 "SELECT id FROM pending_achievements WHERE submitter_type='admin' AND status='pending' LIMIT 1",
                 Integer.class);
-        if (adminPending != null) {
-            ResponseEntity<String> resp = rest.exchange("/api/v2/student/pending/" + adminPending,
-                    HttpMethod.DELETE, new HttpEntity<>(headersAsEntity(stu)), String.class);
-            // 4030 JSON(经 handler)或 Security 裸 403 均属"拒绝",断言非 200 即可
-            assertThat(resp.getStatusCode().value()).isEqualTo(403);
-        }
+        ResponseEntity<String> resp = rest.exchange("/api/v2/student/pending/" + adminPending,
+                HttpMethod.DELETE, new HttpEntity<>(headersAsEntity(stu)), String.class);
+        // 4030 JSON(经 handler)或 Security 裸 403 均属"拒绝",断言非 200 即可
+        assertThat(resp.getStatusCode().value()).isEqualTo(403);
     }
 }
