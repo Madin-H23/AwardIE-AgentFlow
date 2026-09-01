@@ -195,12 +195,14 @@ class AdminAwardTest extends BaseIntegrationTest {
                 cookie("admin")).getBody()).doesNotContain(marker);
 
         // 时间窗外(dateFrom=明天)不出现
-        String tomorrow = java.time.LocalDate.now().plusDays(1).toString();
+        // 与服务端同口径:按 Asia/Shanghai 算"今天/明天"(CI 容器是 UTC,直接 now() 会在 16:00Z 后差 8 小时翻车)
+        java.time.ZoneId sh = java.time.ZoneId.of("Asia/Shanghai");
+        String tomorrow = java.time.LocalDate.now(sh).plusDays(1).toString();
         assertThat(get("/api/v2/admin/achievements?keyword=" + marker + "&dateFrom=" + tomorrow,
                 cookie("admin")).getBody()).doesNotContain("\"id\":" + id);
 
         // 时间窗内(dateFrom=今天)命中
-        String today = java.time.LocalDate.now().toString();
+        String today = java.time.LocalDate.now(sh).toString();
         assertThat(get("/api/v2/admin/achievements?keyword=" + marker + "&dateFrom=" + today,
                 cookie("admin")).getBody()).contains("\"id\":" + id);
 
