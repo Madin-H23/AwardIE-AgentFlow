@@ -116,7 +116,13 @@ onMounted(load)
             </div>
             <div class="lab-body">
               <div class="lab-name">
-                {{ lab.name }}
+                <router-link
+                  :to="`/admin/laboratories/${lab.id}`"
+                  class="lab-link"
+                  data-testid="lab-detail-link"
+                >
+                  {{ lab.name }}
+                </router-link>
               </div>
               <div class="lab-desc">
                 {{ lab.description || '暂无简介' }}
@@ -124,6 +130,14 @@ onMounted(load)
               <div class="lab-foot">
                 <span class="lab-time">建于 {{ String(lab.created_at).slice(0, 10) }}</span>
                 <span>
+                  <el-button
+                    size="small"
+                    text
+                    type="primary"
+                    @click="$router.push(`/admin/laboratories/${lab.id}/downloads`)"
+                  >
+                    下载
+                  </el-button>
                   <el-button
                     size="small"
                     text
@@ -218,6 +232,13 @@ onMounted(load)
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--ink);
+}
+.lab-link {
+  color: var(--ink);
+  text-decoration: none;
+}
+.lab-link:hover {
+  color: var(--brand);
 }
 .lab-desc {
   font-size: 0.8rem;

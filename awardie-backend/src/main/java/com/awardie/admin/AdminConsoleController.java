@@ -248,12 +248,51 @@ public class AdminConsoleController {
     public ApiResponse<Integer> updateLab(@PathVariable Integer id, @RequestBody LabUpsert req,
             Authentication auth) {
         requireAdmin(auth);
+        if (req.name() == null || req.name().isBlank()) {
+            return ApiResponse.error(4000, "实验室名称必填");
+        }
         int n = jdbc.update("UPDATE laboratories SET name=?, description=?, updated_at=NOW() WHERE id=?",
                 req.name(), req.description(), id);
         if (n == 0) {
             return ApiResponse.error(4004, "实验室不存在");
         }
         return ApiResponse.ok(n, "已更新");
+    }
+
+    /** 实验室详情聚合(Fix-G 对照 v1 laboratories/detail):信息+统计+教师+学生+下载文件。 */
+    @GetMapping("/laboratories/{id}/detail")
+    public ApiResponse<Map<String, Object>> labDetail(@PathVariable Integer id, Authentication auth) {
+        requireAdmin(auth);
+        List<Map<String, Object>> lab = jdbc.queryForList(
+            "SELECT id, name, description, cover_image AS coverImage, created_at AS createdAt FROM laboratories WHERE id = ?",
+            id);
+        if (lab.isEmpty()) {
+            return ApiResponse.error(4004, "实验室不存在");
+        }
+        Map<String, Object> out = new java.util.HashMap<>(lab.get(0));
+        out.put("instructors", jdbc.queryForList(
+            "SELECT u.id, u.name, COALESCE(u.title, '-') AS title FROM laboratory_instructors li "
+                + "INNER JOIN users u ON li.teacher_id = u.id WHERE li.laboratory_id = ? ORDER BY u.id", id));
+        out.put("students", jdbc.queryForList(
+            "SELECT u.id, u.name, COALESCE(u.grade, '-') AS grade FROM laboratory_students ls "
+                + "INNER JOIN users u ON ls.student_id = u.id WHERE ls.laboratory_id = ? ORDER BY u.id", id));
+        out.put("downloadCount", jdbc.queryForObject(
+            "SELECT COUNT(*) FROM laboratory_downloads WHERE laboratory_id = ?", Integer.class, id));
+        out.put("awardCount", jdbc.queryForObject(
+            "SELECT COUNT(*) FROM awards WHERE laboratory_id = ?", Integer.class, id));
+        return ApiResponse.ok(out);
+    }
+
+    public record LabUpdate(String name, String description) {}
+
+    /** 下载专区(Fix-G,对照 v1 downloads.html):该实验室可下载文件列表。 */
+    @GetMapping("/laboratories/{id}/downloads")
+    public ApiResponse<List<Map<String, Object>>> labDownloads(@PathVariable Integer id, Authentication auth) {
+        requireAdmin(auth);
+        return ApiResponse.ok(jdbc.queryForList(
+            "SELECT id, file_title AS fileTitle, file_name AS fileName, file_size, "
+                + "submitter_type AS submitterType, created_at AS createdAt "
+                + "FROM laboratory_downloads WHERE laboratory_id = ? ORDER BY display_order, id DESC", id));
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/laboratories/{id}")
