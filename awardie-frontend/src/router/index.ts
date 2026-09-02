@@ -29,6 +29,8 @@ const router = createRouter({
         { path: 'admin/import', name: 'admin-import', component: () => import('../views/AdminImportView.vue') },
         // Fix-B:审核/Chat 回 console 壳(admin 视角;同组件双注册,师生走 portal 路由)
         { path: 'admin/review', name: 'admin-review', component: () => import('../views/TeacherReviewView.vue') },
+        { path: 'admin/review/:id', name: 'admin-review-view', component: () => import('../views/AdminReviewDetailView.vue') },
+        { path: 'admin/competitions/:id', name: 'admin-competition-view', component: () => import('../views/AdminCompetitionDetailView.vue') },
         { path: 'chat', name: 'chat', component: () => import('../views/ChatView.vue'), meta: { roles: ['admin'] } },
         { path: 'coming-soon', name: 'coming-soon', component: () => import('../views/ComingSoonView.vue') },
       ],

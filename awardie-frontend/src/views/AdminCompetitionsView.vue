@@ -87,7 +87,17 @@ onMounted(tp.load)
           prop="competitionName"
           label="竞赛名称"
           min-width="220"
-        />
+        >
+          <template #default="scope">
+            <el-link
+              type="primary"
+              :href="`/v2/admin/competitions/${scope.row.id}`"
+              data-testid="comp-detail-link"
+            >
+              {{ scope.row.competitionName }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column
           label="来源"
           width="110"

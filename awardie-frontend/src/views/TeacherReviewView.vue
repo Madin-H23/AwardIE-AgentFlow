@@ -134,6 +134,21 @@ async function review(id: number, action: string) {
           </template>
         </el-table-column>
         <el-table-column
+          label="详情"
+          width="80"
+        >
+          <template #default="scope">
+            <el-button
+              size="small"
+              text
+              type="primary"
+              @click="$router.push(`/admin/review/${scope.row.id}`)"
+            >
+              详情
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column
           label="审核操作"
           min-width="220"
         >
