@@ -64,7 +64,7 @@ onMounted(async () => {
           </template>
         </el-table-column>
         <el-table-column label="操作" width="90">
-          <template #default="scope">
+          <template #default>
             <el-icon class="dl-icon"><Download /></el-icon>
           </template>
         </el-table-column>
