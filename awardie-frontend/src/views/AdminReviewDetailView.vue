@@ -39,9 +39,6 @@ const TYPE_LABEL: Record<string, string> = {
 const STATUS_TEXT: Record<string, string> = {
   pending: '待审核', archived: '已通过', rejected: '已拒绝',
 }
-const STATUS_TYPE: Record<string, string> = {
-  pending: 'warning', archived: 'success', rejected: 'error',
-}
 
 const validation = computed<Validation | null>(() => {
   if (!p.value?.validationResult) return null

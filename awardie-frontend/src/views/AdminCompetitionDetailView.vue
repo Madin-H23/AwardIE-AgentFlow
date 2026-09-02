@@ -5,20 +5,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
 
 // Fix-F 对照 v1 admin/competitions/detail.html+edit.html:详情+全字段编辑+删除。
-interface Competition {
-  id: number
-  competitionName: string
-  gradeCategory: string | null
-  organizer: string | null
-  competitionTime: string | null
-  officialWebsite: string | null
-  briefDescription: string | null
-  participantRequirements: string | null
-  whiteList: boolean
-  watchList: boolean
-  isAutoAdded: boolean
-  aliasList: string | null
-}
 const route = useRoute()
 const router = useRouter()
 const id = Number(route.params.id)
