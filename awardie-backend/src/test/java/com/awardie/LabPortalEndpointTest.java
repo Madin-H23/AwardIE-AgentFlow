@@ -65,7 +65,10 @@ class LabPortalEndpointTest extends BaseIntegrationTest {
                 .contains("instructors")
                 .contains("students")
                 .contains("downloadCount")
-                .contains("awardCount");
+                .contains("awardCount")
+                // 键名级断言:PG 会把不带引号的驼峰别名折叠为小写,别名必须双引号保留
+                .contains("\"coverImage\"")
+                .contains("\"createdAt\"");
         // 404
         assertThat(get(adminCk(), "/api/v2/admin/laboratories/999999/detail").getBody())
                 .contains("4004");
@@ -95,7 +98,9 @@ class LabPortalEndpointTest extends BaseIntegrationTest {
                 VALUES (?, 'diag/dl.png', 'FixG下载文件', 'dl.png', 2048)
                 """, id);
         String body = get(adminCk(), "/api/v2/admin/laboratories/" + id + "/downloads").getBody();
-        assertThat(body).contains("\"code\":0").contains("FixG下载文件").contains("2048");
+        assertThat(body).contains("\"code\":0").contains("FixG下载文件").contains("2048")
+                // 键名级断言:驼峰别名须双引号保留;data 为纯数组(前端不再误取 .content)
+                .contains("\"fileTitle\"").contains("\"submitterType\"").contains("\"createdAt\"");
     }
 
     @Test

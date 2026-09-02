@@ -49,7 +49,7 @@ public class TeacherPortalController {
                 "SELECT name FROM unnest(string_to_array(?, ',')) AS t(name) WHERE name <> ''", String.class,
                 (String) profile.get("skills"));
         List<Map<String, Object>> recent = jdbc.queryForList("""
-                SELECT DISTINCT c.competition_name AS competition, a.award_level AS awardLevel,
+                SELECT DISTINCT c.competition_name AS competition, a.award_level AS "awardLevel",
                        a.year, a.date
                 FROM award_supervisors s
                 INNER JOIN awards a ON s.award_id = a.id
@@ -102,7 +102,7 @@ public class TeacherPortalController {
                 """.formatted(me.getId(), me.getId());
         List<Map<String, Object>> rows = jdbc.queryForList("""
                 SELECT a.id, c.competition_name AS competition, a.competition_level AS level,
-                       a.award_level AS awardLevel, a.year, a.winner_name AS winnerName
+                       a.award_level AS "awardLevel", a.year, a.winner_name AS "winnerName"
                 FROM awards a
                 LEFT JOIN competitions c ON a.competition_id = c.id
                 """ + scope + where + " ORDER BY a.year DESC NULLS LAST, a.id DESC LIMIT 200",

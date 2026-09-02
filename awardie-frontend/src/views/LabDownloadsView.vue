@@ -27,7 +27,7 @@ onMounted(async () => {
   const lab = await apiJson('GET', `/api/v2/admin/laboratories/${id}/detail`)
   if (lab.code === 0) labName.value = lab.data.name
   const body = await apiJson('GET', `/api/v2/admin/laboratories/${id}/downloads`)
-  if (body.code === 0) rows.value = body.data.content
+  if (body.code === 0) rows.value = Array.isArray(body.data) ? body.data : []
   loading.value = false
 })
 </script>

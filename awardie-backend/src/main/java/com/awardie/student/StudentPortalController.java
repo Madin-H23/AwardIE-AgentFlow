@@ -73,7 +73,7 @@ public class StudentPortalController {
         UserEntity me = requireStudent(auth);
         List<Map<String, Object>> awards = jdbc.queryForList("""
                 SELECT c.competition_name AS competition, a.competition_level AS level,
-                       a.award_level AS awardLevel, a.year
+                       a.award_level AS "awardLevel", a.year
                 FROM award_student_winners w
                 INNER JOIN awards a ON w.award_id = a.id
                 LEFT JOIN competitions c ON a.competition_id = c.id
@@ -81,8 +81,8 @@ public class StudentPortalController {
                 ORDER BY a.year DESC NULLS LAST
                 """, me.getId());
         List<Map<String, Object>> innovations = jdbc.queryForList("""
-                SELECT p.project_no AS projectNo, p.project_name AS projectName,
-                       p.project_type AS projectType, p.student_leader_name AS leader,
+                SELECT p.project_no AS "projectNo", p.project_name AS "projectName",
+                       p.project_type AS "projectType", p.student_leader_name AS leader,
                        p.supervisors, p.status
                 FROM innovation_project_students s
                 INNER JOIN innovation_projects p ON s.project_id = p.id
@@ -90,12 +90,12 @@ public class StudentPortalController {
                 ORDER BY p.id DESC
                 """, me.getId());
         List<Map<String, Object>> patents = jdbc.queryForList("""
-                SELECT id, patent_name AS patentName, patent_type AS patentType
+                SELECT id, patent_name AS "patentName", patent_type AS "patentType"
                 FROM patents WHERE submitter_type = 'student' AND submitter_id = ?
                 ORDER BY id DESC
                 """, me.getId());
         List<Map<String, Object>> software = jdbc.queryForList("""
-                SELECT id, software_name AS softwareName, registration_number AS registrationNumber
+                SELECT id, software_name AS "softwareName", registration_number AS "registrationNumber"
                 FROM software_copyrights WHERE submitter_type = 'student' AND submitter_id = ?
                 ORDER BY id DESC
                 """, me.getId());

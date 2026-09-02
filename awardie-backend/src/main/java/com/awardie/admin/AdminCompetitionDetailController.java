@@ -34,11 +34,11 @@ public class AdminCompetitionDetailController {
     public ApiResponse<Map<String, Object>> detail(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
         List<Map<String, Object>> rows = jdbc.queryForList("""
-                SELECT id, competition_name AS competitionName, official_website AS officialWebsite,
-                       organizer, competition_time AS competitionTime, participant_requirements AS participantRequirements,
-                       grade_category AS gradeCategory, brief_description AS briefDescription,
-                       white_list AS whiteList, watch_list AS watchList, is_auto_added AS isAutoAdded,
-                       alias_list AS aliasList
+                SELECT id, competition_name AS "competitionName", official_website AS "officialWebsite",
+                       organizer, competition_time AS "competitionTime", participant_requirements AS "participantRequirements",
+                       grade_category AS "gradeCategory", brief_description AS "briefDescription",
+                       white_list AS "whiteList", watch_list AS "watchList", is_auto_added AS "isAutoAdded",
+                       alias_list AS "aliasList"
                 FROM competitions WHERE id = ?
                 """, id);
         if (rows.isEmpty()) {

@@ -264,7 +264,7 @@ public class AdminConsoleController {
     public ApiResponse<Map<String, Object>> labDetail(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
         List<Map<String, Object>> lab = jdbc.queryForList(
-            "SELECT id, name, description, cover_image AS coverImage, created_at AS createdAt FROM laboratories WHERE id = ?",
+            "SELECT id, name, description, cover_image AS \"coverImage\", created_at AS \"createdAt\" FROM laboratories WHERE id = ?",
             id);
         if (lab.isEmpty()) {
             return ApiResponse.error(4004, "实验室不存在");
@@ -283,15 +283,13 @@ public class AdminConsoleController {
         return ApiResponse.ok(out);
     }
 
-    public record LabUpdate(String name, String description) {}
-
     /** 下载专区(Fix-G,对照 v1 downloads.html):该实验室可下载文件列表。 */
     @GetMapping("/laboratories/{id}/downloads")
     public ApiResponse<List<Map<String, Object>>> labDownloads(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
         return ApiResponse.ok(jdbc.queryForList(
-            "SELECT id, file_title AS fileTitle, file_name AS fileName, file_size, "
-                + "submitter_type AS submitterType, created_at AS createdAt "
+            "SELECT id, file_title AS \"fileTitle\", file_name AS \"fileName\", file_size, "
+                + "submitter_type AS \"submitterType\", created_at AS \"createdAt\" "
                 + "FROM laboratory_downloads WHERE laboratory_id = ? ORDER BY display_order, id DESC", id));
     }
 
