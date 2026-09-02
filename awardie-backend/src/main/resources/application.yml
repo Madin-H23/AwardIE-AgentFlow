@@ -1,4 +1,10 @@
 spring:
+  servlet:
+    multipart:
+      # G3:业务上限 10MB(FileStorageService.MAX_SIZE)+1MB 协议余量——
+      # 让 10MB+1 的超限上传完整到达业务校验,返回友好 4000 而非 Tomcat 断连
+      max-file-size: 11MB
+      max-request-size: 12MB
   datasource:
     url: jdbc:postgresql://127.0.0.1:5433/awardie_dev
     username: postgres
