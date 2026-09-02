@@ -75,6 +75,27 @@ def main():
     if args.tagged:
         print("[tagged 模式] 仅清理带测试标记的行(真实提交不受影响)")
 
+    # G2:patents/software/innovation/other 四表基线=迁移装载日(2026-08-29)之前;
+    # 迁移行保留 v1 历史 created_at(01-29/08-22),08-30 后均为 v2 测试/E2E 残留。
+    # tagged 模式加名称标记双保险;v1 权威口径:patents 0/software 1/innovation 20/other 1。
+    FOUR_BASE = "2026-08-30"
+    marker = "(E2E|BF|批量|种子|TRACER|测试|时间线|撤回|教师提交)"
+    four = [
+        ("patents", "patent_name", "patents_new"),
+        ("software_copyrights", "software_name", "software_new"),
+        ("innovation_projects", "project_name", "innovation_new"),
+        ("other_files", "file_name", "other_new"),
+    ]
+    four_where = {}
+    for tbl, col, _ in four:
+        base = f" created_at > '{FOUR_BASE}'"
+        four_where[tbl] = base + (f" AND {col} ~ '{marker}'" if args.tagged else "")
+    # stats f-string 用的展开变量
+    four_where_patents = four_where["patents"]
+    four_where_software_copyrights = four_where["software_copyrights"]
+    four_where_innovation_projects = four_where["innovation_projects"]
+    four_where_other_files = four_where["other_files"]
+
     # SQL 内禁用中文(Windows psql 管道 GBK 编码会破坏 UTF8);中文标签在 Python 侧映射
     stats = rows(f"""
         SELECT 'pending_new', COUNT(*) FROM pending_achievements WHERE{tagged_where_pending}
@@ -82,6 +103,10 @@ def main():
         UNION ALL SELECT 'student_winners_new', COUNT(*) FROM award_student_winners WHERE award_id > {baseline_max}
         UNION ALL SELECT 'supervisors_new', COUNT(*) FROM award_supervisors WHERE award_id > {baseline_max}
         UNION ALL SELECT 'audit_new', COUNT(*) FROM achievement_audit_log WHERE created_at > '{CUTOFF}'
+        UNION ALL SELECT 'patents_new', COUNT(*) FROM patents WHERE{four_where_patents}
+        UNION ALL SELECT 'software_new', COUNT(*) FROM software_copyrights WHERE{four_where_software_copyrights}
+        UNION ALL SELECT 'innovation_new', COUNT(*) FROM innovation_projects WHERE{four_where_innovation_projects}
+        UNION ALL SELECT 'other_new', COUNT(*) FROM other_files WHERE{four_where_other_files}
         UNION ALL SELECT 'users_new', COUNT(*) FROM users
             WHERE id > (SELECT COALESCE(MAX(id), 0) FROM users WHERE created_at < '2026-08-29')
               AND login_code NOT IN ('admin', '212306413', '02110606')
@@ -92,6 +117,10 @@ def main():
         'student_winners_new': 'award_student_winners(测试关联)',
         'supervisors_new': 'award_supervisors(测试关联)',
         'audit_new': 'achievement_audit_log(测试留痕)',
+        'patents_new': 'patents(测试残留)',
+        'software_new': 'software_copyrights(测试残留)',
+        'innovation_new': 'innovation_projects(测试残留)',
+        'other_new': 'other_files(测试残留)',
         'users_new': 'users(测试创建账号,不含三真实账号)',
     }
     print("=== 待删清单统计 ===")
@@ -114,13 +143,16 @@ def main():
     print(f"[备份] {backup}")
 
     # 2. 清理(顺序:关联表→主表,避免 FK 残留)
+    four_deletes = "".join(
+        "\n    DELETE FROM " + tbl + " WHERE" + four_where[tbl] + ";"
+        for tbl, _col, _k in four)
     cleanup = f"""
     DELETE FROM award_student_winners WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
     DELETE FROM award_supervisors WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
     DELETE FROM award_teacher_winners WHERE award_id IN (SELECT id FROM awards WHERE{tagged_where_awards});
     DELETE FROM achievement_audit_log WHERE created_at > '{CUTOFF}';
     DELETE FROM pending_achievements WHERE{tagged_where_pending};
-    DELETE FROM awards WHERE{tagged_where_awards};
+    DELETE FROM awards WHERE{tagged_where_awards};{four_deletes}
     DELETE FROM users WHERE id > (SELECT COALESCE(MAX(id), 0) FROM users WHERE created_at < '2026-08-29')
       AND login_code NOT IN ('admin', '212306413', '02110606');
     """
