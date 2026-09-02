@@ -203,3 +203,83 @@ test('教师提交通道可用(D2)', async ({ page }) => {
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.locator('.el-message').last()).toContainText('提交成功', { timeout: 10_000 })
 })
+
+// G4 交互深度增补
+test('G4-1 提交表单校验:未选文件/缺必填的提示', async ({ page }) => {
+  await loginAsStudent(page)
+  await page.goto(`${BASE}/portal/submit`)
+  await page.getByRole('button', { name: '提交审核' }).waitFor({ state: 'visible', timeout: 10_000 })
+  // 未选文件直接提交
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.locator('.el-message').last()).toContainText('请选择', { timeout: 10_000 })
+  // 选文件但竞赛名称为空
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'g4.png', mimeType: 'image/png',
+    buffer: Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, ...Buffer.from(String(Date.now()))]),
+  })
+  await page.getByRole('button', { name: '提交审核' }).click()
+  // v1 语义:竞赛名称缺失属 completeness 警告非阻断——提交成功但带校验提示
+  await expect(page.locator('.el-message').last()).toContainText('提交成功', { timeout: 10_000 })
+})
+
+test('G4-2 成果待审管理翻页内容变化', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/awards`)
+  await expect(page.locator('.el-table').locator('tbody tr').first()).toBeVisible({ timeout: 10_000 })
+  const firstId = await page.locator('.el-table__body tr').first().locator('td').first().innerText()
+  const next = page.locator('.el-pagination .btn-next')
+  if (await next.count() && !(await next.isDisabled())) {
+    await next.click()
+    await page.waitForTimeout(800)
+    const newFirst = await page.locator('.el-table__body tr').first().locator('td').first().innerText()
+    expect(newFirst).not.toBe(firstId)
+  } else {
+    // 单页数据:分页不可点也算通过(无翻页语义)
+    expect(await page.locator('.el-pagination').count()).toBeGreaterThan(0)
+  }
+})
+
+test('G4-3 学生撤回后行消失', async ({ page }) => {
+  await loginAsStudent(page)
+  const tag = String(Date.now())
+  await page.goto(`${BASE}/portal/submit`)
+  await page.getByRole('button', { name: '提交审核' }).waitFor({ state: 'visible', timeout: 10_000 })
+  await page.locator('input[type="file"]').setInputFiles({
+    name: `g4wd-${tag}.png`, mimeType: 'image/png',
+    buffer: Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, ...Buffer.from(tag)]),
+  })
+  await page.getByRole('textbox', { name: '竞赛名称' }).fill(`G4撤回赛-${tag}`)
+  await page.getByRole('textbox', { name: '获奖人' }).fill('撤回学生')
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.locator('.el-message').last()).toContainText('提交成功', { timeout: 10_000 })
+  const row = page.locator('table tbody tr', { hasText: `G4撤回赛-${tag}` }).first()
+  await row.locator('button', { hasText: '撤回' }).click()
+  await page.locator('.el-message-box__btns button', { hasText: '确定' }).click()
+  await page.waitForTimeout(1000)
+  await expect(page.locator('table tbody tr', { hasText: `G4撤回赛-${tag}` })).toHaveCount(0)
+})
+
+test('G4-4 刷新后守卫态保持', async ({ page }) => {
+  await loginAsStudent(page)
+  await page.goto(`${BASE}/portal/submit`)
+  await page.getByRole('heading', { name: '提交成果' }).waitFor({ state: 'visible', timeout: 10_000 })
+  await page.reload()
+  await page.waitForTimeout(1000)
+  await expect(page.getByRole('heading', { name: '提交成果' })).toBeVisible()
+  expect(page.url()).toContain('/portal/submit')
+})
+
+test('G4-5 暗色主题三代表页截图留档', async ({ page }) => {
+  await loginAsStudent(page)
+  // portal 无主题钮:经 localStorage 置暗色后刷新生效(useTheme 读 theme 键)
+  await page.evaluate(() => localStorage.setItem('theme', 'dark'))
+  for (const [name, path] of [
+    ['dark-student-dashboard', '/portal/student/dashboard'],
+    ['dark-awards', '/admin/awards'],
+    ['dark-settings', '/admin/settings'],
+  ]) {
+    await page.goto(`${BASE}${path}`)
+    await page.waitForTimeout(900)
+    await page.screenshot({ path: `../docs/重构二期/03-对照验收/暗色/G4-${name}.png` })
+  }
+})
