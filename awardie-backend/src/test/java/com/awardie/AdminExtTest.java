@@ -39,6 +39,17 @@ class AdminExtTest extends BaseIntegrationTest {
                 .contains("\"code\":0");
         assertThat(get("/api/v2/admin/analysis/records", ck).getBody())
                 .contains("\"code\":0");
+        // Fix-P 实验室维度贡献度:存在实验室→code 0(键名 competitionId 由真库实测核);不存在→4004
+        Integer labId = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM laboratories", Integer.class) == 0 ? null
+                : jdbc.queryForObject("SELECT id FROM laboratories ORDER BY id LIMIT 1", Integer.class);
+        if (labId != null) {
+            // 结构层断言:实验室可能无获奖数据(data:[]),键名契约由真库实测核对
+            assertThat(get("/api/v2/admin/analysis/laboratory/" + labId + "/contribution?years=2026", ck).getBody())
+                    .contains("\"code\":0").contains("\"data\"");
+        }
+        assertThat(get("/api/v2/admin/analysis/laboratory/999999/contribution", ck).getBody())
+                .contains("4004");
     }
 
     @Test

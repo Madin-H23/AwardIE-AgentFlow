@@ -34,6 +34,7 @@ onMounted(async () => {
     <div class="page-head">
       <h1>实验室详情</h1>
       <div>
+        <el-button @click="$router.push(`/admin/laboratories/${id}/analysis`)">数据分析</el-button>
         <el-button @click="$router.push(`/admin/laboratories/${id}/edit`)">编辑</el-button>
         <el-button @click="$router.push(`/admin/laboratories/${id}/downloads`)">下载专区</el-button>
       </div>

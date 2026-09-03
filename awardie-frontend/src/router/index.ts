@@ -29,6 +29,7 @@ const router = createRouter({
         { path: 'admin/laboratories/:id', name: 'admin-lab-view', component: () => import('../views/LabDetailView.vue') },
         { path: 'admin/laboratories/:id/edit', name: 'admin-lab-edit', component: () => import('../views/LabEditView.vue') },
         { path: 'admin/laboratories/:id/downloads', name: 'admin-lab-downloads', component: () => import('../views/LabDownloadsView.vue') },
+        { path: 'admin/laboratories/:id/analysis', name: 'admin-lab-analysis', component: () => import('../views/LabDataAnalysisView.vue') },
         { path: 'admin/templates', name: 'admin-templates', component: () => import('../views/AdminTemplatesView.vue') },
         { path: 'admin/data-analysis', name: 'admin-data-analysis', component: () => import('../views/AdminDataAnalysisView.vue') },
         { path: 'admin/data-export', name: 'admin-data-export', component: () => import('../views/AdminDataExportView.vue') },

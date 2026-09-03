@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,6 +58,37 @@ public class AdminAnalysisController {
         }
         if (whiteListOnly) {
             where.append(" AND c.white_list = TRUE");
+        }
+        if (!includeTeacher) {
+            where.append(" AND (a.granted_role IS NULL OR a.granted_role <> '教师')");
+        }
+        return ApiResponse.ok(jdbc.queryForList(
+                "SELECT c.id AS \"competitionId\", c.competition_name AS name, COUNT(a.id) AS \"awardCount\""
+                        + " FROM competitions c INNER JOIN awards a ON c.id = a.competition_id" + where
+                        + " GROUP BY c.id, c.competition_name ORDER BY COUNT(a.id) DESC",
+                args.toArray()));
+    }
+
+    /** Fix-P 实验室维度贡献度(对照 v1 /laboratory/{id}/data-analysis/competitions):按实验室过滤。 */
+    @GetMapping("/laboratory/{labId}/contribution")
+    public ApiResponse<List<Map<String, Object>>> labContribution(@PathVariable Integer labId,
+            Authentication auth, @RequestParam(required = false) List<Integer> years,
+            @RequestParam(defaultValue = "false") boolean includeTeacher) {
+        requireAdmin(auth);
+        Integer exist = jdbc.queryForObject("SELECT COUNT(*) FROM laboratories WHERE id = ?", Integer.class, labId);
+        if (exist == null || exist == 0) {
+            return ApiResponse.error(4004, "实验室不存在");
+        }
+        StringBuilder where = new StringBuilder(" WHERE a.laboratory_id = ?");
+        List<Object> args = new java.util.ArrayList<>();
+        args.add(labId);
+        if (years != null && !years.isEmpty()) {
+            where.append(" AND a.year IN (");
+            for (int i = 0; i < years.size(); i++) {
+                where.append(i == 0 ? "?" : ",?");
+                args.add(years.get(i));
+            }
+            where.append(")");
         }
         if (!includeTeacher) {
             where.append(" AND (a.granted_role IS NULL OR a.granted_role <> '教师')");
