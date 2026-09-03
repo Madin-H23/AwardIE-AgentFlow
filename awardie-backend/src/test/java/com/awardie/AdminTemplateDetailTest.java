@@ -157,4 +157,39 @@ class AdminTemplateDetailTest extends BaseIntegrationTest {
         String stu = loginAs("212306413", "P@ss301");
         assertThat(get(stu, "/api/v2/admin/templates/" + id + "/detail").getStatusCode().value()).isEqualTo(403);
     }
+
+    /** 架构票落地:extract-for-create / generate-prompt-for-create 两端点(fake 桩,键名级契约)。 */
+    @Test
+    void extractAndPromptFakeStubs() {
+        // extract-for-create:multipart 样本图 → mode/dataJson/ocrText 键名契约
+        // (cookie 与 XSRF token 必须同源:adminCk() 每次调用都是独立登录,先存变量)
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new ByteArrayResource("\u00FF\u00D8fake-jpeg".getBytes(StandardCharsets.UTF_8)) {
+            @Override
+            public String getFilename() {
+                return "extract.jpg";
+            }
+        });
+        String ck = adminCk();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MULTIPART);
+        headers.set("Cookie", ck);
+        headers.set("X-XSRF-TOKEN", xsrfFrom(ck));
+        ResponseEntity<String> ext = rest.exchange("/api/v2/admin/templates/extract-for-create",
+                HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+        assertThat(ext.getBody()).contains("\"code\":0")
+                .contains("\"mode\":\"fake\"").contains("\"dataJson\"").contains("\"ocrText\"")
+                .contains("竞赛名称");
+        // 必填:缺文件 4000
+        assertThat(rest.exchange("/api/v2/admin/templates/extract-for-create", HttpMethod.POST,
+                new HttpEntity<>(new LinkedMultiValueMap<String, Object>(), headers), String.class)
+                .getBody()).contains("4000");
+        // generate-prompt-for-create:mode/prompt 键名契约
+        assertThat(post(adminCk(), "/api/v2/admin/templates/generate-prompt-for-create").getBody())
+                .contains("\"code\":0").contains("\"mode\":\"fake\"").contains("\"prompt\"");
+        // 403:学生越权
+        String stu = loginAs("212306413", "P@ss301");
+        assertThat(post(stu, "/api/v2/admin/templates/generate-prompt-for-create").getStatusCode().value())
+                .isEqualTo(403);
+    }
 }

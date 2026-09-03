@@ -92,6 +92,107 @@ class AiService(pb_grpc.AiServiceServicer):
             code = 4003 if _is_ai_dependency_error(e) else 5000
             return pb.ExtractResponse(code=code, message=str(e)[:200], trace_id=request.trace_id)
 
+    def ExtractTemplate(self, request, context):
+        """模板样本图抽取(架构票;v1 extract-for-create 语义:强制 award 抽取器+默认 prompt)。"""
+        log.info("ExtractTemplate: %s (%d bytes, trace_id=%s)",
+                 request.filename or "-", len(request.image), request.trace_id or "-")
+        import json
+        import os
+        import tempfile
+        if not request.image:
+            return pb.ExtractTemplateResponse(code=4004, message="请上传样本图片", trace_id=request.trace_id)
+        suffix = os.path.splitext(request.filename or "")[1] or ".jpg"
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(request.image)
+                temp_path = tmp.name
+            framework = _get_framework()
+            award_extractor = framework.get_extractor("award")
+            if award_extractor is None:
+                return pb.ExtractTemplateResponse(code=5000, message="奖状抽取器未注册", trace_id=request.trace_id)
+            from backend.extract.extractors.base import ExtractContext
+            ctx = ExtractContext(
+                file_path=temp_path,
+                use_ocr_cache=request.use_ocr_cache,
+                use_llm_cache=request.use_llm_cache,
+                use_default_prompt_only=True,
+                force_type=True,
+                ocr_engine=framework.ocr_engine,
+                llm_engine=framework.llm_engine,
+            )
+            result = award_extractor.extract(ctx)
+            from backend.extract.types import ExtractStatus
+            if result.status != ExtractStatus.SUCCESS:
+                return pb.ExtractTemplateResponse(
+                    code=4004, message=result.error_message or "抽取失败", trace_id=request.trace_id)
+            data = result.data if result.data else {}
+            # v1 语义:note-only 数据=图不可抽取(非奖状图等),收敛为 4004
+            if isinstance(data, dict) and list(data.keys()) == ["note"] and "note" in data:
+                return pb.ExtractTemplateResponse(
+                    code=4004, message=data.get("note") or result.error_message or "抽取失败",
+                    trace_id=request.trace_id)
+            ocr_text = getattr(result, "ocr_text", None)
+            return pb.ExtractTemplateResponse(
+                code=0,
+                message="ok",
+                data_json=json.dumps(data, ensure_ascii=False, default=str),
+                ocr_text=ocr_text if isinstance(ocr_text, str) else str(ocr_text or ""),
+                trace_id=request.trace_id,
+            )
+        except Exception as e:  # noqa: BLE001 —— Worker 边界:异常收敛为 4003/5000,不泄漏堆栈
+            log.exception("ExtractTemplate 失败")
+            code = 4003 if _is_ai_dependency_error(e) else 5000
+            return pb.ExtractTemplateResponse(code=code, message=str(e)[:200], trace_id=request.trace_id)
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
+
+    def GeneratePrompt(self, request, context):
+        """模板 prompt 生成(架构票;v1 generate-prompt-for-create 语义:临时 Template+base_fields)。"""
+        log.info("GeneratePrompt: rule=%d bytes (trace_id=%s)",
+                 len(request.template_rule_json), request.trace_id or "-")
+        import json
+        try:
+            rule = json.loads(request.template_rule_json) if request.template_rule_json.strip() else {}
+        except json.JSONDecodeError as e:
+            return pb.GeneratePromptResponse(code=4000, message=f"模板规则 JSON 非法: {e}", trace_id=request.trace_id)
+        try:
+            from backend.extract.template.template import Template
+            from backend.extract.types import TemplateType
+            from backend.services.context import get_context
+
+            # 与 extract_framework 同源的单例 ServiceContext,公开 template_manager property
+            base_fields = get_context().template_manager.get_base_fields("award")
+            keywords = [str(k).strip() for k in (rule.get("keywords") or []) if str(k).strip()]
+            sample_text = (request.sample_text or "").strip() or "示例OCR文本"
+            sample_extracted = rule.get("sample_extracted")
+            if isinstance(sample_extracted, dict):
+                sample_extracted = json.dumps(sample_extracted, ensure_ascii=False)
+            temp_template = Template(
+                template_type=TemplateType.AWARD,
+                keywords=keywords,
+                sample_text=sample_text,
+                sample_extracted=(sample_extracted or "{}").strip() or "{}",
+                default_fields=rule.get("default_fields") or {},
+                llm_fields=rule.get("llm_fields") or {},
+                min_length=int(rule.get("min_length") or 0),
+                max_length=int(rule.get("max_length") or 0),
+                language=(rule.get("language") or "zh").strip() or "zh",
+                need_translate=bool(rule.get("need_translate")),
+            )
+            prompt = temp_template.generate_prompt(sample_text, base_fields)
+            return pb.GeneratePromptResponse(
+                code=0, message="ok", prompt=prompt, disclaimer=DISCLAIMER, trace_id=request.trace_id)
+        except Exception as e:  # noqa: BLE001 —— Worker 边界:异常收敛为 4003/5000,不泄漏堆栈
+            log.exception("GeneratePrompt 失败")
+            code = 4003 if _is_ai_dependency_error(e) else 5000
+            return pb.GeneratePromptResponse(code=code, message=str(e)[:200], disclaimer=DISCLAIMER,
+                                             trace_id=request.trace_id)
+
     def ExtractAndReview(self, request, context):
         log.info("ExtractAndReview: %s (trace_id=%s)", request.file_path, request.trace_id or "-")
         try:

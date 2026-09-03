@@ -50,6 +50,68 @@ public final class AiServiceGrpc {
     return getExtractMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.ExtractTemplateRequest,
+      awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> getExtractTemplateMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ExtractTemplate",
+      requestType = awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.class,
+      responseType = awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.ExtractTemplateRequest,
+      awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> getExtractTemplateMethod() {
+    io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.ExtractTemplateRequest, awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> getExtractTemplateMethod;
+    if ((getExtractTemplateMethod = AiServiceGrpc.getExtractTemplateMethod) == null) {
+      synchronized (AiServiceGrpc.class) {
+        if ((getExtractTemplateMethod = AiServiceGrpc.getExtractTemplateMethod) == null) {
+          AiServiceGrpc.getExtractTemplateMethod = getExtractTemplateMethod =
+              io.grpc.MethodDescriptor.<awardie.ai.AiServiceOuterClass.ExtractTemplateRequest, awardie.ai.AiServiceOuterClass.ExtractTemplateResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ExtractTemplate"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AiServiceMethodDescriptorSupplier("ExtractTemplate"))
+              .build();
+        }
+      }
+    }
+    return getExtractTemplateMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.GeneratePromptRequest,
+      awardie.ai.AiServiceOuterClass.GeneratePromptResponse> getGeneratePromptMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GeneratePrompt",
+      requestType = awardie.ai.AiServiceOuterClass.GeneratePromptRequest.class,
+      responseType = awardie.ai.AiServiceOuterClass.GeneratePromptResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.GeneratePromptRequest,
+      awardie.ai.AiServiceOuterClass.GeneratePromptResponse> getGeneratePromptMethod() {
+    io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.GeneratePromptRequest, awardie.ai.AiServiceOuterClass.GeneratePromptResponse> getGeneratePromptMethod;
+    if ((getGeneratePromptMethod = AiServiceGrpc.getGeneratePromptMethod) == null) {
+      synchronized (AiServiceGrpc.class) {
+        if ((getGeneratePromptMethod = AiServiceGrpc.getGeneratePromptMethod) == null) {
+          AiServiceGrpc.getGeneratePromptMethod = getGeneratePromptMethod =
+              io.grpc.MethodDescriptor.<awardie.ai.AiServiceOuterClass.GeneratePromptRequest, awardie.ai.AiServiceOuterClass.GeneratePromptResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GeneratePrompt"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  awardie.ai.AiServiceOuterClass.GeneratePromptRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  awardie.ai.AiServiceOuterClass.GeneratePromptResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AiServiceMethodDescriptorSupplier("GeneratePrompt"))
+              .build();
+        }
+      }
+    }
+    return getGeneratePromptMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<awardie.ai.AiServiceOuterClass.ExtractRequest,
       awardie.ai.AiServiceOuterClass.WorkflowEvent> getExtractAndReviewMethod;
 
@@ -207,6 +269,26 @@ public final class AiServiceGrpc {
 
     /**
      * <pre>
+     * 模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+     * </pre>
+     */
+    default void extractTemplate(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest request,
+        io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getExtractTemplateMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     * 模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
+     * </pre>
+     */
+    default void generatePrompt(awardie.ai.AiServiceOuterClass.GeneratePromptRequest request,
+        io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.GeneratePromptResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGeneratePromptMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
      * 抽取+审核全链:流式过程事件(node 进度/答案增量)+ 最终审核结论(server-streaming)
      * </pre>
      */
@@ -284,6 +366,28 @@ public final class AiServiceGrpc {
 
     /**
      * <pre>
+     * 模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+     * </pre>
+     */
+    public void extractTemplate(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest request,
+        io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getExtractTemplateMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     * 模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
+     * </pre>
+     */
+    public void generatePrompt(awardie.ai.AiServiceOuterClass.GeneratePromptRequest request,
+        io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.GeneratePromptResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGeneratePromptMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
      * 抽取+审核全链:流式过程事件(node 进度/答案增量)+ 最终审核结论(server-streaming)
      * </pre>
      */
@@ -344,6 +448,26 @@ public final class AiServiceGrpc {
     public awardie.ai.AiServiceOuterClass.ExtractResponse extract(awardie.ai.AiServiceOuterClass.ExtractRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getExtractMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * 模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+     * </pre>
+     */
+    public awardie.ai.AiServiceOuterClass.ExtractTemplateResponse extractTemplate(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getExtractTemplateMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * 模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
+     * </pre>
+     */
+    public awardie.ai.AiServiceOuterClass.GeneratePromptResponse generatePrompt(awardie.ai.AiServiceOuterClass.GeneratePromptRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGeneratePromptMethod(), getCallOptions(), request);
     }
 
     /**
@@ -412,6 +536,28 @@ public final class AiServiceGrpc {
 
     /**
      * <pre>
+     * 模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<awardie.ai.AiServiceOuterClass.ExtractTemplateResponse> extractTemplate(
+        awardie.ai.AiServiceOuterClass.ExtractTemplateRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getExtractTemplateMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     * 模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<awardie.ai.AiServiceOuterClass.GeneratePromptResponse> generatePrompt(
+        awardie.ai.AiServiceOuterClass.GeneratePromptRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGeneratePromptMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
      * 健康探针
      * </pre>
      */
@@ -423,9 +569,11 @@ public final class AiServiceGrpc {
   }
 
   private static final int METHODID_EXTRACT = 0;
-  private static final int METHODID_EXTRACT_AND_REVIEW = 1;
-  private static final int METHODID_ASK = 2;
-  private static final int METHODID_HEALTH = 3;
+  private static final int METHODID_EXTRACT_TEMPLATE = 1;
+  private static final int METHODID_GENERATE_PROMPT = 2;
+  private static final int METHODID_EXTRACT_AND_REVIEW = 3;
+  private static final int METHODID_ASK = 4;
+  private static final int METHODID_HEALTH = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -447,6 +595,14 @@ public final class AiServiceGrpc {
         case METHODID_EXTRACT:
           serviceImpl.extract((awardie.ai.AiServiceOuterClass.ExtractRequest) request,
               (io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.ExtractResponse>) responseObserver);
+          break;
+        case METHODID_EXTRACT_TEMPLATE:
+          serviceImpl.extractTemplate((awardie.ai.AiServiceOuterClass.ExtractTemplateRequest) request,
+              (io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.ExtractTemplateResponse>) responseObserver);
+          break;
+        case METHODID_GENERATE_PROMPT:
+          serviceImpl.generatePrompt((awardie.ai.AiServiceOuterClass.GeneratePromptRequest) request,
+              (io.grpc.stub.StreamObserver<awardie.ai.AiServiceOuterClass.GeneratePromptResponse>) responseObserver);
           break;
         case METHODID_EXTRACT_AND_REVIEW:
           serviceImpl.extractAndReview((awardie.ai.AiServiceOuterClass.ExtractRequest) request,
@@ -485,6 +641,20 @@ public final class AiServiceGrpc {
               awardie.ai.AiServiceOuterClass.ExtractRequest,
               awardie.ai.AiServiceOuterClass.ExtractResponse>(
                 service, METHODID_EXTRACT)))
+        .addMethod(
+          getExtractTemplateMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              awardie.ai.AiServiceOuterClass.ExtractTemplateRequest,
+              awardie.ai.AiServiceOuterClass.ExtractTemplateResponse>(
+                service, METHODID_EXTRACT_TEMPLATE)))
+        .addMethod(
+          getGeneratePromptMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              awardie.ai.AiServiceOuterClass.GeneratePromptRequest,
+              awardie.ai.AiServiceOuterClass.GeneratePromptResponse>(
+                service, METHODID_GENERATE_PROMPT)))
         .addMethod(
           getExtractAndReviewMethod(),
           io.grpc.stub.ServerCalls.asyncServerStreamingCall(
@@ -555,6 +725,8 @@ public final class AiServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new AiServiceFileDescriptorSupplier())
               .addMethod(getExtractMethod())
+              .addMethod(getExtractTemplateMethod())
+              .addMethod(getGeneratePromptMethod())
               .addMethod(getExtractAndReviewMethod())
               .addMethod(getAskMethod())
               .addMethod(getHealthMethod())

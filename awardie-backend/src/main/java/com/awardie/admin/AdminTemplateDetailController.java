@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.awardie.aireview.AiWorkerClient;
 import com.awardie.common.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/** Fix-TP:奖状模板创建/详情/试测端点(对照 v1 admin_templates create/update/test/image;test 走 ai.worker fake 桩,真 RPC=架构票)。 */
+import io.grpc.StatusRuntimeException;
+
+/** Fix-TP:奖状模板创建/详情/试测端点(对照 v1 admin_templates create/update/test/image)。 */
 @RestController
 @RequestMapping("/api/v2/admin/templates")
 public class AdminTemplateDetailController {
@@ -32,11 +36,14 @@ public class AdminTemplateDetailController {
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final boolean aiFake;
+    private final AiWorkerClient aiClient;
 
     public AdminTemplateDetailController(JdbcTemplate jdbc,
-            @Value("${ai.worker.mode:fake}") String aiMode) {
+            @Value("${ai.worker.mode:fake}") String aiMode,
+            AiWorkerClient aiClient) {
         this.jdbc = jdbc;
         this.aiFake = "fake".equalsIgnoreCase(aiMode);
+        this.aiClient = aiClient;
     }
 
     /** 创建模板(multipart:样本图必填;唯一性=同竞赛同角色,v1 manager 层查重的 SQL 化)。 */
@@ -181,12 +188,12 @@ public class AdminTemplateDetailController {
         return ResponseEntity.ok().header("Content-Type", type).body(bytes);
     }
 
-    /** 模板试测:fake=确定性桩(回显 sample_extracted);真 Extract RPC=架构票,grpc 模式暂 4003。 */
+    /** 模板试测:fake=确定性桩(回显 sample_extracted);模板试测(OCR+匹配+抽取)待页面批次接 ExtractTemplate。 */
     @PostMapping("/{id}/test")
     public ApiResponse<Map<String, Object>> test(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
         if (!aiFake) {
-            return ApiResponse.error(4003, "AI Worker Extract RPC 未接入(架构票排期中)");
+            return ApiResponse.error(4003, "模板试测待接入 ExtractTemplate(页面批次)");
         }
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT sample_extracted::TEXT AS se FROM templates WHERE id = ?", id);
@@ -199,6 +206,74 @@ public class AdminTemplateDetailController {
         out.put("ocrText", jdbc.queryForObject(
                 "SELECT COALESCE(sample_text, '') FROM templates WHERE id = ?", String.class, id));
         return ApiResponse.ok(out);
+    }
+
+    /** 样本图抽取(架构票《AI Worker extract/prompt RPC 扩展》落地):fake=确定性桩,grpc=ExtractTemplate 契约。对照 v1 extract-for-create。 */
+    @PostMapping("/extract-for-create")
+    public ApiResponse<Map<String, Object>> extractForCreate(
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            Authentication auth) throws Exception {
+        requireAdmin(auth);
+        if (file == null || file.isEmpty()) {
+            return ApiResponse.error(4000, "请上传样本图片");
+        }
+        String traceId = "tpl-extract-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> out = new LinkedHashMap<>();
+        if (aiFake) {
+            out.put("mode", "fake");
+            out.put("dataJson",
+                    "{\"竞赛名称\":\"示例竞赛(fake 桩)\",\"获奖等级\":\"一等奖\",\"获奖人\":\"示例获奖人\"}");
+            out.put("ocrText", "【fake 桩】样本 OCR 文本(接入真 Worker 后返回实际识别内容)。");
+            return ApiResponse.ok(out);
+        }
+        try {
+            var resp = aiClient.extractTemplate(file.getBytes(), file.getOriginalFilename(), "{}",
+                    true, true, traceId, 120);
+            if (resp.getCode() != 0) {
+                return ApiResponse.error(resp.getCode(), resp.getMessage());
+            }
+            out.put("mode", "grpc");
+            out.put("dataJson", resp.getDataJson());
+            out.put("ocrText", resp.getOcrText());
+            return ApiResponse.ok(out);
+        } catch (StatusRuntimeException e) {
+            return ApiResponse.error(4003, "AI Worker 不可用(" + e.getStatus().getCode() + "),请稍后重试");
+        }
+    }
+
+    /** 模板 prompt 生成(架构票落地):fake=确定性桩,grpc=GeneratePrompt 契约。对照 v1 generate-prompt-for-create(表单平铺 body)。 */
+    @PostMapping("/generate-prompt-for-create")
+    public ApiResponse<Map<String, Object>> generatePromptForCreate(@RequestBody Map<String, Object> body,
+            Authentication auth) throws Exception {
+        requireAdmin(auth);
+        String traceId = "tpl-prompt-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> rule = new LinkedHashMap<>();
+        for (String k : List.of("keywords", "sample_extracted", "default_fields", "llm_fields",
+                "min_length", "max_length", "language", "need_translate")) {
+            if (body.containsKey(k)) {
+                rule.put(k, body.get(k));
+            }
+        }
+        String sampleText = body.get("sample_text") == null ? "" : String.valueOf(body.get("sample_text"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        if (aiFake) {
+            out.put("mode", "fake");
+            out.put("prompt", "【fake 桩】请从以下 OCR 文本抽取竞赛名称/获奖等级/获奖人字段并以 JSON 输出:"
+                    + sampleText);
+            return ApiResponse.ok(out);
+        }
+        try {
+            var resp = aiClient.generatePrompt(objectMapper.writeValueAsString(rule), sampleText, traceId, 60);
+            if (resp.getCode() != 0) {
+                return ApiResponse.error(resp.getCode(), resp.getMessage());
+            }
+            out.put("mode", "grpc");
+            out.put("prompt", resp.getPrompt());
+            out.put("disclaimer", resp.getDisclaimer());
+            return ApiResponse.ok(out);
+        } catch (StatusRuntimeException e) {
+            return ApiResponse.error(4003, "AI Worker 不可用(" + e.getStatus().getCode() + "),请稍后重试");
+        }
     }
 
     private List<String> splitLines(String joined) {

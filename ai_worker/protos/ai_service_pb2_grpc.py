@@ -41,6 +41,16 @@ class AiServiceStub:
                 request_serializer=ai__service__pb2.ExtractRequest.SerializeToString,
                 response_deserializer=ai__service__pb2.ExtractResponse.FromString,
                 _registered_method=True)
+        self.ExtractTemplate = channel.unary_unary(
+                '/awardie.ai.AiService/ExtractTemplate',
+                request_serializer=ai__service__pb2.ExtractTemplateRequest.SerializeToString,
+                response_deserializer=ai__service__pb2.ExtractTemplateResponse.FromString,
+                _registered_method=True)
+        self.GeneratePrompt = channel.unary_unary(
+                '/awardie.ai.AiService/GeneratePrompt',
+                request_serializer=ai__service__pb2.GeneratePromptRequest.SerializeToString,
+                response_deserializer=ai__service__pb2.GeneratePromptResponse.FromString,
+                _registered_method=True)
         self.ExtractAndReview = channel.unary_stream(
                 '/awardie.ai.AiService/ExtractAndReview',
                 request_serializer=ai__service__pb2.ExtractRequest.SerializeToString,
@@ -65,6 +75,20 @@ class AiServiceServicer:
 
     def Extract(self, request, context):
         """抽取:文件 → 结构化数据(unary,v1 framework.extract 同步语义)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ExtractTemplate(self, request, context):
+        """模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GeneratePrompt(self, request, context):
+        """模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -98,6 +122,16 @@ def add_AiServiceServicer_to_server(servicer, server):
                     servicer.Extract,
                     request_deserializer=ai__service__pb2.ExtractRequest.FromString,
                     response_serializer=ai__service__pb2.ExtractResponse.SerializeToString,
+            ),
+            'ExtractTemplate': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExtractTemplate,
+                    request_deserializer=ai__service__pb2.ExtractTemplateRequest.FromString,
+                    response_serializer=ai__service__pb2.ExtractTemplateResponse.SerializeToString,
+            ),
+            'GeneratePrompt': grpc.unary_unary_rpc_method_handler(
+                    servicer.GeneratePrompt,
+                    request_deserializer=ai__service__pb2.GeneratePromptRequest.FromString,
+                    response_serializer=ai__service__pb2.GeneratePromptResponse.SerializeToString,
             ),
             'ExtractAndReview': grpc.unary_stream_rpc_method_handler(
                     servicer.ExtractAndReview,
@@ -144,6 +178,60 @@ class AiService:
             '/awardie.ai.AiService/Extract',
             ai__service__pb2.ExtractRequest.SerializeToString,
             ai__service__pb2.ExtractResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExtractTemplate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/awardie.ai.AiService/ExtractTemplate',
+            ai__service__pb2.ExtractTemplateRequest.SerializeToString,
+            ai__service__pb2.ExtractTemplateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GeneratePrompt(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/awardie.ai.AiService/GeneratePrompt',
+            ai__service__pb2.GeneratePromptRequest.SerializeToString,
+            ai__service__pb2.GeneratePromptResponse.FromString,
             options,
             channel_credentials,
             insecure,

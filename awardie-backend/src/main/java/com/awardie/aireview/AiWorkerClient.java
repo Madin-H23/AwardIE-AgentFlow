@@ -64,6 +64,31 @@ public class AiWorkerClient implements AutoCloseable {
                         .build());
     }
 
+    /** 模板样本图抽取(架构票,契约 ExtractTemplate);调用方负责 code!=0 的降级语义。 */
+    public AiServiceOuterClass.ExtractTemplateResponse extractTemplate(byte[] image, String filename,
+            String templateRuleJson, boolean useOcrCache, boolean useLlmCache, String traceId, long deadlineSeconds) {
+        return stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS)
+                .extractTemplate(AiServiceOuterClass.ExtractTemplateRequest.newBuilder()
+                        .setImage(com.google.protobuf.ByteString.copyFrom(image))
+                        .setFilename(filename == null ? "" : filename)
+                        .setTemplateRuleJson(templateRuleJson == null ? "" : templateRuleJson)
+                        .setUseOcrCache(useOcrCache)
+                        .setUseLlmCache(useLlmCache)
+                        .setTraceId(traceId)
+                        .build());
+    }
+
+    /** 模板 prompt 生成(架构票,契约 GeneratePrompt);调用方负责 code!=0 的降级语义。 */
+    public AiServiceOuterClass.GeneratePromptResponse generatePrompt(String templateRuleJson, String sampleText,
+            String traceId, long deadlineSeconds) {
+        return stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS)
+                .generatePrompt(AiServiceOuterClass.GeneratePromptRequest.newBuilder()
+                        .setTemplateRuleJson(templateRuleJson == null ? "" : templateRuleJson)
+                        .setSampleText(sampleText == null ? "" : sampleText)
+                        .setTraceId(traceId)
+                        .build());
+    }
+
     @Override
     public void close() {
         channel.shutdown();

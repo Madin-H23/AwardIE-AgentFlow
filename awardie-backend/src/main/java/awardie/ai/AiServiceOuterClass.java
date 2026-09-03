@@ -7421,6 +7421,4379 @@ public final class AiServiceOuterClass {
 
   }
 
+  public interface ExtractTemplateRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:awardie.ai.ExtractTemplateRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * 样本图内容(multipart 直传,样本图未落盘场景)
+     * </pre>
+     *
+     * <code>bytes image = 1;</code>
+     * @return The image.
+     */
+    com.google.protobuf.ByteString getImage();
+
+    /**
+     * <pre>
+     * 原始文件名(判后缀落临时文件)
+     * </pre>
+     *
+     * <code>string filename = 2;</code>
+     * @return The filename.
+     */
+    java.lang.String getFilename();
+    /**
+     * <pre>
+     * 原始文件名(判后缀落临时文件)
+     * </pre>
+     *
+     * <code>string filename = 2;</code>
+     * @return The bytes for filename.
+     */
+    com.google.protobuf.ByteString
+        getFilenameBytes();
+
+    /**
+     * <pre>
+     * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+     * </pre>
+     *
+     * <code>string template_rule_json = 3;</code>
+     * @return The templateRuleJson.
+     */
+    java.lang.String getTemplateRuleJson();
+    /**
+     * <pre>
+     * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+     * </pre>
+     *
+     * <code>string template_rule_json = 3;</code>
+     * @return The bytes for templateRuleJson.
+     */
+    com.google.protobuf.ByteString
+        getTemplateRuleJsonBytes();
+
+    /**
+     * <code>bool use_ocr_cache = 4;</code>
+     * @return The useOcrCache.
+     */
+    boolean getUseOcrCache();
+
+    /**
+     * <code>bool use_llm_cache = 5;</code>
+     * @return The useLlmCache.
+     */
+    boolean getUseLlmCache();
+
+    /**
+     * <code>string trace_id = 6;</code>
+     * @return The traceId.
+     */
+    java.lang.String getTraceId();
+    /**
+     * <code>string trace_id = 6;</code>
+     * @return The bytes for traceId.
+     */
+    com.google.protobuf.ByteString
+        getTraceIdBytes();
+  }
+  /**
+   * <pre>
+   * 架构票《AI Worker extract/prompt RPC 扩展》(2026-09-03 立项):templates 域解锁载体。
+   * template_rule_json 当前为扩展位(强制 award 抽取不消费规则),规则化抽取属后续演进。
+   * </pre>
+   *
+   * Protobuf type {@code awardie.ai.ExtractTemplateRequest}
+   */
+  public static final class ExtractTemplateRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:awardie.ai.ExtractTemplateRequest)
+      ExtractTemplateRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ExtractTemplateRequest.newBuilder() to construct.
+    private ExtractTemplateRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ExtractTemplateRequest() {
+      image_ = com.google.protobuf.ByteString.EMPTY;
+      filename_ = "";
+      templateRuleJson_ = "";
+      traceId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ExtractTemplateRequest();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.class, awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.Builder.class);
+    }
+
+    public static final int IMAGE_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString image_ = com.google.protobuf.ByteString.EMPTY;
+    /**
+     * <pre>
+     * 样本图内容(multipart 直传,样本图未落盘场景)
+     * </pre>
+     *
+     * <code>bytes image = 1;</code>
+     * @return The image.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getImage() {
+      return image_;
+    }
+
+    public static final int FILENAME_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object filename_ = "";
+    /**
+     * <pre>
+     * 原始文件名(判后缀落临时文件)
+     * </pre>
+     *
+     * <code>string filename = 2;</code>
+     * @return The filename.
+     */
+    @java.lang.Override
+    public java.lang.String getFilename() {
+      java.lang.Object ref = filename_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        filename_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 原始文件名(判后缀落临时文件)
+     * </pre>
+     *
+     * <code>string filename = 2;</code>
+     * @return The bytes for filename.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getFilenameBytes() {
+      java.lang.Object ref = filename_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        filename_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TEMPLATE_RULE_JSON_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object templateRuleJson_ = "";
+    /**
+     * <pre>
+     * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+     * </pre>
+     *
+     * <code>string template_rule_json = 3;</code>
+     * @return The templateRuleJson.
+     */
+    @java.lang.Override
+    public java.lang.String getTemplateRuleJson() {
+      java.lang.Object ref = templateRuleJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        templateRuleJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+     * </pre>
+     *
+     * <code>string template_rule_json = 3;</code>
+     * @return The bytes for templateRuleJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTemplateRuleJsonBytes() {
+      java.lang.Object ref = templateRuleJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        templateRuleJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int USE_OCR_CACHE_FIELD_NUMBER = 4;
+    private boolean useOcrCache_ = false;
+    /**
+     * <code>bool use_ocr_cache = 4;</code>
+     * @return The useOcrCache.
+     */
+    @java.lang.Override
+    public boolean getUseOcrCache() {
+      return useOcrCache_;
+    }
+
+    public static final int USE_LLM_CACHE_FIELD_NUMBER = 5;
+    private boolean useLlmCache_ = false;
+    /**
+     * <code>bool use_llm_cache = 5;</code>
+     * @return The useLlmCache.
+     */
+    @java.lang.Override
+    public boolean getUseLlmCache() {
+      return useLlmCache_;
+    }
+
+    public static final int TRACE_ID_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object traceId_ = "";
+    /**
+     * <code>string trace_id = 6;</code>
+     * @return The traceId.
+     */
+    @java.lang.Override
+    public java.lang.String getTraceId() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        traceId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string trace_id = 6;</code>
+     * @return The bytes for traceId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTraceIdBytes() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        traceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!image_.isEmpty()) {
+        output.writeBytes(1, image_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(filename_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, filename_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(templateRuleJson_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, templateRuleJson_);
+      }
+      if (useOcrCache_ != false) {
+        output.writeBool(4, useOcrCache_);
+      }
+      if (useLlmCache_ != false) {
+        output.writeBool(5, useLlmCache_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, traceId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!image_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, image_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(filename_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, filename_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(templateRuleJson_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, templateRuleJson_);
+      }
+      if (useOcrCache_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, useOcrCache_);
+      }
+      if (useLlmCache_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, useLlmCache_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, traceId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof awardie.ai.AiServiceOuterClass.ExtractTemplateRequest)) {
+        return super.equals(obj);
+      }
+      awardie.ai.AiServiceOuterClass.ExtractTemplateRequest other = (awardie.ai.AiServiceOuterClass.ExtractTemplateRequest) obj;
+
+      if (!getImage()
+          .equals(other.getImage())) return false;
+      if (!getFilename()
+          .equals(other.getFilename())) return false;
+      if (!getTemplateRuleJson()
+          .equals(other.getTemplateRuleJson())) return false;
+      if (getUseOcrCache()
+          != other.getUseOcrCache()) return false;
+      if (getUseLlmCache()
+          != other.getUseLlmCache()) return false;
+      if (!getTraceId()
+          .equals(other.getTraceId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + IMAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getImage().hashCode();
+      hash = (37 * hash) + FILENAME_FIELD_NUMBER;
+      hash = (53 * hash) + getFilename().hashCode();
+      hash = (37 * hash) + TEMPLATE_RULE_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getTemplateRuleJson().hashCode();
+      hash = (37 * hash) + USE_OCR_CACHE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUseOcrCache());
+      hash = (37 * hash) + USE_LLM_CACHE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUseLlmCache());
+      hash = (37 * hash) + TRACE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getTraceId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * 架构票《AI Worker extract/prompt RPC 扩展》(2026-09-03 立项):templates 域解锁载体。
+     * template_rule_json 当前为扩展位(强制 award 抽取不消费规则),规则化抽取属后续演进。
+     * </pre>
+     *
+     * Protobuf type {@code awardie.ai.ExtractTemplateRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:awardie.ai.ExtractTemplateRequest)
+        awardie.ai.AiServiceOuterClass.ExtractTemplateRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.class, awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.Builder.class);
+      }
+
+      // Construct using awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        image_ = com.google.protobuf.ByteString.EMPTY;
+        filename_ = "";
+        templateRuleJson_ = "";
+        useOcrCache_ = false;
+        useLlmCache_ = false;
+        traceId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateRequest getDefaultInstanceForType() {
+        return awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateRequest build() {
+        awardie.ai.AiServiceOuterClass.ExtractTemplateRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateRequest buildPartial() {
+        awardie.ai.AiServiceOuterClass.ExtractTemplateRequest result = new awardie.ai.AiServiceOuterClass.ExtractTemplateRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.image_ = image_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.filename_ = filename_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.templateRuleJson_ = templateRuleJson_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.useOcrCache_ = useOcrCache_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.useLlmCache_ = useLlmCache_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.traceId_ = traceId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof awardie.ai.AiServiceOuterClass.ExtractTemplateRequest) {
+          return mergeFrom((awardie.ai.AiServiceOuterClass.ExtractTemplateRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(awardie.ai.AiServiceOuterClass.ExtractTemplateRequest other) {
+        if (other == awardie.ai.AiServiceOuterClass.ExtractTemplateRequest.getDefaultInstance()) return this;
+        if (other.getImage() != com.google.protobuf.ByteString.EMPTY) {
+          setImage(other.getImage());
+        }
+        if (!other.getFilename().isEmpty()) {
+          filename_ = other.filename_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getTemplateRuleJson().isEmpty()) {
+          templateRuleJson_ = other.templateRuleJson_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.getUseOcrCache() != false) {
+          setUseOcrCache(other.getUseOcrCache());
+        }
+        if (other.getUseLlmCache() != false) {
+          setUseLlmCache(other.getUseLlmCache());
+        }
+        if (!other.getTraceId().isEmpty()) {
+          traceId_ = other.traceId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                image_ = input.readBytes();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                filename_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                templateRuleJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 32: {
+                useOcrCache_ = input.readBool();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 40: {
+                useLlmCache_ = input.readBool();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 50: {
+                traceId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private com.google.protobuf.ByteString image_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <pre>
+       * 样本图内容(multipart 直传,样本图未落盘场景)
+       * </pre>
+       *
+       * <code>bytes image = 1;</code>
+       * @return The image.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getImage() {
+        return image_;
+      }
+      /**
+       * <pre>
+       * 样本图内容(multipart 直传,样本图未落盘场景)
+       * </pre>
+       *
+       * <code>bytes image = 1;</code>
+       * @param value The image to set.
+       * @return This builder for chaining.
+       */
+      public Builder setImage(com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        image_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 样本图内容(multipart 直传,样本图未落盘场景)
+       * </pre>
+       *
+       * <code>bytes image = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearImage() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        image_ = getDefaultInstance().getImage();
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object filename_ = "";
+      /**
+       * <pre>
+       * 原始文件名(判后缀落临时文件)
+       * </pre>
+       *
+       * <code>string filename = 2;</code>
+       * @return The filename.
+       */
+      public java.lang.String getFilename() {
+        java.lang.Object ref = filename_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          filename_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 原始文件名(判后缀落临时文件)
+       * </pre>
+       *
+       * <code>string filename = 2;</code>
+       * @return The bytes for filename.
+       */
+      public com.google.protobuf.ByteString
+          getFilenameBytes() {
+        java.lang.Object ref = filename_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          filename_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 原始文件名(判后缀落临时文件)
+       * </pre>
+       *
+       * <code>string filename = 2;</code>
+       * @param value The filename to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFilename(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        filename_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 原始文件名(判后缀落临时文件)
+       * </pre>
+       *
+       * <code>string filename = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFilename() {
+        filename_ = getDefaultInstance().getFilename();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 原始文件名(判后缀落临时文件)
+       * </pre>
+       *
+       * <code>string filename = 2;</code>
+       * @param value The bytes for filename to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFilenameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        filename_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object templateRuleJson_ = "";
+      /**
+       * <pre>
+       * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+       * </pre>
+       *
+       * <code>string template_rule_json = 3;</code>
+       * @return The templateRuleJson.
+       */
+      public java.lang.String getTemplateRuleJson() {
+        java.lang.Object ref = templateRuleJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          templateRuleJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+       * </pre>
+       *
+       * <code>string template_rule_json = 3;</code>
+       * @return The bytes for templateRuleJson.
+       */
+      public com.google.protobuf.ByteString
+          getTemplateRuleJsonBytes() {
+        java.lang.Object ref = templateRuleJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          templateRuleJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+       * </pre>
+       *
+       * <code>string template_rule_json = 3;</code>
+       * @param value The templateRuleJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTemplateRuleJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        templateRuleJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+       * </pre>
+       *
+       * <code>string template_rule_json = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTemplateRuleJson() {
+        templateRuleJson_ = getDefaultInstance().getTemplateRuleJson();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+       * </pre>
+       *
+       * <code>string template_rule_json = 3;</code>
+       * @param value The bytes for templateRuleJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTemplateRuleJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        templateRuleJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private boolean useOcrCache_ ;
+      /**
+       * <code>bool use_ocr_cache = 4;</code>
+       * @return The useOcrCache.
+       */
+      @java.lang.Override
+      public boolean getUseOcrCache() {
+        return useOcrCache_;
+      }
+      /**
+       * <code>bool use_ocr_cache = 4;</code>
+       * @param value The useOcrCache to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUseOcrCache(boolean value) {
+
+        useOcrCache_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool use_ocr_cache = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUseOcrCache() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        useOcrCache_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean useLlmCache_ ;
+      /**
+       * <code>bool use_llm_cache = 5;</code>
+       * @return The useLlmCache.
+       */
+      @java.lang.Override
+      public boolean getUseLlmCache() {
+        return useLlmCache_;
+      }
+      /**
+       * <code>bool use_llm_cache = 5;</code>
+       * @param value The useLlmCache to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUseLlmCache(boolean value) {
+
+        useLlmCache_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool use_llm_cache = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUseLlmCache() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        useLlmCache_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object traceId_ = "";
+      /**
+       * <code>string trace_id = 6;</code>
+       * @return The traceId.
+       */
+      public java.lang.String getTraceId() {
+        java.lang.Object ref = traceId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          traceId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 6;</code>
+       * @return The bytes for traceId.
+       */
+      public com.google.protobuf.ByteString
+          getTraceIdBytes() {
+        java.lang.Object ref = traceId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          traceId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 6;</code>
+       * @param value The traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        traceId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTraceId() {
+        traceId_ = getDefaultInstance().getTraceId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 6;</code>
+       * @param value The bytes for traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        traceId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:awardie.ai.ExtractTemplateRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:awardie.ai.ExtractTemplateRequest)
+    private static final awardie.ai.AiServiceOuterClass.ExtractTemplateRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new awardie.ai.AiServiceOuterClass.ExtractTemplateRequest();
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ExtractTemplateRequest>
+        PARSER = new com.google.protobuf.AbstractParser<ExtractTemplateRequest>() {
+      @java.lang.Override
+      public ExtractTemplateRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ExtractTemplateRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ExtractTemplateRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public awardie.ai.AiServiceOuterClass.ExtractTemplateRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ExtractTemplateResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:awardie.ai.ExtractTemplateResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+     * </pre>
+     *
+     * <code>int32 code = 1;</code>
+     * @return The code.
+     */
+    int getCode();
+
+    /**
+     * <code>string message = 2;</code>
+     * @return The message.
+     */
+    java.lang.String getMessage();
+    /**
+     * <code>string message = 2;</code>
+     * @return The bytes for message.
+     */
+    com.google.protobuf.ByteString
+        getMessageBytes();
+
+    /**
+     * <pre>
+     * extracted_dict(结构化字段)
+     * </pre>
+     *
+     * <code>string data_json = 3;</code>
+     * @return The dataJson.
+     */
+    java.lang.String getDataJson();
+    /**
+     * <pre>
+     * extracted_dict(结构化字段)
+     * </pre>
+     *
+     * <code>string data_json = 3;</code>
+     * @return The bytes for dataJson.
+     */
+    com.google.protobuf.ByteString
+        getDataJsonBytes();
+
+    /**
+     * <pre>
+     * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+     * </pre>
+     *
+     * <code>string ocr_text = 4;</code>
+     * @return The ocrText.
+     */
+    java.lang.String getOcrText();
+    /**
+     * <pre>
+     * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+     * </pre>
+     *
+     * <code>string ocr_text = 4;</code>
+     * @return The bytes for ocrText.
+     */
+    com.google.protobuf.ByteString
+        getOcrTextBytes();
+
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The traceId.
+     */
+    java.lang.String getTraceId();
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The bytes for traceId.
+     */
+    com.google.protobuf.ByteString
+        getTraceIdBytes();
+  }
+  /**
+   * Protobuf type {@code awardie.ai.ExtractTemplateResponse}
+   */
+  public static final class ExtractTemplateResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:awardie.ai.ExtractTemplateResponse)
+      ExtractTemplateResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ExtractTemplateResponse.newBuilder() to construct.
+    private ExtractTemplateResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ExtractTemplateResponse() {
+      message_ = "";
+      dataJson_ = "";
+      ocrText_ = "";
+      traceId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ExtractTemplateResponse();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.class, awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.Builder.class);
+    }
+
+    public static final int CODE_FIELD_NUMBER = 1;
+    private int code_ = 0;
+    /**
+     * <pre>
+     * 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+     * </pre>
+     *
+     * <code>int32 code = 1;</code>
+     * @return The code.
+     */
+    @java.lang.Override
+    public int getCode() {
+      return code_;
+    }
+
+    public static final int MESSAGE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object message_ = "";
+    /**
+     * <code>string message = 2;</code>
+     * @return The message.
+     */
+    @java.lang.Override
+    public java.lang.String getMessage() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        message_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string message = 2;</code>
+     * @return The bytes for message.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMessageBytes() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        message_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DATA_JSON_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object dataJson_ = "";
+    /**
+     * <pre>
+     * extracted_dict(结构化字段)
+     * </pre>
+     *
+     * <code>string data_json = 3;</code>
+     * @return The dataJson.
+     */
+    @java.lang.Override
+    public java.lang.String getDataJson() {
+      java.lang.Object ref = dataJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        dataJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * extracted_dict(结构化字段)
+     * </pre>
+     *
+     * <code>string data_json = 3;</code>
+     * @return The bytes for dataJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDataJsonBytes() {
+      java.lang.Object ref = dataJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dataJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OCR_TEXT_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ocrText_ = "";
+    /**
+     * <pre>
+     * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+     * </pre>
+     *
+     * <code>string ocr_text = 4;</code>
+     * @return The ocrText.
+     */
+    @java.lang.Override
+    public java.lang.String getOcrText() {
+      java.lang.Object ref = ocrText_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ocrText_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+     * </pre>
+     *
+     * <code>string ocr_text = 4;</code>
+     * @return The bytes for ocrText.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOcrTextBytes() {
+      java.lang.Object ref = ocrText_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ocrText_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TRACE_ID_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object traceId_ = "";
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The traceId.
+     */
+    @java.lang.Override
+    public java.lang.String getTraceId() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        traceId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The bytes for traceId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTraceIdBytes() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        traceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (code_ != 0) {
+        output.writeInt32(1, code_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(dataJson_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, dataJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(ocrText_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, ocrText_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, traceId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (code_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, code_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(dataJson_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, dataJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(ocrText_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, ocrText_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, traceId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof awardie.ai.AiServiceOuterClass.ExtractTemplateResponse)) {
+        return super.equals(obj);
+      }
+      awardie.ai.AiServiceOuterClass.ExtractTemplateResponse other = (awardie.ai.AiServiceOuterClass.ExtractTemplateResponse) obj;
+
+      if (getCode()
+          != other.getCode()) return false;
+      if (!getMessage()
+          .equals(other.getMessage())) return false;
+      if (!getDataJson()
+          .equals(other.getDataJson())) return false;
+      if (!getOcrText()
+          .equals(other.getOcrText())) return false;
+      if (!getTraceId()
+          .equals(other.getTraceId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CODE_FIELD_NUMBER;
+      hash = (53 * hash) + getCode();
+      hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getMessage().hashCode();
+      hash = (37 * hash) + DATA_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getDataJson().hashCode();
+      hash = (37 * hash) + OCR_TEXT_FIELD_NUMBER;
+      hash = (53 * hash) + getOcrText().hashCode();
+      hash = (37 * hash) + TRACE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getTraceId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(awardie.ai.AiServiceOuterClass.ExtractTemplateResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code awardie.ai.ExtractTemplateResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:awardie.ai.ExtractTemplateResponse)
+        awardie.ai.AiServiceOuterClass.ExtractTemplateResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.class, awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.Builder.class);
+      }
+
+      // Construct using awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        code_ = 0;
+        message_ = "";
+        dataJson_ = "";
+        ocrText_ = "";
+        traceId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_ExtractTemplateResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateResponse getDefaultInstanceForType() {
+        return awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateResponse build() {
+        awardie.ai.AiServiceOuterClass.ExtractTemplateResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.ExtractTemplateResponse buildPartial() {
+        awardie.ai.AiServiceOuterClass.ExtractTemplateResponse result = new awardie.ai.AiServiceOuterClass.ExtractTemplateResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(awardie.ai.AiServiceOuterClass.ExtractTemplateResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.code_ = code_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.message_ = message_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.dataJson_ = dataJson_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.ocrText_ = ocrText_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.traceId_ = traceId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof awardie.ai.AiServiceOuterClass.ExtractTemplateResponse) {
+          return mergeFrom((awardie.ai.AiServiceOuterClass.ExtractTemplateResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(awardie.ai.AiServiceOuterClass.ExtractTemplateResponse other) {
+        if (other == awardie.ai.AiServiceOuterClass.ExtractTemplateResponse.getDefaultInstance()) return this;
+        if (other.getCode() != 0) {
+          setCode(other.getCode());
+        }
+        if (!other.getMessage().isEmpty()) {
+          message_ = other.message_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getDataJson().isEmpty()) {
+          dataJson_ = other.dataJson_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getOcrText().isEmpty()) {
+          ocrText_ = other.ocrText_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getTraceId().isEmpty()) {
+          traceId_ = other.traceId_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                code_ = input.readInt32();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 18: {
+                message_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                dataJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                ocrText_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                traceId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private int code_ ;
+      /**
+       * <pre>
+       * 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @return The code.
+       */
+      @java.lang.Override
+      public int getCode() {
+        return code_;
+      }
+      /**
+       * <pre>
+       * 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @param value The code to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCode(int value) {
+
+        code_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCode() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        code_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object message_ = "";
+      /**
+       * <code>string message = 2;</code>
+       * @return The message.
+       */
+      public java.lang.String getMessage() {
+        java.lang.Object ref = message_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          message_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @return The bytes for message.
+       */
+      public com.google.protobuf.ByteString
+          getMessageBytes() {
+        java.lang.Object ref = message_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          message_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @param value The message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessage(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        message_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessage() {
+        message_ = getDefaultInstance().getMessage();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @param value The bytes for message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        message_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object dataJson_ = "";
+      /**
+       * <pre>
+       * extracted_dict(结构化字段)
+       * </pre>
+       *
+       * <code>string data_json = 3;</code>
+       * @return The dataJson.
+       */
+      public java.lang.String getDataJson() {
+        java.lang.Object ref = dataJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          dataJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * extracted_dict(结构化字段)
+       * </pre>
+       *
+       * <code>string data_json = 3;</code>
+       * @return The bytes for dataJson.
+       */
+      public com.google.protobuf.ByteString
+          getDataJsonBytes() {
+        java.lang.Object ref = dataJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dataJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * extracted_dict(结构化字段)
+       * </pre>
+       *
+       * <code>string data_json = 3;</code>
+       * @param value The dataJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDataJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        dataJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * extracted_dict(结构化字段)
+       * </pre>
+       *
+       * <code>string data_json = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDataJson() {
+        dataJson_ = getDefaultInstance().getDataJson();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * extracted_dict(结构化字段)
+       * </pre>
+       *
+       * <code>string data_json = 3;</code>
+       * @param value The bytes for dataJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDataJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        dataJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ocrText_ = "";
+      /**
+       * <pre>
+       * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+       * </pre>
+       *
+       * <code>string ocr_text = 4;</code>
+       * @return The ocrText.
+       */
+      public java.lang.String getOcrText() {
+        java.lang.Object ref = ocrText_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ocrText_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+       * </pre>
+       *
+       * <code>string ocr_text = 4;</code>
+       * @return The bytes for ocrText.
+       */
+      public com.google.protobuf.ByteString
+          getOcrTextBytes() {
+        java.lang.Object ref = ocrText_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ocrText_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+       * </pre>
+       *
+       * <code>string ocr_text = 4;</code>
+       * @param value The ocrText to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOcrText(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ocrText_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+       * </pre>
+       *
+       * <code>string ocr_text = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOcrText() {
+        ocrText_ = getDefaultInstance().getOcrText();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+       * </pre>
+       *
+       * <code>string ocr_text = 4;</code>
+       * @param value The bytes for ocrText to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOcrTextBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ocrText_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object traceId_ = "";
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return The traceId.
+       */
+      public java.lang.String getTraceId() {
+        java.lang.Object ref = traceId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          traceId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return The bytes for traceId.
+       */
+      public com.google.protobuf.ByteString
+          getTraceIdBytes() {
+        java.lang.Object ref = traceId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          traceId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @param value The traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        traceId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTraceId() {
+        traceId_ = getDefaultInstance().getTraceId();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @param value The bytes for traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        traceId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:awardie.ai.ExtractTemplateResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:awardie.ai.ExtractTemplateResponse)
+    private static final awardie.ai.AiServiceOuterClass.ExtractTemplateResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new awardie.ai.AiServiceOuterClass.ExtractTemplateResponse();
+    }
+
+    public static awardie.ai.AiServiceOuterClass.ExtractTemplateResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ExtractTemplateResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ExtractTemplateResponse>() {
+      @java.lang.Override
+      public ExtractTemplateResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ExtractTemplateResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ExtractTemplateResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public awardie.ai.AiServiceOuterClass.ExtractTemplateResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GeneratePromptRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:awardie.ai.GeneratePromptRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+     * </pre>
+     *
+     * <code>string template_rule_json = 1;</code>
+     * @return The templateRuleJson.
+     */
+    java.lang.String getTemplateRuleJson();
+    /**
+     * <pre>
+     * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+     * </pre>
+     *
+     * <code>string template_rule_json = 1;</code>
+     * @return The bytes for templateRuleJson.
+     */
+    com.google.protobuf.ByteString
+        getTemplateRuleJsonBytes();
+
+    /**
+     * <pre>
+     * 样本 OCR 文本(空则用占位文本,对齐 v1)
+     * </pre>
+     *
+     * <code>string sample_text = 2;</code>
+     * @return The sampleText.
+     */
+    java.lang.String getSampleText();
+    /**
+     * <pre>
+     * 样本 OCR 文本(空则用占位文本,对齐 v1)
+     * </pre>
+     *
+     * <code>string sample_text = 2;</code>
+     * @return The bytes for sampleText.
+     */
+    com.google.protobuf.ByteString
+        getSampleTextBytes();
+
+    /**
+     * <code>string trace_id = 3;</code>
+     * @return The traceId.
+     */
+    java.lang.String getTraceId();
+    /**
+     * <code>string trace_id = 3;</code>
+     * @return The bytes for traceId.
+     */
+    com.google.protobuf.ByteString
+        getTraceIdBytes();
+  }
+  /**
+   * Protobuf type {@code awardie.ai.GeneratePromptRequest}
+   */
+  public static final class GeneratePromptRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:awardie.ai.GeneratePromptRequest)
+      GeneratePromptRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GeneratePromptRequest.newBuilder() to construct.
+    private GeneratePromptRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private GeneratePromptRequest() {
+      templateRuleJson_ = "";
+      sampleText_ = "";
+      traceId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GeneratePromptRequest();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              awardie.ai.AiServiceOuterClass.GeneratePromptRequest.class, awardie.ai.AiServiceOuterClass.GeneratePromptRequest.Builder.class);
+    }
+
+    public static final int TEMPLATE_RULE_JSON_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object templateRuleJson_ = "";
+    /**
+     * <pre>
+     * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+     * </pre>
+     *
+     * <code>string template_rule_json = 1;</code>
+     * @return The templateRuleJson.
+     */
+    @java.lang.Override
+    public java.lang.String getTemplateRuleJson() {
+      java.lang.Object ref = templateRuleJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        templateRuleJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+     * </pre>
+     *
+     * <code>string template_rule_json = 1;</code>
+     * @return The bytes for templateRuleJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTemplateRuleJsonBytes() {
+      java.lang.Object ref = templateRuleJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        templateRuleJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SAMPLE_TEXT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sampleText_ = "";
+    /**
+     * <pre>
+     * 样本 OCR 文本(空则用占位文本,对齐 v1)
+     * </pre>
+     *
+     * <code>string sample_text = 2;</code>
+     * @return The sampleText.
+     */
+    @java.lang.Override
+    public java.lang.String getSampleText() {
+      java.lang.Object ref = sampleText_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sampleText_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 样本 OCR 文本(空则用占位文本,对齐 v1)
+     * </pre>
+     *
+     * <code>string sample_text = 2;</code>
+     * @return The bytes for sampleText.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSampleTextBytes() {
+      java.lang.Object ref = sampleText_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sampleText_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TRACE_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object traceId_ = "";
+    /**
+     * <code>string trace_id = 3;</code>
+     * @return The traceId.
+     */
+    @java.lang.Override
+    public java.lang.String getTraceId() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        traceId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string trace_id = 3;</code>
+     * @return The bytes for traceId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTraceIdBytes() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        traceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(templateRuleJson_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, templateRuleJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(sampleText_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, sampleText_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, traceId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(templateRuleJson_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, templateRuleJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(sampleText_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, sampleText_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, traceId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof awardie.ai.AiServiceOuterClass.GeneratePromptRequest)) {
+        return super.equals(obj);
+      }
+      awardie.ai.AiServiceOuterClass.GeneratePromptRequest other = (awardie.ai.AiServiceOuterClass.GeneratePromptRequest) obj;
+
+      if (!getTemplateRuleJson()
+          .equals(other.getTemplateRuleJson())) return false;
+      if (!getSampleText()
+          .equals(other.getSampleText())) return false;
+      if (!getTraceId()
+          .equals(other.getTraceId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + TEMPLATE_RULE_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getTemplateRuleJson().hashCode();
+      hash = (37 * hash) + SAMPLE_TEXT_FIELD_NUMBER;
+      hash = (53 * hash) + getSampleText().hashCode();
+      hash = (37 * hash) + TRACE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getTraceId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(awardie.ai.AiServiceOuterClass.GeneratePromptRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code awardie.ai.GeneratePromptRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:awardie.ai.GeneratePromptRequest)
+        awardie.ai.AiServiceOuterClass.GeneratePromptRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                awardie.ai.AiServiceOuterClass.GeneratePromptRequest.class, awardie.ai.AiServiceOuterClass.GeneratePromptRequest.Builder.class);
+      }
+
+      // Construct using awardie.ai.AiServiceOuterClass.GeneratePromptRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        templateRuleJson_ = "";
+        sampleText_ = "";
+        traceId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptRequest getDefaultInstanceForType() {
+        return awardie.ai.AiServiceOuterClass.GeneratePromptRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptRequest build() {
+        awardie.ai.AiServiceOuterClass.GeneratePromptRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptRequest buildPartial() {
+        awardie.ai.AiServiceOuterClass.GeneratePromptRequest result = new awardie.ai.AiServiceOuterClass.GeneratePromptRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(awardie.ai.AiServiceOuterClass.GeneratePromptRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.templateRuleJson_ = templateRuleJson_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.sampleText_ = sampleText_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.traceId_ = traceId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof awardie.ai.AiServiceOuterClass.GeneratePromptRequest) {
+          return mergeFrom((awardie.ai.AiServiceOuterClass.GeneratePromptRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(awardie.ai.AiServiceOuterClass.GeneratePromptRequest other) {
+        if (other == awardie.ai.AiServiceOuterClass.GeneratePromptRequest.getDefaultInstance()) return this;
+        if (!other.getTemplateRuleJson().isEmpty()) {
+          templateRuleJson_ = other.templateRuleJson_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getSampleText().isEmpty()) {
+          sampleText_ = other.sampleText_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getTraceId().isEmpty()) {
+          traceId_ = other.traceId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                templateRuleJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                sampleText_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                traceId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object templateRuleJson_ = "";
+      /**
+       * <pre>
+       * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+       * </pre>
+       *
+       * <code>string template_rule_json = 1;</code>
+       * @return The templateRuleJson.
+       */
+      public java.lang.String getTemplateRuleJson() {
+        java.lang.Object ref = templateRuleJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          templateRuleJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+       * </pre>
+       *
+       * <code>string template_rule_json = 1;</code>
+       * @return The bytes for templateRuleJson.
+       */
+      public com.google.protobuf.ByteString
+          getTemplateRuleJsonBytes() {
+        java.lang.Object ref = templateRuleJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          templateRuleJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+       * </pre>
+       *
+       * <code>string template_rule_json = 1;</code>
+       * @param value The templateRuleJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTemplateRuleJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        templateRuleJson_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+       * </pre>
+       *
+       * <code>string template_rule_json = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTemplateRuleJson() {
+        templateRuleJson_ = getDefaultInstance().getTemplateRuleJson();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+       * </pre>
+       *
+       * <code>string template_rule_json = 1;</code>
+       * @param value The bytes for templateRuleJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTemplateRuleJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        templateRuleJson_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sampleText_ = "";
+      /**
+       * <pre>
+       * 样本 OCR 文本(空则用占位文本,对齐 v1)
+       * </pre>
+       *
+       * <code>string sample_text = 2;</code>
+       * @return The sampleText.
+       */
+      public java.lang.String getSampleText() {
+        java.lang.Object ref = sampleText_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sampleText_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 样本 OCR 文本(空则用占位文本,对齐 v1)
+       * </pre>
+       *
+       * <code>string sample_text = 2;</code>
+       * @return The bytes for sampleText.
+       */
+      public com.google.protobuf.ByteString
+          getSampleTextBytes() {
+        java.lang.Object ref = sampleText_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sampleText_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 样本 OCR 文本(空则用占位文本,对齐 v1)
+       * </pre>
+       *
+       * <code>string sample_text = 2;</code>
+       * @param value The sampleText to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSampleText(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sampleText_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 样本 OCR 文本(空则用占位文本,对齐 v1)
+       * </pre>
+       *
+       * <code>string sample_text = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSampleText() {
+        sampleText_ = getDefaultInstance().getSampleText();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 样本 OCR 文本(空则用占位文本,对齐 v1)
+       * </pre>
+       *
+       * <code>string sample_text = 2;</code>
+       * @param value The bytes for sampleText to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSampleTextBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sampleText_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object traceId_ = "";
+      /**
+       * <code>string trace_id = 3;</code>
+       * @return The traceId.
+       */
+      public java.lang.String getTraceId() {
+        java.lang.Object ref = traceId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          traceId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 3;</code>
+       * @return The bytes for traceId.
+       */
+      public com.google.protobuf.ByteString
+          getTraceIdBytes() {
+        java.lang.Object ref = traceId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          traceId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 3;</code>
+       * @param value The traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        traceId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTraceId() {
+        traceId_ = getDefaultInstance().getTraceId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 3;</code>
+       * @param value The bytes for traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        traceId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:awardie.ai.GeneratePromptRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:awardie.ai.GeneratePromptRequest)
+    private static final awardie.ai.AiServiceOuterClass.GeneratePromptRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new awardie.ai.AiServiceOuterClass.GeneratePromptRequest();
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GeneratePromptRequest>
+        PARSER = new com.google.protobuf.AbstractParser<GeneratePromptRequest>() {
+      @java.lang.Override
+      public GeneratePromptRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GeneratePromptRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GeneratePromptRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public awardie.ai.AiServiceOuterClass.GeneratePromptRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GeneratePromptResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:awardie.ai.GeneratePromptResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+     * </pre>
+     *
+     * <code>int32 code = 1;</code>
+     * @return The code.
+     */
+    int getCode();
+
+    /**
+     * <code>string message = 2;</code>
+     * @return The message.
+     */
+    java.lang.String getMessage();
+    /**
+     * <code>string message = 2;</code>
+     * @return The bytes for message.
+     */
+    com.google.protobuf.ByteString
+        getMessageBytes();
+
+    /**
+     * <code>string prompt = 3;</code>
+     * @return The prompt.
+     */
+    java.lang.String getPrompt();
+    /**
+     * <code>string prompt = 3;</code>
+     * @return The bytes for prompt.
+     */
+    com.google.protobuf.ByteString
+        getPromptBytes();
+
+    /**
+     * <pre>
+     * BR-2
+     * </pre>
+     *
+     * <code>string disclaimer = 4;</code>
+     * @return The disclaimer.
+     */
+    java.lang.String getDisclaimer();
+    /**
+     * <pre>
+     * BR-2
+     * </pre>
+     *
+     * <code>string disclaimer = 4;</code>
+     * @return The bytes for disclaimer.
+     */
+    com.google.protobuf.ByteString
+        getDisclaimerBytes();
+
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The traceId.
+     */
+    java.lang.String getTraceId();
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The bytes for traceId.
+     */
+    com.google.protobuf.ByteString
+        getTraceIdBytes();
+  }
+  /**
+   * Protobuf type {@code awardie.ai.GeneratePromptResponse}
+   */
+  public static final class GeneratePromptResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:awardie.ai.GeneratePromptResponse)
+      GeneratePromptResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GeneratePromptResponse.newBuilder() to construct.
+    private GeneratePromptResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private GeneratePromptResponse() {
+      message_ = "";
+      prompt_ = "";
+      disclaimer_ = "";
+      traceId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GeneratePromptResponse();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              awardie.ai.AiServiceOuterClass.GeneratePromptResponse.class, awardie.ai.AiServiceOuterClass.GeneratePromptResponse.Builder.class);
+    }
+
+    public static final int CODE_FIELD_NUMBER = 1;
+    private int code_ = 0;
+    /**
+     * <pre>
+     * 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+     * </pre>
+     *
+     * <code>int32 code = 1;</code>
+     * @return The code.
+     */
+    @java.lang.Override
+    public int getCode() {
+      return code_;
+    }
+
+    public static final int MESSAGE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object message_ = "";
+    /**
+     * <code>string message = 2;</code>
+     * @return The message.
+     */
+    @java.lang.Override
+    public java.lang.String getMessage() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        message_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string message = 2;</code>
+     * @return The bytes for message.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMessageBytes() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        message_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PROMPT_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object prompt_ = "";
+    /**
+     * <code>string prompt = 3;</code>
+     * @return The prompt.
+     */
+    @java.lang.Override
+    public java.lang.String getPrompt() {
+      java.lang.Object ref = prompt_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        prompt_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string prompt = 3;</code>
+     * @return The bytes for prompt.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPromptBytes() {
+      java.lang.Object ref = prompt_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        prompt_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DISCLAIMER_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object disclaimer_ = "";
+    /**
+     * <pre>
+     * BR-2
+     * </pre>
+     *
+     * <code>string disclaimer = 4;</code>
+     * @return The disclaimer.
+     */
+    @java.lang.Override
+    public java.lang.String getDisclaimer() {
+      java.lang.Object ref = disclaimer_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        disclaimer_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * BR-2
+     * </pre>
+     *
+     * <code>string disclaimer = 4;</code>
+     * @return The bytes for disclaimer.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDisclaimerBytes() {
+      java.lang.Object ref = disclaimer_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        disclaimer_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TRACE_ID_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object traceId_ = "";
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The traceId.
+     */
+    @java.lang.Override
+    public java.lang.String getTraceId() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        traceId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string trace_id = 5;</code>
+     * @return The bytes for traceId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTraceIdBytes() {
+      java.lang.Object ref = traceId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        traceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (code_ != 0) {
+        output.writeInt32(1, code_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(prompt_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, prompt_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(disclaimer_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, disclaimer_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, traceId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (code_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, code_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(prompt_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, prompt_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(disclaimer_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, disclaimer_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(traceId_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, traceId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof awardie.ai.AiServiceOuterClass.GeneratePromptResponse)) {
+        return super.equals(obj);
+      }
+      awardie.ai.AiServiceOuterClass.GeneratePromptResponse other = (awardie.ai.AiServiceOuterClass.GeneratePromptResponse) obj;
+
+      if (getCode()
+          != other.getCode()) return false;
+      if (!getMessage()
+          .equals(other.getMessage())) return false;
+      if (!getPrompt()
+          .equals(other.getPrompt())) return false;
+      if (!getDisclaimer()
+          .equals(other.getDisclaimer())) return false;
+      if (!getTraceId()
+          .equals(other.getTraceId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CODE_FIELD_NUMBER;
+      hash = (53 * hash) + getCode();
+      hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getMessage().hashCode();
+      hash = (37 * hash) + PROMPT_FIELD_NUMBER;
+      hash = (53 * hash) + getPrompt().hashCode();
+      hash = (37 * hash) + DISCLAIMER_FIELD_NUMBER;
+      hash = (53 * hash) + getDisclaimer().hashCode();
+      hash = (37 * hash) + TRACE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getTraceId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(awardie.ai.AiServiceOuterClass.GeneratePromptResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code awardie.ai.GeneratePromptResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:awardie.ai.GeneratePromptResponse)
+        awardie.ai.AiServiceOuterClass.GeneratePromptResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                awardie.ai.AiServiceOuterClass.GeneratePromptResponse.class, awardie.ai.AiServiceOuterClass.GeneratePromptResponse.Builder.class);
+      }
+
+      // Construct using awardie.ai.AiServiceOuterClass.GeneratePromptResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        code_ = 0;
+        message_ = "";
+        prompt_ = "";
+        disclaimer_ = "";
+        traceId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return awardie.ai.AiServiceOuterClass.internal_static_awardie_ai_GeneratePromptResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptResponse getDefaultInstanceForType() {
+        return awardie.ai.AiServiceOuterClass.GeneratePromptResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptResponse build() {
+        awardie.ai.AiServiceOuterClass.GeneratePromptResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public awardie.ai.AiServiceOuterClass.GeneratePromptResponse buildPartial() {
+        awardie.ai.AiServiceOuterClass.GeneratePromptResponse result = new awardie.ai.AiServiceOuterClass.GeneratePromptResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(awardie.ai.AiServiceOuterClass.GeneratePromptResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.code_ = code_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.message_ = message_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.prompt_ = prompt_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.disclaimer_ = disclaimer_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.traceId_ = traceId_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof awardie.ai.AiServiceOuterClass.GeneratePromptResponse) {
+          return mergeFrom((awardie.ai.AiServiceOuterClass.GeneratePromptResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(awardie.ai.AiServiceOuterClass.GeneratePromptResponse other) {
+        if (other == awardie.ai.AiServiceOuterClass.GeneratePromptResponse.getDefaultInstance()) return this;
+        if (other.getCode() != 0) {
+          setCode(other.getCode());
+        }
+        if (!other.getMessage().isEmpty()) {
+          message_ = other.message_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getPrompt().isEmpty()) {
+          prompt_ = other.prompt_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getDisclaimer().isEmpty()) {
+          disclaimer_ = other.disclaimer_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getTraceId().isEmpty()) {
+          traceId_ = other.traceId_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                code_ = input.readInt32();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 18: {
+                message_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                prompt_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                disclaimer_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                traceId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private int code_ ;
+      /**
+       * <pre>
+       * 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @return The code.
+       */
+      @java.lang.Override
+      public int getCode() {
+        return code_;
+      }
+      /**
+       * <pre>
+       * 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @param value The code to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCode(int value) {
+
+        code_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+       * </pre>
+       *
+       * <code>int32 code = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCode() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        code_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object message_ = "";
+      /**
+       * <code>string message = 2;</code>
+       * @return The message.
+       */
+      public java.lang.String getMessage() {
+        java.lang.Object ref = message_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          message_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @return The bytes for message.
+       */
+      public com.google.protobuf.ByteString
+          getMessageBytes() {
+        java.lang.Object ref = message_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          message_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @param value The message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessage(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        message_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessage() {
+        message_ = getDefaultInstance().getMessage();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 2;</code>
+       * @param value The bytes for message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        message_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object prompt_ = "";
+      /**
+       * <code>string prompt = 3;</code>
+       * @return The prompt.
+       */
+      public java.lang.String getPrompt() {
+        java.lang.Object ref = prompt_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          prompt_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string prompt = 3;</code>
+       * @return The bytes for prompt.
+       */
+      public com.google.protobuf.ByteString
+          getPromptBytes() {
+        java.lang.Object ref = prompt_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          prompt_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string prompt = 3;</code>
+       * @param value The prompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrompt(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        prompt_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prompt = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPrompt() {
+        prompt_ = getDefaultInstance().getPrompt();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prompt = 3;</code>
+       * @param value The bytes for prompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPromptBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        prompt_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object disclaimer_ = "";
+      /**
+       * <pre>
+       * BR-2
+       * </pre>
+       *
+       * <code>string disclaimer = 4;</code>
+       * @return The disclaimer.
+       */
+      public java.lang.String getDisclaimer() {
+        java.lang.Object ref = disclaimer_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          disclaimer_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * BR-2
+       * </pre>
+       *
+       * <code>string disclaimer = 4;</code>
+       * @return The bytes for disclaimer.
+       */
+      public com.google.protobuf.ByteString
+          getDisclaimerBytes() {
+        java.lang.Object ref = disclaimer_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          disclaimer_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * BR-2
+       * </pre>
+       *
+       * <code>string disclaimer = 4;</code>
+       * @param value The disclaimer to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDisclaimer(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        disclaimer_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * BR-2
+       * </pre>
+       *
+       * <code>string disclaimer = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDisclaimer() {
+        disclaimer_ = getDefaultInstance().getDisclaimer();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * BR-2
+       * </pre>
+       *
+       * <code>string disclaimer = 4;</code>
+       * @param value The bytes for disclaimer to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDisclaimerBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        disclaimer_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object traceId_ = "";
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return The traceId.
+       */
+      public java.lang.String getTraceId() {
+        java.lang.Object ref = traceId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          traceId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return The bytes for traceId.
+       */
+      public com.google.protobuf.ByteString
+          getTraceIdBytes() {
+        java.lang.Object ref = traceId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          traceId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @param value The traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        traceId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTraceId() {
+        traceId_ = getDefaultInstance().getTraceId();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string trace_id = 5;</code>
+       * @param value The bytes for traceId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTraceIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        traceId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:awardie.ai.GeneratePromptResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:awardie.ai.GeneratePromptResponse)
+    private static final awardie.ai.AiServiceOuterClass.GeneratePromptResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new awardie.ai.AiServiceOuterClass.GeneratePromptResponse();
+    }
+
+    public static awardie.ai.AiServiceOuterClass.GeneratePromptResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GeneratePromptResponse>
+        PARSER = new com.google.protobuf.AbstractParser<GeneratePromptResponse>() {
+      @java.lang.Override
+      public GeneratePromptResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GeneratePromptResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GeneratePromptResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public awardie.ai.AiServiceOuterClass.GeneratePromptResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface AnswerEventOrBuilder extends
       // @@protoc_insertion_point(interface_extends:awardie.ai.AnswerEvent)
       com.google.protobuf.MessageOrBuilder {
@@ -10990,6 +15363,26 @@ public final class AiServiceOuterClass {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_awardie_ai_AskRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_awardie_ai_ExtractTemplateRequest_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_awardie_ai_ExtractTemplateRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_awardie_ai_ExtractTemplateResponse_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_awardie_ai_ExtractTemplateResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_awardie_ai_GeneratePromptRequest_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_awardie_ai_GeneratePromptRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_awardie_ai_GeneratePromptResponse_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_awardie_ai_GeneratePromptResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_awardie_ai_AnswerEvent_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -11036,23 +15429,39 @@ public final class AiServiceOuterClass {
       "ion\030\003 \001(\t\022\027\n\017extraction_json\030\004 \001(\t\022\014\n\004co" +
       "de\030\005 \001(\005\022\017\n\007message\030\006 \001(\t\022\022\n\ndisclaimer\030" +
       "\007 \001(\t\"0\n\nAskRequest\022\020\n\010question\030\001 \001(\t\022\020\n" +
-      "\010trace_id\030\002 \001(\t\"\241\001\n\013AnswerEvent\022\020\n\010trace" +
-      "_id\030\n \001(\t\022%\n\004node\030\001 \001(\0132\025.awardie.ai.Nod" +
-      "eEventH\000\022&\n\005delta\030\002 \001(\0132\025.awardie.ai.Tex" +
-      "tDeltaH\000\022(\n\005final\030\003 \001(\0132\027.awardie.ai.Ans" +
-      "werFinalH\000B\007\n\005event\"f\n\013AnswerFinal\022\016\n\006an" +
-      "swer\030\001 \001(\t\022\024\n\014sources_json\030\002 \001(\t\022\014\n\004code" +
-      "\030\003 \001(\005\022\017\n\007message\030\004 \001(\t\022\022\n\ndisclaimer\030\005 " +
-      "\001(\t\"\017\n\rHealthRequest\"J\n\016HealthResponse\022\n" +
-      "\n\002ok\030\001 \001(\010\022\017\n\007version\030\002 \001(\t\022\033\n\023langgraph" +
-      "_available\030\003 \001(\0102\227\002\n\tAiService\022B\n\007Extrac" +
-      "t\022\032.awardie.ai.ExtractRequest\032\033.awardie." +
-      "ai.ExtractResponse\022K\n\020ExtractAndReview\022\032" +
-      ".awardie.ai.ExtractRequest\032\031.awardie.ai." +
-      "WorkflowEvent0\001\0228\n\003Ask\022\026.awardie.ai.AskR" +
-      "equest\032\027.awardie.ai.AnswerEvent0\001\022?\n\006Hea" +
-      "lth\022\031.awardie.ai.HealthRequest\032\032.awardie" +
-      ".ai.HealthResponseb\006proto3"
+      "\010trace_id\030\002 \001(\t\"\225\001\n\026ExtractTemplateReque" +
+      "st\022\r\n\005image\030\001 \001(\014\022\020\n\010filename\030\002 \001(\t\022\032\n\022t" +
+      "emplate_rule_json\030\003 \001(\t\022\025\n\ruse_ocr_cache" +
+      "\030\004 \001(\010\022\025\n\ruse_llm_cache\030\005 \001(\010\022\020\n\010trace_i" +
+      "d\030\006 \001(\t\"o\n\027ExtractTemplateResponse\022\014\n\004co" +
+      "de\030\001 \001(\005\022\017\n\007message\030\002 \001(\t\022\021\n\tdata_json\030\003" +
+      " \001(\t\022\020\n\010ocr_text\030\004 \001(\t\022\020\n\010trace_id\030\005 \001(\t" +
+      "\"Z\n\025GeneratePromptRequest\022\032\n\022template_ru" +
+      "le_json\030\001 \001(\t\022\023\n\013sample_text\030\002 \001(\t\022\020\n\010tr" +
+      "ace_id\030\003 \001(\t\"m\n\026GeneratePromptResponse\022\014" +
+      "\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001(\t\022\016\n\006prompt\030" +
+      "\003 \001(\t\022\022\n\ndisclaimer\030\004 \001(\t\022\020\n\010trace_id\030\005 " +
+      "\001(\t\"\241\001\n\013AnswerEvent\022\020\n\010trace_id\030\n \001(\t\022%\n" +
+      "\004node\030\001 \001(\0132\025.awardie.ai.NodeEventH\000\022&\n\005" +
+      "delta\030\002 \001(\0132\025.awardie.ai.TextDeltaH\000\022(\n\005" +
+      "final\030\003 \001(\0132\027.awardie.ai.AnswerFinalH\000B\007" +
+      "\n\005event\"f\n\013AnswerFinal\022\016\n\006answer\030\001 \001(\t\022\024" +
+      "\n\014sources_json\030\002 \001(\t\022\014\n\004code\030\003 \001(\005\022\017\n\007me" +
+      "ssage\030\004 \001(\t\022\022\n\ndisclaimer\030\005 \001(\t\"\017\n\rHealt" +
+      "hRequest\"J\n\016HealthResponse\022\n\n\002ok\030\001 \001(\010\022\017" +
+      "\n\007version\030\002 \001(\t\022\033\n\023langgraph_available\030\003" +
+      " \001(\0102\314\003\n\tAiService\022B\n\007Extract\022\032.awardie." +
+      "ai.ExtractRequest\032\033.awardie.ai.ExtractRe" +
+      "sponse\022Z\n\017ExtractTemplate\022\".awardie.ai.E" +
+      "xtractTemplateRequest\032#.awardie.ai.Extra" +
+      "ctTemplateResponse\022W\n\016GeneratePrompt\022!.a" +
+      "wardie.ai.GeneratePromptRequest\032\".awardi" +
+      "e.ai.GeneratePromptResponse\022K\n\020ExtractAn" +
+      "dReview\022\032.awardie.ai.ExtractRequest\032\031.aw" +
+      "ardie.ai.WorkflowEvent0\001\0228\n\003Ask\022\026.awardi" +
+      "e.ai.AskRequest\032\027.awardie.ai.AnswerEvent" +
+      "0\001\022?\n\006Health\022\031.awardie.ai.HealthRequest\032" +
+      "\032.awardie.ai.HealthResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11100,26 +15509,50 @@ public final class AiServiceOuterClass {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_awardie_ai_AskRequest_descriptor,
         new java.lang.String[] { "Question", "TraceId", });
-    internal_static_awardie_ai_AnswerEvent_descriptor =
+    internal_static_awardie_ai_ExtractTemplateRequest_descriptor =
       getDescriptor().getMessageTypes().get(7);
+    internal_static_awardie_ai_ExtractTemplateRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_awardie_ai_ExtractTemplateRequest_descriptor,
+        new java.lang.String[] { "Image", "Filename", "TemplateRuleJson", "UseOcrCache", "UseLlmCache", "TraceId", });
+    internal_static_awardie_ai_ExtractTemplateResponse_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_awardie_ai_ExtractTemplateResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_awardie_ai_ExtractTemplateResponse_descriptor,
+        new java.lang.String[] { "Code", "Message", "DataJson", "OcrText", "TraceId", });
+    internal_static_awardie_ai_GeneratePromptRequest_descriptor =
+      getDescriptor().getMessageTypes().get(9);
+    internal_static_awardie_ai_GeneratePromptRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_awardie_ai_GeneratePromptRequest_descriptor,
+        new java.lang.String[] { "TemplateRuleJson", "SampleText", "TraceId", });
+    internal_static_awardie_ai_GeneratePromptResponse_descriptor =
+      getDescriptor().getMessageTypes().get(10);
+    internal_static_awardie_ai_GeneratePromptResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_awardie_ai_GeneratePromptResponse_descriptor,
+        new java.lang.String[] { "Code", "Message", "Prompt", "Disclaimer", "TraceId", });
+    internal_static_awardie_ai_AnswerEvent_descriptor =
+      getDescriptor().getMessageTypes().get(11);
     internal_static_awardie_ai_AnswerEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_awardie_ai_AnswerEvent_descriptor,
         new java.lang.String[] { "TraceId", "Node", "Delta", "Final", "Event", });
     internal_static_awardie_ai_AnswerFinal_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_awardie_ai_AnswerFinal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_awardie_ai_AnswerFinal_descriptor,
         new java.lang.String[] { "Answer", "SourcesJson", "Code", "Message", "Disclaimer", });
     internal_static_awardie_ai_HealthRequest_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_awardie_ai_HealthRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_awardie_ai_HealthRequest_descriptor,
         new java.lang.String[] { });
     internal_static_awardie_ai_HealthResponse_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_awardie_ai_HealthResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_awardie_ai_HealthResponse_descriptor,

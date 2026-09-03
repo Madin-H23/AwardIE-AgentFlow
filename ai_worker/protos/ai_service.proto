@@ -7,6 +7,10 @@ package awardie.ai;
 service AiService {
   // 抽取:文件 → 结构化数据(unary,v1 framework.extract 同步语义)
   rpc Extract (ExtractRequest) returns (ExtractResponse);
+  // 模板抽取:样本图 → 强制 award 抽取器的结构化字段(unary,架构票;v1 extract-for-create 语义)
+  rpc ExtractTemplate (ExtractTemplateRequest) returns (ExtractTemplateResponse);
+  // 模板 prompt 生成:模板规则+样本文本 → 提示词(unary,架构票;v1 generate-prompt-for-create 语义)
+  rpc GeneratePrompt (GeneratePromptRequest) returns (GeneratePromptResponse);
   // 抽取+审核全链:流式过程事件(node 进度/答案增量)+ 最终审核结论(server-streaming)
   rpc ExtractAndReview (ExtractRequest) returns (stream WorkflowEvent);
   // AI 问答(RAG):流式答案增量(server-streaming)
@@ -60,6 +64,39 @@ message ReviewFinal {
 message AskRequest {
   string question = 1;
   string trace_id = 2;
+}
+
+// 架构票《AI Worker extract/prompt RPC 扩展》(2026-09-03 立项):templates 域解锁载体。
+// template_rule_json 当前为扩展位(强制 award 抽取不消费规则),规则化抽取属后续演进。
+message ExtractTemplateRequest {
+  bytes image = 1;               // 样本图内容(multipart 直传,样本图未落盘场景)
+  string filename = 2;           // 原始文件名(判后缀落临时文件)
+  string template_rule_json = 3; // 模板规则 {keywords,sample_extracted,default_fields,...}(扩展位)
+  bool use_ocr_cache = 4;
+  bool use_llm_cache = 5;
+  string trace_id = 6;
+}
+
+message ExtractTemplateResponse {
+  int32 code = 1;                // 0 成功;4004=图不可读/抽取失败;4003=AI 依赖不可用;5xxx=内部
+  string message = 2;
+  string data_json = 3;          // extracted_dict(结构化字段)
+  string ocr_text = 4;           // OCR 全文(对齐 v1 extract-for-create:不截断,页面展示用)
+  string trace_id = 5;
+}
+
+message GeneratePromptRequest {
+  string template_rule_json = 1; // {keywords,sample_extracted,default_fields,llm_fields,min_length,max_length,language,need_translate}
+  string sample_text = 2;        // 样本 OCR 文本(空则用占位文本,对齐 v1)
+  string trace_id = 3;
+}
+
+message GeneratePromptResponse {
+  int32 code = 1;                // 0 成功;4000=规则 JSON 非法;4003=AI 依赖不可用;5xxx=内部
+  string message = 2;
+  string prompt = 3;
+  string disclaimer = 4;         // BR-2
+  string trace_id = 5;
 }
 
 message AnswerEvent {

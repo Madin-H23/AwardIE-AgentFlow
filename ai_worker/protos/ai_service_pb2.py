@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x61i_service.proto\x12\nawardie.ai\"c\n\x0e\x45xtractRequest\x12\x11\n\tfile_path\x18\x01 \x01(\t\x12\x15\n\ruse_ocr_cache\x18\x02 \x01(\x08\x12\x15\n\ruse_llm_cache\x18\x03 \x01(\x08\x12\x10\n\x08trace_id\x18\x04 \x01(\t\"\xb4\x01\n\x0f\x45xtractResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x10\n\x08\x64oc_type\x18\x03 \x01(\t\x12\x11\n\tdata_json\x18\x04 \x01(\t\x12\x12\n\nconfidence\x18\x05 \x01(\x01\x12\x10\n\x08ocr_text\x18\x06 \x01(\t\x12\x0e\n\x06status\x18\x07 \x01(\t\x12\x15\n\rerror_message\x18\x08 \x01(\t\x12\x10\n\x08trace_id\x18\t \x01(\t\"\xa3\x01\n\rWorkflowEvent\x12\x10\n\x08trace_id\x18\n \x01(\t\x12%\n\x04node\x18\x01 \x01(\x0b\x32\x15.awardie.ai.NodeEventH\x00\x12&\n\x05\x64\x65lta\x18\x02 \x01(\x0b\x32\x15.awardie.ai.TextDeltaH\x00\x12(\n\x05\x66inal\x18\x03 \x01(\x0b\x32\x17.awardie.ai.ReviewFinalH\x00\x42\x07\n\x05\x65vent\"\x19\n\tNodeEvent\x12\x0c\n\x04node\x18\x01 \x01(\t\"\x19\n\tTextDelta\x12\x0c\n\x04text\x18\x01 \x01(\t\"\x94\x01\n\x0bReviewFinal\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x01(\t\x12\x13\n\x0bissues_json\x18\x02 \x01(\t\x12\x12\n\nsuggestion\x18\x03 \x01(\t\x12\x17\n\x0f\x65xtraction_json\x18\x04 \x01(\t\x12\x0c\n\x04\x63ode\x18\x05 \x01(\x05\x12\x0f\n\x07message\x18\x06 \x01(\t\x12\x12\n\ndisclaimer\x18\x07 \x01(\t\"0\n\nAskRequest\x12\x10\n\x08question\x18\x01 \x01(\t\x12\x10\n\x08trace_id\x18\x02 \x01(\t\"\xa1\x01\n\x0b\x41nswerEvent\x12\x10\n\x08trace_id\x18\n \x01(\t\x12%\n\x04node\x18\x01 \x01(\x0b\x32\x15.awardie.ai.NodeEventH\x00\x12&\n\x05\x64\x65lta\x18\x02 \x01(\x0b\x32\x15.awardie.ai.TextDeltaH\x00\x12(\n\x05\x66inal\x18\x03 \x01(\x0b\x32\x17.awardie.ai.AnswerFinalH\x00\x42\x07\n\x05\x65vent\"f\n\x0b\x41nswerFinal\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x14\n\x0csources_json\x18\x02 \x01(\t\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\x12\x0f\n\x07message\x18\x04 \x01(\t\x12\x12\n\ndisclaimer\x18\x05 \x01(\t\"\x0f\n\rHealthRequest\"J\n\x0eHealthResponse\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x1b\n\x13langgraph_available\x18\x03 \x01(\x08\x32\x97\x02\n\tAiService\x12\x42\n\x07\x45xtract\x12\x1a.awardie.ai.ExtractRequest\x1a\x1b.awardie.ai.ExtractResponse\x12K\n\x10\x45xtractAndReview\x12\x1a.awardie.ai.ExtractRequest\x1a\x19.awardie.ai.WorkflowEvent0\x01\x12\x38\n\x03\x41sk\x12\x16.awardie.ai.AskRequest\x1a\x17.awardie.ai.AnswerEvent0\x01\x12?\n\x06Health\x12\x19.awardie.ai.HealthRequest\x1a\x1a.awardie.ai.HealthResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10\x61i_service.proto\x12\nawardie.ai\"c\n\x0e\x45xtractRequest\x12\x11\n\tfile_path\x18\x01 \x01(\t\x12\x15\n\ruse_ocr_cache\x18\x02 \x01(\x08\x12\x15\n\ruse_llm_cache\x18\x03 \x01(\x08\x12\x10\n\x08trace_id\x18\x04 \x01(\t\"\xb4\x01\n\x0f\x45xtractResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x10\n\x08\x64oc_type\x18\x03 \x01(\t\x12\x11\n\tdata_json\x18\x04 \x01(\t\x12\x12\n\nconfidence\x18\x05 \x01(\x01\x12\x10\n\x08ocr_text\x18\x06 \x01(\t\x12\x0e\n\x06status\x18\x07 \x01(\t\x12\x15\n\rerror_message\x18\x08 \x01(\t\x12\x10\n\x08trace_id\x18\t \x01(\t\"\xa3\x01\n\rWorkflowEvent\x12\x10\n\x08trace_id\x18\n \x01(\t\x12%\n\x04node\x18\x01 \x01(\x0b\x32\x15.awardie.ai.NodeEventH\x00\x12&\n\x05\x64\x65lta\x18\x02 \x01(\x0b\x32\x15.awardie.ai.TextDeltaH\x00\x12(\n\x05\x66inal\x18\x03 \x01(\x0b\x32\x17.awardie.ai.ReviewFinalH\x00\x42\x07\n\x05\x65vent\"\x19\n\tNodeEvent\x12\x0c\n\x04node\x18\x01 \x01(\t\"\x19\n\tTextDelta\x12\x0c\n\x04text\x18\x01 \x01(\t\"\x94\x01\n\x0bReviewFinal\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x01(\t\x12\x13\n\x0bissues_json\x18\x02 \x01(\t\x12\x12\n\nsuggestion\x18\x03 \x01(\t\x12\x17\n\x0f\x65xtraction_json\x18\x04 \x01(\t\x12\x0c\n\x04\x63ode\x18\x05 \x01(\x05\x12\x0f\n\x07message\x18\x06 \x01(\t\x12\x12\n\ndisclaimer\x18\x07 \x01(\t\"0\n\nAskRequest\x12\x10\n\x08question\x18\x01 \x01(\t\x12\x10\n\x08trace_id\x18\x02 \x01(\t\"\x95\x01\n\x16\x45xtractTemplateRequest\x12\r\n\x05image\x18\x01 \x01(\x0c\x12\x10\n\x08\x66ilename\x18\x02 \x01(\t\x12\x1a\n\x12template_rule_json\x18\x03 \x01(\t\x12\x15\n\ruse_ocr_cache\x18\x04 \x01(\x08\x12\x15\n\ruse_llm_cache\x18\x05 \x01(\x08\x12\x10\n\x08trace_id\x18\x06 \x01(\t\"o\n\x17\x45xtractTemplateResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tdata_json\x18\x03 \x01(\t\x12\x10\n\x08ocr_text\x18\x04 \x01(\t\x12\x10\n\x08trace_id\x18\x05 \x01(\t\"Z\n\x15GeneratePromptRequest\x12\x1a\n\x12template_rule_json\x18\x01 \x01(\t\x12\x13\n\x0bsample_text\x18\x02 \x01(\t\x12\x10\n\x08trace_id\x18\x03 \x01(\t\"m\n\x16GeneratePromptResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0e\n\x06prompt\x18\x03 \x01(\t\x12\x12\n\ndisclaimer\x18\x04 \x01(\t\x12\x10\n\x08trace_id\x18\x05 \x01(\t\"\xa1\x01\n\x0b\x41nswerEvent\x12\x10\n\x08trace_id\x18\n \x01(\t\x12%\n\x04node\x18\x01 \x01(\x0b\x32\x15.awardie.ai.NodeEventH\x00\x12&\n\x05\x64\x65lta\x18\x02 \x01(\x0b\x32\x15.awardie.ai.TextDeltaH\x00\x12(\n\x05\x66inal\x18\x03 \x01(\x0b\x32\x17.awardie.ai.AnswerFinalH\x00\x42\x07\n\x05\x65vent\"f\n\x0b\x41nswerFinal\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x14\n\x0csources_json\x18\x02 \x01(\t\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\x12\x0f\n\x07message\x18\x04 \x01(\t\x12\x12\n\ndisclaimer\x18\x05 \x01(\t\"\x0f\n\rHealthRequest\"J\n\x0eHealthResponse\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x1b\n\x13langgraph_available\x18\x03 \x01(\x08\x32\xcc\x03\n\tAiService\x12\x42\n\x07\x45xtract\x12\x1a.awardie.ai.ExtractRequest\x1a\x1b.awardie.ai.ExtractResponse\x12Z\n\x0f\x45xtractTemplate\x12\".awardie.ai.ExtractTemplateRequest\x1a#.awardie.ai.ExtractTemplateResponse\x12W\n\x0eGeneratePrompt\x12!.awardie.ai.GeneratePromptRequest\x1a\".awardie.ai.GeneratePromptResponse\x12K\n\x10\x45xtractAndReview\x12\x1a.awardie.ai.ExtractRequest\x1a\x19.awardie.ai.WorkflowEvent0\x01\x12\x38\n\x03\x41sk\x12\x16.awardie.ai.AskRequest\x1a\x17.awardie.ai.AnswerEvent0\x01\x12?\n\x06Health\x12\x19.awardie.ai.HealthRequest\x1a\x1a.awardie.ai.HealthResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -45,14 +45,22 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_REVIEWFINAL']._serialized_end=685
   _globals['_ASKREQUEST']._serialized_start=687
   _globals['_ASKREQUEST']._serialized_end=735
-  _globals['_ANSWEREVENT']._serialized_start=738
-  _globals['_ANSWEREVENT']._serialized_end=899
-  _globals['_ANSWERFINAL']._serialized_start=901
-  _globals['_ANSWERFINAL']._serialized_end=1003
-  _globals['_HEALTHREQUEST']._serialized_start=1005
-  _globals['_HEALTHREQUEST']._serialized_end=1020
-  _globals['_HEALTHRESPONSE']._serialized_start=1022
-  _globals['_HEALTHRESPONSE']._serialized_end=1096
-  _globals['_AISERVICE']._serialized_start=1099
-  _globals['_AISERVICE']._serialized_end=1378
+  _globals['_EXTRACTTEMPLATEREQUEST']._serialized_start=738
+  _globals['_EXTRACTTEMPLATEREQUEST']._serialized_end=887
+  _globals['_EXTRACTTEMPLATERESPONSE']._serialized_start=889
+  _globals['_EXTRACTTEMPLATERESPONSE']._serialized_end=1000
+  _globals['_GENERATEPROMPTREQUEST']._serialized_start=1002
+  _globals['_GENERATEPROMPTREQUEST']._serialized_end=1092
+  _globals['_GENERATEPROMPTRESPONSE']._serialized_start=1094
+  _globals['_GENERATEPROMPTRESPONSE']._serialized_end=1203
+  _globals['_ANSWEREVENT']._serialized_start=1206
+  _globals['_ANSWEREVENT']._serialized_end=1367
+  _globals['_ANSWERFINAL']._serialized_start=1369
+  _globals['_ANSWERFINAL']._serialized_end=1471
+  _globals['_HEALTHREQUEST']._serialized_start=1473
+  _globals['_HEALTHREQUEST']._serialized_end=1488
+  _globals['_HEALTHRESPONSE']._serialized_start=1490
+  _globals['_HEALTHRESPONSE']._serialized_end=1564
+  _globals['_AISERVICE']._serialized_start=1567
+  _globals['_AISERVICE']._serialized_end=2027
 # @@protoc_insertion_point(module_scope)
