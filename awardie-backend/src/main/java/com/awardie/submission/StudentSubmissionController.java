@@ -1,7 +1,6 @@
 package com.awardie.submission;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.time.Instant;
 
 import org.springframework.http.HttpHeaders;
@@ -163,7 +162,7 @@ public class StudentSubmissionController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         var path = storage.resolve(e.getFilePath());
-        byte[] bytes = Files.readAllBytes(path);
+        byte[] bytes = storage.readAll(e.getFilePath());
         String filename = path.getFileName().toString();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

@@ -25,7 +25,8 @@ import java.util.Map;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         // Fix-A 测试库隔离:集成测试写 awardie_test(独立库,Flyway 空库自建表),
         // 不再触开发库 awardie_dev——根除"测试数据写入真实库"的污染源
-        "spring.datasource.url=jdbc:postgresql://127.0.0.1:5433/awardie_test"
+        "spring.datasource.url=jdbc:postgresql://127.0.0.1:5433/awardie_test",
+        "files.root=target/test-files"
 })
 public abstract class BaseIntegrationTest {
 

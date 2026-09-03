@@ -18,9 +18,14 @@ public class FileStorageService {
     private static final byte[] PNG = {(byte) 0x89, 0x50, 0x4E, 0x47};
     private static final byte[] PDF = {0x25, 0x50, 0x44, 0x46};
 
-    private final Path root = Path.of("files", "v2");
+    private final Path root;
 
     public record StoredFile(String relativePath, String sha256, long size) {}
+
+    /** 批 3:存储根参数化(默认 files/v2);测试注入 target/test-files,根除与运行后端的两处 CWD 分裂。 */
+    public FileStorageService(@org.springframework.beans.factory.annotation.Value("${files.root:files/v2}") String root) {
+        this.root = Path.of(root);
+    }
 
     /** 白名单扩展名 + 大小上限 + 魔术字节三校验(顺序沿 v1:先类型后内容)。 */
     public void assertAllowed(String filename, byte[] bytes) {
