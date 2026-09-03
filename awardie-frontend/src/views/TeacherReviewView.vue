@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
-import { statusLabel, statusTagType } from '../composables/useBadge'
+import { statusLabel, statusTagType, submitterTypeLabel, typeLabel } from '../composables/useBadge'
 
 const API = '/api/v2'
 const rows = ref<Array<Record<string, unknown>>>([])
@@ -90,7 +90,10 @@ async function review(id: number, action: string) {
         :data="rows"
         size="small"
       >
-        <el-table-column label="竞赛名称" min-width="200">
+        <el-table-column
+          label="竞赛名称"
+          min-width="200"
+        >
           <template #default="scope">
             {{ compName(scope.row) }}
           </template>
@@ -101,20 +104,36 @@ async function review(id: number, action: string) {
           width="70"
         />
         <el-table-column
-          prop="achievementType"
           label="类型"
           width="90"
-        />
+        >
+          <template #default="scope">
+            <el-tag
+              size="small"
+              type="info"
+              effect="plain"
+            >
+              {{ typeLabel(scope.row.achievementType) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="submitterType"
           label="提交者类型"
           width="110"
-        />
+        >
+          <template #default="scope">
+            {{ submitterTypeLabel(scope.row.submitterType) }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="submitterId"
           label="提交者ID"
           width="100"
-        />
+        >
+          <template #default="scope">
+            <span class="num">{{ scope.row.submitterId }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           label="状态"
           width="110"

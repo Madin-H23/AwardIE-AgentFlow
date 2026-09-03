@@ -164,101 +164,295 @@ onMounted(load)
         size="small"
       >
         <template v-if="activeTab === 'award'">
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="name" label="竞赛名称" min-width="220" />
-          <el-table-column label="竞赛级别" width="100">
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="70"
+            class-name="num"
+          />
+          <el-table-column
+            prop="name"
+            label="竞赛名称"
+            min-width="220"
+          />
+          <el-table-column
+            label="竞赛级别"
+            width="100"
+          >
             <template #default="scope">
               {{ scope.row.level || '-' }}
             </template>
           </el-table-column>
-          <el-table-column label="获奖等级" width="100">
+          <el-table-column
+            label="获奖等级"
+            width="100"
+          >
             <template #default="scope">
               {{ scope.row.award_level || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="winner_name" label="获奖人" width="100" />
-          <el-table-column prop="supervisor_name" label="指导教师" width="110" />
-          <el-table-column label="关联实验室" width="150">
+          <el-table-column
+            prop="winner_name"
+            label="获奖人"
+            width="100"
+          />
+          <el-table-column
+            prop="supervisor_name"
+            label="指导教师"
+            width="110"
+          />
+          <el-table-column
+            label="关联实验室"
+            width="150"
+          >
             <template #default="scope">
               {{ scope.row.laboratory || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="year" label="年份" width="80" />
-          <el-table-column label="异常" width="80">
+          <el-table-column
+            prop="year"
+            label="年份"
+            width="80"
+            class-name="num"
+          />
+          <el-table-column
+            label="异常"
+            width="80"
+          >
             <template #default="scope">
-              <el-tag v-if="scope.row.is_abnormal" type="danger" size="small">异常</el-tag>
+              <el-tag
+                v-if="scope.row.is_abnormal"
+                type="danger"
+                size="small"
+              >
+                异常
+              </el-tag>
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="190">
+          <el-table-column
+            label="操作"
+            width="190"
+          >
             <template #default="scope">
-              <el-button size="small" text type="primary" @click="openEdit(scope.row)">编辑</el-button>
+              <el-button
+                size="small"
+                text
+                type="primary"
+                @click="openEdit(scope.row)"
+              >
+                编辑
+              </el-button>
               <router-link
                 v-if="['award', 'patent', 'software', 'innovation'].includes(activeTab)"
                 :to="detailEditLink(activeTab, scope.row.id)"
                 data-testid="achievement-full-edit"
               >
-                <el-button size="small" text type="primary">详情编辑</el-button>
+                <el-button
+                  size="small"
+                  text
+                  type="primary"
+                >
+                  详情编辑
+                </el-button>
               </router-link>
-              <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="remove(scope.row)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </template>
 
         <template v-else-if="activeTab === 'patent'">
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="name" label="专利名称" min-width="220" />
-          <el-table-column prop="patent_type" label="类型" width="120" />
-          <el-table-column prop="patentee" label="专利权人" min-width="140" />
-          <el-table-column prop="inventor" label="发明人" min-width="120" />
-          <el-table-column label="操作" width="90">
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="70"
+            class-name="num"
+          />
+          <el-table-column
+            prop="name"
+            label="专利名称"
+            min-width="220"
+          />
+          <el-table-column
+            prop="patent_type"
+            label="类型"
+            width="120"
+          />
+          <el-table-column
+            prop="patentee"
+            label="专利权人"
+            min-width="140"
+          />
+          <el-table-column
+            prop="inventor"
+            label="发明人"
+            min-width="120"
+          />
+          <el-table-column
+            label="操作"
+            width="90"
+          >
             <template #default="scope">
-              <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="remove(scope.row)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </template>
 
         <template v-else-if="activeTab === 'software'">
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="name" label="软件名称" min-width="220" />
-          <el-table-column prop="software_version" label="版本" width="100" />
-          <el-table-column prop="registration_number" label="登记号" width="160" />
-          <el-table-column prop="copyright_owner" label="著作权人" min-width="140" />
-          <el-table-column label="操作" width="90">
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="70"
+            class-name="num"
+          />
+          <el-table-column
+            prop="name"
+            label="软件名称"
+            min-width="220"
+          />
+          <el-table-column
+            prop="software_version"
+            label="版本"
+            width="100"
+          />
+          <el-table-column
+            prop="registration_number"
+            label="登记号"
+            width="160"
+          />
+          <el-table-column
+            prop="copyright_owner"
+            label="著作权人"
+            min-width="140"
+          />
+          <el-table-column
+            label="操作"
+            width="90"
+          >
             <template #default="scope">
-              <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="remove(scope.row)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </template>
 
         <template v-else-if="activeTab === 'innovation'">
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="project_no" label="项目编号" width="140" />
-          <el-table-column prop="name" label="项目名称" min-width="220" />
-          <el-table-column prop="project_type" label="级别" width="90" />
-          <el-table-column prop="leader" label="负责人" width="100" />
-          <el-table-column prop="supervisors" label="指导教师" width="140" />
-          <el-table-column prop="status" label="状态" width="90" />
-          <el-table-column label="操作" width="90">
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="70"
+            class-name="num"
+          />
+          <el-table-column
+            prop="project_no"
+            label="项目编号"
+            width="140"
+          />
+          <el-table-column
+            prop="name"
+            label="项目名称"
+            min-width="220"
+          />
+          <el-table-column
+            prop="project_type"
+            label="级别"
+            width="90"
+          />
+          <el-table-column
+            prop="leader"
+            label="负责人"
+            width="100"
+          />
+          <el-table-column
+            prop="supervisors"
+            label="指导教师"
+            width="140"
+          />
+          <el-table-column
+            prop="status"
+            label="状态"
+            width="90"
+          />
+          <el-table-column
+            label="操作"
+            width="90"
+          >
             <template #default="scope">
-              <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="remove(scope.row)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </template>
 
         <template v-else>
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="name" label="文件名" min-width="220" />
-          <el-table-column prop="file_type" label="类型" width="100" />
-          <el-table-column label="大小" width="110">
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="70"
+            class-name="num"
+          />
+          <el-table-column
+            prop="name"
+            label="文件名"
+            min-width="220"
+          />
+          <el-table-column
+            prop="file_type"
+            label="类型"
+            width="100"
+          />
+          <el-table-column
+            label="大小"
+            width="110"
+          >
             <template #default="scope">
               {{ scope.row.file_size ? (scope.row.file_size / 1024).toFixed(1) + ' KB' : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="描述" min-width="180" />
-          <el-table-column label="操作" width="90">
+          <el-table-column
+            prop="description"
+            label="描述"
+            min-width="180"
+          />
+          <el-table-column
+            label="操作"
+            width="90"
+          >
             <template #default="scope">
-              <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="remove(scope.row)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </template>
@@ -280,7 +474,10 @@ onMounted(load)
     >
       <el-form label-width="90px">
         <el-form-item label="竞赛名称">
-          <el-input v-model="editForm.competitionName" disabled />
+          <el-input
+            v-model="editForm.competitionName"
+            disabled
+          />
         </el-form-item>
         <el-form-item label="竞赛级别">
           <el-input v-model="editForm.competitionLevel" />
@@ -296,8 +493,16 @@ onMounted(load)
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" data-testid="vault-save" @click="saveEdit">保存</el-button>
+        <el-button @click="editVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          data-testid="vault-save"
+          @click="saveEdit"
+        >
+          保存
+        </el-button>
       </template>
     </el-dialog>
   </div>

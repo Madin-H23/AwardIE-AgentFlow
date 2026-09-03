@@ -60,8 +60,13 @@ onMounted(() => {
   <div>
     <div class="page-head">
       <h1>奖状模板管理</h1>
-      <router-link to="/admin/templates/create" data-testid="template-create-link">
-        <el-button type="primary">新建模板</el-button>
+      <router-link
+        to="/admin/templates/create"
+        data-testid="template-create-link"
+      >
+        <el-button type="primary">
+          新建模板
+        </el-button>
       </router-link>
     </div>
 
@@ -100,6 +105,7 @@ onMounted(() => {
               prop="id"
               label="#"
               width="70"
+              class-name="num"
             />
             <el-table-column
               prop="template_type"
@@ -121,10 +127,22 @@ onMounted(() => {
               label="关联竞赛"
               min-width="220"
             />
-            <el-table-column label="操作" width="100">
+            <el-table-column
+              label="操作"
+              width="100"
+            >
               <template #default="scope">
-                <router-link :to="`/admin/templates/${scope.row.id}/detail`" data-testid="template-detail-link">
-                  <el-button size="small" text type="primary">详情</el-button>
+                <router-link
+                  :to="`/admin/templates/${scope.row.id}/detail`"
+                  data-testid="template-detail-link"
+                >
+                  <el-button
+                    size="small"
+                    text
+                    type="primary"
+                  >
+                    详情
+                  </el-button>
                 </router-link>
               </template>
             </el-table-column>

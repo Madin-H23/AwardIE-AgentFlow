@@ -2,6 +2,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ensureCsrf, xsrfToken, apiJson } from '../composables/useCsrf'
+import { statusLabel, statusTagType } from '../composables/useBadge'
 
 const API = '/api/v2'
 const submitting = ref(false)
@@ -229,22 +230,34 @@ async function onSubmit() {
           prop="id"
           label="#"
           width="70"
+          class-name="num"
         />
         <el-table-column
           prop="achievementType"
           label="类型"
           width="90"
         />
-        <el-table-column label="竞赛名称" min-width="180">
+        <el-table-column
+          label="竞赛名称"
+          min-width="180"
+        >
           <template #default="scope">
             {{ compName(scope.row) }}
           </template>
         </el-table-column>
         <el-table-column
-          prop="status"
           label="状态"
           width="100"
-        />
+        >
+          <template #default="scope">
+            <el-tag
+              size="small"
+              :type="statusTagType(scope.row.status)"
+            >
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           label="文件"
           width="80"
@@ -300,6 +313,7 @@ async function onSubmit() {
           prop="id"
           label="#"
           width="70"
+          class-name="num"
         />
         <el-table-column
           prop="competition_name"

@@ -87,6 +87,7 @@ onMounted(tp.load)
           prop="id"
           label="#"
           width="80"
+          class-name="num"
         />
         <el-table-column
           prop="competitionName"

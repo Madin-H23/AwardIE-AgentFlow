@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
+import { statusLabel, statusTagType } from '../composables/useBadge'
 
 // #35 对照 v1 student/dashboard_ref.html:个人信息卡(头像+公开主页开关+年级专业学号+实验室/技能标签)
 // +统计卡三列(获奖/大创/技术标签)+成果展示区(获奖/大创/专利/软著四表,空态引导提交)。
@@ -274,10 +275,18 @@ function exportAll() {
             width="140"
           />
           <el-table-column
-            prop="status"
             label="状态"
             width="90"
-          />
+          >
+            <template #default="scope">
+              <el-tag
+                size="small"
+                :type="statusTagType(scope.row.status)"
+              >
+                {{ statusLabel(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
@@ -296,6 +305,7 @@ function exportAll() {
             prop="id"
             label="ID"
             width="70"
+            class-name="num"
           />
           <el-table-column
             prop="patentName"
@@ -325,6 +335,7 @@ function exportAll() {
             prop="id"
             label="ID"
             width="70"
+            class-name="num"
           />
           <el-table-column
             prop="softwareName"

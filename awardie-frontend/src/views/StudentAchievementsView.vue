@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiJson } from '../composables/useCsrf'
+import { statusLabel, statusTagType } from '../composables/useBadge'
 
 // #35 对照 v1 student/achievements_ref.html(852 行):成果展示——四类成果 + 筛选 + 详情。
 
@@ -165,10 +166,18 @@ onMounted(async () => {
             width="140"
           />
           <el-table-column
-            prop="status"
             label="状态"
             width="90"
-          />
+          >
+            <template #default="scope">
+              <el-tag
+                size="small"
+                :type="statusTagType(scope.row.status)"
+              >
+                {{ statusLabel(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
       <el-tab-pane
@@ -184,6 +193,7 @@ onMounted(async () => {
             prop="id"
             label="ID"
             width="70"
+            class-name="num"
           />
           <el-table-column
             prop="patentName"
@@ -210,6 +220,7 @@ onMounted(async () => {
             prop="id"
             label="ID"
             width="70"
+            class-name="num"
           />
           <el-table-column
             prop="softwareName"

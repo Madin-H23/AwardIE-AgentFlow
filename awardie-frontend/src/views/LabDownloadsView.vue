@@ -36,36 +36,66 @@ onMounted(async () => {
   <div v-loading="loading">
     <div class="page-head">
       <div>
-        <h1 class="title">{{ labName }} - 下载专区</h1>
-        <p class="sub">导出您关联的所有竞赛成果数据</p>
+        <h1 class="title">
+          {{ labName }} - 下载专区
+        </h1>
+        <p class="sub">
+          导出您关联的所有竞赛成果数据
+        </p>
       </div>
     </div>
 
     <div class="c-panel pad">
       <div class="head-row">
-        <h3 class="blk-title"><el-icon><Download /></el-icon> 下载文件列表</h3>
-        <el-tag size="small">{{ rows.length }} 个文件</el-tag>
+        <h3 class="blk-title">
+          <el-icon><Download /></el-icon> 下载文件列表
+        </h3>
+        <el-tag size="small">
+          {{ rows.length }} 个文件
+        </el-tag>
       </div>
-      <el-table :data="rows" size="small">
-        <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column label="文件标题" min-width="220">
+      <el-table
+        :data="rows"
+        size="small"
+      >
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="70"
+          class-name="num"
+        />
+        <el-table-column
+          label="文件标题"
+          min-width="220"
+        >
           <template #default="scope">
             {{ scope.row.fileTitle || scope.row.fileName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="大小" width="110">
+        <el-table-column
+          label="大小"
+          width="110"
+        >
           <template #default="scope">
             {{ fmtSize(scope.row.file_size) }}
           </template>
         </el-table-column>
-        <el-table-column label="上传时间" width="180">
+        <el-table-column
+          label="上传时间"
+          width="180"
+        >
           <template #default="scope">
             {{ scope.row.createdAt ? String(scope.row.createdAt).replace('T', ' ').slice(0, 19) : '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="90">
+        <el-table-column
+          label="操作"
+          width="90"
+        >
           <template #default>
-            <el-icon class="dl-icon"><Download /></el-icon>
+            <el-icon class="dl-icon">
+              <Download />
+            </el-icon>
           </template>
         </el-table-column>
         <template #empty>

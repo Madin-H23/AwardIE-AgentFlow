@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, Search, Refresh } from '@element-plus/icons-vue'
 import { apiJson } from '../composables/useCsrf'
 import { useTablePage } from '../composables/useTablePage'
-import { statusLabel, statusTagType, typeLabel } from '../composables/useBadge'
+import { statusLabel, statusTagType, submitterTypeLabel, typeLabel } from '../composables/useBadge'
 import PageHeader from '../components/PageHeader.vue'
 
 const API = '/api/v2/admin/achievements'
@@ -30,6 +30,9 @@ const LEVELS = ['校赛', '区域赛', '省赛', '国赛', '国际赛']
 const AWARDS = ['特等奖', '一等奖', '二等奖', '三等奖', '优秀奖']
 
 const dateRange = ref<[string, string] | null>(null)
+
+// UX-2 挂账小批(B5):十维筛选默认只露审核域三维,七维 jsonb/时间维折叠
+const advanced = ref(false)
 
 function applyRange() {
   tp.filters.dateFrom = dateRange.value?.[0] ?? ''
@@ -98,7 +101,7 @@ onMounted(tp.load)
             <el-option
               v-for="t in ['award', 'patent', 'software', 'innovation', 'other']"
               :key="t"
-              :label="t"
+              :label="typeLabel(t)"
               :value="t"
             />
           </el-select>
@@ -125,88 +128,101 @@ onMounted(tp.load)
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="竞赛名称">
-          <el-input
-            v-model="tp.filters.competitionName"
-            placeholder="竞赛名称"
-            style="width: 180px"
-            clearable
-            @keyup.enter="tp.search()"
-            @clear="tp.search()"
-          />
-        </el-form-item>
-        <el-form-item label="年份">
-          <el-input
-            v-model="tp.filters.year"
-            placeholder="如 2026"
-            style="width: 100px"
-            clearable
-            @keyup.enter="tp.search()"
-            @clear="tp.search()"
-          />
-        </el-form-item>
-        <el-form-item label="竞赛级别">
-          <el-select
-            v-model="tp.filters.competitionLevel"
-            placeholder="全部"
-            clearable
-            style="width: 120px"
-            @change="tp.search()"
+        <el-form-item>
+          <el-button
+            link
+            type="primary"
+            data-testid="filter-advanced-toggle"
+            @click="advanced = !advanced"
           >
-            <el-option
-              v-for="lv in LEVELS"
-              :key="lv"
-              :label="lv"
-              :value="lv"
+            {{ advanced ? '收起筛选' : '展开更多筛选' }}
+            <el-icon><ArrowDown v-if="!advanced" /><ArrowUp v-else /></el-icon>
+          </el-button>
+        </el-form-item>
+        <template v-if="advanced">
+          <el-form-item label="竞赛名称">
+            <el-input
+              v-model="tp.filters.competitionName"
+              placeholder="竞赛名称"
+              style="width: 180px"
+              clearable
+              @keyup.enter="tp.search()"
+              @clear="tp.search()"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="获奖等级">
-          <el-select
-            v-model="tp.filters.awardLevel"
-            placeholder="全部"
-            clearable
-            style="width: 120px"
-            @change="tp.search()"
-          >
-            <el-option
-              v-for="lv in AWARDS"
-              :key="lv"
-              :label="lv"
-              :value="lv"
+          </el-form-item>
+          <el-form-item label="年份">
+            <el-input
+              v-model="tp.filters.year"
+              placeholder="如 2026"
+              style="width: 100px"
+              clearable
+              @keyup.enter="tp.search()"
+              @clear="tp.search()"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="获奖人">
-          <el-input
-            v-model="tp.filters.winnerName"
-            placeholder="获奖人"
-            style="width: 120px"
-            clearable
-            @keyup.enter="tp.search()"
-            @clear="tp.search()"
-          />
-        </el-form-item>
-        <el-form-item label="指导教师">
-          <el-input
-            v-model="tp.filters.supervisorName"
-            placeholder="指导教师"
-            style="width: 120px"
-            clearable
-            @keyup.enter="tp.search()"
-            @clear="tp.search()"
-          />
-        </el-form-item>
-        <el-form-item label="提交于">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
-            start-placeholder="开始"
-            end-placeholder="结束"
-            style="width: 240px"
-          />
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="竞赛级别">
+            <el-select
+              v-model="tp.filters.competitionLevel"
+              placeholder="全部"
+              clearable
+              style="width: 120px"
+              @change="tp.search()"
+            >
+              <el-option
+                v-for="lv in LEVELS"
+                :key="lv"
+                :label="lv"
+                :value="lv"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="获奖等级">
+            <el-select
+              v-model="tp.filters.awardLevel"
+              placeholder="全部"
+              clearable
+              style="width: 120px"
+              @change="tp.search()"
+            >
+              <el-option
+                v-for="lv in AWARDS"
+                :key="lv"
+                :label="lv"
+                :value="lv"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="获奖人">
+            <el-input
+              v-model="tp.filters.winnerName"
+              placeholder="获奖人"
+              style="width: 120px"
+              clearable
+              @keyup.enter="tp.search()"
+              @clear="tp.search()"
+            />
+          </el-form-item>
+          <el-form-item label="指导教师">
+            <el-input
+              v-model="tp.filters.supervisorName"
+              placeholder="指导教师"
+              style="width: 120px"
+              clearable
+              @keyup.enter="tp.search()"
+              @clear="tp.search()"
+            />
+          </el-form-item>
+          <el-form-item label="提交于">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              start-placeholder="开始"
+              end-placeholder="结束"
+              style="width: 240px"
+            />
+          </el-form-item>
+        </template>
         <el-form-item>
           <el-button
             type="primary"
@@ -254,10 +270,13 @@ onMounted(tp.load)
           </template>
         </el-table-column>
         <el-table-column
-          prop="submitterType"
           label="提交者类型"
           width="110"
-        />
+        >
+          <template #default="scope">
+            {{ submitterTypeLabel(scope.row.submitterType) }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="submitterId"
           label="提交者ID"

@@ -32,3 +32,13 @@ const STATUS_TAG_TYPES: Record<string, 'success' | 'warning' | 'danger' | 'info'
 export function statusTagType(v: unknown): 'success' | 'warning' | 'danger' | 'info' {
   return STATUS_TAG_TYPES[String(v ?? '')] ?? 'info'
 }
+
+export const SUBMITTER_TYPE_LABELS: Record<string, string> = {
+  student: '学生',
+  teacher: '教师',
+  admin: '管理员',
+}
+
+export function submitterTypeLabel(v: unknown): string {
+  return SUBMITTER_TYPE_LABELS[String(v ?? '')] ?? String(v ?? '-')
+}

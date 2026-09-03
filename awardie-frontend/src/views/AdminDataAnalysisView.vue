@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { apiJson } from '../composables/useCsrf'
+import { useTheme } from '../composables/useTheme'
 
 // #30 对照 v1 admin/data_analysis.html:三 tab(竞赛信息/竞赛分析/获奖数据分析)。
 // 偏差:Tab1 时间线图为获奖体量条形(v1 三时间点解析器不移植),详见对照记录。
@@ -194,6 +195,13 @@ watch(activeTab, (tab) => {
 })
 watch([xAxisBy, colorBy, chartType], () => {
   if (activeTab.value === 'tab3') renderTab3()
+})
+// UX-2 挂账小批:主题切换重绘(图色渲染时读 tokens,切换后按当前 tab 重建)
+const { theme: themeRef } = useTheme()
+watch(themeRef, () => {
+  if (activeTab.value === 'tab2') loadTab2()
+  else if (activeTab.value === 'tab3') renderTab3()
+  else renderTab1()
 })
 
 const onResize = () => charts.forEach((c) => c.resize())
