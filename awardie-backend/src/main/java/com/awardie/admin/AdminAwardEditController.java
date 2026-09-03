@@ -6,15 +6,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.awardie.common.ApiResponse;
@@ -25,9 +29,11 @@ import com.awardie.common.ApiResponse;
 public class AdminAwardEditController {
 
     private final JdbcTemplate jdbc;
+    private final com.awardie.submission.FileStorageService fileStorage;
 
-    public AdminAwardEditController(JdbcTemplate jdbc) {
+    public AdminAwardEditController(JdbcTemplate jdbc, com.awardie.submission.FileStorageService fileStorage) {
         this.jdbc = jdbc;
+        this.fileStorage = fileStorage;
     }
 
     /** 详情聚合:主字段+四组关联+姓名匹配状态+下拉四数据+默认实验室推断。 */
@@ -41,7 +47,7 @@ public class AdminAwardEditController {
                        a.project_title AS "projectTitle", a.date, a.province, a.issuer,
                        a.laboratory_id AS "laboratoryId", a.granted_role AS "grantedRole",
                        a.winner_name AS "winnerName", a.supervisor_name AS "supervisorName",
-                       a.image_hash AS "imageHash", a.is_abnormal AS "isAbnormal",
+                       a.image_hash AS "imageHash", a.certificate_path AS "certificatePath", a.is_abnormal AS "isAbnormal",
                        a.ocr_result AS "ocrResult",
                        a.validation_result::TEXT AS "validationResult"
                 FROM awards a LEFT JOIN competitions c ON a.competition_id = c.id
@@ -93,6 +99,47 @@ public class AdminAwardEditController {
             Integer laboratoryId, String grantedRole, String studentWinnerNames,
             List<Integer> supervisorIds, List<Integer> teacherWinnerIds, List<Integer> studentWinnerIds,
             List<Integer> relatedStudentIds) {}
+
+    /** 证书图回显:inline 显示语义(批 2 证书链;编辑页 <img> 直用)。 */
+    @GetMapping("/{id}/certificate")
+    public ResponseEntity<byte[]> certificate(@PathVariable Integer id, Authentication auth) throws Exception {
+        requireAdmin(auth);
+        List<String> rows = jdbc.queryForList(
+                "SELECT certificate_path FROM awards WHERE id = ?", String.class, id);
+        if (rows.isEmpty() || rows.get(0) == null) {
+            return ResponseEntity.notFound().build();
+        }
+        byte[] bytes;
+        try {
+            bytes = fileStorage.readAll(rows.get(0));
+        } catch (java.nio.file.NoSuchFileException | IllegalArgumentException e) {
+            // 存量死引用(文件失存/越界路径):回 404 走"可上传补齐"分支,不落 5000
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .header("Content-Type", fileStorage.contentTypeOf(rows.get(0)))
+                .body(bytes);
+    }
+
+    /** 证书图上传/替换:三校验+目录存储(批 2 证书链,清偿 Fix-R hash 占位)。 */
+    @PostMapping("/{id}/certificate")
+    public ApiResponse<Map<String, Object>> uploadCertificate(@PathVariable Integer id,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            Authentication auth) throws Exception {
+        requireAdmin(auth);
+        if (file == null || file.isEmpty()) {
+            return ApiResponse.error(4000, "请上传证书图片");
+        }
+        byte[] bytes = file.getBytes();
+        fileStorage.assertAllowed(file.getOriginalFilename(), bytes);
+        var stored = fileStorage.store(file.getOriginalFilename(), bytes);
+        int n = jdbc.update("UPDATE awards SET certificate_path = ? WHERE id = ?",
+                stored.relativePath(), id);
+        if (n == 0) {
+            return ApiResponse.error(4004, "award 不存在");
+        }
+        return ApiResponse.ok(Map.of("path", stored.relativePath(), "sha256", stored.sha256()));
+    }
 
     @PutMapping("/{id}")
     @Transactional

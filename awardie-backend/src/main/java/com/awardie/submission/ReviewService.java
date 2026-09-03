@@ -97,13 +97,13 @@ public class ReviewService {
         String compName = str(data.get("competition_name"));
         Integer competitionId = resolveCompetition(compName);
         jdbc.update("""
-                INSERT INTO awards (image_hash, certificate_id, competition_name_in_file, track, issuer,
+                INSERT INTO awards (image_hash, certificate_id, certificate_path, competition_name_in_file, track, issuer,
                     province, group_name, winner_name, supervisor_name, award_level, competition_level,
                     date, project_title, competition_id, submitter_type, submitter_id, submit_time,
                     created_at, updated_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
                 """,
-                e.getFileHash(), str(data.get("certificate_id")), compName, str(data.get("track")),
+                e.getFileHash(), str(data.get("certificate_id")), e.getFilePath(), compName, str(data.get("track")),
                 str(data.get("issuer")), str(data.get("province")), str(data.get("group_name")),
                 str(data.get("winner_name")), str(data.get("supervisor_name")), str(data.get("award_level")),
                 str(data.get("competition_level")), str(data.get("date")), str(data.get("project_title")),

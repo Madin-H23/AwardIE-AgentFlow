@@ -181,7 +181,12 @@ class BoundaryTest extends BaseIntegrationTest {
     @Order(7)
     void duplicateSubmitSecondRejected() {
         String ck = loginAs("212306413", "P@ss301");
-        byte[] same = pngPayload(4096);
+        // 同轮内同字节、跨轮次唯一:确定性载荷会撞上一轮遗留 pending 的哈希去重(4001x2)
+        byte[] base = pngPayload(4096);
+        byte[] runTail = String.valueOf(System.nanoTime()).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] same = new byte[base.length + runTail.length];
+        System.arraycopy(base, 0, same, 0, base.length);
+        System.arraycopy(runTail, 0, same, base.length, runTail.length);
         List<ResponseEntity<String>> results = List.of(submit(same,
                 "{\"competition_name\":\"并发去重\",\"award_level\":\"一等奖\",\"date\":\"2026-09\"}", ck),
                 submit(same,

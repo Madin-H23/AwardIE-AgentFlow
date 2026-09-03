@@ -196,4 +196,25 @@ class ReviewLoopTest extends BaseIntegrationTest {
         String body = review(cookie("212306413"), id, "approve", "").getBody();
         assertThat(body).contains("需要 teacher 角色");
     }
+
+    @Test
+    @Order(8)
+    void approveCarriesCertificatePathToAward() {
+        int id = submitAsStudent();
+        assertThat(review(cookie("02110606"), id, "approve", "带图入库").getBody()).contains("\"code\":0");
+        // 批 2 证书链:物化时 pending.file_path → awards.certificate_path
+        Integer awardId = jdbc.queryForObject(
+                "SELECT a.id FROM awards a JOIN pending_achievements p ON a.image_hash = p.file_hash "
+                        + "WHERE p.id = ? AND a.certificate_path IS NOT NULL", Integer.class, id);
+        // 编辑页证书图回显:inline 200
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", cookie("admin"));
+        ResponseEntity<byte[]> img = rest.exchange("/api/v2/admin/awards/" + awardId + "/certificate",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
+        assertThat(img.getStatusCode().value()).isEqualTo(200);
+        // 无证书的 award → 404(模板图片端点同语义)
+        ResponseEntity<String> missing = rest.exchange("/api/v2/admin/awards/999999/certificate",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        assertThat(missing.getStatusCode().value()).isEqualTo(404);
+    }
 }

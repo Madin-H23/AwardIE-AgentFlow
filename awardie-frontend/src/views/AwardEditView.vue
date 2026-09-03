@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { UploadFile } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
 
 // Fix-R 对照 v1 admin/awards/edit.html(1676 行巨页)。
@@ -16,7 +17,7 @@ interface AwardDetail {
   date: string | null; province: string | null; issuer: string | null
   laboratoryId: number | null; grantedRole: string | null
   winnerName: string | null; supervisorName: string | null
-  imageHash: string | null; isAbnormal: boolean; validationResult: string | null; ocrResult?: string
+  imageHash: string | null; certificatePath: string | null; isAbnormal: boolean; validationResult: string | null; ocrResult?: string
   studentWinners: Opt[]; teacherWinners: Opt[]; supervisors: Opt[]; relatedStudents: Opt[]
   winnerStatus: NameStatus[]; supervisorStatus: NameStatus[]
   competitions: Opt[]; teachers: Opt[]; students: Opt[]; laboratories: Opt[]
@@ -86,6 +87,39 @@ function badgeSuffix(st: string) {
   return st === 'matched' ? '' : st === 'ambiguous' ? '(重名)' : '(未查到)'
 }
 
+// 批 2 证书链:真图显示+上传/替换(清偿 Fix-R"hash 占位"偏差)
+const certificatePath = ref<string | null>(null)
+const certFile = ref<File | null>(null)
+const certUploading = ref(false)
+
+function onCertChange(file: UploadFile) {
+  certFile.value = file.raw as File
+}
+
+async function uploadCert() {
+  if (!certFile.value) return ElMessage.warning('请选择证书图片')
+  certUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', certFile.value)
+    const token = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)
+    const resp = await fetch(`/api/v2/admin/awards/${id}/certificate`, {
+      method: 'POST', body: fd, credentials: 'include',
+      headers: token ? { 'X-XSRF-TOKEN': decodeURIComponent(token[1]) } : {},
+    })
+    const body = await resp.json()
+    if (body.code === 0) {
+      certificatePath.value = body.data.path
+      certFile.value = null
+      ElMessage.success('证书图已上传')
+    } else {
+      ElMessage.error(body.message ?? '上传失败')
+    }
+  } finally {
+    certUploading.value = false
+  }
+}
+
 onMounted(async () => {
   const body = await apiJson('GET', `/api/v2/admin/awards/${id}/edit-detail`)
   if (body.code !== 0) {
@@ -94,6 +128,7 @@ onMounted(async () => {
     return
   }
   const d = body.data as AwardDetail
+  certificatePath.value = d.certificatePath ?? null
   Object.assign(form, {
     competitionId: d.competitionId, competitionLevel: d.competitionLevel ?? '',
     awardLevel: d.awardLevel ?? '', year: d.year, track: d.track ?? '',
@@ -272,13 +307,28 @@ async function del() {
       <div class="c-panel pad">
         <h3 class="blk-title">奖状图片</h3>
         <div class="img-box">
-          <template v-if="imageHash">
-            <el-empty description="图片文件存储迁移挂账(01-方案 偏差1)" :image-size="70" />
+          <template v-if="certificatePath">
+            <img :src="`/api/v2/admin/awards/${id}/certificate`" alt="证书图" class="cert-img">
+          </template>
+          <template v-else-if="imageHash">
+            <el-empty description="仅有哈希无文件(历史数据),可上传补齐" :image-size="70" />
             <p class="muted small">image_hash: {{ imageHash }}</p>
           </template>
           <template v-else>
             <el-empty description="暂无图片" :image-size="70" />
           </template>
+          <el-upload
+            :auto-upload="false" :limit="1" accept="image/*"
+            :on-change="onCertChange" data-testid="award-cert-file"
+          >
+            <el-button>选择图片</el-button>
+          </el-upload>
+          <el-button
+            type="primary" :loading="certUploading"
+            data-testid="award-cert-upload" @click="uploadCert"
+          >
+            上传证书图
+          </el-button>
         </div>
       </div>
     </div>
@@ -389,7 +439,8 @@ async function del() {
 .sug-item { padding: 6px 10px; cursor: pointer; font-size: 0.85rem; }
 .sug-item:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
 .rel { position: relative; }
-.img-box { text-align: center; padding: 12px 0; }
+.img-box { text-align: center; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.cert-img { max-width: 100%; max-height: 320px; border: 1px solid var(--line); border-radius: 6px; }
 .ocr-pre { background: color-mix(in srgb, var(--ink) 4%, transparent); padding: 10px; border-radius: 6px; font-size: 0.78rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; }
 .issue-list { margin: 4px 0 0; padding-left: 18px; }
 .muted { color: var(--ink-2); }

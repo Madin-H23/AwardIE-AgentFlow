@@ -185,7 +185,13 @@ public class AdminTemplateDetailController {
         if (rows.isEmpty() || rows.get(0) == null) {
             return ResponseEntity.notFound().build();
         }
-        byte[] bytes = fileStorage.readAll(rows.get(0));
+        byte[] bytes;
+        try {
+            bytes = fileStorage.readAll(rows.get(0));
+        } catch (java.nio.file.NoSuchFileException | IllegalArgumentException e) {
+            // 存量死引用(文件失存/越界路径):404 而非 5000(批 1 Low 转正)
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok()
                 .header("Content-Type", fileStorage.contentTypeOf(rows.get(0)))
                 .body(bytes);
@@ -212,7 +218,12 @@ public class AdminTemplateDetailController {
         if (imgPath == null || imgPath.isBlank()) {
             return ApiResponse.error(4000, "该模板没有样本图片,无法试测");
         }
-        byte[] img = fileStorage.readAll(imgPath);
+        byte[] img;
+        try {
+            img = fileStorage.readAll(imgPath);
+        } catch (java.nio.file.NoSuchFileException | IllegalArgumentException e) {
+            return ApiResponse.error(4004, "样本图文件缺失,无法试测");
+        }
         String traceId = "tpl-test-" + UUID.randomUUID().toString().substring(0, 8);
         try {
             var resp = aiClient.extractTemplate(img, "sample.png", "{}", true, true, traceId, 120);
