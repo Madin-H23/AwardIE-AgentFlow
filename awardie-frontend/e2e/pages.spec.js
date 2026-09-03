@@ -20,11 +20,12 @@ async function loginAsStudent(page) {
   await page.locator('.portal-nav').waitFor({ state: 'visible', timeout: 10_000 })
 }
 
-test('首页展示业务入口与管理端入口', async ({ page }) => {
+test('工作台卡片化渲染(UX-1 批2)', async ({ page }) => {
   await loginAsAdmin(page)
-  await expect(page.locator('.home')).toContainText('业务入口')
-  await expect(page.locator('.home')).toContainText('管理端(admin)')
-  await expect(page.locator('.home').locator('a', { hasText: '数据看板' })).toBeVisible()
+  await expect(page.locator('.home')).toContainText('审核与成果')
+  await expect(page.locator('.home')).toContainText('数据洞察')
+  await expect(page.locator('.home .entry-card', { hasText: '数据总览' })).toBeVisible()
+  await expect(page.getByTestId('logout')).toBeVisible()
 })
 
 test('提交页含表单/我的提交/我的成果', async ({ page }) => {
