@@ -59,6 +59,14 @@ const editForm = reactive({
   winnerName: '', supervisorName: '', laboratory: '',
 })
 
+// Fix-T:四类成果 tab 的详情编辑页跳转
+function detailEditLink(tab: string, rid: number): string {
+  if (tab === 'award') return `/admin/awards/${rid}/edit`
+  if (tab === 'patent') return `/admin/patents/${rid}/edit`
+  if (tab === 'software') return `/admin/software/${rid}/edit`
+  return `/admin/innovation/${rid}/edit`
+}
+
 function openEdit(row: Row) {
   Object.assign(editForm, {
     id: row.id,
@@ -186,9 +194,9 @@ onMounted(load)
             <template #default="scope">
               <el-button size="small" text type="primary" @click="openEdit(scope.row)">编辑</el-button>
               <router-link
-                v-if="activeTab === 'award'"
-                :to="`/admin/awards/${scope.row.id}/edit`"
-                data-testid="award-full-edit"
+                v-if="['award', 'patent', 'software', 'innovation'].includes(activeTab)"
+                :to="detailEditLink(activeTab, scope.row.id)"
+                data-testid="achievement-full-edit"
               >
                 <el-button size="small" text type="primary">详情编辑</el-button>
               </router-link>
