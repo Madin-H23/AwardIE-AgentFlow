@@ -378,3 +378,23 @@ test('UX-6 筛选折叠、徽章化推广与 analysis 主题重绘', async ({ pa
   await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('theme-toggle').click()
 })
+
+// Worker RPC 页面批次(架构票交付物 5):模板创建页 AI 主链(fake 模式,CI 确定性)
+test('UX-7 模板创建页 AI 抽取与提示词生成主链', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/templates/create`)
+  await page.getByTestId('tpl-create-competition').click()
+  await page.locator('.el-select-dropdown__item').first().click()
+  await page.locator('input[type="file"]').setInputFiles({
+    name: `tpl7-${Date.now()}.png`, mimeType: 'image/png',
+    buffer: Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+  })
+  // AI 抽取:回填样本抽取值(fake 桩固定文案;键名契约 dataJson/ocrText/mode)
+  await page.getByTestId('tpl-ai-extract').click()
+  await expect(page.getByTestId('tpl-create-extracted')).toHaveValue(/示例竞赛/, { timeout: 10_000 })
+  // 生成提示词:预览区出现(fake 桩 prompt 含样本文本回显)
+  await page.getByTestId('tpl-ai-prompt').click()
+  await expect(page.getByTestId('tpl-prompt-preview')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByTestId('tpl-prompt-preview')).toHaveValue(/OCR/)
+  await page.screenshot({ path: '../docs/重构二期/06-体验重设计/07-Worker-RPC页面批次/tpl-create-ai-chain.png', fullPage: true })
+})

@@ -188,24 +188,40 @@ public class AdminTemplateDetailController {
         return ResponseEntity.ok().header("Content-Type", type).body(bytes);
     }
 
-    /** 模板试测:fake=确定性桩(回显 sample_extracted);模板试测(OCR+匹配+抽取)待页面批次接 ExtractTemplate。 */
+    /** 模板试测:fake=确定性桩(回显 sample_extracted);grpc=ExtractTemplate 按样本图抽取(对照 v1 test:OCR+抽取,键名契约 mode/fields/ocrText)。 */
     @PostMapping("/{id}/test")
     public ApiResponse<Map<String, Object>> test(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
-        if (!aiFake) {
-            return ApiResponse.error(4003, "模板试测待接入 ExtractTemplate(页面批次)");
-        }
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT sample_extracted::TEXT AS se FROM templates WHERE id = ?", id);
+                "SELECT sample_extracted::TEXT AS \"se\", sample_image_blob FROM templates WHERE id = ?", id);
         if (rows.isEmpty()) {
             return ApiResponse.error(4004, "模板不存在");
         }
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("mode", "fake");
-        out.put("fields", rows.get(0).get("se"));
-        out.put("ocrText", jdbc.queryForObject(
-                "SELECT COALESCE(sample_text, '') FROM templates WHERE id = ?", String.class, id));
-        return ApiResponse.ok(out);
+        if (aiFake) {
+            out.put("mode", "fake");
+            out.put("fields", rows.get(0).get("se"));
+            out.put("ocrText", jdbc.queryForObject(
+                    "SELECT COALESCE(sample_text, '') FROM templates WHERE id = ?", String.class, id));
+            return ApiResponse.ok(out);
+        }
+        byte[] img = (byte[]) rows.get(0).get("sample_image_blob");
+        if (img == null || img.length == 0) {
+            return ApiResponse.error(4000, "该模板没有样本图片,无法试测");
+        }
+        String traceId = "tpl-test-" + UUID.randomUUID().toString().substring(0, 8);
+        try {
+            var resp = aiClient.extractTemplate(img, "sample.png", "{}", true, true, traceId, 120);
+            if (resp.getCode() != 0) {
+                return ApiResponse.error(resp.getCode(), resp.getMessage());
+            }
+            out.put("mode", "grpc");
+            out.put("fields", resp.getDataJson());
+            out.put("ocrText", resp.getOcrText());
+            return ApiResponse.ok(out);
+        } catch (StatusRuntimeException e) {
+            return ApiResponse.error(4003, "AI Worker 不可用(" + e.getStatus().getCode() + "),请稍后重试");
+        }
     }
 
     /** 样本图抽取(架构票《AI Worker extract/prompt RPC 扩展》落地):fake=确定性桩,grpc=ExtractTemplate 契约。对照 v1 extract-for-create。 */

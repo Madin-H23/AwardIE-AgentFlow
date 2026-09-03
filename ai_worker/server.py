@@ -172,6 +172,14 @@ class AiService(pb_grpc.AiServiceServicer):
             sample_extracted = rule.get("sample_extracted")
             if isinstance(sample_extracted, dict):
                 sample_extracted = json.dumps(sample_extracted, ensure_ascii=False)
+            try:
+                min_length = int(rule.get("min_length") or 0)
+                max_length = int(rule.get("max_length") or 0)
+            except (TypeError, ValueError):
+                # 架构票实施批 Low 挂账:数值字段非法收敛 4000 友好码,不落 5000
+                return pb.GeneratePromptResponse(
+                    code=4000, message="模板规则数值非法:min_length/max_length 必须为整数",
+                    disclaimer=DISCLAIMER, trace_id=request.trace_id)
             temp_template = Template(
                 template_type=TemplateType.AWARD,
                 keywords=keywords,
@@ -179,8 +187,8 @@ class AiService(pb_grpc.AiServiceServicer):
                 sample_extracted=(sample_extracted or "{}").strip() or "{}",
                 default_fields=rule.get("default_fields") or {},
                 llm_fields=rule.get("llm_fields") or {},
-                min_length=int(rule.get("min_length") or 0),
-                max_length=int(rule.get("max_length") or 0),
+                min_length=min_length,
+                max_length=max_length,
                 language=(rule.get("language") or "zh").strip() or "zh",
                 need_translate=bool(rule.get("need_translate")),
             )
