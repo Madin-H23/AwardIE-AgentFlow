@@ -59,6 +59,21 @@ public class FileStorageService {
         return p;
     }
 
+    /** 按相对路径读回文件字节(批 1 文件域收敛:templates 样本图等只存路径的域共用)。 */
+    public byte[] readAll(String relativePath) throws IOException {
+        return Files.readAllBytes(resolve(relativePath));
+    }
+
+    /** 存储扩展名 → Content-Type(存储前经 assertAllowed 白名单,扩展名即可信)。 */
+    public String contentTypeOf(String relativePath) {
+        return switch (extOf(relativePath)) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "pdf" -> "application/pdf";
+            default -> "application/octet-stream";
+        };
+    }
+
     private boolean magicMatches(byte[] bytes) {
         return startsWith(bytes, JPEG) || startsWith(bytes, PNG) || startsWith(bytes, PDF);
     }

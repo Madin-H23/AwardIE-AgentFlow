@@ -3,6 +3,7 @@ package com.awardie;
 import awardie.ai.AiServiceOuterClass;
 import com.awardie.admin.AdminTemplateDetailController;
 import com.awardie.aireview.AiWorkerClient;
+import com.awardie.submission.FileStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -32,14 +33,16 @@ class AdminTemplateDetailControllerTest {
             new TestingAuthenticationToken("admin", "n/a", "ROLE_ADMIN");
 
     @Test
-    void grpcModeExtractsSampleImageAndKeepsKeyContract() {
+    void grpcModeExtractsSampleImageAndKeepsKeyContract() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         AiWorkerClient client = mock(AiWorkerClient.class);
-        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client);
+        FileStorageService storage = mock(FileStorageService.class);
+        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client, storage);
         Map<String, Object> row = Map.of(
                 "se", "{\"竞赛名称\":\"X\"}",
-                "sample_image_blob", new byte[]{1, 2, 3});
+                "sample_image_path", "files/v2/abc123.png");
         when(jdbc.queryForList(anyString(), eq(5))).thenReturn(List.of(row));
+        when(storage.readAll("files/v2/abc123.png")).thenReturn(new byte[]{1, 2, 3});
         AiServiceOuterClass.ExtractTemplateResponse resp =
                 AiServiceOuterClass.ExtractTemplateResponse.newBuilder()
                         .setCode(0).setMessage("ok")
@@ -57,13 +60,14 @@ class AdminTemplateDetailControllerTest {
     }
 
     @Test
-    void grpcModeWithoutSampleImageReturns4000() {
+    void grpcModeWithoutSampleImageReturns4000() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         AiWorkerClient client = mock(AiWorkerClient.class);
-        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client);
+        FileStorageService storage = mock(FileStorageService.class);
+        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client, storage);
         Map<String, Object> row = new java.util.HashMap<>();
         row.put("se", "{}");
-        row.put("sample_image_blob", null);
+        row.put("sample_image_path", null);
         when(jdbc.queryForList(anyString(), eq(5))).thenReturn(List.of(row));
 
         var out = c.test(5, ADMIN);
@@ -73,10 +77,11 @@ class AdminTemplateDetailControllerTest {
     }
 
     @Test
-    void testMissingTemplateReturns4004() {
+    void testMissingTemplateReturns4004() throws Exception {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         AiWorkerClient client = mock(AiWorkerClient.class);
-        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client);
+        FileStorageService storage = mock(FileStorageService.class);
+        AdminTemplateDetailController c = new AdminTemplateDetailController(jdbc, "grpc", client, storage);
         when(jdbc.queryForList(anyString(), eq(5))).thenReturn(List.of());
 
         var out = c.test(5, ADMIN);

@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.awardie.aireview.AiWorkerClient;
 import com.awardie.common.ApiResponse;
+import com.awardie.submission.FileStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.grpc.StatusRuntimeException;
@@ -37,13 +38,16 @@ public class AdminTemplateDetailController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final boolean aiFake;
     private final AiWorkerClient aiClient;
+    private final FileStorageService fileStorage;
 
     public AdminTemplateDetailController(JdbcTemplate jdbc,
             @Value("${ai.worker.mode:fake}") String aiMode,
-            AiWorkerClient aiClient) {
+            AiWorkerClient aiClient,
+            FileStorageService fileStorage) {
         this.jdbc = jdbc;
         this.aiFake = "fake".equalsIgnoreCase(aiMode);
         this.aiClient = aiClient;
+        this.fileStorage = fileStorage;
     }
 
     /** 创建模板(multipart:样本图必填;唯一性=同竞赛同角色,v1 manager 层查重的 SQL 化)。 */
@@ -88,6 +92,8 @@ public class AdminTemplateDetailController {
         if (dup != null && dup > 0) {
             return ApiResponse.error(4009, "该竞赛已有相同角色的模板");
         }
+        byte[] bytes = file.getBytes();
+        fileStorage.assertAllowed(file.getOriginalFilename(), bytes);
         Map<String, Object> df = parseJson(defaultFields, new LinkedHashMap<>());
         df.put("granted_role", grantedRole);
         List<String> kw = splitLines(keywords);
@@ -111,12 +117,13 @@ public class AdminTemplateDetailController {
         Integer newId = jdbc.queryForObject(
                 "SELECT id FROM templates WHERE competition_id = ? AND default_fields->>'granted_role' = ? "
                         + "ORDER BY id DESC LIMIT 1", Integer.class, competitionId, grantedRole);
-        byte[] blob = file.getBytes();
-        jdbc.update("UPDATE templates SET sample_image_blob = ? WHERE id = ?", blob, newId);
+        // 批 1 文件域收敛(D1a):样本图走 FileStorageService 目录存储,BYTEA 列退役(批 3 DROP)
+        var stored = fileStorage.store(file.getOriginalFilename(), bytes);
+        jdbc.update("UPDATE templates SET sample_image_path = ? WHERE id = ?", stored.relativePath(), newId);
         return ApiResponse.ok(newId, "创建成功");
     }
 
-    /** 详情聚合:全字段(不含 blob,含 hasImage)。 */
+    /** 详情聚合:全字段(不含样本图,含 hasImage)。 */
     @GetMapping("/{id}/detail")
     public ApiResponse<Map<String, Object>> detail(@PathVariable Integer id, Authentication auth) {
         requireAdmin(auth);
@@ -126,7 +133,7 @@ public class AdminTemplateDetailController {
                        t.sample_text AS "sampleText", t.sample_extracted::TEXT AS "sampleExtracted",
                        t.default_fields::TEXT AS "defaultFields", t.llm_fields::TEXT AS "llmFields",
                        t.language, t.need_translate AS "needTranslate",
-                       (t.sample_image_blob IS NOT NULL) AS "hasImage",
+                       (t.sample_image_path IS NOT NULL) AS "hasImage",
                        t.competition_id AS "competitionId",
                        c.competition_name AS "competitionName"
                 FROM templates t LEFT JOIN competitions c ON t.competition_id = c.id
@@ -169,31 +176,27 @@ public class AdminTemplateDetailController {
         return ApiResponse.ok(1, "已更新");
     }
 
-    /** 样本图回显:按文件头判 Content-Type。 */
+    /** 样本图回显:目录存储读回,Content-Type 按存储扩展名(批 1 文件域收敛)。 */
     @GetMapping("/{id}/image")
     public ResponseEntity<byte[]> image(@PathVariable Integer id, Authentication auth) throws Exception {
         requireAdmin(auth);
-        List<byte[]> rows = jdbc.queryForList(
-                "SELECT sample_image_blob FROM templates WHERE id = ?", byte[].class, id);
+        List<String> rows = jdbc.queryForList(
+                "SELECT sample_image_path FROM templates WHERE id = ?", String.class, id);
         if (rows.isEmpty() || rows.get(0) == null) {
             return ResponseEntity.notFound().build();
         }
-        byte[] bytes = rows.get(0);
-        String type = "application/octet-stream";
-        if (bytes.length > 3 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8) {
-            type = "image/jpeg";
-        } else if (bytes.length > 4 && (bytes[0] & 0xFF) == 0x89 && bytes[1] == 'P') {
-            type = "image/png";
-        }
-        return ResponseEntity.ok().header("Content-Type", type).body(bytes);
+        byte[] bytes = fileStorage.readAll(rows.get(0));
+        return ResponseEntity.ok()
+                .header("Content-Type", fileStorage.contentTypeOf(rows.get(0)))
+                .body(bytes);
     }
 
     /** 模板试测:fake=确定性桩(回显 sample_extracted);grpc=ExtractTemplate 按样本图抽取(对照 v1 test:OCR+抽取,键名契约 mode/fields/ocrText)。 */
     @PostMapping("/{id}/test")
-    public ApiResponse<Map<String, Object>> test(@PathVariable Integer id, Authentication auth) {
+    public ApiResponse<Map<String, Object>> test(@PathVariable Integer id, Authentication auth) throws Exception {
         requireAdmin(auth);
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT sample_extracted::TEXT AS \"se\", sample_image_blob FROM templates WHERE id = ?", id);
+                "SELECT sample_extracted::TEXT AS \"se\", sample_image_path FROM templates WHERE id = ?", id);
         if (rows.isEmpty()) {
             return ApiResponse.error(4004, "模板不存在");
         }
@@ -205,10 +208,11 @@ public class AdminTemplateDetailController {
                     "SELECT COALESCE(sample_text, '') FROM templates WHERE id = ?", String.class, id));
             return ApiResponse.ok(out);
         }
-        byte[] img = (byte[]) rows.get(0).get("sample_image_blob");
-        if (img == null || img.length == 0) {
+        String imgPath = (String) rows.get(0).get("sample_image_path");
+        if (imgPath == null || imgPath.isBlank()) {
             return ApiResponse.error(4000, "该模板没有样本图片,无法试测");
         }
+        byte[] img = fileStorage.readAll(imgPath);
         String traceId = "tpl-test-" + UUID.randomUUID().toString().substring(0, 8);
         try {
             var resp = aiClient.extractTemplate(img, "sample.png", "{}", true, true, traceId, 120);

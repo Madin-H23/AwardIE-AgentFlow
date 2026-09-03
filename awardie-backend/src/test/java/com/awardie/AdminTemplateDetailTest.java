@@ -62,7 +62,7 @@ class AdminTemplateDetailTest extends BaseIntegrationTest {
 
     private ResponseEntity<String> createTemplate(String ck, Integer compId, String grantedRole) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new ByteArrayResource("\u00FF\u00D8fake-jpeg".getBytes(StandardCharsets.UTF_8)) {
+        body.add("file", new ByteArrayResource(new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 'f', 'a', 'k', 'e', '-', 'j', 'p', 'e', 'g'}) {
             @Override
             public String getFilename() {
                 return "sample.jpg";
@@ -90,17 +90,12 @@ class AdminTemplateDetailTest extends BaseIntegrationTest {
     @Test
     void createDetailImageUpdate() {
         Integer compId = seedCompetition();
+        // 每轮清重建:老运行遗留的模板可能无 sample_image_path(批 1 前旧代码产物),复用会污染断言
+        jdbc.update("DELETE FROM templates WHERE competition_id = ?", compId);
+        ResponseEntity<String> first = createTemplate(adminCk(), compId, "学生");
+        assertThat(first.getBody()).contains("\"code\":0").contains("创建成功");
         Integer id = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM templates t WHERE t.competition_id = ?", Integer.class, compId) == 0
-                ? null : jdbc.queryForObject(
-                        "SELECT id FROM templates WHERE competition_id = ? ORDER BY id DESC LIMIT 1",
-                        Integer.class, compId);
-        if (id == null) {
-            ResponseEntity<String> first = createTemplate(adminCk(), compId, "学生");
-            assertThat(first.getBody()).contains("\"code\":0").contains("创建成功");
-            id = jdbc.queryForObject(
-                    "SELECT id FROM templates WHERE competition_id = ? ORDER BY id DESC LIMIT 1", Integer.class, compId);
-        }
+                "SELECT id FROM templates WHERE competition_id = ? ORDER BY id DESC LIMIT 1", Integer.class, compId);
         // 键名级契约(detail 聚合)
         String body = get(adminCk(), "/api/v2/admin/templates/" + id + "/detail").getBody();
         assertThat(body).contains("\"code\":0")
@@ -164,7 +159,7 @@ class AdminTemplateDetailTest extends BaseIntegrationTest {
         // extract-for-create:multipart 样本图 → mode/dataJson/ocrText 键名契约
         // (cookie 与 XSRF token 必须同源:adminCk() 每次调用都是独立登录,先存变量)
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new ByteArrayResource("\u00FF\u00D8fake-jpeg".getBytes(StandardCharsets.UTF_8)) {
+        body.add("file", new ByteArrayResource(new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 'f', 'a', 'k', 'e', '-', 'j', 'p', 'e', 'g'}) {
             @Override
             public String getFilename() {
                 return "extract.jpg";
