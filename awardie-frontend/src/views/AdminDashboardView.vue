@@ -69,9 +69,16 @@ function renderChart() {
   const ink2 = styles.getPropertyValue('--ink-2').trim()
   const line = styles.getPropertyValue('--line').trim()
   const brand = styles.getPropertyValue('--brand').trim()
+  const panel = styles.getPropertyValue('--panel').trim()
+  const ink = styles.getPropertyValue('--ink').trim()
   chart.setOption({
     grid: { left: 48, right: 20, top: 24, bottom: 30 },
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: panel,
+      borderColor: line,
+      textStyle: { color: ink },
+    },
     xAxis: {
       type: 'category',
       data: trendSeries.value.map((x) => x.m),
@@ -153,7 +160,7 @@ onBeforeUnmount(() => {
           {{ fmt(grandTotal) }}
         </div>
         <div class="vital-sub">
-          奖状 {{ data?.category.award ?? 0 }} · 专利 {{ data?.category.patent ?? 0 }} · 软著 {{ data?.category.software ?? 0 }} · 大创 {{ data?.category.innovation ?? 0 }} · 其他 {{ data?.category.other ?? 0 }}
+          全量入库口径;分类明细见下方汇总卡
         </div>
       </div>
       <div class="vital-card">
@@ -199,16 +206,16 @@ onBeforeUnmount(() => {
 
     <!-- ③ 汇总卡:左大数字 + 右分类计数/公式行/口径注脚 -->
     <div class="c-panel pay-panel">
+      <!-- UX-1 批4:左栏改"本月新增"(原 grandTotal 与资产卡"成果总数"重复,且与 label"本周期新增"语义不符);待审/白名单已在资产卡,不再重复 -->
       <div class="pay-total">
         <div class="label">
-          本周期成果新增(2026 年至今)
+          本月新增
         </div>
         <div class="num mono-data">
-          {{ fmt(grandTotal) }}
+          {{ fmt(data?.compare.this) }}
         </div>
         <div class="sub">
-          待审核 {{ data?.summary.pendingSubmit ?? 0 }} · 白名单竞赛 {{ data?.summary.whitelist ?? 0 }}<br>
-          本月新增 {{ data?.compare.this ?? 0 }} · 上月 {{ data?.compare.last ?? 0 }}
+          上月 {{ fmt(data?.compare.last) }}
           <template v-if="data?.compare.deltaPct != null">
             · 环比 <span :class="data.compare.deltaPct >= 0 ? 'delta-up' : 'delta-down'">{{ data.compare.deltaPct >= 0 ? '▲' : '▼' }}{{ Math.abs(data.compare.deltaPct) }}%</span>
           </template>

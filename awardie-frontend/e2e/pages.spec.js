@@ -113,6 +113,8 @@ test('admin 看板渲染(ECharts)', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/admin/dashboard`)
   await expect(page.getByText('成果总数')).toBeVisible()
+  // UX-1 批4:汇总卡左栏改"本月新增"(去 grandTotal 重复)
+  await expect(page.getByText('本月新增')).toBeVisible()
   await expect(page.locator('div[ref] canvas, .dash-page canvas').first()).toBeVisible({ timeout: 10_000 })
 })
 
