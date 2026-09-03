@@ -31,6 +31,9 @@ class TeacherAiReviewTest extends BaseIntegrationTest {
     @Autowired
     private AiProxyService ai;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     private String teacherCookie() {
         return loginAs("02110606", "P@ss301");
     }
@@ -76,6 +79,23 @@ class TeacherAiReviewTest extends BaseIntegrationTest {
     @Test
     void aiProxyIsFakeInP0Tests() {
         assertThat(ai.isFake()).isTrue();
+    }
+
+    @Test
+    void aiSuggestRejectsArchivedRecord() {
+        // 巡检修复批:非 pending 状态不触发 AI 调用,SSE final 4009(挂账 Low 销账)
+        jdbc.update("INSERT INTO pending_achievements (achievement_type, achievement_data, status, file_hash, file_path) "
+                + "VALUES ('award', CAST('{\"competition_name\":\"巡检赛\"}' AS jsonb), 'archived', ?, 'files/v2/inspect.png')",
+                "inspect-" + System.nanoTime());
+        Integer id = jdbc.queryForObject(
+                "SELECT id FROM pending_achievements WHERE file_hash LIKE 'inspect-%' ORDER BY id DESC LIMIT 1",
+                Integer.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", teacherCookie());
+        ResponseEntity<String> sse = rest.exchange("/api/v2/teacher/review/" + id + "/ai-suggest",
+                HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        String body = sse.getBody();
+        assertThat(body).contains("4009").contains("已审结");
     }
 
     @Test

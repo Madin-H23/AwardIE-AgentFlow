@@ -69,6 +69,13 @@ public class TeacherReviewController {
             emitter.complete();
             return emitter;
         }
+        if (!"pending".equals(pending.getStatus())) {
+            // Fix-U/V OCR Low 销账:已审结记录不再触发 AI 调用(API 直调面收口)
+            emitter.send(SseEmitter.event().name("final")
+                    .data("{\"kind\":\"final\",\"code\":4009,\"message\":\"记录已审结,无需 AI 建议\"}"));
+            emitter.complete();
+            return emitter;
+        }
         Thread worker = new Thread(() -> {
             try {
                 for (AiProxyService.AiEvent evt : (Iterable<AiProxyService.AiEvent>) () -> ai.suggest(pending)) {
@@ -87,24 +94,32 @@ public class TeacherReviewController {
         return emitter;
     }
 
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+
+    /** SSE 行协议 JSON:Jackson 序列化(换行/引号/反斜杠安全,替代手拼+引号替换的有损转义)。 */
     private String toJson(AiProxyService.AiEvent evt) {
-        StringBuilder sb = new StringBuilder("{\"kind\":\"").append(evt.kind()).append('"');
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("kind", evt.kind());
         if (evt.node() != null) {
-            sb.append(",\"node\":\"").append(evt.node()).append('"');
+            out.put("node", evt.node());
         }
         if (evt.text() != null) {
-            sb.append(",\"text\":\"").append(evt.text().replace("\"", "'")).append('"');
+            out.put("text", evt.text());
         }
         if (evt.code() != null) {
-            sb.append(",\"code\":").append(evt.code());
+            out.put("code", evt.code());
         }
         if (evt.message() != null) {
-            sb.append(",\"message\":\"").append(evt.message().replace("\"", "'")).append('"');
+            out.put("message", evt.message());
         }
-        sb.append(",\"disclaimer\":\"AI 建议仅辅助参考(BR-2)\"}");
-        return sb.toString();
+        out.put("disclaimer", "AI 建议仅辅助参考(BR-2)");
+        try {
+            return objectMapper.writeValueAsString(out);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            return "{\"kind\":\"final\",\"code\":5000,\"message\":\"AI 建议序列化失败\"}";
+        }
     }
-
     private void requireRole(Authentication auth, String role) {
         // admin 为教师权限的超集(管理权可看待审)
         if (!hasRole(auth, role) && !hasRole(auth, "admin")) {
