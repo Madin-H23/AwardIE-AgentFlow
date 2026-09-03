@@ -71,6 +71,8 @@ const router = createRouter({
     { path: '/teacher/review', redirect: '/portal/teacher/review' },
     { path: '/profile', redirect: '/portal/profile' },
     { path: '/chat', redirect: '/portal/chat' },
+    // Fix-U:catch-all 兜底——未匹配路由不再渲染空白(巡检 low UX ①);须置于路由表末尾
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
   ],
 })
 

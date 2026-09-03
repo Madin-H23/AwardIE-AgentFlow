@@ -61,6 +61,23 @@ test('教师审核台渲染(admin 视角)', async ({ page }) => {
   await expect(page.locator('table tbody tr').first()).toBeVisible()
 })
 
+test('未匹配路由落 404 兜底页(Fix-U)', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/no-such-page-xyz`)
+  await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
+  await expect(page.locator('.nf-panel a', { hasText: '返回首页' })).toBeVisible()
+})
+
+test('审核台已审行不再渲染审核按钮(Fix-V)', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/teacher/review`)
+  await expect(page.locator('table tbody tr').first()).toBeVisible()
+  // 结构层断言:已审行(archived/rejected)内不出现批准/驳回按钮;无已审行时空态兼容
+  const reviewed = page.locator('table tbody tr', { hasText: /archived|rejected/ })
+  await expect(reviewed.locator('button', { hasText: '批准' })).toHaveCount(0)
+  await expect(reviewed.locator('button', { hasText: '驳回' })).toHaveCount(0)
+})
+
 test('个人资料按角色渲染字段', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/profile`)

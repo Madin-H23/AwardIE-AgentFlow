@@ -125,12 +125,17 @@ async function review(id: number, action: string) {
         >
           <template #default="scope">
             <el-button
+              v-if="scope.row.status === 'pending'"
               size="small"
               :loading="aiRunning && aiId === scope.row.id"
               @click="aiSuggest(scope.row.id)"
             >
               AI 建议
             </el-button>
+            <span
+              v-else
+              class="muted"
+            >—</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -154,38 +159,47 @@ async function review(id: number, action: string) {
         >
           <template #default="scope">
             <div class="op-cell">
-              <el-button
-                size="small"
-                type="success"
-                @click="review(scope.row.id, 'approve')"
+              <!-- Fix-V:仅待审(pending)行可操作;已审行后端会拦,前端不再渲染按钮(巡检 low UX ②) -->
+              <template v-if="scope.row.status === 'pending'">
+                <el-button
+                  size="small"
+                  type="success"
+                  @click="review(scope.row.id, 'approve')"
+                >
+                  批准
+                </el-button>
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="rejectId = scope.row.id"
+                >
+                  驳回
+                </el-button>
+                <el-input
+                  v-if="rejectId === scope.row.id"
+                  v-model="rejectComment"
+                  size="small"
+                  style="margin-top: 6px"
+                  placeholder="驳回原因(BR-5 必填)"
+                />
+                <el-button
+                  v-if="rejectId === scope.row.id"
+                  size="small"
+                  type="danger"
+                  style="margin-top: 6px"
+                  data-testid="reject-confirm"
+                  :disabled="!rejectComment.trim()"
+                  @click="review(scope.row.id, 'reject')"
+                >
+                  确认驳回
+                </el-button>
+              </template>
+              <el-tag
+                v-else
+                :type="scope.row.status === 'archived' ? 'success' : 'info'"
               >
-                批准
-              </el-button>
-              <el-button
-                size="small"
-                type="danger"
-                @click="rejectId = scope.row.id"
-              >
-                驳回
-              </el-button>
-              <el-input
-                v-if="rejectId === scope.row.id"
-                v-model="rejectComment"
-                size="small"
-                style="margin-top: 6px"
-                placeholder="驳回原因(BR-5 必填)"
-              />
-              <el-button
-                v-if="rejectId === scope.row.id"
-                size="small"
-                type="danger"
-                style="margin-top: 6px"
-                data-testid="reject-confirm"
-                :disabled="!rejectComment.trim()"
-                @click="review(scope.row.id, 'reject')"
-              >
-                确认驳回
-              </el-button>
+                {{ scope.row.status === 'archived' ? '已归档' : '已驳回' }}
+              </el-tag>
             </div>
           </template>
         </el-table-column>
@@ -202,4 +216,5 @@ async function review(id: number, action: string) {
 .review-page { }
 h2 { margin-top: 0; color: var(--ink); }
 .ai-box { white-space: pre-wrap; background: var(--sb-foot); padding: 12px; border-radius: 6px; max-height: 300px; overflow: auto; }
+.muted { color: var(--ink-2); }
 </style>
