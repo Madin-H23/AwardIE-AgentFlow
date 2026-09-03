@@ -340,8 +340,8 @@ async function del() {
               <el-tag :type="badgeType(b.status)" closable @close="supervisorBadges.splice(i, 1)">
                 {{ b.name }}{{ badgeSuffix(b.status) }}
               </el-tag>
-              <button class="mv" :disabled="i === 0" @click="moveSupervisor(i, -1)">↑</button>
-              <button class="mv" :disabled="i === supervisorBadges.length - 1" @click="moveSupervisor(i, 1)">↓</button>
+              <el-button size="small" text :disabled="i === 0" @click="moveSupervisor(i, -1)">↑</el-button>
+              <el-button size="small" text :disabled="i === supervisorBadges.length - 1" @click="moveSupervisor(i, 1)">↓</el-button>
             </span>
           </div>
           <div class="row-add">
@@ -383,9 +383,7 @@ async function del() {
 .mb-3 { margin-bottom: 16px; }
 .badge-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; padding: 6px; border: 1px dashed var(--line); border-radius: 6px; margin-bottom: 8px; }
 .badge { margin: 0; }
-.sup-badge { display: inline-flex; align-items: center; gap: 2px; }
-.mv { border: 1px solid var(--line); background: var(--panel); border-radius: 4px; cursor: pointer; font-size: 0.7rem; padding: 1px 4px; color: var(--ink-2); }
-.mv:disabled { opacity: .35; cursor: default; }
+.sup-badge { display: inline-flex; align-items: center; gap: 0; }
 .row-add { display: flex; gap: 8px; }
 .sug { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
 .sug-item { padding: 6px 10px; cursor: pointer; font-size: 0.85rem; }
