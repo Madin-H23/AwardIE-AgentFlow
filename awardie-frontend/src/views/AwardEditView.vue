@@ -308,7 +308,8 @@ async function del() {
         <h3 class="blk-title">奖状图片</h3>
         <div class="img-box">
           <template v-if="certificatePath">
-            <img :src="`/api/v2/admin/awards/${id}/certificate`" alt="证书图" class="cert-img">
+            <!-- @error:悬空引用(文件被清理/失存)降级到"可上传补齐"态,终验批补充 -->
+            <img :src="`/api/v2/admin/awards/${id}/certificate`" alt="证书图" class="cert-img" @error="certificatePath = null">
           </template>
           <template v-else-if="imageHash">
             <el-empty description="仅有哈希无文件(历史数据),可上传补齐" :image-size="70" />
