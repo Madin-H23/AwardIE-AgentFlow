@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { InfoFilled, Medal } from '@element-plus/icons-vue'
 import { apiJson } from '../composables/useCsrf'
+import { useTheme } from '../composables/useTheme'
+import PageHeader from '../components/PageHeader.vue'
 
 // #28:对照 v1 admin/dashboard.html 五区块重做(页面头提示条/资产条4卡/汇总卡/工具条+Top表/趋势卡)
 // 口径见 docs/重构二期/03-对照验收/#28-dashboard-对照记录.md
@@ -129,6 +131,13 @@ watch(gran, () => {
   load()
 })
 watch(months, load)
+// UX-1 批5:主题切换重绘(tooltip/轴/线条色读 tokens,切换后需按新主题重建)
+const { theme } = useTheme()
+watch(theme, () => {
+  chart?.dispose()
+  chart = null
+  renderChart()
+})
 
 const onResize = () => chart?.resize()
 onMounted(() => {
@@ -143,11 +152,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="dash-page">
-    <!-- ① 页面头 + 提示条 -->
-    <h1>成果数据总览</h1>
+    <!-- ① 页面头 + 提示条(UX-1 批5:PageHeader 统一) -->
+    <PageHeader
+      title="成果数据总览"
+      subtitle="数据实时统计;最终口径以人工审核归档数据为准"
+    />
     <div class="page-alert">
       <el-icon><InfoFilled /></el-icon>
-      <span>数据实时统计;成果分类以奖状/专利/软著/其他四类统计,最终口径以人工审核归档数据为准。</span>
+      <span>成果分类以奖状/专利/软著/大创/其他五类统计,趋势与 Top 表随周期筛选联动。</span>
     </div>
 
     <!-- ② 资产条 4 卡 -->
@@ -358,7 +370,6 @@ onBeforeUnmount(() => {
 <style scoped>
 /* 五区块样式对照 v1 dashboard.html 内联样式 + console_tokens.css 生命体征带/筛选栏 */
 .dash-page { }
-h1 { font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
 
 .page-alert {
   display: flex; align-items: center; gap: 8px;

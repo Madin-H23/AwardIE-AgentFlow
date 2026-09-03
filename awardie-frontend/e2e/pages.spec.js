@@ -312,3 +312,38 @@ test('G4-5 暗色主题三代表页截图留档', async ({ page }) => {
     await page.screenshot({ path: `../docs/重构二期/03-对照验收/暗色/G4-${name}.png` })
   }
 })
+
+// UX-1 批5:亮色主题核查(默认主题)+表格 hover 实证 + dashboard 主题切换重绘
+test('UX-5 亮色主题核查与表格 hover 实证', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.evaluate(() => localStorage.setItem('theme', 'light'))
+  for (const [name, path] of [
+    ['light-workbench', '/'],
+    ['light-dashboard', '/admin/dashboard'],
+    ['light-awards-pending', '/admin/awards'],
+  ]) {
+    await page.goto(`${BASE}${path}`)
+    await page.waitForTimeout(900)
+    await expect(page.locator('.console-shell, .home').first()).toBeVisible()
+    await page.screenshot({ path: `../docs/重构二期/06-体验重设计/05-批5双壳一致性与亮色核查/${name}.png` })
+  }
+  // 表格 hover 实证:hover 色刷在 td 不在 tr(tr 恒为面板底色,读 tr 得恒真断言)
+  await page.goto(`${BASE}/admin/competitions`)
+  await page.waitForTimeout(800)
+  const row = page.locator('.el-table__body tr').first()
+  const cell = row.locator('td').first()
+  const beforeHover = await cell.evaluate((el) => getComputedStyle(el).backgroundColor)
+  await row.hover()
+  await page.waitForTimeout(300)
+  const afterHover = await cell.evaluate((el) => getComputedStyle(el).backgroundColor)
+  expect(afterHover).not.toBe(beforeHover)
+  expect(afterHover).not.toBe('rgba(0, 0, 0, 0)')
+  // 主题切换 chart 重绘:切暗刷新出图后点顶栏切回亮色——不刷新走 watch(dispose+重建),canvas 必须重新可见
+  await page.goto(`${BASE}/admin/dashboard`)
+  await page.evaluate(() => localStorage.setItem('theme', 'dark'))
+  await page.reload()
+  await page.waitForTimeout(900)
+  await expect(page.locator('.dash-page canvas').first()).toBeVisible({ timeout: 10_000 })
+  await page.getByTestId('theme-toggle').click()
+  await expect(page.locator('.dash-page canvas').first()).toBeVisible({ timeout: 10_000 })
+})
