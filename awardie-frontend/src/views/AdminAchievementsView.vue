@@ -182,9 +182,16 @@ onMounted(load)
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="130">
+          <el-table-column label="操作" width="190">
             <template #default="scope">
               <el-button size="small" text type="primary" @click="openEdit(scope.row)">编辑</el-button>
+              <router-link
+                v-if="activeTab === 'award'"
+                :to="`/admin/awards/${scope.row.id}/edit`"
+                data-testid="award-full-edit"
+              >
+                <el-button size="small" text type="primary">详情编辑</el-button>
+              </router-link>
               <el-button size="small" text type="danger" @click="remove(scope.row)">删除</el-button>
             </template>
           </el-table-column>

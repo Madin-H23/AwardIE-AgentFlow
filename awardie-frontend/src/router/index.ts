@@ -14,6 +14,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'home', component: () => import('../views/HomeView.vue') },
         { path: 'admin/awards', name: 'admin-awards', component: () => import('../views/AdminAwardsView.vue') },
+        { path: 'admin/awards/:id/edit', name: 'admin-award-edit', component: () => import('../views/AwardEditView.vue') },
         { path: 'admin/achievements', name: 'admin-achievements', component: () => import('../views/AdminAchievementsView.vue') },
         { path: 'admin/competitions', name: 'admin-competitions', component: () => import('../views/AdminCompetitionsView.vue') },
         { path: 'admin/dashboard', name: 'admin-dashboard', component: () => import('../views/AdminDashboardView.vue') },
