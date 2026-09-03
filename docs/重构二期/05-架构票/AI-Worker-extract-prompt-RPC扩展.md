@@ -1,6 +1,6 @@
 # 架构票:AI Worker extract/prompt RPC 扩展
 
-> 登记:2026-09-03(二级页迁移三批收官时,templates create/detail 挂账的解锁载体)|状态:**真 RPC 已落地(2026-09-03,实施三段文档见 `AI-Worker-RPC扩展-实施/`)**;剩页面主链接入(交付物 5,独立页面批次)
+> 登记:2026-09-03(二级页迁移三批收官时,templates create/detail 挂账的解锁载体)|状态:**✅ 已完成(2026-09-03 深夜,交付物 5 页面批次落地,三段文档见 `06-体验重设计/07-Worker-RPC页面批次/`;1-4 见本目录实施文档)**
 > 前置:v2 AI 通道现状=`AiWorkerClient.ask()` 单契约(#33,fake/grpc 双模式,Worker 127.0.0.1:50060,`ai.mode` 切换)
 
 ## 一、背景
