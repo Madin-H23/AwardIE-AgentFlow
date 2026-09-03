@@ -28,6 +28,17 @@
   --sev-warning: #d97706;   --sev-warning-bg: #fffbeb;
   --sev-error: #dc2626;     --sev-error-bg: #fef2f2;
   --sev-critical: #7f1d1d;  --sev-critical-bg: #fee2e2;
+
+  /* 语义徽章四色(UX-1 批1:状态/类型 tag 专用,与日志 sev-* 语义隔离) */
+  --tag-success: #15803d;   --tag-success-bg: #f0fdf4;
+  --tag-warning: #b45309;   --tag-warning-bg: #fffbeb;
+  --tag-danger: #b91c1c;    --tag-danger-bg: #fef2f2;
+  --tag-info: #475569;      --tag-info-bg: #f1f5f9;
+
+  /* type scale(UX-1 批1:页头/区块题/辅助文案统一字号) */
+  --fs-page: 1.15rem;
+  --fs-section: 1rem;
+  --fs-cap: 0.78rem;
 }
 
 [data-theme='dark'] {
@@ -49,6 +60,11 @@
   --sev-warning: #fbbf24;   --sev-warning-bg: rgba(217, 119, 6, .15);
   --sev-error: #f87171;     --sev-error-bg: rgba(220, 38, 38, .15);
   --sev-critical: #fca5a5;  --sev-critical-bg: rgba(127, 29, 29, .25);
+
+  --tag-success: #4ade80;   --tag-success-bg: rgba(34, 197, 94, .12);
+  --tag-warning: #fbbf24;   --tag-warning-bg: rgba(217, 119, 6, .15);
+  --tag-danger: #f87171;    --tag-danger-bg: rgba(220, 38, 38, .15);
+  --tag-info: rgba(255, 255, 255, .62); --tag-info-bg: rgba(255, 255, 255, .08);
 }
 
 /* ---------- Element Plus 桥接(亮/暗成对) ---------- */
@@ -350,3 +366,30 @@
 /* 表格行内文字按钮(v1 c-text-btn 语义→el-button link 承担) */
 .console-shell .console-main .el-table .el-button.is-link,
 .console-shell .console-main .el-table .el-button.is-text { padding: 2px 6px; font-size: 0.85rem; }
+
+/* ---------- 页面路由过渡(UX-1 批1:150ms fade;系统"减弱动效"时禁用) ---------- */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity .15s ease, transform .15s ease;
+}
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.page-fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-enter-active,
+  .page-fade-leave-active {
+    transition: none;
+  }
+  .page-fade-enter-from {
+    transform: none;
+  }
+}
+
+/* 数据列等宽(UX-1 批1:ID/数字/金额列对齐) */
+.num {
+  font-variant-numeric: tabular-nums;
+}

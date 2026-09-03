@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
 import { useTablePage } from '../composables/useTablePage'
+import PageHeader from '../components/PageHeader.vue'
 
 const API = '/api/v2/admin/competitions'
 interface Competition {
@@ -45,7 +46,11 @@ onMounted(tp.load)
 <template>
   <div class="comp-page">
     <el-card>
-      <h2>竞赛管理(白名单 = BR-1 级别认定唯一口径)</h2>
+      <!-- UX-1 批1:PageHeader 示范接入(批3 全量推广) -->
+      <PageHeader
+        title="竞赛管理"
+        subtitle="白名单 = BR-1 级别认定唯一口径"
+      />
       <div class="toolbar">
         <el-input
           v-model="tp.filters.q"

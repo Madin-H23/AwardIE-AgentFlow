@@ -296,7 +296,18 @@ async function onUserCommand(command: string) {
     </header>
 
     <main class="console-main">
-      <router-view />
+      <!-- UX-1 批1:路由过渡(150ms fade,tokens.css 定义;reduced-motion 自动禁用) -->
+      <router-view v-slot="{ Component: routeComponent }">
+        <transition
+          name="page-fade"
+          mode="out-in"
+        >
+          <component
+            :is="routeComponent"
+            :key="route.path"
+          />
+        </transition>
+      </router-view>
     </main>
   </div>
 </template>
