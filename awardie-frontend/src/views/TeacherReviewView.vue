@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
+import { statusLabel, statusTagType } from '../composables/useBadge'
 
 const API = '/api/v2'
 const rows = ref<Array<Record<string, unknown>>>([])
@@ -115,10 +116,18 @@ async function review(id: number, action: string) {
           width="100"
         />
         <el-table-column
-          prop="status"
           label="状态"
           width="110"
-        />
+        >
+          <template #default="scope">
+            <el-tag
+              size="small"
+              :type="statusTagType(scope.row.status)"
+            >
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           label="AI 建议"
           width="110"

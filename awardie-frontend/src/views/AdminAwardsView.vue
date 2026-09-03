@@ -4,6 +4,8 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { apiJson } from '../composables/useCsrf'
 import { useTablePage } from '../composables/useTablePage'
+import { statusLabel, statusTagType, typeLabel } from '../composables/useBadge'
+import PageHeader from '../components/PageHeader.vue'
 
 const API = '/api/v2/admin/achievements'
 
@@ -64,7 +66,11 @@ onMounted(tp.load)
 <template>
   <div class="admin-page">
     <el-card>
-      <h2>成果管理</h2>
+      <!-- UX-1 批3:标题与侧边栏"待审管理"对齐(治理导航/页内标题错位) -->
+      <PageHeader
+        title="待审管理"
+        subtitle="待审记录跟踪与 admin 复核;批准入库 / 驳回打回(BR-5)"
+      />
       <el-form
         inline
         class="filter-form"
@@ -228,12 +234,25 @@ onMounted(tp.load)
           prop="id"
           label="#"
           width="80"
-        />
+        >
+          <template #default="scope">
+            <span class="num">{{ scope.row.id }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="achievementType"
           label="类型"
-          width="100"
-        />
+          width="90"
+        >
+          <template #default="scope">
+            <el-tag
+              size="small"
+              type="info"
+              effect="plain"
+            >
+              {{ typeLabel(scope.row.achievementType) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="submitterType"
           label="提交者类型"
@@ -243,12 +262,24 @@ onMounted(tp.load)
           prop="submitterId"
           label="提交者ID"
           width="100"
-        />
+        >
+          <template #default="scope">
+            <span class="num">{{ scope.row.submitterId }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="status"
           label="状态"
-          width="110"
-        />
+          width="100"
+        >
+          <template #default="scope">
+            <el-tag
+              size="small"
+              :type="statusTagType(scope.row.status)"
+            >
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           label="文件"
           width="90"
@@ -267,29 +298,37 @@ onMounted(tp.load)
           min-width="240"
         >
           <template #default="scope">
-            <el-button
+            <!-- UX-1 批3:Fix-V 模式推广——仅待审行可操作,已审行显示状态 tag(disabled 按钮诱导点击) -->
+            <template v-if="scope.row.status === 'pending'">
+              <el-button
+                size="small"
+                type="success"
+                @click="review(scope.row.id, 'approve')"
+              >
+                通过
+              </el-button>
+              <el-button
+                size="small"
+                type="danger"
+                @click="rejectId = scope.row.id"
+              >
+                驳回
+              </el-button>
+              <el-input
+                v-if="rejectId === scope.row.id"
+                v-model="rejectComment"
+                size="small"
+                style="width: 180px"
+                placeholder="驳回原因(BR-5 必填)"
+              />
+            </template>
+            <el-tag
+              v-else
               size="small"
-              type="success"
-              :disabled="scope.row.status !== 'pending'"
-              @click="review(scope.row.id, 'approve')"
+              :type="statusTagType(scope.row.status)"
             >
-              通过
-            </el-button>
-            <el-button
-              size="small"
-              type="danger"
-              :disabled="scope.row.status !== 'pending'"
-              @click="rejectId = scope.row.id"
-            >
-              驳回
-            </el-button>
-            <el-input
-              v-if="rejectId === scope.row.id"
-              v-model="rejectComment"
-              size="small"
-              style="width: 180px"
-              placeholder="驳回原因(BR-5 必填)"
-            />
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>

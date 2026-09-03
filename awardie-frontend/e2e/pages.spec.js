@@ -73,8 +73,8 @@ test('审核台已审行不再渲染审核按钮(Fix-V)', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/teacher/review`)
   await expect(page.locator('table tbody tr').first()).toBeVisible()
-  // 结构层断言:已审行(archived/rejected)内不出现批准/驳回按钮;无已审行时空态兼容
-  const reviewed = page.locator('table tbody tr', { hasText: /archived|rejected/ })
+  // 结构层断言:已审行(已归档/已驳回,批3 徽章化后为中文)内不出现批准/驳回按钮;无已审行时空态兼容
+  const reviewed = page.locator('table tbody tr', { hasText: /已归档|已驳回|archived|rejected/ })
   await expect(reviewed.locator('button', { hasText: '批准' })).toHaveCount(0)
   await expect(reviewed.locator('button', { hasText: '驳回' })).toHaveCount(0)
 })
@@ -86,11 +86,20 @@ test('个人资料按角色渲染字段', async ({ page }) => {
   await expect(page.getByTestId('profile-name')).toBeVisible()
 })
 
-test('admin 成果管理渲染', async ({ page }) => {
+test('admin 待审管理渲染(UX-1 批3 标题对齐)', async ({ page }) => {
   await loginAsAdmin(page)
   await page.goto(`${BASE}/admin/awards`)
-  await expect(page.getByRole('heading', { name: '成果管理' })).toBeVisible()
-  await expect(page.locator('table tbody tr').first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: '待审管理' })).toBeVisible()
+  // 类型/状态列中文徽章化(消灭英文工程值直出)
+  await expect(page.locator('.el-table').locator('tbody tr').first()).toBeVisible()
+  await expect(page.locator('.el-tag', { hasText: '待审' }).first()).toBeVisible()
+})
+
+test('侧边栏含工作台入口(UX-1 批3)', async ({ page }) => {
+  await loginAsAdmin(page)
+  const sidebar = page.locator('.console-sidebar')
+  await expect(sidebar.locator('.nav-overview', { hasText: '工作台' })).toBeVisible()
+  await expect(sidebar.locator('.nav-link', { hasText: '数据总览' }).first()).toBeVisible()
 })
 
 test('admin 竞赛管理渲染', async ({ page }) => {

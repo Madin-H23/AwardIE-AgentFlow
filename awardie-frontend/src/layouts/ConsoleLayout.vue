@@ -48,7 +48,7 @@ interface MenuGroup {
 // 未迁移项带 soon 落占位页——菜单视觉完整且不撒谎。
 const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
   admin: {
-    overview: { path: '/admin/dashboard', label: '数据总览', icon: Odometer },
+    overview: { path: '/', label: '工作台', icon: House },
     groups: [
       {
         title: '常用',
@@ -77,6 +77,7 @@ const MENUS: Record<string, { overview?: MenuItem; groups: MenuGroup[] }> = {
       {
         title: '用户数据',
         items: [
+          { path: '/admin/dashboard', label: '数据总览', icon: Odometer },
           { path: '/admin/students', label: '学生管理', icon: User },
           { path: '/admin/teachers', label: '教师管理', icon: Avatar },
           { path: '/admin/data-analysis', label: '数据分析', icon: DataAnalysis },
