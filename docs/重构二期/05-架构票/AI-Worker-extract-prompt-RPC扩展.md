@@ -1,6 +1,6 @@
 # 架构票:AI Worker extract/prompt RPC 扩展
 
-> 登记:2026-09-03(二级页迁移三批收官时,templates create/detail 挂账的解锁载体)|状态:**待排期**
+> 登记:2026-09-03(二级页迁移三批收官时,templates create/detail 挂账的解锁载体)|状态:**已立项(2026-09-03 用户拍板)**,Worker RPC 待实现;templates 两页迁移已先行启动(Fix-TP,页面接 fake 模式,真 RPC 落地后切换)
 > 前置:v2 AI 通道现状=`AiWorkerClient.ask()` 单契约(#33,fake/grpc 双模式,Worker 127.0.0.1:50060,`ai.mode` 切换)
 
 ## 一、背景
