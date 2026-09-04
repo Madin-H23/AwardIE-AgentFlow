@@ -73,7 +73,9 @@ class AdminAwardTest extends BaseIntegrationTest {
     void adminListWithStatusFilter() {
         int id = submitAsStudent();
         String body = get("/api/v2/admin/achievements?status=pending&size=50", cookie("admin")).getBody();
-        assertThat(body).contains("\"code\":0").contains("admin管理赛");
+        assertThat(body).contains("\"code\":0").contains("admin管理赛")
+                // 提交者姓名批:键名契约(join users 回填)
+                .contains("submitterName").contains("陈品天");
         assertThat(get("/api/v2/admin/achievements/" + id, cookie("admin")).getBody())
                 .contains("\"id\":" + id).contains("achievementData");
     }

@@ -24,16 +24,19 @@ import com.awardie.submission.PendingAchievementRepository;
 public class TeacherReviewController {
 
     private final PendingAchievementRepository pendingRepo;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final AiProxyService ai;
     private final com.awardie.submission.ReviewService reviewService;
     private final com.awardie.auth.UserRepository users;
 
     public TeacherReviewController(PendingAchievementRepository pendingRepo, AiProxyService ai,
-            com.awardie.submission.ReviewService reviewService, com.awardie.auth.UserRepository users) {
+            com.awardie.submission.ReviewService reviewService, com.awardie.auth.UserRepository users,
+            org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.pendingRepo = pendingRepo;
         this.ai = ai;
         this.reviewService = reviewService;
         this.users = users;
+        this.jdbc = jdbc;
     }
 
     /** 审核闭环(#11):批准→archived / 驳回→rejected(BR-5:驳回必须填写原因)。 */
@@ -53,9 +56,15 @@ public class TeacherReviewController {
     public record ReviewRequest(@jakarta.validation.constraints.NotBlank String action, String comment) {}
 
     @GetMapping("/pending")
-    public ApiResponse<List<PendingAchievementEntity>> pendingList(Authentication auth) {
+    public ApiResponse<List<java.util.Map<String, Object>>> pendingList(Authentication auth) {
         requireRole(auth, "teacher");
-        return ApiResponse.ok(pendingRepo.findAll());
+        // 提交者姓名:join users(键名契约与实体序列化对齐,巡检-提交者姓名批)
+        return ApiResponse.ok(jdbc.queryForList(
+                "SELECT p.id, p.achievement_type AS \"achievementType\", p.achievement_data::text AS \"achievementData\", "
+                        + "p.submitter_type AS \"submitterType\", p.submitter_id AS \"submitterId\", p.status, "
+                        + "u.name AS \"submitterName\" "
+                        + "FROM pending_achievements p LEFT JOIN users u ON u.id = p.submitter_id "
+                        + "ORDER BY p.id DESC"));
     }
 
     /** AI 建议 SSE:事件流(node/delta/final),前端打字机渲染;降级为 4003 人工审提示。 */

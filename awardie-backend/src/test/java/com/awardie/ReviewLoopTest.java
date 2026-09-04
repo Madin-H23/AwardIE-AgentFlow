@@ -191,6 +191,18 @@ class ReviewLoopTest extends BaseIntegrationTest {
 
     @Test
     @Order(7)
+    void teacherPendingListCarriesSubmitterName() {
+        int id = submitAsStudent();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", cookie("02110606"));
+        ResponseEntity<String> resp = rest.exchange("/api/v2/teacher/pending",
+                org.springframework.http.HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        // 提交者姓名批:join users 键名契约(陈品天=212306413)
+        assertThat(resp.getBody()).contains("\"submitterName\"").contains("陈品天");
+    }
+
+    @Test
+    @Order(7)
     void studentCannotReview() {
         int id = submitAsStudent();
         String body = review(cookie("212306413"), id, "approve", "").getBody();

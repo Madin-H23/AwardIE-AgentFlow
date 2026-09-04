@@ -287,6 +287,14 @@ onMounted(tp.load)
           </template>
         </el-table-column>
         <el-table-column
+          label="提交者姓名"
+          width="110"
+        >
+          <template #default="scope">
+            {{ scope.row.submitterName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column
           label="状态"
           width="100"
         >

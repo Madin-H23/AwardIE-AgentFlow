@@ -107,16 +107,17 @@ public class AdminAwardController {
         listArgs.add(s);
         listArgs.add((long) p * s);
         List<Map<String, Object>> content = jdbc.queryForList("""
-                SELECT id, achievement_type AS "achievementType", submitter_type AS "submitterType",
-                       submitter_id AS "submitterId", status, submit_time AS "submitTime",
+                SELECT p.id, p.achievement_type AS "achievementType", p.submitter_type AS "submitterType",
+                       p.submitter_id AS "submitterId", p.status, p.submit_time AS "submitTime",
+                       u.name AS "submitterName",
                        achievement_data->>'competition_name' AS "competitionName",
                        achievement_data->>'competition_level' AS "competitionLevel",
                        achievement_data->>'award_level' AS "awardLevel",
                        achievement_data->>'winner_name' AS "winnerName",
                        achievement_data->>'supervisor_name' AS "supervisorName",
                        achievement_data->>'date' AS "awardDate"
-                FROM pending_achievements
-                """ + where + " ORDER BY id DESC LIMIT ? OFFSET ?", listArgs.toArray());
+                FROM pending_achievements p LEFT JOIN users u ON u.id = p.submitter_id
+                """ + where + " ORDER BY p.id DESC LIMIT ? OFFSET ?", listArgs.toArray());
         int totalPages = total == null || total == 0 ? 0 : (total + s - 1) / s;
         return ApiResponse.ok(new PageView<>(
                 content, total == null ? 0 : total, totalPages, p, s));
