@@ -57,6 +57,7 @@ const router = createRouter({
         { path: 'teacher/achievements', name: 'teacher-achievements', component: () => import('../views/TeacherAchievementsView.vue'), meta: { roles: ['teacher'] } },
         { path: 'teacher/export', name: 'teacher-export', component: () => import('../views/TeacherExportView.vue'), meta: { roles: ['teacher'] } },
         { path: 'teacher/review', name: 'teacher-review', component: () => import('../views/TeacherReviewView.vue'), meta: { roles: ['teacher', 'admin'] } },
+        { path: 'teacher/review/:id', name: 'teacher-review-detail', component: () => import('../views/AdminReviewDetailView.vue'), meta: { roles: ['teacher', 'admin'] } },
         { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue') },
         { path: 'chat', name: 'portal-chat', component: () => import('../views/ChatView.vue') },
       ],

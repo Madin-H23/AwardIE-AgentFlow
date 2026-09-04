@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { apiJson } from '../composables/useCsrf'
+import { useAuthStore } from '../stores/auth'
 
 // Fix-F 对照 v1 admin/review/view.html:审核详情——状态提示/提交信息/成果数据/验证结果/审核操作/审核历史。
 interface Pending {
@@ -28,6 +29,12 @@ interface Validation {
 const route = useRoute()
 const router = useRouter()
 const id = Number(route.params.id)
+// 角色感知:同一详情组件服务 admin 控制台与教师门户两壳(端点/返回目标随角色切换)
+const auth = useAuthStore()
+const isTeacher = auth.user?.role === 'teacher'
+const detailUrl = isTeacher ? `/api/v2/teacher/pending/${id}` : `/api/v2/admin/achievements/${id}`
+const reviewUrl = isTeacher ? `/api/v2/teacher/review/${id}` : `/api/v2/admin/achievements/${id}/review`
+const backTarget = isTeacher ? '/portal/teacher/review' : '/admin/review'
 const p = ref<Pending | null>(null)
 const loading = ref(true)
 const approveComment = ref('')
@@ -65,7 +72,7 @@ function fmt(v: string | null): string {
 async function load() {
   loading.value = true
   try {
-    const body = await apiJson('GET', `/api/v2/admin/achievements/${id}`)
+    const body = await apiJson('GET', detailUrl)
     if (body.code === 0) p.value = body.data
     else ElMessage.error(body.message ?? '记录不存在')
   } finally {
@@ -75,7 +82,7 @@ async function load() {
 
 async function review(action: 'approve' | 'reject') {
   const comment = action === 'approve' ? approveComment.value : rejectComment.value
-  const body = await apiJson('POST', `/api/v2/admin/achievements/${id}/review`, { action, comment })
+  const body = await apiJson('POST', reviewUrl, { action, comment })
   if (body.code === 0) {
     ElMessage.success(action === 'approve' ? '已通过' : '已拒绝')
     await load()
@@ -85,7 +92,7 @@ async function review(action: 'approve' | 'reject') {
 }
 
 function goBack() {
-  router.push('/admin/review')
+  router.push(backTarget)
 }
 
 onMounted(load)

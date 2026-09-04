@@ -325,6 +325,14 @@ onMounted(tp.load)
           min-width="240"
         >
           <template #default="scope">
+            <router-link
+              :to="`/admin/review/${scope.row.id}`"
+              data-testid="award-view"
+            >
+              <el-button size="small" text type="primary">
+                查看
+              </el-button>
+            </router-link>
             <!-- UX-1 批3:Fix-V 模式推广——仅待审行可操作,已审行显示状态 tag(disabled 按钮诱导点击) -->
             <template v-if="scope.row.status === 'pending'">
               <el-button

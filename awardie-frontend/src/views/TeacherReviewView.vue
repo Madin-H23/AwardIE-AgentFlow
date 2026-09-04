@@ -195,6 +195,14 @@ async function review(id: number, action: string) {
         >
           <template #default="scope">
             <div class="op-cell">
+              <router-link
+                :to="`/portal/teacher/review/${scope.row.id}`"
+                data-testid="review-view"
+              >
+                <el-button size="small" text type="primary">
+                  查看
+                </el-button>
+              </router-link>
               <!-- Fix-V:仅待审(pending)行可操作;已审行后端会拦,前端不再渲染按钮(巡检 low UX ②) -->
               <template v-if="scope.row.status === 'pending'">
                 <el-button

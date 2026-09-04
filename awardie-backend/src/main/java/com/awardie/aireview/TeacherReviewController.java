@@ -55,6 +55,17 @@ public class TeacherReviewController {
 
     public record ReviewRequest(@jakarta.validation.constraints.NotBlank String action, String comment) {}
 
+    /** 待审详情(教师初审查看用;审核决策依据进详情页)。 */
+    @GetMapping("/pending/{id}")
+    public ApiResponse<PendingAchievementEntity> pendingDetail(@PathVariable Integer id, Authentication auth) {
+        requireRole(auth, "teacher");
+        PendingAchievementEntity e = pendingRepo.findById(id).orElse(null);
+        if (e == null) {
+            return ApiResponse.error(4004, "记录不存在");
+        }
+        return ApiResponse.ok(e);
+    }
+
     @GetMapping("/pending")
     public ApiResponse<List<java.util.Map<String, Object>>> pendingList(Authentication auth) {
         requireRole(auth, "teacher");
