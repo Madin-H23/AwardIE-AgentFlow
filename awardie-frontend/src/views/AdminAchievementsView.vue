@@ -111,6 +111,32 @@ async function remove(row: Row) {
   }
 }
 
+// 挂账清偿(大创 status 方向2):结束日期已过的「进行中」批量校准为「已结题」。
+// 后端只动进行中且日期可解析的行——终止/已结题/未到期/无结束日期不受影响,重复点击幂等。
+const calibrating = ref(false)
+async function calibrateStatus() {
+  const ok = await ElMessageBox.confirm(
+    '将把结束日期已过的「进行中」项目标记为「已结题」。终止、已结题、未到期、无结束日期的项目不受影响。',
+    '状态校准确认', { type: 'warning' },
+  ).catch(() => false)
+  if (!ok) return
+  calibrating.value = true
+  try {
+    const body = await apiJson('POST', '/api/v2/admin/vault/innovation/calibrate-status')
+    if (body.code === 0) {
+      const d = body.data as { calibrated: number; skippedUnparsed: number }
+      ElMessage.success(
+        `已校准 ${d.calibrated} 条` + (d.skippedUnparsed > 0 ? `,${d.skippedUnparsed} 条日期无法识别未处理` : ''),
+      )
+      await load()
+    } else {
+      ElMessage.error(body.message)
+    }
+  } finally {
+    calibrating.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -154,6 +180,14 @@ onMounted(load)
         @click="doSearch"
       >
         筛选
+      </el-button>
+      <el-button
+        v-if="activeTab === 'innovation'"
+        :loading="calibrating"
+        data-testid="vault-calibrate"
+        @click="calibrateStatus"
+      >
+        状态校准
       </el-button>
     </div>
 

@@ -249,6 +249,8 @@
 
 **实现要点**：使用 `InnovationProjectManager`、`InnovationProjectFilter`；详情页通过 `load_project_with_associations` 恢复学生关联；仅管理员可提交大创。
 
+**v2 状态维护指引**：大创项目的「进行中/已结题/终止」三态如何维护(单个编辑 vs 批量「状态校准」按钮、结束日期判定规则、导入默认「进行中」的说明)，见 [《大创项目状态管理》](大创项目状态管理.md)。
+
 ---
 
 ## 十一、admin_review（admin_review.py）— 成果审核

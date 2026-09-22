@@ -398,3 +398,26 @@ test('UX-7 模板创建页 AI 抽取与提示词生成主链', async ({ page }) 
   await expect(page.getByTestId('tpl-prompt-preview')).toHaveValue(/OCR/)
   await page.screenshot({ path: '../docs/重构二期/06-体验重设计/07-Worker-RPC页面批次/tpl-create-ai-chain.png', fullPage: true })
 })
+
+// 挂账清偿(大创 status 方向2):成果库大创 tab 状态校准入口。
+// 安全口径:只走「打开确认框→取消」非变更路径——dev 库 11 条真实过期行会被校准改写,
+// 且不在 teardown 标记清理范围,真实校准由手动验收故意执行;accept 路径由后端
+// InnovationCalibrateTest 6 例集成覆盖。
+test('UX-8 成果库大创 tab 状态校准入口(确认框+取消不变更)', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto(`${BASE}/admin/achievements`)
+  // 默认奖状 tab 不显示校准按钮
+  await expect(page.getByTestId('vault-calibrate')).toHaveCount(0)
+  await page.locator('.el-tabs__item', { hasText: '大创管理' }).click()
+  await expect(page.getByTestId('vault-calibrate')).toBeVisible()
+  await page.getByTestId('vault-calibrate').click()
+  // 确认框文案含边界说明
+  const box = page.locator('.el-message-box')
+  await expect(box).toBeVisible()
+  await expect(box).toContainText('结束日期已过')
+  await expect(box).toContainText('不受影响')
+  // 取消:对话框关闭且无成功消息(不发生任何校准)
+  await page.locator('.el-message-box__btns button', { hasText: '取消' }).click()
+  await expect(box).toBeHidden()
+  await expect(page.locator('.el-message', { hasText: '已校准' })).toHaveCount(0)
+})

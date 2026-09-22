@@ -11,12 +11,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.awardie.auth.UserEntity;
+import com.awardie.auth.UserRepository;
 import com.awardie.common.ApiResponse;
 import com.awardie.common.PageView;
 
@@ -29,9 +32,14 @@ import com.awardie.common.PageView;
 public class AdminVaultController {
 
     private final JdbcTemplate jdbc;
+    private final InnovationStatusService innovationStatus;
+    private final UserRepository users;
 
-    public AdminVaultController(JdbcTemplate jdbc) {
+    public AdminVaultController(JdbcTemplate jdbc, InnovationStatusService innovationStatus,
+            UserRepository users) {
         this.jdbc = jdbc;
+        this.innovationStatus = innovationStatus;
+        this.users = users;
     }
 
     /** 五类列表:type=award|patent|software|innovation|other;keyword 按名称模糊。 */
@@ -101,6 +109,19 @@ public class AdminVaultController {
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return ResponseEntity.ok(ApiResponse.error(4009, "存在关联数据,无法删除"));
         }
+    }
+
+    /**
+     * 大创状态校准(挂账清偿,方向2):结束日期已过的「进行中」批量标记「已结题」。
+     * 只动进行中且日期可解析的行——终止/已结题/未到期/无结束日期不受影响,重复点击幂等。
+     */
+    @PostMapping("/innovation/calibrate-status")
+    public ApiResponse<InnovationStatusService.CalibrationResult> calibrateInnovationStatus(
+            Authentication auth) {
+        requireAdmin(auth);
+        UserEntity operator = users.findByLoginCode(auth.getName()).orElseThrow();
+        InnovationStatusService.CalibrationResult result = innovationStatus.calibrateEndedProjects(operator);
+        return ApiResponse.ok(result, "已校准 " + result.calibrated() + " 条");
     }
 
     /** 五表白名单(表名/名称列/SELECT 列),杜绝字符串拼接注入面。 */
