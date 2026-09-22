@@ -143,3 +143,6 @@ prototype/**/probe_run.log
 prototype/**/nginx-win/
 .playwright-mcp/
 awardie-frontend/test-results/
+
+# v3 芋道构建产物(与 awardie-backend/target/ 同理)
+target/
