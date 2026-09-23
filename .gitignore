@@ -12,8 +12,8 @@ venv/
 ENV/
 .venv
 
-# Flask
-instance/
+# Flask(仅仓库根级;勿误伤 vendored 代码的 instance 包目录)
+/instance/
 .webassets-cache
 
 
@@ -22,8 +22,8 @@ instance/
 .env.local
 .env.*
 
-# API 密钥
-apikey/
+# API 密钥(仅仓库根级)
+/apikey/
 apikey/apikey.json
 
 # IDE
@@ -74,8 +74,8 @@ docs/测试/测试文件/*.png
 docs/测试/测试文件/*.jpeg
 docs/测试/测试文件/*.jfif
 
-# 真实业务数据包（竞赛汇总 xlsx 等）
-data/
+# 真实业务数据包（竞赛汇总 xlsx 等;仅仓库根级,勿误伤 vo/data 等 Java 包目录）
+/data/
 
 # 系统文件
 .DS_Store
