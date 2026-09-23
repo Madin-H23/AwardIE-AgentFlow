@@ -29,6 +29,11 @@ import cn.iocoder.yudao.module.business.controller.admin.laboratory.vo.*;
 import cn.iocoder.yudao.module.business.dal.dataobject.laboratory.LaboratoriesDO;
 import cn.iocoder.yudao.module.business.service.laboratory.LaboratoriesService;
 
+/**
+ * 管理后台 - AwardIE 实验室
+ *
+ * @author AwardIE
+ */
 @Tag(name = "管理后台 - AwardIE 实验室")
 @RestController
 @RequestMapping("/business/laboratories")
@@ -101,4 +106,4 @@ public class LaboratoriesController {
                         BeanUtils.toBean(list, LaboratoriesRespVO.class));
     }
 
-}
+}

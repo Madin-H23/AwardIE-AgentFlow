@@ -11,9 +11,11 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
  * AwardIE 实验室 DO
  *
  * @author AwardIE
+ * <p>
+ * KeySequence 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增;MySQL 等数据库可不写。
  */
 @TableName("awardie_laboratories")
-@KeySequence("awardie_laboratories_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@KeySequence("awardie_laboratories_seq")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -37,4 +39,4 @@ public class LaboratoriesDO extends BaseDO {
     private String description;
 
 
-}
+}

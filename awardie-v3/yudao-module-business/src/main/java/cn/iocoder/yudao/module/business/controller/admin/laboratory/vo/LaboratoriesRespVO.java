@@ -7,6 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import cn.idev.excel.annotation.*;
 
+/**
+ * 管理后台 - AwardIE 实验室 Response VO
+ *
+ * @author AwardIE
+ */
 @Schema(description = "管理后台 - AwardIE 实验室 Response VO")
 @Data
 @ExcelIgnoreUnannotated
@@ -28,4 +33,4 @@ public class LaboratoriesRespVO {
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
 
-}
+}

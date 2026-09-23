@@ -17,6 +17,12 @@ import cn.iocoder.yudao.module.business.controller.admin.laboratory.vo.*;
 @Mapper
 public interface LaboratoriesMapper extends BaseMapperX<LaboratoriesDO> {
 
+    /**
+     * 分页查询实验室(名称 LIKE、创建时间区间,ID 倒序)
+     *
+     * @param reqVO 分页参数
+     * @return 实验室分页结果
+     */
     default PageResult<LaboratoriesDO> selectPage(LaboratoriesPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<LaboratoriesDO>()
                 .likeIfPresent(LaboratoriesDO::getName, reqVO.getName())

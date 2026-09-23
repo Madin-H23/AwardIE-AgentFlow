@@ -9,6 +9,11 @@ import java.time.LocalDateTime;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
+/**
+ * 管理后台 - AwardIE 实验室分页 Request VO
+ *
+ * @author AwardIE
+ */
 @Schema(description = "管理后台 - AwardIE 实验室分页 Request VO")
 @Data
 public class LaboratoriesPageReqVO extends PageParam {

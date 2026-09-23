@@ -44,7 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LaboratoriesControllerTest {
 
     private static final String BASE = "/admin-api/business/laboratories";
-    private static final long TENANT_ID = 1L; // 芋道源码默认租户(awardie-cleanup.sql 保留)
+    /** 芋道源码默认租户(awardie-cleanup.sql 保留) */
+    private static final long TENANT_ID = 1L;
     /** 本地/CI 开发环境管理员口令(与 awardie-cleanup.sql 设置一致;生产以部署配置为准) */
     private static final String ADMIN_PASSWORD = "Awardie@V3#2026";
 
@@ -58,9 +59,11 @@ class LaboratoriesControllerTest {
 
     @BeforeEach
     void loginAndClean() throws Exception {
-        token = loginToken(); // 先登录(HTTP 请求经租户过滤器,结束后会清租户上下文)
-        TenantContextHolder.setTenantId(TENANT_ID); // 再设租户上下文,供随后的 mapper 直操使用
-        mapper.delete(null); // 清表(逻辑删除:全表 UPDATE deleted=1)
+        // 先登录(HTTP 请求经租户过滤器,结束后会清租户上下文),再设租户上下文供 mapper 直操
+        token = loginToken();
+        TenantContextHolder.setTenantId(TENANT_ID);
+        // 清表(逻辑删除:全表 UPDATE deleted=1)
+        mapper.delete(null);
     }
 
     @AfterEach
