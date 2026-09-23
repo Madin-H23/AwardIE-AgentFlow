@@ -36,9 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 删除为逻辑删除(BaseDO @TableLogic,deleted=1)。
  */
 @SpringBootTest(classes = YudaoServerApplication.class, properties = {
-        // 测试库隔离:指向 awardie_v3_test(用户沿用 local profile 的专用用户,口令走环境变量)
-        "spring.datasource.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
-        "spring.datasource.username=awardie_v3"
+        // 测试库隔离:芋道用 dynamic-datasource,必须覆盖 master 的动态数据源键——
+        // 覆盖 spring.datasource.url 无效(会静默连 dev 库:CI 只授 test 库权限即 Access denied,
+        // 本地则因同用户双库有权而污染 dev 库);口令走环境变量 AWARDIE_MYSQL_PASSWORD,不入库
+        "spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
+        "spring.datasource.dynamic.datasource.master.username=awardie_v3"
 })
 @AutoConfigureMockMvc
 class LaboratoriesControllerTest {
