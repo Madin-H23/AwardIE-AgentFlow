@@ -1,0 +1,68 @@
+# v3 CI(批1-T05):芋道底座后端测试 + SQL 脱敏守卫
+# 触发:仅 refactor/v3-yudao-migration 分支且变动落在 awardie-v3/(与 ci-v2 双过滤不空跑)
+# 依赖:MySQL 8 service(3307)+ Redis service(6379);测试库 awardie_v3_test 由官方 sql+cleanup+业务 sql 初始化
+# 前端门禁(lint/build/E2E)待批10 yudao-ui-admin-vue3 submodule 初始化后接入
+name: ci-v3
+
+on:
+  push:
+    branches: ['refactor/v3-yudao-migration']
+    paths: ['awardie-v3/**', '.github/workflows/ci-v3.yml']
+  pull_request:
+    branches: ['refactor/v3-yudao-migration']
+    paths: ['awardie-v3/**']
+
+jobs:
+  backend-v3:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: awardie_v3
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # 官方 sql 脱敏守卫(GH013 push protection 的 CI 侧复检)
+      - name: Sanitizer check (no cloud-key demo strings in SQL)
+        run: python3 scripts/v3_sanitize_sql_secrets.py --check
+
+      # 测试库初始化:官方(脱敏)sql + 清理 + 业务表 + 菜单,与本地手册一致
+      - name: Init awardie_v3_test (official + cleanup + business + menus)
+        run: |
+          MYSQL="mysql -h 127.0.0.1 -P 3307 -uroot -proot --default-character-set=utf8mb4 awardie_v3_test"
+          mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS awardie_v3_test DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
+          $MYSQL < awardie-v3/sql/mysql/ruoyi-vue-pro.sql
+          $MYSQL < awardie-v3/sql/mysql/quartz.sql
+          $MYSQL < awardie-v3/sql/awardie-cleanup.sql
+          $MYSQL < awardie-v3/sql/awardie-business.sql
+          $MYSQL < awardie-v3/sql/awardie-business-menus.sql
+          mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "CREATE USER IF NOT EXISTS 'awardie_v3'@'%' IDENTIFIED BY 'ci-test-pass'; GRANT ALL PRIVILEGES ON awardie_v3_test.* TO 'awardie_v3'@'%'; FLUSH PRIVILEGES"
+
+      - name: Backend tests (awardie_v3_test, env-var password)
+        run: mvn -B test
+        working-directory: awardie-v3
+        env:
+          AWARDIE_MYSQL_PASSWORD: ci-test-pass

@@ -6,6 +6,8 @@ on:
   push:
     branches: ['refactor/v2-stack-migration', 'main']
   pull_request:
+    # v3 分支的 PR 走 ci-v3,不重复触发 v2 门禁(批1-T05 双过滤)
+    branches-ignore: ['refactor/v3-yudao-migration']
 
 jobs:
   backend-v2:
