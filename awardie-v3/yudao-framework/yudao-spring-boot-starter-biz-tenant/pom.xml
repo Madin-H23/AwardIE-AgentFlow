@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>yudao-framework</artifactId>
-        <groupId>cn.iocoder.boot</groupId>
+        <groupId>com.awardie</groupId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,36 +17,36 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-common</artifactId>
         </dependency>
 
         <!-- Web 相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-security</artifactId>
         </dependency>
 
         <!-- DB 相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-mybatis</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-redis</artifactId>
         </dependency>
 
         <!-- Job 定时任务相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-job</artifactId>
         </dependency>
 
         <!-- 消息队列相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-mq</artifactId>
             <optional>true</optional>
         </dependency>
@@ -68,7 +68,7 @@
 
         <!-- Test 测试相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>yudao-module-iot</artifactId>
-        <groupId>cn.iocoder.boot</groupId>
+        <groupId>com.awardie</groupId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -21,7 +21,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-common</artifactId>
         </dependency>
 
@@ -33,7 +33,7 @@
 
         <!-- 消息中间件相关（可选依赖） -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-mq</artifactId>
         </dependency>
 

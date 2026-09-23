@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>yudao</artifactId>
-        <groupId>cn.iocoder.boot</groupId>
+        <groupId>com.awardie</groupId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -22,47 +22,47 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-module-system</artifactId>
             <version>${revision}</version>
         </dependency>
 
         <!-- 业务组件 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-biz-data-permission</artifactId>
         </dependency>
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-biz-tenant</artifactId>
         </dependency>
 
         <!-- Web 相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-security</artifactId>
         </dependency>
 
         <!-- DB 相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-mybatis</artifactId>
         </dependency>
 
         <!-- Test 测试相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-test</artifactId>
         </dependency>
 
         <!-- 工具类相关 -->
         <dependency>
-            <groupId>cn.iocoder.boot</groupId>
+            <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-excel</artifactId>
         </dependency>
 

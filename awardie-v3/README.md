@@ -1,3 +1,13 @@
+# AwardIE v3(芋道 ruoyi-vue-pro fork)
+
+> **本目录是 AwardIE v3 的代码基**,基于 [芋道 ruoyi-vue-pro](https://github.com/YunaiV/ruoyi-vue-pro) **master-jdk17 分支**(Spring Boot 3.5.15 + JDK 17/21)基线 `7cab3a7` 定制。
+> 上游以 MIT License 开源(见文末开源协议章节与本目录 LICENSE),AwardIE 定制部分同样以 MIT 发布。
+> **内部包名保留上游 `cn.iocoder.yudao`**(ADR-0003:保上游同步,稳定期后评估改名);外显三层已改:Maven groupId `com.awardie`、应用名 `awardie-server`、数据库 `awardie_v3`。
+> 定制边界与上游同步 SOP 见 `docs/重构二期/09-v3框架迁移/批1-定制基座/`(主仓)。
+
+---
+## 以下为上游 README 原文(信息可能滞后于我们的定制,以本文头部说明为准)
+
 <p align="center">
  <img src="https://img.shields.io/badge/Spring%20Boot-3.5.15-blue.svg" alt="Downloads">
  <img src="https://img.shields.io/badge/Vue-3.2-blue.svg" alt="Downloads">
