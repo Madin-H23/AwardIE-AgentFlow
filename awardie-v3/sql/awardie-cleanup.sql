@@ -74,10 +74,10 @@ DELETE FROM system_oauth2_code;
 DELETE FROM system_notify_message;
 
 -- ---- quartz 演示任务(引擎表结构保留;按依赖逆序清) ----
-DELETE FROM qrtz_cron_triggers;
-DELETE FROM qrtz_simple_triggers;
-DELETE FROM qrtz_simprop_triggers;
-DELETE FROM qrtz_blob_triggers;
-DELETE FROM qrtz_fired_triggers;
-DELETE FROM qrtz_triggers;
-DELETE FROM qrtz_job_details;
+DELETE FROM QRTZ_CRON_TRIGGERS;
+DELETE FROM QRTZ_SIMPLE_TRIGGERS;
+DELETE FROM QRTZ_SIMPROP_TRIGGERS;
+DELETE FROM QRTZ_BLOB_TRIGGERS;
+DELETE FROM QRTZ_FIRED_TRIGGERS;
+DELETE FROM QRTZ_TRIGGERS;
+DELETE FROM QRTZ_JOB_DETAILS;
