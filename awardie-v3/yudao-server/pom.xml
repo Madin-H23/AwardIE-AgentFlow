@@ -32,6 +32,20 @@
             <version>${revision}</version>
         </dependency>
 
+        <!-- AwardIE 业务模块(批1 启用) -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-module-business</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- Test 测试相关(集成测试统一放 yudao-server/src/test) -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- 会员中心。默认注释，保证编译速度 -->
 <!--        <dependency>-->
 <!--            <groupId>com.awardie</groupId>-->

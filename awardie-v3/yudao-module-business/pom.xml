@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.awardie</groupId>
+        <artifactId>yudao</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>yudao-module-business</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>
+        AwardIE 业务模块:竞赛/实验室/成果提交/审核流/成果库/模板/统计等全部业务域
+        (芋道 system/infra 之外的自有模块,包路径 cn.iocoder.yudao.module.business,见 ADR-0003)
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-module-infra</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- Web 相关 -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- DB 相关 -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-redis</artifactId>
+        </dependency>
+
+        <!-- Test 测试相关 -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- 工具类相关 -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-spring-boot-starter-excel</artifactId>
+        </dependency>
+    </dependencies>
+</project>
