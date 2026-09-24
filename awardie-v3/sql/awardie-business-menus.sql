@@ -2,6 +2,8 @@
 -- AwardIE 业务菜单(幂等:固定菜单 ID + ON DUPLICATE KEY UPDATE,可重复执行)
 -- 来源:芋道 codegen 生成(tableId 210,laboratories 切片),父菜单固定 3000,子菜单/按钮固定 ID
 -- 权限说明:芋道无超管绕过,菜单必须显式分配给 super_admin(role_id=1)才会生效
+-- 必写 tenant_id=1:RoleMenuDO extends TenantBaseDO,芋道租户拦截器会给 system_role_menu
+-- 自动追加 tenant_id=当前租户;不写则落到默认值 0,授权行查不出来(全站 403)
 -- 用法:官方 sql + cleanup + awardie-business.sql 之后执行
 -- ============================================================================
 
@@ -71,7 +73,21 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3034, 'AwardIE 待审成果审核', 'business:pending-achievement:review', 3, 4, 3003, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果审核', updater = 'admin';
 
+-- ---- 批6:vault 成果库(菜单 + 3 个按钮权限点) ----
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3004, 'AwardIE 成果库', '', 2, 3, 3000, 'vault', '', 'business/vault/index', 0, 'Vault', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 成果库', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3041, 'AwardIE 成果库查询', 'business:vault:query', 3, 1, 3004, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 成果库查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3042, 'AwardIE 成果库编辑', 'business:vault:update', 3, 2, 3004, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 成果库编辑', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3043, 'AwardIE 成果库删除', 'business:vault:delete', 3, 3, 3004, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 成果库删除', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
-INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 1, id, 'admin', 'admin' FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034);
+INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
+SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043);

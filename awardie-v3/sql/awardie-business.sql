@@ -265,3 +265,66 @@ CREATE TABLE IF NOT EXISTS awardie_other_files (
     tenant_id      BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
     UNIQUE KEY uk_other_file_path (file_path)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 其他成果文件表';
+
+-- 说明:awards/patents/software_copyrights/other_files 在批5 只建了物化所需列,
+--       批6 按 v2 成果库(Fix-C/Fix-R/Fix-T)补齐列表/编辑所需列
+
+-- ---- 批6 补列说明:MySQL 8 不支持 ADD COLUMN IF NOT EXISTS(MariaDB 语法)。
+--      幂等由 scripts/run_awardie_sql.py 容忍'列已存在'(1060)保证;CI 每次全新库故天然无此问题 ----
+-- ---- awards 补列(成果库列表用 year/is_abnormal,编辑链用组别/省份/参赛信息) ----
+ALTER TABLE awardie_awards ADD COLUMN year INT NULL COMMENT '年份(列表筛选)', ADD COLUMN edition VARCHAR(50) NULL COMMENT '届次', ADD COLUMN related_student_name VARCHAR(100) NULL COMMENT '关联学生姓名', ADD COLUMN is_abnormal BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否异常', ADD COLUMN ocr_result TEXT NULL COMMENT 'OCR 抽取结果', ADD COLUMN extract_json TEXT NULL COMMENT '结构化抽取 JSON', ADD COLUMN match_status BIT(1) NULL COMMENT '匹配状态';
+
+
+-- ---- other_files 补列(列表用 file_type/file_size/is_image) ----
+ALTER TABLE awardie_other_files ADD COLUMN file_type VARCHAR(20) NULL COMMENT '文件类型', ADD COLUMN file_size INT NULL COMMENT '文件字节数', ADD COLUMN is_image BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否图片';
+
+
+-- ---- software_copyrights 补列(编辑链:证书号/登记日期) ----
+ALTER TABLE awardie_software_copyrights ADD COLUMN certificate_no VARCHAR(50) NULL COMMENT '证书号', ADD COLUMN registration_date VARCHAR(10) NULL COMMENT '登记日期';
+
+
+-- ---- patents 补列(编辑链:公开号/申请日期) ----
+ALTER TABLE awardie_patents ADD COLUMN publication_number VARCHAR(50) NULL COMMENT '公开号', ADD COLUMN application_date VARCHAR(10) NULL COMMENT '申请日期';
+
+
+-- ---- 大创(innovation_projects):批5 不物化大创,本批建全表(批8 做 status 方向1+2) ----
+CREATE TABLE IF NOT EXISTS awardie_innovation_projects (
+    id                  BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    project_no          VARCHAR(50)  DEFAULT NULL COMMENT '项目编号',
+    project_name        VARCHAR(200) NOT NULL COMMENT '项目名称',
+    project_type        VARCHAR(20)  DEFAULT NULL COMMENT '项目类型(国家级/省级/院级)',
+    start_date          VARCHAR(10)  DEFAULT NULL COMMENT '开始日期',
+    end_date            VARCHAR(10)  DEFAULT NULL COMMENT '结束日期',
+    student_leader_name VARCHAR(50)  DEFAULT NULL COMMENT '学生负责人',
+    student_leader_id   VARCHAR(50)  DEFAULT NULL COMMENT '学生负责人学号',
+    other_members       JSON         DEFAULT NULL COMMENT '其他成员(数组)',
+    supervisors         TEXT         DEFAULT NULL COMMENT '指导教师',
+    funding_amount      DECIMAL(12,2) DEFAULT NULL COMMENT '经费',
+    status              VARCHAR(20)  DEFAULT '进行中' COMMENT '状态(进行中/已结题/终止)',
+    submitter_type      VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id        BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    submit_time         DATETIME     DEFAULT NULL COMMENT '提交时间',
+    laboratory_id       BIGINT       DEFAULT NULL COMMENT '实验室编号',
+    creator             VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time         DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater             VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time         DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted             BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id           BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_innovation_project_no (project_no)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目表';
+
+-- ---- 大创学生关联(成果库"我的大创"依赖) ----
+CREATE TABLE IF NOT EXISTS awardie_innovation_project_students (
+    id              BIGINT      PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    project_id      BIGINT      NOT NULL COMMENT '大创项目编号',
+    student_id      BIGINT      DEFAULT NULL COMMENT '学生编号',
+    role            VARCHAR(20) DEFAULT NULL COMMENT '角色',
+    student_name    VARCHAR(50) DEFAULT NULL COMMENT '学生姓名',
+    student_id_str  VARCHAR(50) DEFAULT NULL COMMENT '学号',
+    match_type      VARCHAR(20) DEFAULT NULL COMMENT '匹配方式',
+    creator         VARCHAR(64) DEFAULT '' COMMENT '创建者',
+    create_time     DATETIME    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    deleted         BIT(1)      DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id       BIGINT      DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目学生关联表';

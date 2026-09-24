@@ -53,6 +53,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest(classes = YudaoServerApplication.class, properties = {
         "spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
         "spring.datasource.dynamic.datasource.master.username=awardie_v3",
+        // 独立 Redis 库(默认 0 是 dev 服务在用):权限缓存键不含库标识,共用会互相污染
+        "spring.data.redis.database=1",
         "awardie.file.root=target/test-files/review"
 })
 @AutoConfigureMockMvc
@@ -167,8 +169,8 @@ class ReviewFlowTest {
                 .flatMap(List::stream)
                 .map(MenuDO::getId)
                 .collect(java.util.stream.Collectors.toSet());
-        assertThat(menuIds).as("待审成果权限点应存在于 test 库菜单表").hasSize(REVIEW_PERMISSIONS.size());
-        permissionService.assignRoleMenu(roleId, menuIds);
+        assertThat(menuIds).as("待审成果权限点缺失——请先执行 awardie-business-menus.sql + awardie-user-domain.sql")
+                .hasSize(REVIEW_PERMISSIONS.size());
         permissionService.assignUserRole(userId, Set.of(roleId));
     }
 

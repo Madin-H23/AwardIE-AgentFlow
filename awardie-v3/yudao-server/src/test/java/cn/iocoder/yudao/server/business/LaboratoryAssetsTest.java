@@ -42,7 +42,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SpringBootTest(classes = YudaoServerApplication.class, properties = {
         "spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
-        "spring.datasource.dynamic.datasource.master.username=awardie_v3"
+        "spring.datasource.dynamic.datasource.master.username=awardie_v3",
+        // 独立 Redis 库(默认 0 是 dev 服务在用):权限缓存键不含库标识,共用会互相污染
+        "spring.data.redis.database=1"
 })
 @AutoConfigureMockMvc
 class LaboratoryAssetsTest {
@@ -119,9 +121,8 @@ class LaboratoryAssetsTest {
                 .flatMap(List::stream)
                 .map(MenuDO::getId)
                 .collect(Collectors.toSet());
-        assertThat(menuIds).hasSize(LAB_PERMISSIONS.size());
-        // 用带 @CacheEvict 的 API 授权,避开 Redis 权限缓存残留(见 PendingSubmissionControllerTest 同注)
-        permissionService.assignRoleMenu(1L, menuIds);
+        assertThat(menuIds).as("实验室权限点缺失——请先执行 awardie-business-menus.sql + awardie-user-domain.sql")
+                .hasSize(LAB_PERMISSIONS.size());
         permissionService.assignUserRole(userId, Set.of(1L));
     }
 

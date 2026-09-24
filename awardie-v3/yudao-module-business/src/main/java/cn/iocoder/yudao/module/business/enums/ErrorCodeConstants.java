@@ -66,4 +66,13 @@ public interface ErrorCodeConstants {
     /** 审核动作非法(仅 approve/reject) */
     ErrorCode REVIEW_ACTION_INVALID = new ErrorCode(1_003_004_003, "审核动作仅允许 approve/reject");
 
+    // ========== AwardIE 成果库 1_003_005_000 ==========
+    /** 成果库类型非法(仅 award/patent/software/innovation/other) */
+    ErrorCode VAULT_TYPE_INVALID =
+            new ErrorCode(1_003_005_000, "type 仅允许 award/patent/software/innovation/other");
+    /** 成果库记录不存在 */
+    ErrorCode VAULT_RECORD_NOT_EXISTS = new ErrorCode(1_003_005_001, "成果记录不存在");
+    /** 成果库记录存在关联数据,无法删除 */
+    ErrorCode VAULT_RECORD_IN_USE = new ErrorCode(1_003_005_002, "成果存在关联数据,无法删除:{}");
+
 }

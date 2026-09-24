@@ -47,7 +47,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         // 覆盖 spring.datasource.url 无效(会静默连 dev 库:CI 只授 test 库权限即 Access denied,
         // 本地则因同用户双库有权而污染 dev 库);口令走环境变量 AWARDIE_MYSQL_PASSWORD,不入库
         "spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
-        "spring.datasource.dynamic.datasource.master.username=awardie_v3"
+        "spring.datasource.dynamic.datasource.master.username=awardie_v3",
+        // 独立 Redis 库(默认 0 是 dev 服务在用):权限缓存键不含库标识,共用会互相污染
+        "spring.data.redis.database=1"
 })
 @AutoConfigureMockMvc
 class LaboratoriesControllerTest {

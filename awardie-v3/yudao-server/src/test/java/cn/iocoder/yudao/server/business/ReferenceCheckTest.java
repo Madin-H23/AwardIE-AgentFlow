@@ -52,7 +52,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SpringBootTest(classes = YudaoServerApplication.class, properties = {
         "spring.datasource.dynamic.datasource.master.url=jdbc:mysql://127.0.0.1:3307/awardie_v3_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true",
-        "spring.datasource.dynamic.datasource.master.username=awardie_v3"
+        "spring.datasource.dynamic.datasource.master.username=awardie_v3",
+        // 独立 Redis 库(默认 0 是 dev 服务在用):权限缓存键不含库标识,共用会互相污染
+        "spring.data.redis.database=1"
 })
 @AutoConfigureMockMvc
 class ReferenceCheckTest {
