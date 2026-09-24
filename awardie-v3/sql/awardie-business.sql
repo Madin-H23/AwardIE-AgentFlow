@@ -138,3 +138,130 @@ CREATE TABLE IF NOT EXISTS awardie_laboratory_students (
     tenant_id     BIGINT DEFAULT 0 NOT NULL COMMENT '租户编号',
     PRIMARY KEY (laboratory_id, student_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室学生关联表';
+
+-- 1 提交 / 6 审核通过 / 7 驳回 / 8 物化入库)
+-- 说明:四表只含 v2 物化所需列,批6 补编辑链字段(ALTER 扩展)
+
+-- ---- achievement_audit_log 审核留痕 ----
+CREATE TABLE IF NOT EXISTS awardie_achievement_audit_log (
+    id               BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    achievement_id   BIGINT       NOT NULL COMMENT '待审成果编号',
+    achievement_kind VARCHAR(20)  DEFAULT NULL COMMENT '成果类型(award/patent/software/innovation/other)',
+    action_type      INT          NOT NULL COMMENT '动作码(1 提交/6 审核通过/7 驳回/8 物化入库)',
+    action_result    INT          DEFAULT 0 NOT NULL COMMENT '动作结果(0/1/2)',
+    operator_id      BIGINT       DEFAULT NULL COMMENT '操作人编号',
+    operator_code    VARCHAR(64)  DEFAULT '' COMMENT '操作人账号',
+    operator_name    VARCHAR(64)  DEFAULT '' COMMENT '操作人姓名',
+    change_detail    JSON         DEFAULT NULL COMMENT '变更详情({"message","comment"})',
+    remark           TEXT         DEFAULT NULL COMMENT '备注',
+    creator          VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time      DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater          VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted          BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id        BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 成果审核留痕表';
+
+-- ---- awards 获奖成果(approve 时物化;竞赛按名匹配,缺失自动建 is_auto_added) ----
+CREATE TABLE IF NOT EXISTS awardie_awards (
+    id                       BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    image_hash               VARCHAR(64)  DEFAULT NULL COMMENT '文件 SHA-256(与证书图一致)',
+    certificate_id           VARCHAR(50)  DEFAULT NULL COMMENT '证书编号',
+    certificate_path         VARCHAR(500) DEFAULT NULL COMMENT '证书文件相对路径',
+    competition_name_in_file VARCHAR(200) DEFAULT NULL COMMENT '证书内竞赛名',
+    track                    VARCHAR(100) DEFAULT NULL COMMENT '赛道',
+    issuer                   VARCHAR(100) DEFAULT NULL COMMENT '颁发方',
+    province                 VARCHAR(100) DEFAULT NULL COMMENT '省份',
+    group_name               VARCHAR(100) DEFAULT NULL COMMENT '组别',
+    winner_name              VARCHAR(100) DEFAULT NULL COMMENT '获奖人',
+    supervisor_name          VARCHAR(100) DEFAULT NULL COMMENT '指导教师',
+    award_level              VARCHAR(20)  DEFAULT NULL COMMENT '获奖等级',
+    competition_level        VARCHAR(20)  DEFAULT NULL COMMENT '竞赛级别',
+    date                     VARCHAR(10)  DEFAULT NULL COMMENT '获奖日期',
+    project_title            VARCHAR(200) DEFAULT NULL COMMENT '项目名称',
+    competition_id           BIGINT       DEFAULT NULL COMMENT '竞赛编号',
+    submitter_type           VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id             BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    submit_time              DATETIME     DEFAULT NULL COMMENT '提交时间',
+    laboratory_id            BIGINT       DEFAULT NULL COMMENT '实验室编号(v2 同列,删除实验室的引用检查依赖它)',
+    creator                  VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time              DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater                  VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time              DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted                  BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖成果表';
+
+-- ---- award_student_winners 学生获奖关联(批4 物化时建) ----
+CREATE TABLE IF NOT EXISTS awardie_award_student_winners (
+    id          BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    award_id    BIGINT       NOT NULL COMMENT '获奖成果编号',
+    student_id  BIGINT       NOT NULL COMMENT '学生编号',
+    creator     VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    deleted     BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_award_student (award_id, student_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖学生关联表';
+
+-- ---- patents 专利 ----
+CREATE TABLE IF NOT EXISTS awardie_patents (
+    id                 BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    patent_name        VARCHAR(200) NOT NULL COMMENT '专利名称',
+    patent_type        VARCHAR(20)  DEFAULT NULL COMMENT '专利类型(发明专利/实用新型/外观设计)',
+    application_number VARCHAR(50)  DEFAULT NULL COMMENT '申请号',
+    inventor           VARCHAR(200) DEFAULT NULL COMMENT '发明人',
+    patentee           VARCHAR(200) DEFAULT NULL COMMENT '专利权人',
+    certificate_file   VARCHAR(500) DEFAULT NULL COMMENT '证书文件相对路径',
+    submitter_type     VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id       BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    laboratory_id      BIGINT       DEFAULT NULL COMMENT '实验室编号',
+    creator            VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time        DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater            VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time        DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted            BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id          BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_patent_application_number (application_number)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 专利表';
+
+-- ---- software_copyrights 软件著作权 ----
+CREATE TABLE IF NOT EXISTS awardie_software_copyrights (
+    id                  BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    software_name       VARCHAR(200) NOT NULL COMMENT '软件名称',
+    software_version    VARCHAR(20)  DEFAULT NULL COMMENT '软件版本',
+    registration_number VARCHAR(50)  DEFAULT NULL COMMENT '登记号',
+    copyright_owner     VARCHAR(200) DEFAULT NULL COMMENT '著作权人',
+    certificate_file    VARCHAR(500) DEFAULT NULL COMMENT '证书文件相对路径',
+    submitter_type      VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id        BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    submit_time         DATETIME     DEFAULT NULL COMMENT '提交时间',
+    laboratory_id       BIGINT       DEFAULT NULL COMMENT '实验室编号',
+    creator             VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time         DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater             VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time         DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted             BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id           BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_software_registration_number (registration_number)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 软件著作权表';
+
+-- ---- other_files 其他成果 ----
+CREATE TABLE IF NOT EXISTS awardie_other_files (
+    id             BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    file_name      VARCHAR(200) NOT NULL COMMENT '成果名称',
+    file_path      VARCHAR(500) NOT NULL COMMENT '文件相对路径',
+    file_hash      VARCHAR(64)  DEFAULT NULL COMMENT '文件 SHA-256',
+    description    TEXT         DEFAULT NULL COMMENT '描述',
+    submitter_type VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id   BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    submit_time    DATETIME     DEFAULT NULL COMMENT '提交时间',
+    laboratory_id  BIGINT       DEFAULT NULL COMMENT '实验室编号',
+    creator        VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time    DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater        VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time    DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted        BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id      BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_other_file_path (file_path)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 其他成果文件表';

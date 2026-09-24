@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.server.business;
 
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.business.enums.ErrorCodeConstants;
 import cn.iocoder.yudao.module.business.dal.dataobject.competition.CompetitionsDO;
 import cn.iocoder.yudao.module.business.dal.dataobject.laboratory.LaboratoriesDO;
 import cn.iocoder.yudao.module.business.dal.mysql.competition.CompetitionsMapper;
@@ -13,6 +15,8 @@ import cn.iocoder.yudao.server.YudaoServerApplication;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +32,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -62,6 +68,8 @@ class ReferenceCheckTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
+    private cn.iocoder.yudao.module.business.service.reference.AchievementReferenceChecker referenceChecker;
+    @Autowired
     private CompetitionsMapper competitionsMapper;
     @Autowired
     private LaboratoriesMapper laboratoriesMapper;
@@ -82,32 +90,25 @@ class ReferenceCheckTest {
         TenantContextHolder.setTenantId(TENANT_ID);
         competitionsMapper.delete(null);
         laboratoriesMapper.delete(null);
-        dropReferenceTables();
+        clearReferences();
     }
 
     @AfterEach
     void cleanup() {
-        dropReferenceTables();
+        clearReferences();
         TenantContextHolder.clear();
     }
 
-    private void dropReferenceTables() {
-        jdbcTemplate.execute("DROP TABLE IF EXISTS awardie_awards");
-        jdbcTemplate.execute("DROP TABLE IF EXISTS awardie_patents");
-    }
-
-    private void createAwardsTable() {
-        jdbcTemplate.execute("CREATE TABLE awardie_awards ("
-                + "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                + "competition_id BIGINT NULL, laboratory_id BIGINT NULL, "
-                + "deleted BIT(1) NOT NULL DEFAULT b'0')");
-    }
-
-    private void createPatentsTable() {
-        jdbcTemplate.execute("CREATE TABLE awardie_patents ("
-                + "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                + "laboratory_id BIGINT NULL, "
-                + "deleted BIT(1) NOT NULL DEFAULT b'0')");
+    /**
+     * 清引用行(**不删表**)。
+     *
+     * <p>批3 时 awardie_awards/awardie_patents 尚不存在,本测试曾把它们当"临时探针表"
+     * CREATE/DROP——批5 起这两张是真实业务表,探针 DROP 会把真表删掉(全量测试时炸:
+     * DELETE FROM awardie_awards → bad SQL grammar)。故改为直接向真表插引用行。
+     */
+    private void clearReferences() {
+        jdbcTemplate.update("DELETE FROM awardie_awards");
+        jdbcTemplate.update("DELETE FROM awardie_patents");
     }
 
     private void seedTestUser() {
@@ -181,9 +182,8 @@ class ReferenceCheckTest {
     @Test
     void competitionDeleteRejectedWhenReferencedByAward() throws Exception {
         CompetitionsDO competition = newCompetition("被引用的竞赛");
-        createAwardsTable();
-        jdbcTemplate.update("INSERT INTO awardie_awards (competition_id, deleted) VALUES (?, b'0')",
-                competition.getId());
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, competition_id, deleted)"
+                + " VALUES (?, ?, b'0')", "引用检查竞赛", competition.getId());
 
         JsonNode body = call(delete(COMP_BASE + "/delete").headers(authHeaders())
                 .param("id", String.valueOf(competition.getId())));
@@ -196,9 +196,8 @@ class ReferenceCheckTest {
     @Test
     void competitionDeleteAllowedWhenReferenceLogicallyDeleted() throws Exception {
         CompetitionsDO competition = newCompetition("引用已删的竞赛");
-        createAwardsTable();
-        jdbcTemplate.update("INSERT INTO awardie_awards (competition_id, deleted) VALUES (?, b'1')",
-                competition.getId());
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, competition_id, deleted)"
+                + " VALUES (?, ?, b'1')", "引用检查竞赛", competition.getId());
 
         assertThat(call(delete(COMP_BASE + "/delete").headers(authHeaders())
                 .param("id", String.valueOf(competition.getId()))).path("code").asInt()).isEqualTo(0);
@@ -206,19 +205,30 @@ class ReferenceCheckTest {
     }
 
     @Test
-    void competitionDeleteAllowedWhenReferenceTableMissing() throws Exception {
-        // awardie_awards 不存在(批6 前真实状态)→ 跳过检查,不误拒
-        CompetitionsDO competition = newCompetition("无引用表的竞赛");
-        assertThat(call(delete(COMP_BASE + "/delete").headers(authHeaders())
-                .param("id", String.valueOf(competition.getId()))).path("code").asInt()).isEqualTo(0);
-        assertThat(competitionsMapper.selectById(competition.getId())).isNull();
+    void referenceCheckSkipsWhenTableMissing() {
+        // 引用表不存在(批4-8 逐批建表期的真实状态)→ 跳过检查,不误拒。
+        // 批5 起 awardie_awards 已是真表,"表不存在"路径只能对不存在的表名直接验组件:
+        // checker 接受引用清单参数,传一个不存在的表名即等价于"表还没建"。
+        cn.iocoder.yudao.module.business.service.reference.AchievementReferenceChecker checker = referenceChecker;
+        assertThatCode(() -> checker.validateNoReference(1L,
+                Map.of("awardie_table_not_yet_built", "competition_id"),
+                ErrorCodeConstants.COMPETITIONS_IN_USE))
+                .as("引用表不存在时应跳过,不抛异常").doesNotThrowAnyException();
+        // 同一路径在真表有引用时必须拒绝(证明上面不是"永远放行")
+        CompetitionsDO competition = newCompetition("真表有引用的竞赛");
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, competition_id, deleted)"
+                + " VALUES (?, ?, b'0')", "引用检查竞赛", competition.getId());
+        assertThatThrownBy(() -> checker.validateNoReference(competition.getId(),
+                Map.of("awardie_awards", "competition_id"), ErrorCodeConstants.COMPETITIONS_IN_USE))
+                .isInstanceOf(ServiceException.class);
+        assertThat(competitionsMapper.selectById(competition.getId())).isNotNull();
     }
 
     @Test
     void laboratoryDeleteRejectedWhenReferencedByAward() throws Exception {
         LaboratoriesDO lab = newLaboratory("被引用的实验室");
-        createAwardsTable();
-        jdbcTemplate.update("INSERT INTO awardie_awards (laboratory_id, deleted) VALUES (?, b'0')", lab.getId());
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, laboratory_id, deleted)"
+                + " VALUES (?, ?, b'0')", "引用检查", lab.getId());
 
         JsonNode body = call(delete(LAB_BASE + "/delete").headers(authHeaders())
                         .param("id", String.valueOf(lab.getId())));
@@ -230,8 +240,8 @@ class ReferenceCheckTest {
     @Test
     void laboratoryDeleteRejectedWhenReferencedByPatent() throws Exception {
         LaboratoriesDO lab = newLaboratory("被专利引用的实验室");
-        createPatentsTable();
-        jdbcTemplate.update("INSERT INTO awardie_patents (laboratory_id, deleted) VALUES (?, b'0')", lab.getId());
+        jdbcTemplate.update("INSERT INTO awardie_patents (patent_name, laboratory_id, deleted)"
+                + " VALUES (?, ?, b'0')", "引用检查专利", lab.getId());
 
         JsonNode body = call(delete(LAB_BASE + "/delete").headers(authHeaders())
                         .param("id", String.valueOf(lab.getId())));
@@ -242,8 +252,8 @@ class ReferenceCheckTest {
     @Test
     void laboratoryDeleteAllowedWhenReferenceLogicallyDeleted() throws Exception {
         LaboratoriesDO lab = newLaboratory("引用已删的实验室");
-        createAwardsTable();
-        jdbcTemplate.update("INSERT INTO awardie_awards (laboratory_id, deleted) VALUES (?, b'1')", lab.getId());
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, laboratory_id, deleted)"
+                + " VALUES (?, ?, b'1')", "引用检查", lab.getId());
 
         assertThat(call(delete(LAB_BASE + "/delete").headers(authHeaders())
                 .param("id", String.valueOf(lab.getId()))).path("code").asInt()).isEqualTo(0);
@@ -254,9 +264,8 @@ class ReferenceCheckTest {
     void deleteListRejectedAtomicallyWhenOneReferenced() throws Exception {
         CompetitionsDO free = newCompetition("可删的竞赛");
         CompetitionsDO referenced = newCompetition("被引用的竞赛乙");
-        createAwardsTable();
-        jdbcTemplate.update("INSERT INTO awardie_awards (competition_id, deleted) VALUES (?, b'0')",
-                referenced.getId());
+        jdbcTemplate.update("INSERT INTO awardie_awards (competition_name_in_file, competition_id, deleted)"
+                + " VALUES (?, ?, b'0')", "引用检查竞赛", referenced.getId());
 
         JsonNode body = call(delete(COMP_BASE + "/delete-list").headers(authHeaders())
                 .param("ids", String.valueOf(free.getId()), String.valueOf(referenced.getId())));

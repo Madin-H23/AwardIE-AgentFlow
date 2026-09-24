@@ -19,15 +19,15 @@ ON DUPLICATE KEY UPDATE name = '学生', code = 'awardie_student', updater = 'ad
 -- 说明:芋道无超管绕过,权限全走 system_role_menu;super_admin(id=1)已在批1 菜单 SQL 授予
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
 SELECT 100, id, 'admin', 'admin' FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033);
+WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034);
 
 -- ---- 批4:学生/教师也必须有提交流权限(v2 语义:学生提交、教师可代提) ----
 -- 菜单(3003)不给(门户侧边栏由批10 前端壳决定),但三个操作权限点必须给,
 -- 否则学生提交直接 403——v2 里学生门户的提交入口是主链路,不能被权限挡死
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 101, id, 'admin', 'admin' FROM system_menu WHERE id IN (3031, 3032, 3033);
+SELECT 101, id, 'admin', 'admin' FROM system_menu WHERE id IN (3031, 3032, 3033, 3034);
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 102, id, 'admin', 'admin' FROM system_menu WHERE id IN (3031, 3032, 3033);
+SELECT 102, id, 'admin', 'admin' FROM system_menu WHERE id IN (3031, 3032, 3033, 3034);
 
 -- ---- 用户资料扩展表(芋道 system_users 装不下 v2 的 major/grade/title/qq/skills/profile_is_public) ----
 CREATE TABLE IF NOT EXISTS awardie_user_profile (

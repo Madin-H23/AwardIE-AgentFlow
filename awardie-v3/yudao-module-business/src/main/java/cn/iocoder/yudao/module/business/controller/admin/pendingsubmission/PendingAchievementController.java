@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.business.dal.dataobject.pendingsubmission.Pending
 import cn.iocoder.yudao.module.business.service.file.AwardieFileStorage;
 import cn.iocoder.yudao.module.business.service.pendingsubmission.PendingSubmissionService;
 import cn.iocoder.yudao.module.business.service.pendingsubmission.SubmissionValidator;
+import cn.iocoder.yudao.module.business.service.pendingsubmission.ReviewOperatorResolver;
 import cn.iocoder.yudao.module.business.service.pendingsubmission.SubmitterTypeResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +32,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.business.controller.admin.pendingsubmission.vo.PendingReviewReqVO;
+import cn.iocoder.yudao.module.business.controller.admin.pendingsubmission.vo.PendingTimelineRespVO;
+import cn.iocoder.yudao.module.business.service.pendingsubmission.AiReviewService;
+import cn.iocoder.yudao.module.business.service.pendingsubmission.ReviewService;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.List;
+import java.util.Map;
+import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.REVIEW_ACTION_INVALID;
+import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.REVIEW_TIMELINE_FORBIDDEN;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -40,7 +53,7 @@ import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.PENDING_
 /**
  * 管理后台 - AwardIE 待审成果提交(批4,提交流纵切面)
  *
- * <p>四个端点:v2 提交流的提交侧等价物(时间线与审核动作属批5)。
+ * <p>端点:批4 提交侧四件套 + 批5 审核侧(审核/时间线/待审列表/AI 建议)。
  * submitter_type 由服务端按登录用户角色推导,不信任前端入参。
  *
  * @author AwardIE
@@ -57,6 +70,14 @@ public class PendingAchievementController {
     private SubmitterTypeResolver submitterTypeResolver;
     @Resource
     private AwardieFileStorage fileStorage;
+    @Resource
+    private ReviewOperatorResolver operatorResolver;
+    @Resource
+    private ReviewService reviewService;
+    @Resource
+    private AiReviewService aiReviewService;
+    @Resource
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     /**
      * 提交成果(multipart)。字段问题不阻断提交(校验结果落库供审核参考,沿 v2 语义)。
@@ -75,8 +96,9 @@ public class PendingAchievementController {
             @RequestParam("data") String data) throws IOException {
         Long userId = getLoginUser().getId();
         String submitterType = submitterTypeResolver.resolve(userId);
+        ReviewOperatorResolver.Operator operator = operatorResolver.current();
         PendingAchievementDO entity = submissionService.submit(userId, submitterType, achievementType,
-                file.getOriginalFilename(), file.getBytes(), data);
+                file.getOriginalFilename(), file.getBytes(), data, operator.code(), operator.name());
         return success(cn.iocoder.yudao.framework.common.util.object.BeanUtils.toBean(entity,
                 PendingAchievementRespVO.class));
     }
@@ -143,6 +165,96 @@ public class PendingAchievementController {
         String submitterType = submitterTypeResolver.resolve(loginUser.getId());
         return SubmitterTypeResolver.TYPE_TEACHER.equals(submitterType)
                 || SubmitterTypeResolver.TYPE_ADMIN.equals(submitterType);
+    }
+
+    // ========== 批5 审核侧 ==========
+
+    /**
+     * 审核动作(approve 通过并物化 / reject 驳回)
+     *
+     * @param id   待审成果编号
+     * @param body 审核请求
+     * @return 审核后的待审成果
+     */
+    @PostMapping("/{id}/review")
+    @Operation(summary = "审核 AwardIE 待审成果(approve/reject)")
+    @Parameter(name = "id", description = "编号", required = true)
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:review')")
+    public CommonResult<PendingAchievementRespVO> review(@PathVariable("id") Long id,
+            @Valid @RequestBody PendingReviewReqVO body) {
+        ReviewOperatorResolver.Operator operator = operatorResolver.current();
+        Long userId = getLoginUser().getId();
+        PendingAchievementDO entity;
+        if (PendingReviewReqVO.ACTION_APPROVE.equals(body.getAction())) {
+            entity = reviewService.approve(id, userId, operator.code(), operator.name(), body.getComment());
+        } else if (PendingReviewReqVO.ACTION_REJECT.equals(body.getAction())) {
+            entity = reviewService.reject(id, userId, operator.code(), operator.name(), body.getComment());
+        } else {
+            throw exception(REVIEW_ACTION_INVALID);
+        }
+        return success(BeanUtils.toBean(entity, PendingAchievementRespVO.class));
+    }
+
+    /**
+     * 审核时间线(本人/教师/管理员可见)
+     *
+     * @param id 待审成果编号
+     * @return 留痕列表(创建时间升序)
+     */
+    @GetMapping("/{id}/timeline")
+    @Operation(summary = "获得待审成果审核时间线")
+    @Parameter(name = "id", description = "编号", required = true)
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
+    public CommonResult<List<PendingTimelineRespVO>> timeline(@PathVariable("id") Long id) {
+        PendingAchievementDO entity = submissionService.get(id);
+        LoginUser loginUser = getLoginUser();
+        boolean owner = loginUser.getId().equals(entity.getSubmitterId());
+        if (!owner && !hasStaffRole(loginUser)) {
+            throw exception(REVIEW_TIMELINE_FORBIDDEN);
+        }
+        return success(reviewService.timeline(id).stream()
+                .map(PendingTimelineRespVO::from)
+                .toList());
+    }
+
+    /**
+     * 教师待审列表(含提交者姓名;键名驼峰即契约)
+     *
+     * @param status 可选状态过滤
+     * @return 待审列表
+     */
+    @GetMapping("/teacher-pending-list")
+    @Operation(summary = "获得教师待审列表")
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
+    public CommonResult<List<Map<String, Object>>> teacherPendingList(
+            @RequestParam(value = "status", required = false) String status) {
+        long tenantId = TenantContextHolder.getRequiredTenantId();
+        String sql = "SELECT p.id, p.achievement_type AS achievementType, p.status, "
+                + "p.submitter_type AS submitterType, p.submitter_id AS submitterId, "
+                + "u.nickname AS submitterName, p.submit_time AS submitTime "
+                + "FROM awardie_pending_achievements p "
+                + "LEFT JOIN system_users u ON u.id = p.submitter_id "
+                + "WHERE p.tenant_id = ? AND p.deleted = b'0' "
+                + (status == null || status.isBlank() ? "" : " AND p.status = ? ")
+                + "ORDER BY p.id DESC";
+        if (status == null || status.isBlank()) {
+            return success(jdbcTemplate.queryForList(sql, tenantId));
+        }
+        return success(jdbcTemplate.queryForList(sql, tenantId, status));
+    }
+
+    /**
+     * AI 审核建议(fake/grpc 双模式;Worker 不可用时降级为人工审,不阻塞审核)
+     *
+     * @param id 待审成果编号
+     * @return 建议
+     */
+    @GetMapping("/{id}/ai-suggest")
+    @Operation(summary = "获得待审成果的 AI 审核建议")
+    @Parameter(name = "id", description = "编号", required = true)
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
+    public CommonResult<AiReviewService.Suggestion> aiSuggest(@PathVariable("id") Long id) {
+        return success(aiReviewService.suggest(submissionService.get(id)));
     }
 
     private String fileNameOf(String filePath) {

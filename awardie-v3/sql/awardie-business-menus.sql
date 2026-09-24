@@ -67,8 +67,11 @@ ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果查询', updater = 'admin';
 INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
 VALUES (3033, 'AwardIE 待审成果撤回', 'business:pending-achievement:delete', 3, 3, 3003, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果撤回', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3034, 'AwardIE 待审成果审核', 'business:pending-achievement:review', 3, 4, 3003, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果审核', updater = 'admin';
 
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
 SELECT 1, id, 'admin', 'admin' FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033);
+WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034);

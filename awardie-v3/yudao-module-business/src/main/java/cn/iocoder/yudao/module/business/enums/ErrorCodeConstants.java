@@ -55,4 +55,15 @@ public interface ErrorCodeConstants {
     /** 非法文件路径(目录穿越) */
     ErrorCode FILE_PATH_ILLEGAL = new ErrorCode(1_003_003_003, "非法文件路径");
 
+    // ========== AwardIE 审核流 1_003_004_000 ==========
+    /** 审核状态机非法流转(仅 pending 可审) */
+    ErrorCode REVIEW_ILLEGAL_STATE_TRANSITION =
+            new ErrorCode(1_003_004_000, "当前状态不可审核:{}");
+    /** 驳回必须填写原因(BR-5) */
+    ErrorCode REVIEW_COMMENT_REQUIRED = new ErrorCode(1_003_004_001, "驳回必须填写原因");
+    /** 无权查看他人审核时间线 */
+    ErrorCode REVIEW_TIMELINE_FORBIDDEN = new ErrorCode(1_003_004_002, "无权查看他人的审核时间线");
+    /** 审核动作非法(仅 approve/reject) */
+    ErrorCode REVIEW_ACTION_INVALID = new ErrorCode(1_003_004_003, "审核动作仅允许 approve/reject");
+
 }

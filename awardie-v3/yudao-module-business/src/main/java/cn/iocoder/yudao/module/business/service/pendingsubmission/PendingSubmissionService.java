@@ -35,6 +35,10 @@ public class PendingSubmissionService {
 
     /** 待审状态(v2 同) */
     public static final String STATUS_PENDING = "pending";
+    /** 已通过(物化入库) */
+    public static final String STATUS_ARCHIVED = "archived";
+    /** 已驳回(可修改后重新提交,新行) */
+    public static final String STATUS_REJECTED = "rejected";
     /** 新建版本号(v2 同) */
     private static final int INITIAL_VERSION = 1;
 
@@ -44,6 +48,8 @@ public class PendingSubmissionService {
     private AwardieFileStorage fileStorage;
     @Resource
     private SubmissionValidator validator;
+    @Resource
+    private ReviewService reviewService;
 
     /**
      * 提交成果
@@ -54,12 +60,15 @@ public class PendingSubmissionService {
      * @param filename         原始文件名
      * @param fileBytes        文件内容
      * @param dataJson         成果字段 JSON
+     * @param submitterCode    提交人账号(留痕用)
+     * @param submitterName    提交人姓名(留痕用)
      * @return 入库后的待审成果
      * @throws IOException 落盘失败
      */
     @Transactional(rollbackFor = Exception.class)
     public PendingAchievementDO submit(Long submitterId, String submitterType, String achievementType,
-            String filename, byte[] fileBytes, String dataJson) throws IOException {
+            String filename, byte[] fileBytes, String dataJson, String submitterCode, String submitterName)
+            throws IOException {
         // 1. 文件三校验(扩展名 → 大小 → 魔术字节,顺序沿 v2)
         fileStorage.assertAllowed(filename, fileBytes);
         // 2. 五类成果字段校验(结果落库,不阻断提交——沿 v2:校验结果供审核参考)
@@ -83,6 +92,8 @@ public class PendingSubmissionService {
         entity.setFileHash(stored.sha256());
         entity.setVersion(INITIAL_VERSION);
         pendingMapper.insert(entity);
+        // 提交留痕(action_type=1,v2 同:提交即留痕)
+        reviewService.auditSubmit(entity, submitterId, submitterCode, submitterName);
         return entity;
     }
 
