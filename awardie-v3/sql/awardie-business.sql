@@ -16,3 +16,8 @@ CREATE TABLE IF NOT EXISTS awardie_laboratories (
     deleted     BIT          DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室表';
+
+-- ---- 批2:用户域 schema 修正(芋道上游表的本 fork 调整,可重复执行) ----
+-- 上游 system_users.password 为 varchar(100),装不下 v2 存量 werkzeug scrypt 哈希
+-- ("scrypt:32768:8:1$16位salt$128位hex" ≈ 167 字符;BCrypt 仅 60)——批2 ETL 前置条件
+ALTER TABLE system_users MODIFY COLUMN password VARCHAR(255) NOT NULL DEFAULT '' COMMENT '密码(scrypt 存量兼容加宽)';

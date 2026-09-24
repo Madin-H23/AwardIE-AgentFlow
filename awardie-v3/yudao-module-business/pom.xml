@@ -24,10 +24,29 @@
             <version>${revision}</version>
         </dependency>
 
+        <!-- 跨模块:用户域(登录升级监听器需 AdminUserMapper;芋道 member/im/erp 同此先例) -->
+        <dependency>
+            <groupId>com.awardie</groupId>
+            <artifactId>yudao-module-system</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- scrypt 口令兼容(v2 存量 werkzeug scrypt 哈希校验;版本与 v2 一致) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+
         <!-- Web 相关 -->
         <dependency>
             <groupId>com.awardie</groupId>
             <artifactId>yudao-spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- spring-security-core:框架 starter 里是 provided(不传递),本模块登录升级监听器编译期需要 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

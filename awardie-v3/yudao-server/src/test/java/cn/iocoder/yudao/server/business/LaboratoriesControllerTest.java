@@ -3,7 +3,12 @@ package cn.iocoder.yudao.server.business;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.business.dal.dataobject.laboratory.LaboratoriesDO;
 import cn.iocoder.yudao.module.business.dal.mysql.laboratory.LaboratoriesMapper;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
+import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.server.YudaoServerApplication;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -30,7 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   AWARDIE_MYSQL_PASSWORD(yaml 占位符解析),不入库;
  * - 认证:真实登录换 Bearer token(芋道 token 认证,无 CSRF cookie),租户头 tenant-id: 1;
  *   未登录时芋道返回 **HTTP 200 + body code 401**(业务码式,非 HTTP 401);
- * - 只测外部行为(HTTP 契约 + DB 终态),不测实现细节;种子用 mapper 直插/直清。
+ * - 只测外部行为(HTTP 契约 + DB 终态),不测实现细节;种子用 mapper 直插/直清;
+ * - **测试用户自播种**(批2 prefactor):不依赖 cleanup 后的 stock admin 口令——ETL 会覆盖该口令。
  *
  * 与 v2 的语义差(有意保留芋道约定):get 不存在记录时返回 code 0 + data null(v2 为 4004),
  * 删除为逻辑删除(BaseDO @TableLogic,deleted=1)。
@@ -48,21 +55,30 @@ class LaboratoriesControllerTest {
     private static final String BASE = "/admin-api/business/laboratories";
     /** 芋道源码默认租户(awardie-cleanup.sql 保留) */
     private static final long TENANT_ID = 1L;
-    /** 本地/CI 开发环境管理员口令(与 awardie-cleanup.sql 设置一致;生产以部署配置为准) */
-    private static final String ADMIN_PASSWORD = "Awardie@V3#2026";
+    /** 测试自播种用户(批2 prefactor:与 cleanup/ETL 的环境状态解耦;芋道登录校验账号仅限数字字母,勿用连字符) */
+    private static final String TEST_USERNAME = "labtestadmin";
+    private static final String TEST_PASSWORD = "Lab@Test#2026";
 
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private LaboratoriesMapper mapper;
+    @Autowired
+    private AdminUserMapper userMapper;
+    @Autowired
+    private UserRoleMapper userRoleMapper;
 
     private final ObjectMapper om = new ObjectMapper();
+    private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
     private String token;
 
     @BeforeEach
     void loginAndClean() throws Exception {
-        // 先登录(HTTP 请求经租户过滤器,结束后会清租户上下文),再设租户上下文供 mapper 直操
-        token = loginToken();
+        // 租户拦截器要求 DB 操作带租户上下文
+        TenantContextHolder.setTenantId(TENANT_ID);
+        seedTestUser();
+        // 先登录(HTTP 请求经租户过滤器,结束后会清租户上下文),再补设供测试方法内的 mapper 直操
+        token = loginToken(TEST_USERNAME, TEST_PASSWORD);
         TenantContextHolder.setTenantId(TENANT_ID);
         // 清表(逻辑删除:全表 UPDATE deleted=1)
         mapper.delete(null);
@@ -73,11 +89,38 @@ class LaboratoriesControllerTest {
         TenantContextHolder.clear();
     }
 
-    private String loginToken() throws Exception {
+    /** 自播种测试用户(存在即复用,避免逻辑删除+唯一索引冲突);角色挂 super_admin(覆盖 laboratory 权限点)。 */
+    private void seedTestUser() {
+        AdminUserDO existing = userMapper.selectOne(new LambdaQueryWrapper<AdminUserDO>()
+                .eq(AdminUserDO::getUsername, TEST_USERNAME));
+        Long userId;
+        if (existing == null) {
+            AdminUserDO user = new AdminUserDO();
+            user.setUsername(TEST_USERNAME);
+            user.setPassword(bcrypt.encode(TEST_PASSWORD));
+            user.setNickname("实验室测试用户");
+            user.setStatus(0);
+            user.setTenantId(TENANT_ID);
+            userMapper.insert(user);
+            userId = user.getId();
+        } else {
+            userId = existing.getId();
+        }
+        if (userRoleMapper.selectCount(new LambdaQueryWrapper<UserRoleDO>()
+                .eq(UserRoleDO::getUserId, userId)) == 0) {
+            UserRoleDO ur = new UserRoleDO();
+            ur.setUserId(userId);
+            // super_admin(cleanup 保留,菜单权限已含 laboratory 四权限点)
+            ur.setRoleId(1L);
+            userRoleMapper.insert(ur);
+        }
+    }
+
+    private String loginToken(String username, String password) throws Exception {
         MvcResult result = mockMvc.perform(post("/admin-api/system/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("tenant-id", "1")
-                        .content("{\"username\":\"admin\",\"password\":\"" + ADMIN_PASSWORD + "\"}"))
+                        .content("{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"))
                 .andReturn();
         return json(result).path("data").path("accessToken").asText();
     }
