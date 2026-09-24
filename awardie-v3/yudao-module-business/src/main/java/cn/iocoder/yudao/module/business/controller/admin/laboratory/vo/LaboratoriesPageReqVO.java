@@ -18,11 +18,8 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 public class LaboratoriesPageReqVO extends PageParam {
 
-    @Schema(description = "实验室名称", example = "芋艿")
+    @Schema(description = "实验室名称(模糊匹配)", example = "网安")
     private String name;
-
-    @Schema(description = "实验室描述", example = "随便")
-    private String description;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

@@ -15,10 +15,11 @@ INSERT INTO system_role (id, name, code, sort, data_scope, data_scope_dept_ids, 
 VALUES (102, '学生', 'awardie_student', 3, 1, '', 0, 2, 'AwardIE 学生(v2 student 映射)', 'admin', 'admin', 1)
 ON DUPLICATE KEY UPDATE name = '学生', code = 'awardie_student', updater = 'admin';
 
--- ---- awardie_admin 授予业务菜单权限(批1 laboratories 切片:3000 父/3001 菜单/3011-3015 按钮) ----
+-- ---- awardie_admin 授予业务菜单权限(批1 laboratories:3000/3001/3011-3015;批3 competitions:3002/3021-3025) ----
 -- 说明:芋道无超管绕过,权限全走 system_role_menu;super_admin(id=1)已在批1 菜单 SQL 授予
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 100, id, 'admin', 'admin' FROM system_menu WHERE id IN (3000, 3001, 3011, 3012, 3013, 3014, 3015);
+SELECT 100, id, 'admin', 'admin' FROM system_menu
+WHERE id IN (3000, 3001, 3002, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025);
 
 -- ---- 用户资料扩展表(芋道 system_users 装不下 v2 的 major/grade/title/qq/skills/profile_is_public) ----
 CREATE TABLE IF NOT EXISTS awardie_user_profile (

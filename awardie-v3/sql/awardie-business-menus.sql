@@ -31,6 +31,27 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3015, 'AwardIE 实验室导出', 'business:laboratories:export', 3, 5, 3001, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 实验室导出', updater = 'admin';
 
+-- ---- 批3:competitions 竞赛(菜单 + 5 个按钮权限点) ----
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3002, 'AwardIE 竞赛管理', '', 2, 1, 3000, 'competitions', '', 'business/competition/index', 0, 'Competitions', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛管理', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3021, 'AwardIE 竞赛查询', 'business:competitions:query', 3, 1, 3002, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3022, 'AwardIE 竞赛创建', 'business:competitions:create', 3, 2, 3002, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛创建', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3023, 'AwardIE 竞赛更新', 'business:competitions:update', 3, 3, 3002, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛更新', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3024, 'AwardIE 竞赛删除', 'business:competitions:delete', 3, 4, 3002, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛删除', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3025, 'AwardIE 竞赛导出', 'business:competitions:export', 3, 5, 3002, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛导出', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 1, id, 'admin', 'admin' FROM system_menu WHERE id IN (3000, 3001, 3011, 3012, 3013, 3014, 3015);
+SELECT 1, id, 'admin', 'admin' FROM system_menu WHERE id IN (3000, 3001, 3002, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025);

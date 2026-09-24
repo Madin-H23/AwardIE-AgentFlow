@@ -192,6 +192,42 @@ class LaboratoriesControllerTest {
     }
 
     @Test
+    void duplicateNameRejected() throws Exception {
+        mockMvc.perform(post(BASE + "/create").headers(authHeaders())
+                        .content("{\"name\":\"重名实验室\",\"description\":\"第一次\"}"))
+                .andExpect(jsonPath("$.code").value(0));
+        MvcResult dup = mockMvc.perform(post(BASE + "/create").headers(authHeaders())
+                        .content("{\"name\":\"重名实验室\",\"description\":\"第二次\"}"))
+                .andExpect(jsonPath("$.code").value(1003000001))
+                .andReturn();
+        assertThat(om.readTree(dup.getResponse().getContentAsString()).path("msg").asText())
+                .contains("实验室名称已存在");
+    }
+
+    @Test
+    void updateToExistingNameRejected() throws Exception {
+        MvcResult kept = mockMvc.perform(post(BASE + "/create").headers(authHeaders())
+                        .content("{\"name\":\"保留实验室\",\"description\":\"\"}"))
+                .andExpect(jsonPath("$.code").value(0))
+                .andReturn();
+        long keptId = json(kept).path("data").asLong();
+        MvcResult renamed = mockMvc.perform(post(BASE + "/create").headers(authHeaders())
+                        .content("{\"name\":\"待改实验室\",\"description\":\"\"}"))
+                .andExpect(jsonPath("$.code").value(0))
+                .andReturn();
+        long renamedId = json(renamed).path("data").asLong();
+
+        // 改成他人名称 → 拒绝
+        mockMvc.perform(put(BASE + "/update").headers(authHeaders())
+                        .content("{\"id\":" + renamedId + ",\"name\":\"保留实验室\"}"))
+                .andExpect(jsonPath("$.code").value(1003000001));
+        // 排除自身:同名改同名(仅改简介)不误判
+        mockMvc.perform(put(BASE + "/update").headers(authHeaders())
+                        .content("{\"id\":" + keptId + ",\"name\":\"保留实验室\",\"description\":\"改简介\"}"))
+                .andExpect(jsonPath("$.code").value(0));
+    }
+
+    @Test
     void unauthenticatedRejected() throws Exception {
         // 芋道认证失败=HTTP 200 + body code 401(业务码式)
         MvcResult result = mockMvc.perform(get(BASE + "/page")
