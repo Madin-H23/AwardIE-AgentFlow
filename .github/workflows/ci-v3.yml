@@ -49,8 +49,10 @@ jobs:
       - name: Sanitizer check (no cloud-key demo strings in SQL)
         run: python3 scripts/v3_sanitize_sql_secrets.py --check
 
-      # 测试库初始化:官方(脱敏)sql + 清理 + 业务表 + 菜单,与本地手册一致
-      - name: Init awardie_v3_test (official + cleanup + business + menus)
+      # 测试库初始化:官方(脱敏)sql + 清理 + 业务表 + 菜单 + 用户域(角色/授权),与本地手册一致
+      # awardie-user-domain.sql 必须排在 menus 之后:它按菜单固定 ID 授予 awardie_admin/teacher/student 权限
+      # (批4 踩坑:漏掉本脚本 → CI 里三角色不存在 → 提交类测试全 403,而本地有角色故全绿)
+      - name: Init awardie_v3_test (official + cleanup + business + menus + user-domain)
         run: |
           MYSQL="mysql -h 127.0.0.1 -P 3307 -uroot -proot --default-character-set=utf8mb4 awardie_v3_test"
           mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS awardie_v3_test DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"
@@ -59,6 +61,7 @@ jobs:
           $MYSQL < awardie-v3/sql/awardie-cleanup.sql
           $MYSQL < awardie-v3/sql/awardie-business.sql
           $MYSQL < awardie-v3/sql/awardie-business-menus.sql
+          $MYSQL < awardie-v3/sql/awardie-user-domain.sql
           mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "CREATE USER IF NOT EXISTS 'awardie_v3'@'%' IDENTIFIED BY 'ci-test-pass'; GRANT ALL PRIVILEGES ON awardie_v3_test.* TO 'awardie_v3'@'%'; FLUSH PRIVILEGES"
 
       - name: Backend tests (awardie_v3_test, env-var password)
