@@ -30,4 +30,29 @@ public interface ErrorCodeConstants {
     /** AwardIE 竞赛单次批量删除条数超限 */
     ErrorCode COMPETITIONS_DELETE_TOO_MANY = new ErrorCode(1_003_001_003, "单次最多删除 1000 个竞赛");
 
+    // ========== AwardIE 待审成果 1_003_002_000 ==========
+    /** 待审成果不存在 */
+    ErrorCode PENDING_ACHIEVEMENT_NOT_EXISTS = new ErrorCode(1_003_002_000, "待审成果不存在");
+    /** 同一文件已在待审列表中(sha256 去重) */
+    ErrorCode PENDING_ACHIEVEMENT_DUPLICATE_FILE =
+            new ErrorCode(1_003_002_001, "该文件已在待审列表中(内容重复)");
+    /** 仅待审状态可撤回 */
+    ErrorCode PENDING_ACHIEVEMENT_NOT_WITHDRAWABLE =
+            new ErrorCode(1_003_002_003, "仅待审状态可撤回");
+    /** 无权操作他人提交 */
+    ErrorCode PENDING_ACHIEVEMENT_FORBIDDEN = new ErrorCode(1_003_002_004, "无权操作他人的提交");
+    /** 未知成果类型 */
+    ErrorCode PENDING_ACHIEVEMENT_TYPE_UNKNOWN = new ErrorCode(1_003_002_005, "未知成果类型");
+
+    // ========== AwardIE 文件域 1_003_003_000 ==========
+    /** 文件类型不在白名单 */
+    ErrorCode FILE_TYPE_NOT_ALLOWED =
+            new ErrorCode(1_003_003_000, "不支持的文件类型,仅允许 jpg/jpeg/png/pdf");
+    /** 文件超过大小上限 */
+    ErrorCode FILE_TOO_LARGE = new ErrorCode(1_003_003_001, "文件超过 10MB 上限");
+    /** 文件内容与扩展名不符 */
+    ErrorCode FILE_CONTENT_MISMATCH = new ErrorCode(1_003_003_002, "文件内容与扩展名不符(魔术字节校验失败)");
+    /** 非法文件路径(目录穿越) */
+    ErrorCode FILE_PATH_ILLEGAL = new ErrorCode(1_003_003_003, "非法文件路径");
+
 }

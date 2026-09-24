@@ -34,16 +34,20 @@ public class AchievementReferenceChecker {
             "awardie_templates", "competition_id");
 
     /**
-     * 实验室引用方:四类成果 + 其他文件(v2 同有 FK,一并保护);
-     * 实验室关联表(laboratory_downloads/images/instructors/students/assistants)与
-     * user_photos 在批4 建成后再追加进本清单。
+     * 实验室引用方:四类成果 + 其他文件 + 实验室关联四表(批4 追加:下载/图片/教师/学生);
+     * user_photos 等用户相册在批9/批10 建成后再追加。
+     * 关联表(instructors/students)无 deleted 列,columnExists 分支自动退化为不过滤 deleted。
      */
     public static final Map<String, String> LABORATORY_REFERENCES = references(
             "awardie_awards", "laboratory_id",
             "awardie_patents", "laboratory_id",
             "awardie_software_copyrights", "laboratory_id",
             "awardie_innovation_projects", "laboratory_id",
-            "awardie_other_files", "laboratory_id");
+            "awardie_other_files", "laboratory_id",
+            "awardie_laboratory_downloads", "laboratory_id",
+            "awardie_laboratory_images", "laboratory_id",
+            "awardie_laboratory_instructors", "laboratory_id",
+            "awardie_laboratory_students", "laboratory_id");
 
     /** SQL 标识符白名单:只允许小写字母与下划线,杜绝拼接注入 */
     private static final Pattern IDENTIFIER = Pattern.compile("[a-z][a-z0-9_]{0,63}");

@@ -42,6 +42,8 @@ public class LaboratoriesController {
 
     @Resource
     private LaboratoriesService laboratoriesService;
+    @Resource
+    private cn.iocoder.yudao.module.business.service.laboratory.LaboratoryAssetsService laboratoryAssetsService;
 
     @PostMapping("/create")
     @Operation(summary = "创建AwardIE 实验室")
@@ -91,6 +93,22 @@ public class LaboratoriesController {
     public CommonResult<PageResult<LaboratoriesRespVO>> getLaboratoriesPage(@Valid LaboratoriesPageReqVO pageReqVO) {
         PageResult<LaboratoriesDO> pageResult = laboratoriesService.getLaboratoriesPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, LaboratoriesRespVO.class));
+    }
+
+    @GetMapping("/detail")
+    @Operation(summary = "获得 AwardIE 实验室详情聚合(教师/学生/下载数/成果数)")
+    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    @PreAuthorize("@ss.hasPermission('business:laboratories:query')")
+    public CommonResult<Map<String, Object>> getLaboratoryDetail(@RequestParam("id") Long id) {
+        return success(laboratoryAssetsService.getDetail(id));
+    }
+
+    @GetMapping("/downloads")
+    @Operation(summary = "获得 AwardIE 实验室下载文件列表")
+    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    @PreAuthorize("@ss.hasPermission('business:laboratories:query')")
+    public CommonResult<List<Map<String, Object>>> getLaboratoryDownloads(@RequestParam("id") Long id) {
+        return success(laboratoryAssetsService.getDownloads(id));
     }
 
     @GetMapping("/export-excel")

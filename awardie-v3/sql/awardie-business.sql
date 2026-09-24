@@ -48,3 +48,93 @@ CREATE TABLE IF NOT EXISTS awardie_competitions (
     deleted                  BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 竞赛表';
+
+-- ---- 批4:pending_achievements 待审成果(提交流纵切面核心表,列对照 v2 20 列) ----
+-- achievement_data/validation_result/llm_response/ext_info 用 JSON(v2 为 JSONB)
+-- file_hash **不加 DB 唯一索引**:去重只对 status='pending' 生效(v2 语义:驳回后可重新提交),
+--   唯一索引会误伤 archived/rejected 行,且逻辑删除下已删行永久占位;唯一性在 service 层
+-- reviewer_*/review_time/review_comment/ocr_text/llm_*/session_id/assigned_reviewer_type
+--   为批5 审核流与批7 AI 抽取预留,本批提交侧只写前半部分
+CREATE TABLE IF NOT EXISTS awardie_pending_achievements (
+    id                       BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    achievement_type         VARCHAR(20)  NOT NULL COMMENT '成果类型(award/patent/software/innovation/other)',
+    achievement_data         JSON         NOT NULL COMMENT '结构化成果字段(15 字段等)',
+    validation_result        JSON         DEFAULT NULL COMMENT '校验结果(is_valid/content_issues/completeness_issues)',
+    submitter_type           VARCHAR(20)  NOT NULL COMMENT '提交人类型(student/teacher/admin)',
+    submitter_id             BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    submit_time              DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
+    status                   VARCHAR(20)  DEFAULT 'pending' NOT NULL COMMENT '状态(pending/archived/rejected)',
+    reviewer_id              BIGINT       DEFAULT NULL COMMENT '审核人编号',
+    review_time              DATETIME     DEFAULT NULL COMMENT '审核时间',
+    review_comment           TEXT         DEFAULT NULL COMMENT '审核意见',
+    file_path                VARCHAR(500) DEFAULT NULL COMMENT '文件相对路径',
+    assigned_reviewer_type   VARCHAR(20)  DEFAULT NULL COMMENT '指派审核人类型(teacher/admin)',
+    reviewer_type            VARCHAR(20)  DEFAULT NULL COMMENT '审核人类型(teacher/admin)',
+    file_hash                VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '文件 SHA-256(去重依据)',
+    ocr_text                 TEXT         DEFAULT NULL COMMENT 'OCR 文本',
+    llm_prompt               TEXT         DEFAULT NULL COMMENT 'LLM 提示词',
+    llm_response             JSON         DEFAULT NULL COMMENT 'LLM 响应',
+    ext_info                 JSON         DEFAULT NULL COMMENT '扩展信息',
+    session_id               VARCHAR(50)  DEFAULT NULL COMMENT 'AI 会话编号',
+    laboratory_id            BIGINT       DEFAULT NULL COMMENT '实验室编号',
+    version                  INT          DEFAULT 1 NOT NULL COMMENT '版本号',
+    creator                  VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time              DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater                  VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time              DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted                  BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 待审成果表';
+
+-- ---- 批4:实验室关联四表(补批3 挂账;instructors/students 为关联表,无 deleted 列) ----
+-- 说明:全部带 tenant_id(芋道租户拦截器对无 tenant_id 的表会跳过追加,导致跨租户可见)
+CREATE TABLE IF NOT EXISTS awardie_laboratory_downloads (
+    id            BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    laboratory_id BIGINT       NOT NULL COMMENT '实验室编号',
+    file_path     VARCHAR(500) NOT NULL COMMENT '文件相对路径',
+    file_title    VARCHAR(200) DEFAULT NULL COMMENT '文件标题',
+    file_name     VARCHAR(200) DEFAULT NULL COMMENT '原始文件名',
+    file_size     INT          DEFAULT NULL COMMENT '文件字节数',
+    submitter_type VARCHAR(20) DEFAULT NULL COMMENT '提交人类型',
+    submitter_id  BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    is_public     BIT(1)       DEFAULT b'1' NOT NULL COMMENT '是否公开',
+    display_order INT          DEFAULT 0 NOT NULL COMMENT '显示顺序',
+    creator       VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time   DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater       VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted       BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id     BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室下载文件表';
+
+CREATE TABLE IF NOT EXISTS awardie_laboratory_images (
+    id            BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    laboratory_id BIGINT       NOT NULL COMMENT '实验室编号',
+    image_path    VARCHAR(500) NOT NULL COMMENT '图片相对路径',
+    file_name     VARCHAR(100) DEFAULT NULL COMMENT '原始文件名',
+    file_hash     VARCHAR(64)  DEFAULT NULL COMMENT '文件 SHA-256',
+    description   TEXT         DEFAULT NULL COMMENT '图片说明',
+    display_order INT          DEFAULT 0 NOT NULL COMMENT '显示顺序',
+    submitter_type VARCHAR(20) DEFAULT NULL COMMENT '提交人类型',
+    submitter_id  BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    creator       VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time   DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater       VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted       BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id     BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室图片表';
+
+CREATE TABLE IF NOT EXISTS awardie_laboratory_instructors (
+    laboratory_id BIGINT NOT NULL COMMENT '实验室编号',
+    teacher_id    BIGINT NOT NULL COMMENT '教师编号',
+    tenant_id     BIGINT DEFAULT 0 NOT NULL COMMENT '租户编号',
+    PRIMARY KEY (laboratory_id, teacher_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室教师关联表';
+
+CREATE TABLE IF NOT EXISTS awardie_laboratory_students (
+    laboratory_id BIGINT NOT NULL COMMENT '实验室编号',
+    student_id    BIGINT NOT NULL COMMENT '学生编号',
+    tenant_id     BIGINT DEFAULT 0 NOT NULL COMMENT '租户编号',
+    PRIMARY KEY (laboratory_id, student_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 实验室学生关联表';

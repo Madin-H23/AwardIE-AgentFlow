@@ -52,6 +52,23 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3025, 'AwardIE 竞赛导出', 'business:competitions:export', 3, 5, 3002, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 竞赛导出', updater = 'admin';
 
+-- ---- 批4:pending-achievements 待审成果(菜单 + 3 个按钮权限点) ----
+-- 提交走 multipart(POST /submit),查询走 /my-page(按当前用户过滤),撤回走 /withdraw
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3003, 'AwardIE 成果提交', '', 2, 2, 3000, 'pending-achievements', '', 'business/pendingachievement/index', 0, 'PendingAchievement', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 成果提交', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3031, 'AwardIE 待审成果提交', 'business:pending-achievement:create', 3, 1, 3003, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果提交', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3032, 'AwardIE 待审成果查询', 'business:pending-achievement:query', 3, 2, 3003, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3033, 'AwardIE 待审成果撤回', 'business:pending-achievement:delete', 3, 3, 3003, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 待审成果撤回', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater)
-SELECT 1, id, 'admin', 'admin' FROM system_menu WHERE id IN (3000, 3001, 3002, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025);
+SELECT 1, id, 'admin', 'admin' FROM system_menu
+WHERE id IN (3000, 3001, 3002, 3003, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033);
