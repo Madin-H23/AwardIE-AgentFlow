@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.business.service.file;
 
 import cn.iocoder.yudao.module.business.enums.ErrorCodeConstants;
+import cn.iocoder.yudao.module.business.service.reference.FileReferenceChecker;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -48,8 +50,16 @@ public class AwardieFileStorage {
 
     private final Path root;
 
+    @Resource
+    private FileReferenceChecker referenceChecker;
+
     public AwardieFileStorage(@Value("${awardie.file.root:files/v3}") String root) {
         this.root = Path.of(root).toAbsolutePath().normalize();
+    }
+
+    /** 供纯单测注入引用检查器(Spring 容器里由 @Resource 注入) */
+    void setReferenceChecker(FileReferenceChecker referenceChecker) {
+        this.referenceChecker = referenceChecker;
     }
 
     /**
@@ -90,7 +100,7 @@ public class AwardieFileStorage {
      */
     public StoredFile store(String filename, byte[] bytes) throws IOException {
         Files.createDirectories(root);
-        String sha256 = sha256Hex(bytes);
+        String sha256 = hashOf(bytes);
         String target = sha256.substring(0, FILE_NAME_HASH_LENGTH) + "." + extOf(filename);
         Path dest = root.resolve(target).normalize();
         if (!dest.startsWith(root)) {
@@ -103,14 +113,33 @@ public class AwardieFileStorage {
     }
 
     /**
+     * 只算内容哈希,不落盘
+     *
+     * <p>用于提交链的"去重前置":去重判据是 file_hash,而哈希可由字节直接算出,
+     * 不必先落盘就知道是否重复——这消除了"重复提交"这个最常见的孤儿文件场景。
+     *
+     * @param bytes 文件内容
+     * @return 内容哈希(小写 hex)
+     */
+    public String sha256Hex(byte[] bytes) {
+        return hashOf(bytes);
+    }
+
+    /**
      * 解析相对路径为绝对路径,并防目录穿越
+     *
+     * <p>删除能力加入后多了一道防线:空串与 "." 会解析成存储根目录本身,
+     * 若被 delete 命中就是删整个存储根,故这里直接拒绝。
      *
      * @param relativePath 相对存储根的路径
      * @return 绝对路径
      */
     public Path resolve(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) {
+            throw exception(ErrorCodeConstants.FILE_PATH_ILLEGAL);
+        }
         Path resolved = root.resolve(relativePath).normalize();
-        if (!resolved.startsWith(root)) {
+        if (!resolved.startsWith(root) || resolved.equals(root)) {
             throw exception(ErrorCodeConstants.FILE_PATH_ILLEGAL);
         }
         return resolved;
@@ -137,7 +166,38 @@ public class AwardieFileStorage {
         return CONTENT_TYPES.getOrDefault(extOf(relativePath), DEFAULT_CONTENT_TYPE);
     }
 
-    private static String sha256Hex(byte[] bytes) {
+    /**
+     * 删除文件(幂等:文件不存在不报错)
+     *
+     * <p>内容寻址的坑:同内容同扩展名共用一个路径,直接删可能打断其他记录的引用。
+     * 补偿式删除请走 {@link #deleteIfUnreferenced};只有确认独占时才用本方法。
+     *
+     * @param relativePath 相对存储根的路径
+     * @throws IOException 删除失败
+     */
+    public void delete(String relativePath) throws IOException {
+        Files.deleteIfExists(resolve(relativePath));
+    }
+
+    /**
+     * 仅当该路径无任何业务记录引用时才删除(内容寻址下的安全删除)
+     *
+     * <p>用于两类补偿:提交入库失败回滚、模板删除回收样本图。两者都可能出现
+     * "同内容文件已被别的记录引用"的情况,故删前必须查引用。
+     *
+     * @param relativePath 相对存储根的路径
+     * @return true=已删除(或本来不存在);false=仍被引用,已保留
+     * @throws IOException 删除失败
+     */
+    public boolean deleteIfUnreferenced(String relativePath) throws IOException {
+        if (referenceChecker.isReferenced(relativePath)) {
+            return false;
+        }
+        delete(relativePath);
+        return true;
+    }
+
+    private static String hashOf(byte[] bytes) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(bytes));

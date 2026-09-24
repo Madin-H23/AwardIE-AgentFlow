@@ -75,4 +75,24 @@ public interface ErrorCodeConstants {
     /** 成果库记录存在关联数据,无法删除 */
     ErrorCode VAULT_RECORD_IN_USE = new ErrorCode(1_003_005_002, "成果存在关联数据,无法删除:{}");
 
+    // ========== AwardIE 证书模板 1_003_006_000 ==========
+    /** 证书模板不存在 */
+    ErrorCode TEMPLATE_NOT_EXISTS = new ErrorCode(1_003_006_000, "证书模板不存在");
+    /** 同竞赛 + 同授予角色已存在模板 */
+    ErrorCode TEMPLATE_DUPLICATE_ROLE = new ErrorCode(1_003_006_001, "该竞赛的该授予角色已存在模板");
+    /** 授予角色非法(仅学生/教师) */
+    ErrorCode TEMPLATE_ROLE_INVALID = new ErrorCode(1_003_006_002, "授予角色必须是学生或教师");
+    /** 规则字段 JSON 格式非法 */
+    ErrorCode TEMPLATE_JSON_INVALID = new ErrorCode(1_003_006_003, "规则字段 JSON 格式非法:{}");
+    /** 模板规则字段取值非法(长度区间反向/负数等) */
+    ErrorCode TEMPLATE_RULE_INVALID = new ErrorCode(1_003_006_004, "模板规则字段不合法:{}");
+    /** 模板无样本图(无法试测) */
+    ErrorCode TEMPLATE_SAMPLE_IMAGE_MISSING = new ErrorCode(1_003_006_005, "该模板没有样本图片,无法试测");
+    /** 样本图物理文件已失存 */
+    ErrorCode TEMPLATE_SAMPLE_IMAGE_LOST = new ErrorCode(1_003_006_006, "样本图文件缺失");
+
+    // ========== AwardIE AI Worker 1_003_007_000 ==========
+    /** AI Worker 不可用(gRPC 连接失败/超时/流中断) */
+    ErrorCode AI_WORKER_UNAVAILABLE = new ErrorCode(1_003_007_000, "AI Worker 不可用({}),请稍后重试");
+
 }

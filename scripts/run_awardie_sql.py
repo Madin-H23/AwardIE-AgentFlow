@@ -35,10 +35,20 @@ def main() -> int:
     conn = pymysql.connect(host="127.0.0.1", port=3307, user="awardie_v3",
                            password=password, database=db)
     cur = conn.cursor()
+    # DDL 幂等:容忍"已存在"类错误(MySQL 无 ADD COLUMN IF NOT EXISTS,重放时列已存在)
+    tolerated = (1060, 1050, 1061, 1062)  # duplicate column/table/keyname/entry
     for path in sys.argv[2:]:
+        applied = skipped = 0
         for stmt in load_statements(path):
-            cur.execute(stmt)
-        print(f"{db}: applied {path} ({len(load_statements(path))} stmts)")
+            try:
+                cur.execute(stmt)
+                applied += 1
+            except pymysql.err.OperationalError as e:
+                if e.args and e.args[0] in tolerated:
+                    skipped += 1
+                else:
+                    raise
+        print(f"{db}: applied {path} ({applied} stmts, {skipped} already-present skipped)")
     conn.commit()
     conn.close()
     return 0

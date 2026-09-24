@@ -87,7 +87,29 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3043, 'AwardIE 成果库删除', 'business:vault:delete', 3, 3, 3004, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 成果库删除', updater = 'admin';
 
+-- ---- 批7:templates 证书模板(菜单 + 5 个按钮权限点) ----
+-- 样本图回显与三个 AI 端点(试测/创建前抽取/生成 prompt)归 query 权限:
+-- AI 是模板编辑的辅助动作,单开 AI 权限点会造出"能配不能试"的半残授权态。
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3005, 'AwardIE 证书模板管理', '', 2, 4, 3000, 'templates', '', 'business/template/index', 0, 'Template', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板管理', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3051, 'AwardIE 证书模板查询', 'business:templates:query', 3, 1, 3005, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3052, 'AwardIE 证书模板创建', 'business:templates:create', 3, 2, 3005, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板创建', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3053, 'AwardIE 证书模板更新', 'business:templates:update', 3, 3, 3005, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板更新', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3054, 'AwardIE 证书模板删除', 'business:templates:delete', 3, 4, 3005, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板删除', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3055, 'AwardIE 证书模板导出', 'business:templates:export', 3, 5, 3005, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板导出', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3004, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043);
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055);

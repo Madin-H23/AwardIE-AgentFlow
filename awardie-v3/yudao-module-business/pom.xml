@@ -63,6 +63,30 @@
             <artifactId>yudao-spring-boot-starter-redis</artifactId>
         </dependency>
 
+        <!-- gRPC(批7:AI Worker 客户端;版本在 yudao-dependencies 统一管理) -->
+        <!-- 用 netty-shaded 而非 grpc-netty:芋道自带 Netty 4.2,非 shaded 版会与之抢版本 -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+        <!-- gRPC 生成物用 @javax.annotation.Generated(protoc 1.64 的输出形态);
+             JDK11+ 移出了 javax.annotation,芋道用的是 jakarta 包,故显式补这个编译期依赖。
+             纯 provided:运行期注解不存在也无影响,仅生成物源码需要它能编译。 -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Test 测试相关 -->
         <dependency>
             <groupId>com.awardie</groupId>

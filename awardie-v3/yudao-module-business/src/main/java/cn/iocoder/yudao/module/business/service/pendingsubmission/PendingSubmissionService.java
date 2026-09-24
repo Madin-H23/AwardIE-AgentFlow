@@ -8,8 +8,11 @@ import cn.iocoder.yudao.module.business.controller.admin.pendingsubmission.vo.Pe
 import cn.iocoder.yudao.module.business.controller.admin.pendingsubmission.vo.PendingAchievementRespVO;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.validation.annotation.Validated;
 
 import java.io.IOException;
@@ -22,15 +25,16 @@ import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.PENDING_
 import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.PENDING_ACHIEVEMENT_NOT_WITHDRAWABLE;
 
 /**
- * 待审成果提交服务(批4):三校验 → 五类字段校验 → 落盘去重 → 入库
+ * 待审成果提交服务(批4):三校验 → 五类字段校验 → 去重前置 → 落盘 → 入库
  *
- * <p>顺序与 v2 SubmissionService.submit 一致;去重只针对 status=pending
- * (v2 语义:驳回后修改可重新提交,新行)。
+ * <p>顺序与 v2 SubmissionService.submit 一致(去重只看 status=pending,
+ * 驳回后可重新提交,新行);批7 把去重提到落盘之前,理由见 submit() 内注释。
  *
  * @author AwardIE
  */
 @Service
 @Validated
+@Slf4j
 public class PendingSubmissionService {
 
     /** 待审状态(v2 同) */
@@ -73,13 +77,21 @@ public class PendingSubmissionService {
         fileStorage.assertAllowed(filename, fileBytes);
         // 2. 五类成果字段校验(结果落库,不阻断提交——沿 v2:校验结果供审核参考)
         SubmissionValidator.ValidationResult validation = validator.validate(achievementType, dataJson);
-        // 3. 落盘 + sha256
-        AwardieFileStorage.StoredFile stored = fileStorage.store(filename, fileBytes);
-        // 4. 去重:同内容且仍在待审队列则拒(驳回后可重新提交)
-        if (pendingMapper.selectByFileHashAndStatus(stored.sha256(), STATUS_PENDING) != null) {
+        // 3. 去重前置(批7):去重判据是 file_hash,哈希可由字节直接算出,不必落盘就知道。
+        //    v2/批4 原顺序是"先落盘再去重",重复提交会留下一个其实已被引用的文件——
+        //    虽然内容寻址下它通常无害,但会让"落盘成功=一定有记录指向"这个不变式失效。
+        String fileHash = fileStorage.sha256Hex(fileBytes);
+        if (pendingMapper.selectByFileHashAndStatus(fileHash, STATUS_PENDING) != null) {
             throw exception(PENDING_ACHIEVEMENT_DUPLICATE_FILE);
         }
-        // 5. 入库
+        // 4. 落盘 + sha256
+        AwardieFileStorage.StoredFile stored = fileStorage.store(filename, fileBytes);
+        // 5. 立刻注册孤儿补偿(批7):必须在入库之前注册——若等到 insert 之后,
+        //    insert 本身失败时回调还没挂上,那正是最需要补偿的场景。
+        //    文件是内容寻址,同一内容可能已被其他记录引用(同内容另一个待审行、物化后的
+        //    成果证书/其他文件、实验室附件、模板样本图),故回收走"删前查引用"。
+        registerOrphanCompensation(stored.relativePath());
+        // 6. 入库
         PendingAchievementDO entity = new PendingAchievementDO();
         entity.setAchievementType(achievementType);
         entity.setAchievementData(dataJson == null || dataJson.isBlank() ? "{}" : dataJson);
@@ -95,6 +107,45 @@ public class PendingSubmissionService {
         // 提交留痕(action_type=1,v2 同:提交即留痕)
         reviewService.auditSubmit(entity, submitterId, submitterCode, submitterName);
         return entity;
+    }
+
+    /**
+     * 注册事务回滚补偿:回滚后回收刚落盘的文件
+     *
+     * <p>为何用 TransactionSynchronization 而非 try/catch:try/catch 只能看见方法体内的
+     * 异常,看不见**事务提交阶段**的失败(commit 时死锁、连接中断),而那正是最需要补偿的场景。
+     * afterCompletion 钩子在事务真正结束后才跑,能看到最终状态。
+     *
+     * <p>钩子里的引用查询不能依赖当前线程的事务资源(afterCompletion 时 DataSource
+     * 资源尚未解绑,复用旧连接可能看到不确定状态),因此显式要求新连接。
+     *
+     * <p>已知边界:补偿本身失败(磁盘满/权限)会留残留文件,按可接受处理——
+     * 残留只是占空间,不影响数据正确性;为它引入事务代理重写不值得。
+     */
+    private void registerOrphanCompensation(String relativePath) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                // 只在**明确回滚**时回收。STATUS_UNKNOWN 表示事务结果未知(例如 commit 时
+                // 连接中断),不等于没提交——此时库行可能已经落库,删文件会打断它。
+                if (status != TransactionSynchronization.STATUS_ROLLED_BACK) {
+                    if (status == TransactionSynchronization.STATUS_UNKNOWN) {
+                        log.warn("[submit] 事务结果未知,保留文件待巡检清理: {}", relativePath);
+                    }
+                    return;
+                }
+                try {
+                    // 事务已结束,此时的查询走新连接,能看到回滚后的真实行状态
+                    fileStorage.deleteIfUnreferenced(relativePath);
+                } catch (Exception e) {
+                    // 补偿失败只留残留文件,不影响数据正确性,记 warn 不打断流程
+                    log.warn("[submit] 孤儿文件补偿失败,残留文件: {}", relativePath, e);
+                }
+            }
+        });
     }
 
     /**

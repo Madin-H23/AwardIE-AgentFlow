@@ -246,6 +246,9 @@ public class PendingAchievementController {
     /**
      * AI 审核建议(fake/grpc 双模式;Worker 不可用时降级为人工审,不阻塞审核)
      *
+     * <p>归属校验与 download/timeline 同口径:AI 建议会回带 OCR 文本与字段问题清单,
+     * 属提交材料内容,不能只凭 query 权限让任意登录用户枚举 id 读他人成果。
+     *
      * @param id 待审成果编号
      * @return 建议
      */
@@ -254,7 +257,13 @@ public class PendingAchievementController {
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
     public CommonResult<AiReviewService.Suggestion> aiSuggest(@PathVariable("id") Long id) {
-        return success(aiReviewService.suggest(submissionService.get(id)));
+        LoginUser loginUser = getLoginUser();
+        PendingAchievementDO entity = submissionService.get(id);
+        boolean owner = loginUser.getId().equals(entity.getSubmitterId());
+        if (!owner && !hasStaffRole(loginUser)) {
+            throw exception(PENDING_ACHIEVEMENT_FORBIDDEN);
+        }
+        return success(aiReviewService.suggest(entity));
     }
 
     private String fileNameOf(String filePath) {

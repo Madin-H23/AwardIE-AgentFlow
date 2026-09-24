@@ -274,3 +274,16 @@ justauth:
     type: REDIS
     prefix: 'social_auth_state:' # 缓存前缀，目前只对 Redis 缓存生效，默认 JUSTAUTH::STATE::
     timeout: 24h # 超时时长，目前只对 Redis 缓存生效，默认 3 分钟
+
+# AwardIE 批7:AI Worker(gRPC)
+# mode=fake 走确定性桩(开发/CI 默认,无需 Worker 进程);grpc 调真 Python Worker(127.0.0.1:50060)
+# 三个 deadline 对齐 v2 实测值:抽取跑 OCR+LLM 120s;prompt 本地拼串 60s;审核流 LangGraph 全链 320s
+awardie:
+  ai:
+    worker:
+      mode: fake
+      host: 127.0.0.1
+      port: 50060
+      extract-timeout-seconds: 120
+      prompt-timeout-seconds: 60
+      review-timeout-seconds: 320

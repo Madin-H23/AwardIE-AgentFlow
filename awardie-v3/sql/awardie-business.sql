@@ -328,3 +328,43 @@ CREATE TABLE IF NOT EXISTS awardie_innovation_project_students (
     deleted         BIT(1)      DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id       BIGINT      DEFAULT 0 NOT NULL COMMENT '租户编号'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目学生关联表';
+
+-- ============================================================================
+-- 批7 模板域(证书模板)
+-- ============================================================================
+-- 对照 v2 templates 表(16 字段)+ 批4 文件域收敛(样本图存相对路径而非 BYTEA)。
+-- 相对 v2 的三处建模变更(均为修缺陷/补基础设施,语义见 docs 批7 01-spec 决策表):
+--   1. 补芋道标准列 tenant_id/creator/create_time/updater/update_time/deleted
+--      —— v2 无租户列、无逻辑删除,无法接入芋道租户拦截器与逻辑删除基础设施。
+--   2. granted_role 提为独立列 —— v2 把它藏在 default_fields JSONB 里,唯一性
+--      ("同竞赛+同角色只能一个模板")只能靠 JSON 取值比较,不可索引。且编辑时
+--      default_fields 整体可写,可改掉 role 绕过唯一性,那是缺陷不是语义。
+--   3. 规则字段用 MySQL JSON 类型 —— 与批4 validation_result / 批6 other_members 一致。
+-- 不加 name/status/业务编号:v2 无此语义、无存量值可回填,凭空建模等于发明业务。
+-- 唯一性不建 DB 索引(沿项目既定纪律):逻辑删除下唯一索引会误伤已删行。
+-- competition_id 建索引:它是列表过滤维度,也是批3 COMPETITION_REFERENCES 已预留的
+-- 竞赛删除保护依据(表一建成,该保护自动生效,无需改批3 代码)。
+CREATE TABLE IF NOT EXISTS awardie_templates (
+    id                BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    template_type     VARCHAR(20)  DEFAULT 'AWARD' COMMENT '模板类型(仅 AWARD 奖状)',
+    competition_id    BIGINT       NOT NULL COMMENT '竞赛编号',
+    granted_role      VARCHAR(20)  NOT NULL COMMENT '授予角色(学生/教师)',
+    min_length        INT          DEFAULT 0 COMMENT '抽取文本最小长度(0=不限)',
+    max_length        INT          DEFAULT 0 COMMENT '抽取文本最大长度(0=不限)',
+    keywords          JSON         DEFAULT NULL COMMENT '关键词(字符串数组)',
+    sample_text       TEXT         DEFAULT NULL COMMENT '样本文本(OCR 原文/参考文本)',
+    sample_extracted  JSON         DEFAULT NULL COMMENT '样本抽取结果(对象)',
+    default_fields    JSON         DEFAULT NULL COMMENT '默认字段(对象)',
+    llm_fields        JSON         DEFAULT NULL COMMENT '交给 LLM 的字段(对象)',
+    language          VARCHAR(10)  DEFAULT 'zh' COMMENT '输出语言',
+    need_translate    BIT(1)       DEFAULT b'0' COMMENT '是否需要翻译',
+    sample_image_path VARCHAR(500) DEFAULT NULL COMMENT '样本图相对路径(批4 文件域)',
+    creator           VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time       DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater           VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted           BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id         BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    KEY idx_templates_competition (competition_id),
+    KEY idx_templates_comp_role (competition_id, granted_role)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 证书模板表';

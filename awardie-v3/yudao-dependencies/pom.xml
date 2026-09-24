@@ -84,6 +84,11 @@
         <weixin-java.version>4.8.6-20260825.155844</weixin-java.version>
         <bouncycastle.version>1.80</bouncycastle.version>
         <alipay-sdk-java.version>4.40.978.ALL</alipay-sdk-java.version>
+        <!-- gRPC 相关(批7:AI Worker 客户端) -->
+        <!-- 版本与 v2 生成 stub 时一致(protoc 3.25.3 / grpc-java 插件 1.64.0),
+             避免生成物与运行期版本漂移;protobuf-java 也固定版本,防被 Spring Boot BOM 覆盖 -->
+        <grpc.version>1.64.0</grpc.version>
+        <protobuf.version>3.25.3</protobuf.version>
     </properties>
 
     <dependencyManagement>
@@ -115,6 +120,29 @@
                         <artifactId>spring-boot-starter</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <!-- gRPC(批7:AI Worker 客户端) -->
+            <!-- protobuf-java 显式固定版本:必须 ≥ 生成 stub 用的 protoc 3.25.3,
+                 否则被 Spring Boot BOM 降到更低版本会出现生成物/运行期不兼容 -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+                <version>${grpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.awardie</groupId>
