@@ -1,0 +1,13 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+/dist*
+pnpm-debug
+# 只忽略仓库根目录的自动生成声明;src/types/ 下的两份是 vue-tsc 的类型来源,
+# CI 只跑 build(不跑 dev)生成不出来,必须入库否则 ts:check 报 Cannot find name 'ref'
+/auto-*.d.ts
+.idea
+.history
+output/
+.playwright-cli/
