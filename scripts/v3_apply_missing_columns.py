@@ -51,11 +51,21 @@ def find_cli():
 
 
 def run_sql(statements):
-    """把 SQL 文本喂给 mysql CLI。返回 (rc, 合并输出)。"""
+    """把 SQL 文本喂给 mysql CLI。返回 (rc, 合并输出)。
+
+    用哪个账号由 AWARDIE_MYSQL_USER 决定,默认 awardie_v3(应用账号,与其它 v3
+    脚本一致,适用于本地 dev 库与演练库)。
+
+    CI 必须显式设成 root:该 job 的 AWARDIE_MYSQL_PASSWORD 装的是**应用用户**口令,
+    与 root 口令不是同一个值。这里连栽两次(先用 root + 应用口令,再用应用账号 +
+    应用口令,CI 都不认),根因是**没先看清 CI 这个 job 的凭据到底怎么发的**——
+    相邻步骤 `-uroot -proot` 天天过,那才是这个 job 的既有口径。
+    """
     cli = find_cli()
     password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
+    user = os.environ.get('AWARDIE_MYSQL_USER', 'awardie_v3')
     cmd = [cli, '--default-character-set=utf8mb4', '-h', '127.0.0.1', '-P', '3307',
-           '-uroot', f'-p{password}', TARGET_DB, '-N', '-B']
+           f'-u{user}', f'-p{password}', TARGET_DB, '-N', '-B']
     p = subprocess.run(cmd, input=statements, capture_output=True, text=True,
                        encoding='utf-8', errors='replace')
     return p.returncode, ((p.stdout or '') + (p.stderr or '')).strip()

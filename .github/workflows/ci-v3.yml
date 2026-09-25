@@ -73,10 +73,15 @@ jobs:
       # 「awardie-business.sql 是否把切流需要的列/表都建全了」——少建一列,
       # 真实切流那一刻那列数据就没了,而单测与后端测试都不会发现(表能建、能跑,
       # 只是少了一列)。--check 只查不落盘,退出码 1 = 缺列缺表。
+      # 凭据口径与本 job 相邻步骤一致(它们都用 -uroot -proot,天天过):
+      # CI 里 AWARDIE_MYSQL_PASSWORD 装的是**应用用户**口令,与 root 口令不是同一个值,
+      # 拿应用口令连 root 会 Access denied。脚本默认用应用账号(本地/演练库正确),
+      # CI 这里显式切到 root。
       - name: Cutover schema completeness (batch11)
         run: python3 scripts/v3_apply_missing_columns.py --check
         env:
-          AWARDIE_MYSQL_PASSWORD: ci-test-pass
+          AWARDIE_MYSQL_USER: root
+          AWARDIE_MYSQL_PASSWORD: root
           AWARDIE_TARGET_DB: awardie_v3_test
 
       - name: Backend tests (awardie_v3_test, env-var password)
