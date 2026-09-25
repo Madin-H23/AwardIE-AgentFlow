@@ -23,3 +23,7 @@ sqlalchemy>=2.0
 flask-migrate>=4.0
 # data_export/导出类页面依赖（export_utils 顶层 import；缺则蓝图导入期 ImportError → 路由 500）
 pandas>=2.0.0
+
+# 重新生成 AI Worker 的 gRPC stub 用(批7 scripts/gen_v3_java_stub.sh 的工具侧依赖;
+# 运行时不需要,故只放测试/开发清单)。Python 侧生成物另见 ai_worker/README.md。
+grpcio-tools>=1.83.1

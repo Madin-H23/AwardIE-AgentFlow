@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,14 +35,21 @@ public class SubmissionValidator {
     /** 日期年份下限/上限(v2 同) */
     private static final int MIN_YEAR = 2000;
     private static final int MAX_YEAR = 2100;
-    /** 登记号长度(v2:11 位) */
-    private static final int REGISTRATION_NUMBER_LENGTH = 11;
     /** 申请号最小长度(v2:<5 视为格式错) */
     private static final int APPLICATION_NUMBER_MIN_LENGTH = 5;
     /** 申请号前缀(v2:CN 开头) */
     private static final String APPLICATION_NUMBER_PREFIX = "CN";
-    /** 登记号前缀(v2:20 开头) */
-    private static final String REGISTRATION_NUMBER_PREFIX = "20";
+    /**
+     * 软著登记号格式(2026-09-25 用户拍板放宽;v2 的"20 开头 + 11 位"是错的)
+     *
+     * <p>真实规范:年份(4 位数字)+ {@code SR} + 流水号(7 位数字),如 {@code 2024SR2002865}。
+     * 证据:V1 与 V2 库里的软著登记号**都是** {@code 2024SR2002865}(13 位、含 SR)——
+     * v2 的规则会把它判非法,且 v2 自己的报错文案示例也写的是这个 12-13 位含字母的格式,
+     * 规则与示例互相矛盾(批4 发现,批4-批8 一直挂账)。
+     *
+     * <p>保留 20 开头的年份下限校验(2000-2100 与日期校验同口径,挡明显笔误)。
+     */
+    private static final Pattern REGISTRATION_NUMBER_PATTERN = Pattern.compile("^20\\d{2}SR\\d{7}$");
 
     /** 五类成果类型码(v2 语义;controller 层 defaultValue="award" 与之对应) */
     public static final String TYPE_AWARD = "award";
@@ -156,12 +164,10 @@ public class SubmissionValidator {
         if (registration.isBlank()) {
             return;
         }
-        boolean badPrefix = !registration.startsWith(REGISTRATION_NUMBER_PREFIX);
-        boolean badLength = registration.length() != REGISTRATION_NUMBER_LENGTH;
-        if (badPrefix || badLength) {
-            // 注:v2 原文案示例 "2023SR123456" 实为 12 位且含字母,与"11 位数字"自相矛盾;
-            // 本批保持 v2 校验规则(20 开头且长度=11)等价,仅修正文案,规则是否放宽见 02-实施 挂账
-            content.add("登记号格式不正确,应以 20 开头且长度为 11 位");
+        // 2026-09-25 用户拍板:按真实软著登记号规范(年份+SR+流水号)校验。
+        // v2 的"20 开头且长度 11"会把真实数据 2024SR2002865(13 位含字母)判为非法。
+        if (!REGISTRATION_NUMBER_PATTERN.matcher(registration).matches()) {
+            content.add("登记号格式不正确,应为 4 位年份 + SR + 7 位流水号,如 2024SR2002865");
         }
     }
 

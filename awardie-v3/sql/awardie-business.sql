@@ -311,8 +311,33 @@ CREATE TABLE IF NOT EXISTS awardie_innovation_projects (
     update_time         DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     deleted             BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id           BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
-    UNIQUE KEY uk_innovation_project_no (project_no)
+    active_project_no   VARCHAR(50)
+        GENERATED ALWAYS AS (IF(deleted = b'0', project_no, NULL)) VIRTUAL
+        COMMENT '活动行的项目编号(逻辑删除后置 NULL 以释放唯一键)',
+    UNIQUE KEY uk_innovation_project_no_active (tenant_id, active_project_no)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目表';
+
+-- ---- 批8 决策2:project_no 改租户内唯一 + 逻辑删除后不占位(2026-09-25 用户拍板) ----
+-- 改造前:UNIQUE(project_no) 是**全表**唯一,导致 A 租户用了 DC-001,B 租户就不能用;
+--         且逻辑删除后该编号仍被唯一键占着,无法用同一编号重建。
+-- 改造后:生成列 active_project_no —— 活动行(deleted=0)时等于 project_no,已删行为 NULL。
+--         MySQL 唯一索引不约束 NULL,故"仅活动行参与唯一",一次性解决三件事:
+--           · 同租户同编号的活动行唯一(导入幂等判据)
+--           · 不同租户可各自使用相同编号(多租户隔离)
+--           · 逻辑删除后可复用同一编号(不留永久占位)
+-- 虚拟列(VIRTUAL,非 STORED):只参与索引计算,不占行存储。
+-- 注:应用层查询早已按 (project_no, tenant_id) 走(见 InnovationProjectMapper.selectByProjectNo),
+--     本次只改数据库约束,Java 侧无需改动。
+-- 旧库(批8 之前已建表的环境)迁移:批6 建表时无生成列、唯一键是全表的 uk_innovation_project_no。
+-- 这两条只对旧库有意义;全新库建表已含最终形态,故由 scripts/ 的一次性迁移脚本处理,
+-- 不写在本文件里(否则重放会撞 1091 Can't DROP)。
+-- 迁移内容:
+--   ALTER TABLE awardie_innovation_projects
+--     ADD COLUMN active_project_no VARCHAR(50)
+--       GENERATED ALWAYS AS (IF(deleted = b'0', project_no, NULL)) VIRTUAL;
+--   ALTER TABLE awardie_innovation_projects
+--     DROP INDEX uk_innovation_project_no,
+--     ADD UNIQUE KEY uk_innovation_project_no_active (tenant_id, active_project_no);
 
 -- ---- 大创学生关联(成果库"我的大创"依赖) ----
 -- 批8 补约束:v2 该表无主键约束外的任何完整性(无 FK、无唯一、无索引),

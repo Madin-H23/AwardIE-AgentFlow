@@ -67,3 +67,10 @@ flask-wtf>=1.2.0
 prometheus-client>=0.20.0
 sqlalchemy>=2.0
 flask-migrate>=4.0
+
+# AI Worker gRPC(批7/批8 决策7,2026-09-25 补)
+# 缺失后果:ai_worker/server.py 顶层 `import grpc` 直接 ImportError,Worker 起不来。
+# 此前三份 requirements 均未声明,本机 venv 恰好装过才没暴露——换机器照清单装必炸。
+# 版本下界与本机实测一致(grpcio 1.83.1 / protobuf 7.35.1)。
+grpcio>=1.83.1
+protobuf>=5.29.0

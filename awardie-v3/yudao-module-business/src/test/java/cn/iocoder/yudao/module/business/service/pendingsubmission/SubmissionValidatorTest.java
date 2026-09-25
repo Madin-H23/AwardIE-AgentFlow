@@ -84,23 +84,36 @@ class SubmissionValidatorTest {
 
     @Test
     void softwareValid() {
-        // 规则沿 v2:20 开头且长度=11(2023SR + 5 位 = 11)
-        SubmissionValidator.ValidationResult result = validator.validate("software",
-                "{\"software_name\":\"某系统\",\"registration_number\":\"2023SR12345\"}");
-        assertThat(result.isValid()).isTrue();
+        // 真实软著登记号规范(2026-09-25 用户拍板放宽):4 位年份 + SR + 7 位流水号
+        // 回归锚点是 V1/V2 库里的真实数据 2024SR2002865——v2 的"20开头+11位"会把它判非法
+        SubmissionValidator.ValidationResult real = validator.validate("software",
+                "{\"software_name\":\"某系统\",\"registration_number\":\"2024SR2002865\"}");
+        assertThat(real.isValid()).as("V1/V2 真实登记号应通过校验").isTrue();
     }
 
     @Test
     void softwareRejectsBadRegistrationNumber() {
-        // 非 20 开头
-        SubmissionValidator.ValidationResult notStart20 = validator.validate("software",
-                "{\"software_name\":\"X\",\"registration_number\":\"1999SR12345\"}");
-        assertThat(notStart20.contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
-        // 20 开头但长度 12(v2 文案示例即此值,实为不合规——规则等价性用例)
-        SubmissionValidator.ValidationResult wrongLength = validator.validate("software",
-                "{\"software_name\":\"X\",\"registration_number\":\"2023SR123456\"}");
-        assertThat(wrongLength.isValid()).isFalse();
-        assertThat(wrongLength.contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
+        // 年份不对(1999 不是 20xx)
+        assertThat(validator.validate("software",
+                "{\"software_name\":\"X\",\"registration_number\":\"1999SR2002865\"}")
+                .contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
+        // 流水号位数不对(6 位,规范是 7 位)
+        assertThat(validator.validate("software",
+                "{\"software_name\":\"X\",\"registration_number\":\"2024SR200285\"}")
+                .contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
+        // 缺 SR 段(v2 允许的纯 11 位数字,现已被规范排除)
+        SubmissionValidator.ValidationResult digitsOnly = validator.validate("software",
+                "{\"software_name\":\"X\",\"registration_number\":\"20231234567\"}");
+        assertThat(digitsOnly.isValid()).as("纯 11 位数字不再算合法登记号").isFalse();
+        assertThat(digitsOnly.contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
+        // SR 小写
+        assertThat(validator.validate("software",
+                "{\"software_name\":\"X\",\"registration_number\":\"2024sr2002865\"}")
+                .contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
+        // 流水号含字母
+        assertThat(validator.validate("software",
+                "{\"software_name\":\"X\",\"registration_number\":\"2024SR20028A5\"}")
+                .contentIssues()).anyMatch(s -> s.contains("登记号格式不正确"));
     }
 
     @Test

@@ -220,7 +220,7 @@ class PendingSubmissionControllerTest {
 
         // software(png) —— 登记号 20 开头且 11 位
         JsonNode software = submit(studentToken, file("software.png", PNG_BYTES), "software",
-                "{\"software_name\":\"某系统\",\"registration_number\":\"2023SR12345\"}");
+                "{\"software_name\":\"某系统\",\"registration_number\":\"2024SR2002865\"}");
         assertThat(software.at("/data/validationResult").asText()).contains("\"is_valid\":true");
 
         // innovation / other
