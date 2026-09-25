@@ -162,6 +162,14 @@ CREATE TABLE IF NOT EXISTS awardie_achievement_audit_log (
     tenant_id        BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 成果审核留痕表';
 
+-- ---- 批9:审计留痕补索引 ----
+-- 现状:本表只有主键。批5 的"按 achievement_id 查时间线"已是全表扫,
+-- 批9 的 admin 全量分页(按 create_time 区间 + id 倒序 + 多种筛选)会放大这个问题。
+-- 不放唯一约束:留痕只增不改,不存在逻辑删除后重名场景(deleted 恒 0)。
+ALTER TABLE awardie_achievement_audit_log
+    ADD INDEX idx_audit_achievement (achievement_id),
+    ADD INDEX idx_audit_create_time (create_time);
+
 -- ---- awards 获奖成果(approve 时物化;竞赛按名匹配,缺失自动建 is_auto_added) ----
 CREATE TABLE IF NOT EXISTS awardie_awards (
     id                       BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',

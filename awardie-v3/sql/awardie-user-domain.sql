@@ -15,11 +15,11 @@ INSERT INTO system_role (id, name, code, sort, data_scope, data_scope_dept_ids, 
 VALUES (102, '学生', 'awardie_student', 3, 1, '', 0, 2, 'AwardIE 学生(v2 student 映射)', 'admin', 'admin', 1)
 ON DUPLICATE KEY UPDATE name = '学生', code = 'awardie_student', updater = 'admin';
 
--- ---- awardie_admin 授予业务菜单权限(批1 laboratories;批3 competitions;批4 待审成果;批6 成果库;批7 模板;批8 大创) ----
+-- ---- awardie_admin 授予业务菜单权限(批1 laboratories;批3 competitions;批4 待审成果;批6 成果库;批7 模板;批8 大创;批9 统计导出日志) ----
 -- 说明:芋道无超管绕过,权限全走 system_role_menu;super_admin(id=1)已在批1 菜单 SQL 授予
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 100, id, 'admin', 'admin', 1 FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065);
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065, 3007, 3008, 3009, 3071, 3072, 3073);
 
 -- ---- 批4:学生/教师也必须有提交流权限(v2 语义:学生提交、教师可代提) ----
 -- 菜单(3003)不给(门户侧边栏由批10 前端壳决定),但三个操作权限点必须给,

@@ -129,7 +129,27 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3065, 'AwardIE 大创状态校准', 'business:innovation:calibrate', 3, 5, 3006, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 大创状态校准', updater = 'admin';
 
+-- ---- 批9:统计分析 / 数据导出 / 业务日志(菜单 + 3 个查询权限点) ----
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3007, 'AwardIE 统计分析', '', 2, 6, 3000, 'stats', '', 'business/stats/index', 0, 'Stats', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 统计分析', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3008, 'AwardIE 数据导出', '', 2, 7, 3000, 'export', '', 'business/export/index', 0, 'Export', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 数据导出', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3009, 'AwardIE 业务日志', '', 2, 8, 3000, 'logs', '', 'business/logs/index', 0, 'Logs', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 业务日志', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3071, 'AwardIE 统计查询', 'business:stats:query', 3, 1, 3007, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 统计查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3072, 'AwardIE 导出查询', 'business:export:query', 3, 1, 3008, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 导出查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3073, 'AwardIE 日志查询', 'business:logs:query', 3, 1, 3009, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 日志查询', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065);
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065, 3007, 3008, 3009, 3071, 3072, 3073);

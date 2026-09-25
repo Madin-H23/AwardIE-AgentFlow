@@ -1,7 +1,10 @@
 package cn.iocoder.yudao.module.business.dal.mysql.audit;
 
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.business.controller.admin.log.vo.AuditLogPageReqVO;
 import cn.iocoder.yudao.module.business.dal.dataobject.audit.AchievementAuditLogDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -39,6 +42,26 @@ public interface AchievementAuditLogMapper extends BaseMapperX<AchievementAuditL
         return selectCount(new LambdaQueryWrapperX<AchievementAuditLogDO>()
                 .eq(AchievementAuditLogDO::getAchievementId, achievementId)
                 .eq(AchievementAuditLogDO::getActionType, actionType));
+    }
+
+    /**
+     * 业务审计日志分页(批9)
+     *
+     * <p>排序固定 id DESC(留痕只增不改,id 即时间序,比 create_time 稳定——后者同秒可能并列)。
+     *
+     * @param pageReqVO 分页与筛选参数
+     * @return 分页结果
+     */
+    default PageResult<AchievementAuditLogDO> selectAuditPage(AuditLogPageReqVO pageReqVO) {
+        return selectPage(pageReqVO, new LambdaQueryWrapperX<AchievementAuditLogDO>()
+                .eqIfPresent(AchievementAuditLogDO::getAchievementKind, pageReqVO.getAchievementKind())
+                .eqIfPresent(AchievementAuditLogDO::getActionType, pageReqVO.getActionType())
+                .and(StrUtil.isNotBlank(pageReqVO.getOperatorKeyword()), w -> w
+                        .like(AchievementAuditLogDO::getOperatorName, pageReqVO.getOperatorKeyword())
+                        .or()
+                        .like(AchievementAuditLogDO::getOperatorCode, pageReqVO.getOperatorKeyword()))
+                .betweenIfPresent(AchievementAuditLogDO::getCreateTime, pageReqVO.getCreateTime())
+                .orderByDesc(AchievementAuditLogDO::getId));
     }
 
 }

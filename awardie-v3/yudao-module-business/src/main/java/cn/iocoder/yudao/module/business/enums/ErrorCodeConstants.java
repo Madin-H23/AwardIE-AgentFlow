@@ -123,4 +123,8 @@ public interface ErrorCodeConstants {
     /** 经费非法(非数字) */
     ErrorCode INNOVATION_FUNDING_INVALID = new ErrorCode(1_003_008_009, "经费格式非法,应为数字");
 
+    // ========== AwardIE 统计/导出/日志 1_003_009_000 ==========
+    /** 导出结果超过行数上限 */
+    ErrorCode EXPORT_TOO_MANY_ROWS = new ErrorCode(1_003_009_000, "导出结果 {} 行,超过上限 {} 行,请缩小筛选范围");
+
 }
