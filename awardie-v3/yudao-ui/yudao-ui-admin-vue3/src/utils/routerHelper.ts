@@ -155,7 +155,17 @@ export const generateRoute = (routes: AppCustomRouteRecordRaw[]): AppRouteRecord
       // 目录
       if (route.children?.length) {
         // 顶级目录承载后台整体框架；非顶级目录只作为 router-view 占位，避免多级菜单嵌套 Layout。
-        data.component = Number(route.parentId) === 0 ? Layout : getParentLayout()
+        // AwardIE 改动(批10)：顶级目录若在菜单里填了 component，则用它当壳而不是后台 Layout，
+        // 让「学生门户」有一套独立的壳(底部 tab 导航)而不必走静态路由特例。
+        // 存量菜单的 component 一律是 ''，所以这条分支对它们是 no-op。
+        let shell: any = Number(route.parentId) === 0 ? Layout : getParentLayout()
+        if (route.component) {
+          const shellIndex = modulesRoutesKeys.findIndex((ev) => ev.includes(route.component!))
+          if (shellIndex >= 0) {
+            shell = modules[modulesRoutesKeys[shellIndex]]
+          }
+        }
+        data.component = shell
         data.redirect = getRedirect(route.path, route.children)
         // 外链
       } else if (isUrl(route.path)) {

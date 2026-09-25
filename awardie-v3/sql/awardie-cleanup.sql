@@ -1,13 +1,16 @@
 -- ============================================================================
--- AwardIE v3 演示数据清理脚本(幂等,可重复执行)
--- 用法:官方 sql(脱敏版)导入 awardie_v3 库后,追加执行本脚本:
---   mysql -u awardie_v3 -p*** awardie_v3 < awardie-cleanup.sql
--- 上游升级流程:重新 archive 新基线 → 重跑 v3_sanitize_sql_secrets.py → 重跑本脚本
+-- ⚠️⚠️ 危险:本脚本会 DELETE 掉 system_users / system_user_role / system_users_post
+--    里 id<>1 的**全部**行。存量用户 ETL(scripts/etl_v2_users_to_v3.py)导入的
+--    1834 个师生账号也在这批里。
 --
--- 保留(最小系统集):admin 用户、super_admin/common 角色、总部组织链(100/101/103)、
---   系统菜单/角色菜单/字典/租户默认包/infra_config 功能配置、quartz 引擎表结构
--- 删除:演示用户/角色/组织/岗位、yudao_demo* 业务演示、infra 演示配置
---   (短信/邮件/文件/社交/job)、oauth2 演示客户端、quartz 演示任务
+--    2026-09-26 实测事故:在 ETL 已导入的 dev 库(awardie_v3)上直接跑了本脚本,
+--    师生账号被清空、admin 身份被改写,登录全部失效。恢复办法是重跑
+--    scripts/etl_v2_users_to_v3.py(幂等,按主键 upsert,约 1 分钟)。
+--
+--    ⇒ **只允许在「刚导入官方 sql、还没跑 ETL」的库上执行本脚本**
+--      (即 CI 建库流程:官方 sql → 本脚本 → awardie-business*.sql → user-domain)。
+--      已有 ETL 数据的 dev 库需要清数据时,用 DELETE ... WHERE created_by='etl'
+--      之类带条件的语句,不要整表清。
 -- ============================================================================
 
 -- ---- 租户:保留默认租户(芋道源码 id=1) ----
@@ -81,3 +84,30 @@ DELETE FROM QRTZ_BLOB_TRIGGERS;
 DELETE FROM QRTZ_FIRED_TRIGGERS;
 DELETE FROM QRTZ_TRIGGERS;
 DELETE FROM QRTZ_JOB_DETAILS;
+
+-- ---- 批10:已删前端模块对应的菜单 ----
+-- 前端基座只保留 infra/system 两套(24 个示例业务模块已删,见前端 README)。
+-- 但芋道种子里这些模块的菜单还在,component 字段指向已不存在的 .vue,
+-- 动态路由解析失败 = **点进去白屏**,且管理员侧边栏被十几个死目录塞满。
+-- 这里把菜单与对应授权一起清掉。先子后父(无外键,按逻辑顺序)。
+-- 保留:id=1 系统管理、id=2 基础设施、3000/3100/3200 三个 AwardIE 目录。
+-- 注:MySQL 不允许 DELETE 的目标表出现在自身子查询里,读 system_menu 的
+-- 那两条用派生表包一层绕开。
+SET @dead_roots := '114,148,272,373,449,480,597,791,860,959,1348,1418,1476,1637,1894,8000,8200,194,347,348';
+
+-- 1) 授权:先删子菜单的,再删根目录的
+DELETE FROM system_role_menu WHERE menu_id IN (
+  SELECT d.id FROM (
+    SELECT id FROM system_menu
+    WHERE parent_id IN (SELECT id FROM system_menu WHERE FIND_IN_SET(id, @dead_roots))
+  ) d
+);
+DELETE FROM system_role_menu WHERE menu_id IN (
+  SELECT d.id FROM (SELECT id FROM system_menu WHERE FIND_IN_SET(id, @dead_roots)) d
+);
+
+-- 2) 菜单:先删子菜单的,再删根目录的
+DELETE FROM system_menu WHERE parent_id IN (
+  SELECT d.id FROM (SELECT id FROM system_menu WHERE FIND_IN_SET(id, @dead_roots)) d
+);
+DELETE FROM system_menu WHERE FIND_IN_SET(id, @dead_roots);

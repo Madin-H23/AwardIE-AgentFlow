@@ -50,7 +50,7 @@ import {
 } from '@/api/business'
 import download from '@/utils/download'
 
-defineOptions({ name: 'ExportIndex' })
+defineOptions({ name: 'Export' })
 
 const message = useMessage()
 const format = ref<'xlsx' | 'csv'>('xlsx')

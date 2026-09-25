@@ -153,3 +153,52 @@ ON DUPLICATE KEY UPDATE name = 'AwardIE 日志查询', updater = 'admin';
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
 WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065, 3007, 3008, 3009, 3071, 3072, 3073);
+
+-- ============================================================================
+-- 批10:教师工作台(两个菜单,走动态路由——P4 明确不做静态路由特例)
+-- 教师是审核流执行者(批5 整条审核流建立在教师初审上),无入口即业务断链。
+-- 菜单 ID 段:3100+(3000 段是管理端,3100 段是教师端,互不重叠)
+-- ============================================================================
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3100, 'AwardIE 教师工作台', '', 1, 6, 0, '/teacher', 'ep:user-filled', '', 0, '', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 教师工作台', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3101, '待审成果', '', 2, 1, 3100, 'pending', '', 'business/teacher/pending/index', 0, 'TeacherPending', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '待审成果', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3102, '我的指导成果', '', 2, 2, 3100, 'awards', '', 'business/teacher/awards/index', 0, 'TeacherAwards', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '我的指导成果', updater = 'admin';
+
+-- ---- 分配给超级管理员(role_id=1) ----
+INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
+SELECT 1, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102);
+
+-- ============================================================================
+-- 批10:学生门户(三场景,移动端优先)
+-- 走菜单而不是静态路由(P4 同理:静态路由是第二条代码路径)。3200 目录的
+-- component 指向我们自己的 PortalLayout,让门户有独立壳——框架的 generateRoute
+-- 默认给顶级目录硬套后台 Layout,已在 routerHelper.ts 加了「顶级目录填了
+-- component 就用它当壳」的分支(存量菜单 component 皆为 '',对它们无影响)。
+-- 菜单 ID 段:3200+
+-- ============================================================================
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3200, 'AwardIE 学生门户', '', 1, 7, 0, '/portal', 'ep:medal', 'portal/PortalLayout', 0, 'Portal', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 学生门户', component = 'portal/PortalLayout', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3201, '提交成果', '', 2, 1, 3200, 'submit', '', 'portal/submit/index', 0, 'PortalSubmit', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '提交成果', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3202, '我的提交', '', 2, 2, 3200, 'submissions', '', 'portal/submissions/index', 0, 'PortalSubmissions', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '我的提交', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3203, '我的证书', '', 2, 3, 3200, 'certificates', '', 'portal/certificates/index', 0, 'PortalCertificates', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '我的证书', updater = 'admin';
+
+-- ---- 分配给超级管理员(role_id=1) ----
+INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
+SELECT 1, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3200, 3201, 3202, 3203);

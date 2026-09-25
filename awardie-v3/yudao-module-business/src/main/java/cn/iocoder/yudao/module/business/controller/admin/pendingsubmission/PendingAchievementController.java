@@ -182,6 +182,13 @@ public class PendingAchievementController {
     @PreAuthorize("@ss.hasPermission('business:pending-achievement:review')")
     public CommonResult<PendingAchievementRespVO> review(@PathVariable("id") Long id,
             @Valid @RequestBody PendingReviewReqVO body) {
+        // 权限点只是"能不能进这个门",不等于"该不该由这个人审"。审核是教师/管理员的
+        // 专属动作(approve 还会物化写入成果库),与 download/timeline/ai-suggest 三个
+        // 兄弟端点一致地补一道 staff 校验:权限授权一旦配错(如把 review 误授给学生
+        // 角色),这里仍是最后一道闸。
+        if (!hasStaffRole(getLoginUser())) {
+            throw exception(PENDING_ACHIEVEMENT_FORBIDDEN);
+        }
         ReviewOperatorResolver.Operator operator = operatorResolver.current();
         Long userId = getLoginUser().getId();
         PendingAchievementDO entity;

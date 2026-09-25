@@ -34,7 +34,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { getStatsByCompetition, getStatsOverview } from '@/api/business'
 
-defineOptions({ name: 'StatsIndex' })
+defineOptions({ name: 'Stats' })
 
 const loading = ref(false)
 const summary = ref<any>({})

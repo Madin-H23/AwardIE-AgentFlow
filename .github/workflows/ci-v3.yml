@@ -1,16 +1,21 @@
 # v3 CI(批1-T05):芋道底座后端测试 + SQL 脱敏守卫
+# 批10 追加 frontend-v3:pnpm install → 大小写守卫 → build:local → ts:check → lint
 # 触发:仅 refactor/v3-yudao-migration 分支且变动落在 awardie-v3/(与 ci-v2 双过滤不空跑)
 # 依赖:MySQL 8 service(3307)+ Redis service(6379);测试库 awardie_v3_test 由官方 sql+cleanup+业务 sql 初始化
-# 前端门禁(lint/build/E2E)待批10 yudao-ui-admin-vue3 submodule 初始化后接入
 name: ci-v3
 
 on:
   push:
     branches: ['refactor/v3-yudao-migration']
-    paths: ['awardie-v3/**', '.github/workflows/ci-v3.yml']
+    paths:
+      - 'awardie-v3/**'
+      - 'scripts/v3_*.py'
+      - '.github/workflows/ci-v3.yml'
   pull_request:
     branches: ['refactor/v3-yudao-migration']
-    paths: ['awardie-v3/**']
+    paths:
+      - 'awardie-v3/**'
+      - 'scripts/v3_*.py'
 
 jobs:
   backend-v3:
@@ -69,3 +74,56 @@ jobs:
         working-directory: awardie-v3
         env:
           AWARDIE_MYSQL_PASSWORD: ci-test-pass
+
+  # ---------------------------------------------------------------------------
+  # 前端门禁(批10)。不依赖 MySQL/Redis——只验构建、类型、规范与路径大小写。
+  #
+  # 为什么单独一个 job:前端不需要后端服务,和后端并行跑省时间;失败时也能一眼
+  # 分清是「后端测试挂了」还是「前端构建挂了」。
+  #
+  # 关键点(都是本地 Windows 测不出来的):
+  # 1. **跑 Linux**:Windows 文件系统大小写不敏感,`@/views/Home/Index.vue` 之类
+  #    的大小写错配本地能解析,Linux 会解析失败 → 独立的 v3_check_import_case.py 门禁。
+  # 2. **pnpm-lock.yaml 入库**:用 --frozen-lockfile 保证可复现构建。
+  # 3. **不重装生成物**:src/types/auto-*.d.ts 由 dev 模式生成、已入库,
+  #    CI 只跑 build 生成不出来,没有它 ts:check 会报满屏 Cannot find name 'ref'。
+  # ---------------------------------------------------------------------------
+  frontend-v3:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: awardie-v3/yudao-ui/yudao-ui-admin-vue3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 前端依赖(1.1G)用 Git LFS 之外的方式拿:仓库里 node_modules/dist 已 gitignore,
+          # 这里是首次 pnpm install
+          lfs: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: awardie-v3/yudao-ui/yudao-ui-admin-vue3/pnpm-lock.yaml
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Linux-only 门禁:import 路径大小写与磁盘实际一致
+      # 脚本在仓库根 scripts/,不跟随 job 级 working-directory
+      - name: Import path casing check
+        working-directory: .
+        run: python3 scripts/v3_check_import_case.py
+
+      - name: Build (hard gate)
+        run: pnpm build:local
+
+      - name: Type check
+        run: pnpm ts:check
+
+      - name: Lint (eslint, no fix)
+        run: pnpm lint:eslint:check
