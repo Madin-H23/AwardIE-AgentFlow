@@ -227,6 +227,11 @@ MAPS = {
 # 补值上报(运行期填充)
 FILL_REPORT: dict[str, int] = {}
 
+# 框架列:芋道 BaseDO/多租户约定。create_time/update_time 由 MAPS 从 v2 的
+# created_at/updated_at 映射(用 v2 原值,不取 NOW());这里只列 MAPS 里没有的。
+FRAME_COLS = ['creator', 'updater', 'deleted', 'tenant_id']
+FRAME_VALUES = {'creator': 'etl', 'updater': 'etl', 'deleted': bytes([0]), 'tenant_id': 1}
+
 # 目标表 → v2 源表
 SOURCES = {t: t.replace('awardie_', '') for t in MAPS}
 SOURCES['awardie_achievement_audit_log'] = 'achievement_audit_log'
@@ -286,21 +291,37 @@ def fetch_all():
 
 
 def write_all(data, conn):
+    """把行写进目标库。
+
+    框架列(creator/updater/deleted/tenant_id)对**所有表统一追加**,不按表分叉。
+    首版给无主键的关联表单独特判、主表走 `elif 'creator' in write_cols`,
+    而 creator 根本不在 MAPS 里(它不是 v2 源列)——那个分支对主表恒为假,
+    框架列被整体跳过,落回 DDL 默认值 `tenant_id DEFAULT 0`。
+    后果:迁入的主表数据全在租户 0,而芋道按 `tenant_id = 当前租户(1)` 过滤
+    ⇒ **切流后全部成果数据对应用不可见**;而行数对账照样全绿。
+    统一处理 + 下面的列数自检,是为了不再有「某张表悄悄少写几列」的空间。
+    """
     cur = conn.cursor()
     for target in ORDER:
         cols, raw, rows = data[target]
         if not rows:
             print(f'[write] {target:<40} 源 0 行,跳过')
             continue
-        if target in NO_PK:
-            write_cols = cols + ['creator', 'deleted', 'tenant_id']
-        else:
-            write_cols = cols
+        # create_time/update_time 已由 MAPS 从 v2 的 created_at/updated_at 映射而来,
+        # 这里只补 MAPS 里没有的框架列。且**只补目标表实际存在的**:
+        # 各表框架列并不齐(批4 建的 awardie_award_student_winners 就没有
+        # updater / update_time),盲加会 Unknown column。
+        cur.execute("""SELECT column_name FROM information_schema.columns
+                       WHERE table_schema = DATABASE() AND table_name = %s""", (target,))
+        actual = {r[0] for r in cur.fetchall()}
+        unknown = [c for c in cols if c not in actual]
+        if unknown:
+            raise SystemExit(
+                f'[FATAL] {target} 缺少列 {unknown},ETL 映射与目标 schema 不符,中止')
+        extra = [c for c in FRAME_COLS if c not in cols and c in actual]
+        write_cols = cols + extra
         ph = ', '.join(['%s'] * len(write_cols))
-        if 'id' in write_cols:
-            ups = ', '.join(f"`{c}` = VALUES(`{c}`)" for c in write_cols if c != 'id')
-        else:
-            ups = ', '.join(f"`{c}` = VALUES(`{c}`)" for c in write_cols)
+        ups = ', '.join(f"`{c}` = VALUES(`{c}`)" for c in write_cols if c != 'id')
         sql = (f"INSERT INTO `{target}` ({', '.join('`'+c+'`' for c in write_cols)}) "
                f"VALUES ({ph}) ON DUPLICATE KEY UPDATE {ups}")
         payload = []
@@ -308,13 +329,11 @@ def write_all(data, conn):
             # pymysql 不能直接传 dict/list(MySQL JSON 列靠字符串入列再解析)
             row = [json.dumps(v, ensure_ascii=False, default=str)
                    if isinstance(v, (dict, list)) else v for v in vals]
-            if target in NO_PK:
-                row += ['etl', b'\x00', 1]
-            elif 'creator' in write_cols:
-                row[write_cols.index('creator')] = 'etl'
-                row[write_cols.index('updater')] = 'etl'
-                row[write_cols.index('deleted')] = b'\x00'
-                row[write_cols.index('tenant_id')] = 1
+            row += [FRAME_VALUES[c] for c in extra]
+            if len(row) != len(write_cols):
+                raise SystemExit(
+                    f'[FATAL] {target} 列数与值数不符({len(write_cols)} vs {len(row)})——'
+                    f'宁可中止也不写半张表,写错列比不写更难发现')
             payload.append(tuple(row))
         cur.executemany(sql, payload)
         print(f'[write] {target:<40} 源 {len(rows):>5} 行,影响 {cur.rowcount} 行')

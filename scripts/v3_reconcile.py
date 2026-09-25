@@ -186,20 +186,35 @@ def main() -> int:
 
         print(f'{target:<40} {len(pg_rows):>6} {len(my_rows):>6} {len(missing):>6}  {hash_state}')
 
+    # L4 框架列核验:行数与业务字段都对得上,不代表应用看得见这行。
+    # 芋道按 `tenant_id = 当前租户` 过滤,一行 tenant_id=0 就是「迁进来了但永远查不到」,
+    # 而 L1/L2/L3 会全绿——批11 真的踩过:框架列漏写,落回 DDL 默认 tenant_id=0,
+    # 2895 行成果数据全部对应用不可见,而当时对账报的是「齐平」。
     print()
+    frame_bad = []
+    for target, _src, _idcol, _cols in CHECKS:
+        # 判据只管**ETL 写入的行**(creator='etl'):v3 库里本来就可能有它自己的
+        # 测试行(tenant_id 不为 1),那是 v3 的事,不该由迁移门禁来背锅。
+        myc.execute(f"SELECT COUNT(*) FROM `{target}` "
+                    f"WHERE creator = 'etl' AND (tenant_id <> 1 OR deleted <> %s)", (bytes([0]),))
+        bad = myc.fetchone()[0]
+        if bad:
+            frame_bad.append((target, f'ETL 写入的行里有 {bad} 行 tenant_id<>1 或 deleted<>0 —— '
+                                     f'这类行对应用不可见(芋道按 tenant_id 过滤)'))
+
     for t, n in FILL_REPORT.items():
         cols_ = ', '.join(NOTNULL_FALLBACK.get(t, {}))
         print(f'[known] {t}: {n} 行源侧 {cols_} 为 NULL,ETL 按已声明的 NOTNULL_FALLBACK '
               f'补值后写入(目标列 NOT NULL 所致),已归一后参与哈希比对,非数据丢失')
     for t, msg in warned:
         print(f'[warn] {t}: {msg}')
-    for t, msg in failed:
+    for t, msg in failed + frame_bad:
         print(f'[FAIL] {t}: {msg}')
     pg.close(); my.close()
-    if failed:
-        print(f'\n[FAIL] {len(failed)} 张表对账不通过 —— 切流闸门不能开')
+    if failed or frame_bad:
+        print(f'\n[FAIL] {len(failed) + len(frame_bad)} 项对账不通过 —— 切流闸门不能开')
         return 1
-    print(f'\n[ok] 对账齐平(无丢数、无内容不一致)'
+    print(f'\n[ok] 对账齐平(无丢数、无内容不一致、框架列 tenant_id/deleted 正常)'
           + (f';{len(warned)} 张表目标侧多出 v3 自有数据(已按交集核验)' if warned else ''))
     return 0
 

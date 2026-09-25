@@ -39,25 +39,30 @@ ETL_STEPS = [
     ('scripts/v3_apply_missing_columns.py', '批11 schema 补列/建表'),
     ('scripts/etl_v2_business_to_v3.py', '业务成果域(批11 主体)'),
 ]
-CHECKS = []  # 复检改为脚本内联(见 main 的 [check] 段)
-_OLD_CHECKS = [
-    ('scripts/v3_apply_missing_columns.py', '批11 schema 完整性'),
-    ('scripts/v3_check_import_case.py', 'import 路径大小写(Linux-only 缺陷的本地前置)'),
-]
+CHECKS = []  # 复检项在 main 里内联执行(见 [check] 段),这里不再维护清单
 
 
-def run(cmd, env=None, cwd=ROOT):
-    r = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True,
-                       text=True, encoding='utf-8', errors='replace', env=env, cwd=cwd)
+def run(cmd, env=None, cwd=ROOT, stdin_text=None):
+    """只走**参数列表**,不拼 shell 字符串。
+
+    首版用 `shell=True` 把口令与 SQL 拼成一行命令,口令里出现 `"`/`$`/反引号/`;`
+    就会破甚至被当成命令执行。与 v3_apply_missing_columns.py 统一:参数列表 +
+    stdin 喂 SQL,口令只作为独立 argv 元素出现,不经过任何 shell 解析。
+    """
+    r = subprocess.run(cmd, capture_output=True, text=True, input=stdin_text,
+                       encoding='utf-8', errors='replace', env=env, cwd=cwd)
     return r.returncode, (r.stdout or '') + (r.stderr or '')
 
 
+def mysql_cmd(db, password):
+    return [MYSQL_CLI, '--default-character-set=utf8mb4', '-h', '127.0.0.1', '-P', '3307',
+            '-uroot', f'-p{password}'] + ([db] if db else [])
+
+
 def sql(db, script, password):
+    """把 SQL 文件内容经 stdin 喂给 mysql(替代 shell 的 `< file` 重定向)。"""
     with open(os.path.join(ROOT, script), encoding='utf-8') as f:
-        pass
-    return run([MYSQL_CLI, '--default-character-set=utf8mb4', '-h', '127.0.0.1', '-P', '3307',
-                '-uroot', f'-p{password}', db], env=None) if False else run(
-        f'"{MYSQL_CLI}" --default-character-set=utf8mb4 -h 127.0.0.1 -P 3307 -uroot -p"{password}" {db} < "{os.path.join(ROOT, script)}"')
+        return run(mysql_cmd(db, password), stdin_text=f.read())
 
 
 def main() -> int:
@@ -69,15 +74,15 @@ def main() -> int:
     env = dict(os.environ, AWARDIE_MYSQL_PASSWORD=password)
 
     def drop():
-        run(f'"{MYSQL_CLI}" --default-character-set=utf8mb4 -h 127.0.0.1 -P 3307 -uroot -p"{password}" '
-            f'-e "DROP DATABASE IF EXISTS {REHEARSE_DB}"')
+        run(mysql_cmd(None, password) + ['-e', f'DROP DATABASE IF EXISTS {REHEARSE_DB}'])
 
     print(f'=== 切流演练(演练库 {REHEARSE_DB},不碰 awardie_v3)===')
     drop()
 
     # 1) 建库
-    rc, out = run(f'"{MYSQL_CLI}" --default-character-set=utf8mb4 -h 127.0.0.1 -P 3307 -uroot -p"{password}" '
-                  f'-e "CREATE DATABASE {REHEARSE_DB} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin"')
+    rc, out = run(mysql_cmd(None, password) +
+                  ['-e', f'CREATE DATABASE {REHEARSE_DB} DEFAULT CHARACTER SET utf8mb4 '
+                         f'COLLATE utf8mb4_bin'])
     print(f'[1/3] 建库 {"OK" if rc == 0 else "FAIL " + out[:200]}')
     if rc != 0:
         return 1
@@ -86,8 +91,7 @@ def main() -> int:
     # CI 也会 CREATE USER + GRANT 到 awardie_v3_test,否则后端测试连不上)
     grant_sql = ("CREATE USER IF NOT EXISTS 'awardie_v3'@'%' IDENTIFIED BY 'rehearsal-pass'; "
                  f"GRANT ALL PRIVILEGES ON {REHEARSE_DB}.* TO 'awardie_v3'@'%'; FLUSH PRIVILEGES")
-    rc, out = run(f'"{MYSQL_CLI}" --default-character-set=utf8mb4 -h 127.0.0.1 -P 3307 '
-                  f'-uroot -p"{password}" -e "{grant_sql}"')
+    rc, out = run(mysql_cmd(None, password) + ['-e', grant_sql])
     if rc != 0:
         print(f'[1/3] 授权失败: {out[:300]}')
         if not keep:
