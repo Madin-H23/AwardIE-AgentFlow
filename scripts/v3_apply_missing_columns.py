@@ -3,50 +3,79 @@
 
 为什么需要:`awardie-business.sql` 里的 ALTER 不带幂等守卫(与既有 11 处同惯例),
 它只给全新库跑——CI 每次重建库所以没问题,但 dev 库已经跑过一次,再跑会在
-第 283 行就报 1060 重复列而中断。本脚本用 information_schema 判存在性,
-可以在任意已迁库上重复执行。
+第 283 行就报 1060 重复列而中断。本脚本先查 information_schema 判存在性,
+只在缺的时候补,可在任意已迁库上重复执行。
 
-用法(venv python):
-    AWARDIE_MYSQL_PASSWORD=<口令> python scripts/v3_apply_missing_columns.py [--check]
+**刻意零 Python 依赖**(只用标准库 + mysql 命令行):首版用 pymysql,挂在 ci-v3 上
+直接 ModuleNotFoundError —— CI runner 上没有装。门禁脚本引入第三方依赖,就多一处
+"装不上就变成门禁自己挂了"的失败点。与 scripts/v3_sanitize_sql_secrets.py 同一先例。
 
---check 只检查不落盘,退出码 1 = 仍有缺失(可挂 CI 做「全新库是否建全」的复检)。
+用法:
+    python scripts/v3_apply_missing_columns.py [--check]
+    # 口令取自 AWARDIE_MYSQL_PASSWORD;目标库取自 AWARDIE_TARGET_DB(默认 awardie_v3)
+    # 本地若 mysql 不在 PATH,可设 AWARDIE_MYSQL_CLI 指向可执行文件
+
+--check 只检查不落盘,退出码 1 = 仍有缺失(挂 CI 做「全新库是否建全」的复检)。
 """
+import io
 import os
+import shutil
+import subprocess
 import sys
 
-import pymysql
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SQL_FILE = os.path.join(ROOT, 'awardie-v3', 'sql', 'awardie-business.sql')
+TARGET_DB = os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3')
+WIN_CLI = r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
 
 # (表, 列, 列定义) —— 必须与 awardie-business.sql 批11 段的定义逐字一致
 MISSING_COLUMNS = [
-    ('awardie_awards', 'granted_role', "VARCHAR(20) DEFAULT NULL COMMENT '授予角色(学生/教师,v2 存量,切流时补)'"),
+    ('awardie_awards', 'granted_role',
+     "VARCHAR(20) DEFAULT NULL COMMENT '授予角色(学生/教师,v2 存量,切流时补)'"),
     ('awardie_awards', 'llm_prompt', "TEXT DEFAULT NULL COMMENT 'LLM 提示词(v2 存量)'"),
-    ('awardie_awards', 'llm_response', "TEXT DEFAULT NULL COMMENT 'LLM 响应(v2 存量,PG jsonb 序列化为字符串)'"),
-    ('awardie_awards', 'validation_result', "TEXT DEFAULT NULL COMMENT '校验结果(v2 存量,PG jsonb 序列化为字符串)'"),
+    ('awardie_awards', 'llm_response',
+     "TEXT DEFAULT NULL COMMENT 'LLM 响应(v2 存量,PG jsonb 序列化为字符串)'"),
+    ('awardie_awards', 'validation_result',
+     "TEXT DEFAULT NULL COMMENT '校验结果(v2 存量,PG jsonb 序列化为字符串)'"),
 ]
-
-# 与 awardie-business.sql 批11 段同源的建表语句(直接复用,避免两处定义漂移)
-SQL_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        'awardie-v3', 'sql', 'awardie-business.sql')
 NEW_TABLES = ['awardie_award_teacher_winners', 'awardie_award_related_students', 'awardie_review_logs']
 
 
+def find_cli():
+    cli = os.environ.get('AWARDIE_MYSQL_CLI')
+    if cli:
+        return cli
+    if os.path.isfile(WIN_CLI):
+        return WIN_CLI
+    return shutil.which('mysql') or 'mysql'
+
+
+def run_sql(statements):
+    """把 SQL 文本喂给 mysql CLI。返回 (rc, 合并输出)。"""
+    cli = find_cli()
+    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
+    cmd = [cli, '--default-character-set=utf8mb4', '-h', '127.0.0.1', '-P', '3307',
+           '-uroot', f'-p{password}', TARGET_DB, '-N', '-B']
+    p = subprocess.run(cmd, input=statements, capture_output=True, text=True,
+                       encoding='utf-8', errors='replace')
+    return p.returncode, ((p.stdout or '') + (p.stderr or '')).strip()
+
+
 def load_new_table_ddl():
-    """从 awardie-business.sql 里切出批11 新建的三张表语句。"""
-    with open(SQL_FILE, encoding='utf-8') as f:
+    """从 awardie-business.sql 里切出批11 新建的三张表语句(避免两处定义漂移)。"""
+    with io.open(SQL_FILE, encoding='utf-8') as f:
         text = f.read()
-    marker = '批11 切流前置'
-    idx = text.find(marker)
+    idx = text.find('批11 切流前置')
     if idx < 0:
         raise SystemExit('awardie-business.sql 里找不到批11 段,DDL 与本脚本已漂移')
-    section = text[idx:]
     stmts, buf, in_stmt = [], [], False
-    for line in section.splitlines():
-        stripped = line.strip()
-        if stripped.startswith('CREATE TABLE IF NOT EXISTS'):
+    for line in text[idx:].splitlines():
+        s = line.strip()
+        if s.startswith('CREATE TABLE IF NOT EXISTS'):
             in_stmt = True
         if in_stmt:
             buf.append(line)
-            if stripped.endswith(';'):
+            if s.endswith(';'):
                 stmts.append('\n'.join(buf))
                 buf, in_stmt = [], False
     return stmts
@@ -54,32 +83,36 @@ def load_new_table_ddl():
 
 def main() -> int:
     check_only = '--check' in sys.argv
-    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
-    if not password:
+    if not os.environ.get('AWARDIE_MYSQL_PASSWORD'):
         print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
         return 2
-    conn = pymysql.connect(host='127.0.0.1', port=3307, user='root',
-                           password=password, database=os.environ.get("AWARDIE_TARGET_DB", "awardie_v3"), charset='utf8mb4')
-    cur = conn.cursor()
 
-    todo_cols = []
-    for table, col, ddl in MISSING_COLUMNS:
-        cur.execute("""SELECT COUNT(*) FROM information_schema.columns
-                       WHERE table_schema=DATABASE() AND table_name=%s AND column_name=%s""",
-                    (table, col))
-        if cur.fetchone()[0] == 0:
-            todo_cols.append((table, col, ddl))
+    # 一次查出「本批关心的表/列」里哪些不存在
+    probes = ''.join(
+        f"SELECT '{t}.{c}', COUNT(*) FROM information_schema.columns "
+        f"WHERE table_schema='{TARGET_DB}' AND table_name='{t}' AND column_name='{c}';\n"
+        for t, c, _ in MISSING_COLUMNS)
+    probes += ''.join(
+        f"SELECT '{t}', COUNT(*) FROM information_schema.tables "
+        f"WHERE table_schema='{TARGET_DB}' AND table_name='{t}';\n"
+        for t in NEW_TABLES)
+    rc, out = run_sql(probes)
+    if rc != 0:
+        print(f'[error] 探测失败: {out[:300]}', file=sys.stderr)
+        return 2
 
-    todo_tables = []
-    for t in NEW_TABLES:
-        cur.execute("""SELECT COUNT(*) FROM information_schema.tables
-                       WHERE table_schema=DATABASE() AND table_name=%s""", (t,))
-        if cur.fetchone()[0] == 0:
-            todo_tables.append(t)
+    present = {}
+    for line in out.splitlines():
+        if '\t' in line:
+            k, v = line.split('\t', 1)
+            present[k.strip()] = v.strip()
 
-    print(f'[scan] 待补列 {len(todo_cols)} 个,待建表 {len(todo_tables)} 张')
-    for table, col, _ in todo_cols:
-        print(f'  col   {table}.{col}')
+    todo_cols = [(t, c, d) for t, c, d in MISSING_COLUMNS if present.get(f'{t}.{c}') == '0']
+    todo_tables = [t for t in NEW_TABLES if present.get(t) == '0']
+
+    print(f'[scan] 目标库 {TARGET_DB}:待补列 {len(todo_cols)} 个,待建表 {len(todo_tables)} 张')
+    for t, c, _ in todo_cols:
+        print(f'  col   {t}.{c}')
     for t in todo_tables:
         print(f'  table {t}')
 
@@ -90,14 +123,14 @@ def main() -> int:
         print('[check] 存在缺失(未落盘)')
         return 1
 
-    for table, col, ddl in todo_cols:
-        cur.execute(f"ALTER TABLE `{table}` ADD COLUMN `{col}` {ddl}")
-        print(f'[exec] +{table}.{col}')
-    for stmt in load_new_table_ddl():
-        cur.execute(stmt)
-        print(f"[exec] +{stmt.split()[5]}")
-    conn.commit()
-    conn.close()
+    stmts = [f"ALTER TABLE `{t}` ADD COLUMN `{c}` {d};" for t, c, d in todo_cols]
+    stmts += load_new_table_ddl()
+    rc, out = run_sql('\n'.join(stmts))
+    if rc != 0:
+        print(f'[error] 落盘失败: {out[:500]}', file=sys.stderr)
+        return 1
+    for t, c, _ in todo_cols:
+        print(f'[exec] +{t}.{c}')
     print('[done] 批11 schema 已补齐')
     return 0
 
