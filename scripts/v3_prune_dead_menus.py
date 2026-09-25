@@ -30,7 +30,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VIEWS_DIR = os.path.join(ROOT, 'awardie-v3', 'yudao-ui', 'yudao-ui-admin-vue3', 'src', 'views')
 # 我们的业务层页面,任何情况下都不得被剪掉
 KEEP_PREFIXES = ('business', 'portal')
-DB = dict(host='127.0.0.1', port=3307, user='root', database='awardie_v3', charset='utf8mb4')
+DB = dict(host='127.0.0.1', port=3307, user='root', database=os.environ.get("AWARDIE_TARGET_DB", "awardie_v3"), charset='utf8mb4')
 
 
 def main() -> int:

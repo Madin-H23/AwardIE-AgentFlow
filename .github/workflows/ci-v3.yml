@@ -69,6 +69,16 @@ jobs:
           $MYSQL < awardie-v3/sql/awardie-user-domain.sql
           mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "CREATE USER IF NOT EXISTS 'awardie_v3'@'%' IDENTIFIED BY 'ci-test-pass'; GRANT ALL PRIVILEGES ON awardie_v3_test.* TO 'awardie_v3'@'%'; FLUSH PRIVILEGES"
 
+      # 批11 切流守卫:DDL 建全复检。CI 每次从 SQL 重建库,正好用来验
+      # 「awardie-business.sql 是否把切流需要的列/表都建全了」——少建一列,
+      # 真实切流那一刻那列数据就没了,而单测与后端测试都不会发现(表能建、能跑,
+      # 只是少了一列)。--check 只查不落盘,退出码 1 = 缺列缺表。
+      - name: Cutover schema completeness (batch11)
+        run: python3 scripts/v3_apply_missing_columns.py --check
+        env:
+          AWARDIE_MYSQL_PASSWORD: ci-test-pass
+          AWARDIE_TARGET_DB: awardie_v3_test
+
       - name: Backend tests (awardie_v3_test, env-var password)
         run: mvn -B test
         working-directory: awardie-v3

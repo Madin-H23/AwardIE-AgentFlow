@@ -425,3 +425,86 @@ CREATE TABLE IF NOT EXISTS awardie_templates (
     KEY idx_templates_competition (competition_id),
     KEY idx_templates_comp_role (competition_id, granted_role)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 证书模板表';
+
+-- ============================================================================
+-- 批11 切流前置:补齐与 v2 PG 的列差/表差
+--
+-- 背景:scripts/v3_schema_diff.py 的列级比对结论——不补这些,切流那一刻
+-- 对应的数据就没了,之后再补也补不回来(切流是单向的)。
+--   awardie_awards 缺 4 列(granted_role / llm_prompt / llm_response / validation_result)
+--   v3 缺 3 张表(award_teacher_winners / award_related_students / review_logs)
+--
+-- ⚠️ 本文件是**只给全新库跑**的(与既有 11 处 ALTER 同惯例,CI 每次重建库);
+--    已迁过的 dev 库请用 scripts/v3_apply_missing_columns.py(幂等)。
+-- ============================================================================
+
+-- ---- awardie_awards 补 4 列(v2 PG awards 有,v3 缺) ----
+-- granted_role 是批9 前置债「awards 表无 granted_role 列」的真实成因:
+-- 不是没实现,是表根本没这列,所以教师证书无法按角色拆分。切流正好补上。
+-- year/edition/related_student_name/is_abnormal/ocr_result/extract_json/match_status
+-- 已由本文件第 283 行的 ALTER 补过,不在此处重复。
+ALTER TABLE awardie_awards
+    ADD COLUMN granted_role VARCHAR(20) DEFAULT NULL COMMENT '授予角色(学生/教师,v2 存量,切流时补)',
+    ADD COLUMN llm_prompt TEXT DEFAULT NULL COMMENT 'LLM 提示词(v2 存量)',
+    ADD COLUMN llm_response TEXT DEFAULT NULL COMMENT 'LLM 响应(v2 存量,PG jsonb 序列化为字符串)',
+    ADD COLUMN validation_result TEXT DEFAULT NULL COMMENT '校验结果(v2 存量,PG jsonb 序列化为字符串)';
+
+-- ---- awardie_award_teacher_winners 教师获奖关联(批9 前置债「无教师关系表」) ----
+-- v2 有 24 行。不建表这 24 行在切流时就永久丢失,且教师维度统计永远为空。
+CREATE TABLE IF NOT EXISTS awardie_award_teacher_winners (
+    id          BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    award_id    BIGINT       NOT NULL COMMENT '获奖成果编号',
+    teacher_id  BIGINT       NOT NULL COMMENT '教师用户编号',
+    creator     VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater     VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted     BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_award_teacher (award_id, teacher_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖教师关联表';
+
+-- ---- awardie_award_related_students 获奖关联学生(非获奖人) ----
+CREATE TABLE IF NOT EXISTS awardie_award_related_students (
+    id          BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    award_id    BIGINT       NOT NULL COMMENT '获奖成果编号',
+    student_id  BIGINT       NOT NULL COMMENT '关联学生编号',
+    creator     VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater     VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted     BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    UNIQUE KEY uk_award_related (award_id, student_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖关联学生表';
+
+-- ---- awardie_review_logs 审核流水(v2 专有表) ----
+-- v2 有 review_logs(1955 行,2026-01-20~08-22)与 achievement_audit_log(1693 行,08-21~08-25)
+-- 两张语义不同的表:v3 的 awardie_achievement_audit_log 对应的是后者。
+-- 前者是长达七个月的真实审核流水(v2 原始留痕),v3 没有等价表,丢弃不可接受,故单独建表。
+-- 注:action_type 在 v2 是字符串('approved'/'rejected'),此处原样保留字符串语义。
+CREATE TABLE IF NOT EXISTS awardie_review_logs (
+    id                BIGINT       PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    pending_id        BIGINT       DEFAULT NULL COMMENT '待审成果编号(v2 pending_achievements.id)',
+    achievement_type  VARCHAR(20)  DEFAULT NULL COMMENT '成果类型',
+    action_type       VARCHAR(20)  DEFAULT NULL COMMENT '动作(v2 字符串:submitted/approved/rejected)',
+    result_type       VARCHAR(20)  DEFAULT NULL COMMENT '产出实体类型',
+    result_id         BIGINT       DEFAULT NULL COMMENT '产出实体编号',
+    result_file_path  VARCHAR(500) DEFAULT NULL COMMENT '产出文件路径',
+    file_hash         VARCHAR(64)  DEFAULT NULL COMMENT '文件哈希',
+    file_path         VARCHAR(500) DEFAULT NULL COMMENT '原文件路径',
+    submitter_type    VARCHAR(20)  DEFAULT NULL COMMENT '提交人类型',
+    submitter_id      BIGINT       DEFAULT NULL COMMENT '提交人编号',
+    reviewer_type     VARCHAR(20)  DEFAULT NULL COMMENT '审核人类型',
+    reviewer_id       BIGINT       DEFAULT NULL COMMENT '审核人编号',
+    review_comment    TEXT         DEFAULT NULL COMMENT '审核意见',
+    operation_note    TEXT         DEFAULT NULL COMMENT '操作备注',
+    creator           VARCHAR(64)  DEFAULT '' COMMENT '创建者',
+    create_time       DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updater           VARCHAR(64)  DEFAULT '' COMMENT '更新者',
+    update_time       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted           BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
+    tenant_id         BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    KEY idx_review_pending (pending_id),
+    KEY idx_review_time (create_time)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 审核流水表(v2 存量迁移)';

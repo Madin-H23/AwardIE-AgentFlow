@@ -28,7 +28,7 @@ import pymysql
 
 PG = dict(host="127.0.0.1", port=5433, dbname="awardie_dev", user="postgres",
           password=os.environ.get("PGPASSWORD", "postgres"))
-MYSQL = dict(host="127.0.0.1", port=3307, db="awardie_v3", user="awardie_v3",
+MYSQL = dict(host="127.0.0.1", port=3307, db=os.environ.get("AWARDIE_TARGET_DB", "awardie_v3"), user="awardie_v3",
              password=os.environ.get("AWARDIE_MYSQL_PASSWORD", ""), charset="utf8mb4")
 
 ROLE_MAP = {"admin": 100, "teacher": 101, "student": 102}
