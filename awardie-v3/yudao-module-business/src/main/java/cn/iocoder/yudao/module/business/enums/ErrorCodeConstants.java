@@ -95,4 +95,32 @@ public interface ErrorCodeConstants {
     /** AI Worker 不可用(gRPC 连接失败/超时/流中断) */
     ErrorCode AI_WORKER_UNAVAILABLE = new ErrorCode(1_003_007_000, "AI Worker 不可用({}),请稍后重试");
 
+    // ========== AwardIE 大创 1_003_008_000 ==========
+    /** 大创项目不存在 */
+    ErrorCode INNOVATION_NOT_EXISTS = new ErrorCode(1_003_008_000, "大创项目不存在");
+    /** 大创项目状态非法(仅进行中/已结题/终止) */
+    ErrorCode INNOVATION_STATUS_INVALID =
+            new ErrorCode(1_003_008_001, "项目状态非法,仅允许 进行中/已结题/终止");
+    /** 大创项目类型非法(仅国家级/省级/院级) */
+    ErrorCode INNOVATION_TYPE_INVALID =
+            new ErrorCode(1_003_008_002, "项目类型非法,仅允许 国家级/省级/院级");
+    /** 项目编号重复(导入幂等判据) */
+    ErrorCode INNOVATION_NO_DUPLICATE = new ErrorCode(1_003_008_003, "项目编号 {} 已存在,跳过");
+    /** 导入预览令牌无效/已过期/已使用 */
+    ErrorCode INNOVATION_PREVIEW_INVALID =
+            new ErrorCode(1_003_008_004, "预览已失效或已被使用,请重新上传文件");
+    /** 导入文件行数超限 */
+    ErrorCode INNOVATION_IMPORT_TOO_MANY_ROWS =
+            new ErrorCode(1_003_008_005, "导入行数超过上限 {} 行");
+    /** 导入文件表头不匹配 */
+    ErrorCode INNOVATION_IMPORT_BAD_HEADER =
+            new ErrorCode(1_003_008_006, "表头不匹配,应为 项目编号|项目名称|项目类型|起始日期|结束日期|负责人姓名|负责人学号|其他成员|指导教师|经费");
+    /** 导入文件无法解析 */
+    ErrorCode INNOVATION_IMPORT_PARSE_FAILED =
+            new ErrorCode(1_003_008_007, "导入文件解析失败,请确认为合法的 xlsx");
+    /** 项目名称为空 */
+    ErrorCode INNOVATION_NAME_REQUIRED = new ErrorCode(1_003_008_008, "项目名称不能为空");
+    /** 经费非法(非数字) */
+    ErrorCode INNOVATION_FUNDING_INVALID = new ErrorCode(1_003_008_009, "经费格式非法,应为数字");
+
 }

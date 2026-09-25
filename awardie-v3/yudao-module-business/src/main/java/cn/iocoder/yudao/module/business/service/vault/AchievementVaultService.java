@@ -147,10 +147,11 @@ public class AchievementVaultService {
      * @param type 成果类型
      * @param id   记录编号
      * @param fields 可更新字段(键为列名白名单内)
+     * @param tenantId 租户编号(JdbcTemplate 不过租户拦截器,必须显式带条件)
      * @return 影响行数
      */
     @Transactional(rollbackFor = Exception.class)
-    public int update(String type, Long id, Map<String, Object> fields) {
+    public int update(String type, Long id, Map<String, Object> fields, Long tenantId) {
         VaultSpec spec = VaultSpec.of(type);
         if (!tableExists(spec.table())) {
             throw exception(VAULT_RECORD_NOT_EXISTS);
@@ -170,8 +171,11 @@ public class AchievementVaultService {
         }
         String setClause = String.join(", ", cols.stream().map(c -> c + " = ?").toList());
         vals.add(id);
-        int n = jdbcTemplate.update("UPDATE " + spec.table() + " SET " + setClause + " WHERE id = ?",
-                vals.toArray());
+        vals.add(tenantId);
+        // tenant_id + deleted=0 必带:本服务走 JdbcTemplate,不经 MyBatis-Plus 租户拦截器,
+        // 漏条件即可跨租户改他人成果(security-audit H-2)
+        int n = jdbcTemplate.update("UPDATE " + spec.table() + " SET " + setClause
+                + " WHERE id = ? AND tenant_id = ? AND deleted = b'0'", vals.toArray());
         if (n == 0) {
             throw exception(VAULT_RECORD_NOT_EXISTS);
         }

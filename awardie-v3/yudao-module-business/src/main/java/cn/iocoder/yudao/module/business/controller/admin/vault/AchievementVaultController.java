@@ -75,7 +75,8 @@ public class AchievementVaultController {
     @PreAuthorize("@ss.hasPermission('business:vault:update')")
     public CommonResult<Boolean> update(@PathVariable("type") String type, @PathVariable("id") Long id,
             @Valid @RequestBody Map<String, Object> fields) {
-        return success(vaultService.update(type, id, fields) > 0);
+        return success(vaultService.update(type, id, fields,
+                TenantContextHolder.getRequiredTenantId()) > 0);
     }
 
     /**

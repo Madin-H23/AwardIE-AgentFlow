@@ -101,6 +101,8 @@ public class ExcelUtils {
         }
         List<T> rows = new ArrayList<>(Math.min(maxRowCount, 1024));
         try (InputStream inputStream = file.getInputStream()) {
+            // sheet(0):只读第一个 sheet。默认的 doReadAll() 会遍历所有 sheet,
+            // 隐藏 sheet 里的数据会混进导入结果(管理员预览时看不见来源)。
             FastExcelFactory.read(inputStream, head, new ReadListener<T>() {
 
                 @Override
@@ -118,7 +120,7 @@ public class ExcelUtils {
                     return rows.size() < maxRowCount;
                 }
 
-            }).autoCloseStream(false).doReadAll();
+            }).autoCloseStream(false).sheet(0).doRead();
         }
         return rows;
     }
@@ -134,13 +136,51 @@ public class ExcelUtils {
         if (file == null || file.isEmpty()) {
             return Collections.emptyList();
         }
-        // 参考 https://t.zsxq.com/zM77F 帖子，增加 try 处理，兼容 windows 场景
+        // 参考 https://t.zsxq.com/tM77F 帖子，增加 try 处理，兼容 windows 场景
         try (InputStream inputStream = file.getInputStream()) {
             return FastExcelFactory.read(inputStream)
                     .autoCloseStream(false) // 不要自动关闭，交给 Servlet 自己处理
                     .headRowNumber(1)
                     .sheet()
                     .doReadSync();
+        }
+    }
+
+    /**
+     * 读取 Excel 的**原始表头文字**（不跳过表头行）
+     *
+     * <p>强类型 DTO 读取（{@code @ExcelProperty} 按名匹配）**不保证**表头正确：
+     * 缺列时字段为 null 不报错，多余列被忽略，列序变化也照读。因此需要严格表头
+     * 校验的场景，必须先拿到原始表头文字自行比对。
+     *
+     * @param file Excel 文件，可为空
+     * @return 按列下标存储的表头文字；无表头时返回空列表
+     * @throws IOException 读取失败
+     */
+    public static List<String> readHeader(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // headRowNumber(0) = 不把任何行当表头，于是第一行按数据行读出来
+        try (InputStream inputStream = file.getInputStream()) {
+            List<Map<Integer, String>> rows = FastExcelFactory.read(inputStream)
+                    .autoCloseStream(false)
+                    .headRowNumber(0)
+                    .sheet(0) // 显式只读第一个 sheet
+                    .doReadSync();
+            if (rows.isEmpty()) {
+                return Collections.emptyList();
+            }
+            Map<Integer, String> first = rows.get(0);
+            List<String> header = new ArrayList<>();
+            for (int i = 0; ; i++) {
+                String value = first.get(i);
+                if (value == null) {
+                    break;
+                }
+                header.add(value);
+            }
+            return header;
         }
     }
 

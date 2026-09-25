@@ -109,7 +109,27 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, cr
 VALUES (3055, 'AwardIE 证书模板导出', 'business:templates:export', 3, 5, 3005, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 证书模板导出', updater = 'admin';
 
+-- ---- 批8:innovation 大创管理(菜单 + 5 个按钮权限点) ----
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3006, 'AwardIE 大创管理', '', 2, 5, 3000, 'innovations', '', 'business/innovation/index', 0, 'Innovation', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创管理', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3061, 'AwardIE 大创查询', 'business:innovation:query', 3, 1, 3006, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创查询', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3062, 'AwardIE 大创创建', 'business:innovation:create', 3, 2, 3006, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创创建', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3063, 'AwardIE 大创导入', 'business:innovation:import', 3, 3, 3006, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创导入', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3064, 'AwardIE 大创更新', 'business:innovation:update', 3, 4, 3006, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创更新', updater = 'admin';
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
+VALUES (3065, 'AwardIE 大创状态校准', 'business:innovation:calibrate', 3, 5, 3006, 0, 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 大创状态校准', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055);
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065);

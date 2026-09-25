@@ -315,19 +315,43 @@ CREATE TABLE IF NOT EXISTS awardie_innovation_projects (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目表';
 
 -- ---- 大创学生关联(成果库"我的大创"依赖) ----
+-- 批8 补约束:v2 该表无主键约束外的任何完整性(无 FK、无唯一、无索引),
+-- 导致重复关联无法防、删除项目不触发级联、查询全表扫。
+-- 唯一键含 deleted:逻辑删除后允许重建同一条关联(沿项目"逻辑删除 + 唯一键共存"口径)。
 CREATE TABLE IF NOT EXISTS awardie_innovation_project_students (
     id              BIGINT      PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
     project_id      BIGINT      NOT NULL COMMENT '大创项目编号',
     student_id      BIGINT      DEFAULT NULL COMMENT '学生编号',
-    role            VARCHAR(20) DEFAULT NULL COMMENT '角色',
+    role            VARCHAR(20) DEFAULT NULL COMMENT '角色(leader/member)',
     student_name    VARCHAR(50) DEFAULT NULL COMMENT '学生姓名',
     student_id_str  VARCHAR(50) DEFAULT NULL COMMENT '学号',
-    match_type      VARCHAR(20) DEFAULT NULL COMMENT '匹配方式',
+    match_type      VARCHAR(20) DEFAULT NULL COMMENT '匹配方式(student_id_exact 等)',
     creator         VARCHAR(64) DEFAULT '' COMMENT '创建者',
     create_time     DATETIME    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     deleted         BIT(1)      DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id       BIGINT      DEFAULT 0 NOT NULL COMMENT '租户编号'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 大创项目学生关联表';
+
+-- 注意:MySQL 的 CREATE TABLE IF NOT EXISTS 对**已存在**的表不会补列/索引,
+-- 故批6 已建过本表的环境必须再跑下面的 ALTER(重跑报 1061/1060 由 runner 容忍)。
+-- 本段注释内禁用分号——run_awardie_sql.py 按分号切语句(批5 立的纪律,本批自己踩了一次)。
+-- 批6 建表时本表缺 updater/update_time 两列,而 DO 继承 BaseDO(带这两字段),
+-- insert 时 MyBatis-Plus 会带上它们 → 500 Unknown column。批8 补齐。
+ALTER TABLE awardie_innovation_project_students
+    ADD COLUMN updater VARCHAR(64) DEFAULT '' COMMENT '更新者',
+    ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+ALTER TABLE awardie_innovation_project_students
+    ADD UNIQUE KEY uk_innovation_project_student (project_id, student_id, deleted),
+    ADD KEY idx_innovation_students_student (student_id);
+
+-- ---- 批8:大创项目表约束补齐 ----
+-- funding_amount 列注释写明单位为"元":v2 导入页写"万元"、编辑页写"元"、后端不换算,
+-- 同一数字在两处差 10000 倍。v3 统一为元,导入时按万元 ×10000 换算入库(换算只在导入边界发生一次)。
+-- 其余列(项目类型/状态的枚举校验)走应用层,不建 DB CHECK(沿项目既有口径:逻辑删除下 CHECK 与
+-- 业务枚举的配合易出静默失败;且 v2 的 CHECK 曾导致 DataIntegrityViolation 被误报成"编号已存在")。
+-- 注意:本段注释内禁用分号——run_awardie_sql.py 按分号切语句(批5 立的纪律,本批自己踩了一次)。
+ALTER TABLE awardie_innovation_projects
+    MODIFY COLUMN funding_amount DECIMAL(12,2) DEFAULT NULL COMMENT '资助金额(单位:元,导入时按万元乘10000换算)';
 
 -- ============================================================================
 -- 批7 模板域(证书模板)
