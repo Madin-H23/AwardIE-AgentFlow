@@ -19,6 +19,7 @@
 """
 import io
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,15 +29,14 @@ SQL_FILE = os.path.join(ROOT, 'awardie-v3', 'sql', 'awardie-business.sql')
 TARGET_DB = os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3')
 WIN_CLI = r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
 
-# (表, 列, 列定义) —— 必须与 awardie-business.sql 批11 段的定义逐字一致
+# (表, 列) —— **列定义不在这里写**,由 load_new_column_ddl() 从 awardie-business.sql
+# 的批11 段切出来。两处各存一份必然漂移,而 --check 只验「列是否存在」不验定义,
+# 漂移的表现是两套 schema 分叉且两边都报绿(C-3)。
 MISSING_COLUMNS = [
-    ('awardie_awards', 'granted_role',
-     "VARCHAR(20) DEFAULT NULL COMMENT '授予角色(学生/教师,v2 存量,切流时补)'"),
-    ('awardie_awards', 'llm_prompt', "TEXT DEFAULT NULL COMMENT 'LLM 提示词(v2 存量)'"),
-    ('awardie_awards', 'llm_response',
-     "TEXT DEFAULT NULL COMMENT 'LLM 响应(v2 存量,PG jsonb 序列化为字符串)'"),
-    ('awardie_awards', 'validation_result',
-     "TEXT DEFAULT NULL COMMENT '校验结果(v2 存量,PG jsonb 序列化为字符串)'"),
+    ('awardie_awards', 'granted_role'),
+    ('awardie_awards', 'llm_prompt'),
+    ('awardie_awards', 'llm_response'),
+    ('awardie_awards', 'validation_result'),
 ]
 NEW_TABLES = ['awardie_award_teacher_winners', 'awardie_award_related_students', 'awardie_review_logs']
 
@@ -81,6 +81,11 @@ def load_new_table_ddl():
     stmts, buf, in_stmt = [], [], False
     for line in text[idx:].splitlines():
         s = line.strip()
+        # C-2:必须有结束标记。原来是「从标记扫到文件末尾」,批12 往尾部追加自己的
+        # DDL 之后,这个"补批11 的列"的脚本会顺手把批12 的表也建了,而输出只说
+        # 「批11 schema 已补齐」——一个改 schema 的工具,作用域是文件剩余全部。
+        if s.startswith('-- END 批11'):
+            break
         if s.startswith('CREATE TABLE IF NOT EXISTS'):
             in_stmt = True
         if in_stmt:
@@ -88,7 +93,56 @@ def load_new_table_ddl():
             if s.endswith(';'):
                 stmts.append('\n'.join(buf))
                 buf, in_stmt = [], False
+    # 解析结果必须与 NEW_TABLES 严格对应,否则说明作用域或解析出了偏差
+    got = []
+    for st in stmts:
+        m = re.search(r'CREATE TABLE IF NOT EXISTS\s+`?(\w+)`?', st)
+        if m:
+            got.append(m.group(1))
+    if sorted(got) != sorted(NEW_TABLES):
+        raise SystemExit(
+            f'[FATAL] 从 awardie-business.sql 解析到的建表语句是 {got},'
+            f'与本脚本预期的 {sorted(NEW_TABLES)} 不符 —— 作用域或解析已漂移,拒绝执行。'
+            f'若批11 段新增了表,请同步更新 NEW_TABLES 并加 -- END 批11 标记。')
     return stmts
+
+
+def load_new_column_ddl():
+    """C-3:从 awardie-business.sql 里切出批11 的 ADD COLUMN 定义,不在 Python 里另存一份。
+
+    原先 4 个 ALTER 的列定义在 .py 与 .sql 各存一份,注释写着「必须逐字一致」却
+    没有任何机制保证。SQL 侧把 VARCHAR(20) 放宽成 50 → 全新库建出来是 50、
+    已迁过的 dev 库因为 --check 只验「列是否存在」永远停在 20 → 两套 schema
+    静默分叉,而 --check 在两边都报绿。CREATE TABLE 早就从文件切了,这里补齐 ALTER。
+    """
+    with io.open(SQL_FILE, encoding='utf-8') as f:
+        text = f.read()
+    idx = text.find('批11 切流前置')
+    if idx < 0:
+        raise SystemExit('awardie-business.sql 里找不到批11 段,DDL 与本脚本已漂移')
+    section = text[idx:]
+    end = section.find('-- END 批11')
+    if end >= 0:
+        section = section[:end]
+    # 形如: ADD COLUMN [反引号]col[反引号] <定义>,  —— 一条 ALTER 里可能有多列,
+    # 以「, ADD COLUMN」或语句末尾的 ';' 为界。列名**不一定带反引号**(本仓的
+    # awardie-business.sql 就不带),所以两种都要认。
+    out = {}
+    for stmt in re.findall(r'ALTER TABLE[^;]*;', section, re.S):
+        # 去掉表名部分,只留 ADD COLUMN 列表
+        body = stmt.split('ADD COLUMN', 1)
+        if len(body) < 2:
+            continue
+        table = re.search(r'ALTER TABLE\s+`?(\w+)`?', stmt)
+        if not table:
+            continue
+        parts = re.split(r',\s*(?=ADD COLUMN)', 'ADD COLUMN' + body[1])
+        for part in parts:
+            m = re.match(r'\s*ADD COLUMN\s+`?(\w+)`?\s+(.+)', part, re.S)
+            if not m:
+                continue
+            out[m.group(1)] = ' '.join(m.group(2).split()).rstrip(',;').strip()
+    return out
 
 
 def main() -> int:
@@ -101,7 +155,7 @@ def main() -> int:
     probes = ''.join(
         f"SELECT '{t}.{c}', COUNT(*) FROM information_schema.columns "
         f"WHERE table_schema='{TARGET_DB}' AND table_name='{t}' AND column_name='{c}';\n"
-        for t, c, _ in MISSING_COLUMNS)
+        for t, c in MISSING_COLUMNS)
     probes += ''.join(
         f"SELECT '{t}', COUNT(*) FROM information_schema.tables "
         f"WHERE table_schema='{TARGET_DB}' AND table_name='{t}';\n"
@@ -117,11 +171,11 @@ def main() -> int:
             k, v = line.split('\t', 1)
             present[k.strip()] = v.strip()
 
-    todo_cols = [(t, c, d) for t, c, d in MISSING_COLUMNS if present.get(f'{t}.{c}') == '0']
+    todo_cols = [(t, c) for t, c in MISSING_COLUMNS if present.get(f'{t}.{c}') == '0']
     todo_tables = [t for t in NEW_TABLES if present.get(t) == '0']
 
     print(f'[scan] 目标库 {TARGET_DB}:待补列 {len(todo_cols)} 个,待建表 {len(todo_tables)} 张')
-    for t, c, _ in todo_cols:
+    for t, c in todo_cols:
         print(f'  col   {t}.{c}')
     for t in todo_tables:
         print(f'  table {t}')
@@ -133,13 +187,20 @@ def main() -> int:
         print('[check] 存在缺失(未落盘)')
         return 1
 
-    stmts = [f"ALTER TABLE `{t}` ADD COLUMN `{c}` {d};" for t, c, d in todo_cols]
+    col_ddl = load_new_column_ddl()
+    stmts = []
+    for t, c in todo_cols:
+        if c not in col_ddl:
+            raise SystemExit(
+                f'[FATAL] awardie-business.sql 的批11 段里找不到 {t}.{c} 的 ADD COLUMN 定义,'
+                f'拒绝用本地副本落盘(两处定义会漂移)。')
+        stmts.append(f"ALTER TABLE `{t}` ADD COLUMN `{c}` {col_ddl[c]};")
     stmts += load_new_table_ddl()
     rc, out = run_sql('\n'.join(stmts))
     if rc != 0:
         print(f'[error] 落盘失败: {out[:500]}', file=sys.stderr)
         return 1
-    for t, c, _ in todo_cols:
+    for t, c in todo_cols:
         print(f'[exec] +{t}.{c}')
     print('[done] 批11 schema 已补齐')
     return 0

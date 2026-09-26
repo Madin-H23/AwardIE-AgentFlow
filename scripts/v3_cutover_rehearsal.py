@@ -13,6 +13,7 @@
 --keep 保留演练库(失败时留现场排查,默认成功即删)。
 """
 import os
+import secrets
 import subprocess
 import sys
 
@@ -74,7 +75,18 @@ def main() -> int:
     env = dict(os.environ, AWARDIE_MYSQL_PASSWORD=password)
 
     def drop():
-        run(mysql_cmd(None, password) + ['-e', f'DROP DATABASE IF EXISTS {REHEARSE_DB}'])
+        # 账号也要回收:否则每次演练留一个账号,随机口令的账号会逐次堆积
+        rc, out = run(mysql_cmd(None, password) + [
+            '-e', f"DROP DATABASE IF EXISTS {REHEARSE_DB}; "
+                 f"DROP USER IF EXISTS '{rehearsal_user}'@'%';"])
+        if rc != 0:
+            # 清理失败要说话:root 口令不对时它会静默失败,残留的半成品库会让
+            # 下次运行在建库这步以「database exists」失败,掩盖真正的根因
+            print(f'[warn] 演练库/账号清理失败(不阻断): {out[:200]}')
+
+    # 演练账号名/随机口令:drop() 要用到,故先于 drop() 定义算出
+    rehearsal_user = f'{REHEARSE_DB}_ro'
+    rehearsal_pw = secrets.token_urlsafe(18)
 
     print(f'=== 切流演练(演练库 {REHEARSE_DB},不碰 awardie_v3)===')
     drop()
@@ -89,8 +101,11 @@ def main() -> int:
 
     # ETL 用应用账号 awardie_v3 连接,演练库得单独授权(与 CI 建库同做法:
     # CI 也会 CREATE USER + GRANT 到 awardie_v3_test,否则后端测试连不上)
-    grant_sql = ("CREATE USER IF NOT EXISTS 'awardie_v3'@'%' IDENTIFIED BY 'rehearsal-pass'; "
-                 f"GRANT ALL PRIVILEGES ON {REHEARSE_DB}.* TO 'awardie_v3'@'%'; FLUSH PRIVILEGES")
+    # 专用演练账号 + 每次随机口令,不用生产应用账号名(awardie_v3)——
+    # 原写法在这台机上恰好是 no-op(账号已存在),换台机器就会用仓库里的明文口令
+    # 在 host 通配 '%' 上建出**生产账号名**的常驻账号。口令随机 = 仓库里没有可用凭据。
+    grant_sql = (f"CREATE USER IF NOT EXISTS '{rehearsal_user}'@'%' IDENTIFIED BY '{rehearsal_pw}'; "
+                 f"GRANT ALL PRIVILEGES ON {REHEARSE_DB}.* TO '{rehearsal_user}'@'%'; FLUSH PRIVILEGES")
     rc, out = run(mysql_cmd(None, password) + ['-e', grant_sql])
     if rc != 0:
         print(f'[1/3] 授权失败: {out[:300]}')
@@ -112,24 +127,34 @@ def main() -> int:
     # 演练库里跑 ETL 需要连到演练库,借 MySQL 连接串的环境变量改库名
     rehearsal_env = dict(env)
     # 演练库必须独立:ETL 脚本通过 AWARDIE_TARGET_DB 选库,不给就是打真实 awardie_v3
-    rehearsal_env = dict(env, AWARDIE_TARGET_DB=REHEARSE_DB)
+    rehearsal_env = dict(env, AWARDIE_TARGET_DB=REHEARSE_DB,
+                          AWARDIE_MYSQL_USER=rehearsal_user,
+                          AWARDIE_MYSQL_PASSWORD=rehearsal_pw)
     # 防呆:演练开始前先确认 ETL 真的指向演练库,而不是默认库
-    probe = subprocess.run(
-        [PY, '-c',
-         "import os,importlib.util,sys;"
-         "spec=importlib.util.spec_from_file_location('m', r'%s');"
-         "m=importlib.util.module_from_spec(spec);"
-         "sys.modules['m']=m;spec.loader.exec_module(m);"
-         "print(m.MYSQL['db'])" % os.path.join(ROOT, 'scripts/etl_v2_business_to_v3.py')],
-        capture_output=True, text=True, env=rehearsal_env, cwd=ROOT)
-    target_db = probe.stdout.strip().splitlines()[-1] if probe.stdout.strip() else '?'
-    if target_db != REHEARSE_DB:
-        print(f'[abort] ETL 实际指向 {target_db},不是演练库 {REHEARSE_DB} —— 拒绝执行,'
-              f'否则会污染真实库')
+    # 逐个探针,不能只探一个:ETL 若新增 --target-db 参数或第二条连接路径,
+    # 探针会静默过期却仍打印绿灯。全部探一遍,任一不指向演练库就中止。
+    # 两种选库机制都要认:ETL 系列用 MYSQL dict 的 db 键,v3_apply_missing_columns.py
+    # 用模块级 TARGET_DB 常量(它走 mysql CLI 不用 pymysql)。只认一种会误报。
+    probe_src = ("import importlib.util,sys;"
+                 "spec=importlib.util.spec_from_file_location('m', sys.argv[1]);"
+                 "m=importlib.util.module_from_spec(spec);"
+                 "sys.modules['m']=m;spec.loader.exec_module(m);"
+                 "print(getattr(m, 'TARGET_DB', None) or (m.MYSQL.get('db') if hasattr(m,'MYSQL') else None) or '?')")
+    bad = []
+    for script, _desc in ETL_STEPS:
+        path = os.path.join(ROOT, script)
+        probe = subprocess.run([PY, '-c', probe_src, path], capture_output=True,
+                               text=True, env=rehearsal_env, cwd=ROOT)
+        db = probe.stdout.strip().splitlines()[-1] if probe.stdout.strip() else '?'
+        if db != REHEARSE_DB:
+            bad.append(f'{os.path.basename(script)}->{db}')
+    if bad:
+        print(f'[abort] 下列脚本实际指向的不是演练库 {REHEARSE_DB}(可能污染真实库): '
+              f'{", ".join(bad)} —— 拒绝执行')
         if not keep:
             drop()
         return 1
-    print(f'[guard] ETL 目标库已确认为 {REHEARSE_DB}')
+    print(f'[guard] {len(ETL_STEPS)} 个 ETL 的目标库均已确认为 {REHEARSE_DB}')
 
     # 3) ETL
     for script, desc in ETL_STEPS:

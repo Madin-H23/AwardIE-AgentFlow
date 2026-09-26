@@ -508,3 +508,8 @@ CREATE TABLE IF NOT EXISTS awardie_review_logs (
     KEY idx_review_pending (pending_id),
     KEY idx_review_time (create_time)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 审核流水表(v2 存量迁移)';
+
+-- END 批11
+-- ↑ 批11 段到此为止。scripts/v3_apply_missing_columns.py 靠这个标记界定「补批11 的列」
+--   的作用域:原来它从段首一路扫到文件末尾,批12 往尾部追加 DDL 之后会被顺手执行,
+--   而输出只说「批11 schema 已补齐」。新增批次请在自己的段尾也加一行 -- END 批<号>。

@@ -15,6 +15,7 @@
 """
 import hashlib
 import importlib.util
+import json
 import os
 import sys
 
@@ -33,7 +34,8 @@ FILL_REPORT: dict[str, int] = {}
 
 PG = dict(host='127.0.0.1', port=5433, dbname='awardie_dev', user='postgres',
           password=os.environ.get('PGPASSWORD', 'postgres'))
-MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3'), user='root',
+MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3'),
+             user=os.environ.get('AWARDIE_MYSQL_USER', 'root'),
              password=os.environ.get('AWARDIE_MYSQL_PASSWORD', ''), charset='utf8mb4')
 
 # 表 → (v2源表, 哈希用的关键字段, id 表达式)
@@ -44,12 +46,23 @@ CHECKS = [
     ('awardie_competitions', 'competitions', 'id',
      ['competition_name', 'organizer', 'white_list', 'watch_list', 'is_auto_added']),
     ('awardie_laboratories', 'laboratories', 'id', ['name', 'description']),
+    # awardie_awards 把「批11 整批存在的理由」那几列全纳入哈希:
+    # llm_prompt/llm_response/validation_result 是批11 补的 4 列里的 3 个,
+    # image_hash/certificate_path/ocr_result/extract_json 是 OCR 与物化链的命脉。
+    # 它们若映射写反或 jsonb 序列化错,首版的抽样哈希一条都验不到。
     ('awardie_awards', 'awards', 'id',
-     ['competition_name_in_file', 'winner_name', 'award_level', 'competition_level', 'year', 'granted_role']),
+     ['competition_name_in_file', 'winner_name', 'award_level', 'competition_level', 'year',
+      'granted_role', 'image_hash', 'certificate_id', 'certificate_path', 'supervisor_name',
+      'ocr_result', 'extract_json', 'llm_prompt', 'llm_response', 'validation_result',
+      'submitter_type', 'submitter_id', 'competition_id', 'date', 'track', 'issuer']),
     ('awardie_pending_achievements', 'pending_achievements', 'id',
-     ['achievement_type', 'status', 'submitter_type', 'review_comment']),
+     ['achievement_type', 'status', 'submitter_type', 'review_comment',
+      'achievement_data', 'validation_result', 'file_hash', 'file_path', 'reviewer_id',
+      'assigned_reviewer_type', 'reviewer_type', 'ocr_text', 'llm_prompt', 'llm_response']),
     ('awardie_innovation_projects', 'innovation_projects', 'id',
-     ['project_no', 'project_name', 'project_type', 'status']),
+     ['project_no', 'project_name', 'project_type', 'status', 'start_date', 'end_date',
+      'funding_amount', 'student_leader_name', 'student_leader_id', 'other_members',
+      'supervisors', 'laboratory_id']),
     ('awardie_software_copyrights', 'software_copyrights', 'id', ['software_name', 'registration_number']),
     ('awardie_other_files', 'other_files', 'id', ['file_name', 'file_type']),
     ('awardie_templates', 'templates', 'id', ['template_type', 'competition_id', 'language']),
@@ -65,12 +78,17 @@ CHECKS = [
     ('awardie_innovation_project_students', 'innovation_project_students', None,
      ['project_id', 'student_id', 'role']),
 ]
+# --full:把 L3 从「抽样关键列」扩到「全部迁移列」。切流前跑一次。
+# 抽样是为避免 JSON 键序/框架列造成假失败,但抽样就意味着没验的列是隐形的——
+# 覆盖率自查会把它们列出来,--full 则真的全验。
+VERBOSE_COVERAGE = '--full' in sys.argv or '--cover' in sys.argv
+
 # audit_log 只迁非测试行,对账口径必须一致
 AUDIT_FILTER = ' WHERE is_test = false AND is_redundant = false'
 
 
 def norm(v):
-    """跨库可比的规范化:None/空串统一、时间截断到秒、数字字符串化。"""
+    """跨库可比的规范化:None/空串统一、时间截断到秒、JSON 归一、数字字符串化。"""
     if v is None:
         return ''
     if isinstance(v, bool):
@@ -81,7 +99,19 @@ def norm(v):
         # ⚠️ 不能用 if v —— b'\x00' 长度 1 是 truthy,会把 0 和 1 都算成 '1',
         # 导致 BIT(1) 列在闸门口报假警。按字节真值取。
         return '1' if int.from_bytes(bytes(v), 'big') != 0 else '0'
+    # jsonb 列必须归一后再比,否则报的是假警:
+    #   源侧 psycopg2 把 jsonb 自动解析成 Python 对象(dict/True/None/单引号),
+    #   目标侧 MySQL TEXT 存的是规范 JSON(true/null/双引号)——
+    #   语义完全相同,但**键序也未必相同**,直接比字符串必然不等。
+    #   两边都按 sort_keys 重新序列化,比的就只剩内容本身。
+    if isinstance(v, (dict, list)):
+        return json.dumps(v, sort_keys=True, ensure_ascii=False, default=str)
     s = str(v)
+    if s[:1] in ('{', '['):
+        try:
+            return json.dumps(json.loads(s), sort_keys=True, ensure_ascii=False)
+        except (TypeError, ValueError):
+            pass
     # 2026-01-20 11:43:32+08:00 → 2026-01-20 11:43:32(去掉时区,两边都已是同一本地时刻)
     if len(s) >= 25 and (s[19] == '+' or s[19] == '-'):
         s = s[:19]
@@ -185,6 +215,41 @@ def main() -> int:
             warned.append((target, f'目标多出 {extra} 行(v3 自有测试/新增数据,非丢数)'))
 
         print(f'{target:<40} {len(pg_rows):>6} {len(my_rows):>6} {len(missing):>6}  {hash_state}')
+        if verbose and hash_state.startswith('不一致'):
+            for r in (my_rows or [])[:5]:
+                print(f'    目标行样本: {r}')
+
+    # A-2:L3 覆盖度自查——把「哪些迁移列没有被内容哈希验过」显式打出来。
+    # 首版 CHECKS 每表只取 2-6 个关键列,合计只覆盖 48/94 个迁移列(51%),
+    # 而文件头声称 L3 抓的是「列映射写反、jsonb 序列化错」——那只对被采样的列成立。
+    # 未覆盖的列里就包含批11 整批存在的理由(llm_prompt/llm_response/validation_result):
+    # 这三列的 MAPS 或转换器若有错,四层判据全绿而 311 行成果的 LLM 上下文静默损坏,
+    # 且切流单向不可逆。覆盖率不报 = 「没验」这件事默认看不见。
+    if VERBOSE_COVERAGE:
+        import importlib.util as _ilu
+        _spec = _ilu.spec_from_file_location(
+            'etl_biz_cov',
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etl_v2_business_to_v3.py'))
+        _etl = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_etl)
+        total_mapped = covered = 0
+        gaps = []
+        for target, _src, _idcol, cols in CHECKS:
+            mapped = [v3 for _p, v3, _c in _etl.MAPS.get(target, [])]
+            if not mapped:
+                continue
+            uncovered = [c for c in mapped if c not in cols]
+            total_mapped += len(mapped)
+            covered += len(mapped) - len(uncovered)
+            if uncovered:
+                gaps.append(f'{target}: {", ".join(uncovered)}')
+        pct = covered / total_mapped * 100 if total_mapped else 0
+        state = '全覆盖' if pct >= 100 else f'**仅 {pct:.0f}%**'
+        print(f'[cover] L3 内容哈希覆盖 {covered}/{total_mapped} 个迁移列({state})')
+        if gaps:
+            print('[cover] 未被内容哈希验过的列(写错不会被任何一层发现):')
+            for g in gaps:
+                print(f'    - {g}')
 
     # L4 框架列核验:行数与业务字段都对得上,不代表应用看得见这行。
     # 芋道按 `tenant_id = 当前租户` 过滤,一行 tenant_id=0 就是「迁进来了但永远查不到」,
@@ -214,7 +279,7 @@ def main() -> int:
     if failed or frame_bad:
         print(f'\n[FAIL] {len(failed) + len(frame_bad)} 项对账不通过 —— 切流闸门不能开')
         return 1
-    print(f'\n[ok] 对账齐平(无丢数、无内容不一致、框架列 tenant_id/deleted 正常)'
+    print('\n[ok] 对账齐平(无丢数、无内容不一致、框架列 tenant_id/deleted 正常)'
           + (f';{len(warned)} 张表目标侧多出 v3 自有数据(已按交集核验)' if warned else ''))
     return 0
 

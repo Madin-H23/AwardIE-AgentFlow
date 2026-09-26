@@ -38,7 +38,8 @@ import pymysql
 
 PG = dict(host='127.0.0.1', port=5433, dbname='awardie_dev', user='postgres',
           password=os.environ.get('PGPASSWORD', 'postgres'))
-MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3'), user='awardie_v3',
+MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3'),
+             user=os.environ.get('AWARDIE_MYSQL_USER', 'awardie_v3'),
              password=os.environ.get('AWARDIE_MYSQL_PASSWORD', ''), charset='utf8mb4')
 CST = timezone(timedelta(hours=8))  # v2 存 +08:00,写 MySQL 前统一到本地无时区
 
@@ -256,7 +257,6 @@ def fetch_all():
     pg = psycopg2.connect(**PG)
     cur = pg.cursor()
     out = {}
-    pending_fill = {}
     for target in ORDER:
         spec = MAPS[target]
         src = SOURCES[target]
@@ -275,7 +275,10 @@ def fetch_all():
         filled = 0
         rows = []
         for r in raw:
-            vals = [CONV[conv](v) if conv else v for v, (_, _, conv) in zip(r, spec)]
+            # strict=True:源行与列映射长度必须一致。不一致时 zip 会静默截断,
+            # 把后面的列整批丢掉——这正是本批踩过的失败模式(列名写错被吞掉)。
+            vals = [CONV[conv](v) if conv else v
+                    for v, (_, _, conv) in zip(r, spec, strict=True)]
             if fill:
                 vals = vals + [fill[c] for c in fill]
             for col, fallback in fb.items():
@@ -321,7 +324,14 @@ def write_all(data, conn):
         extra = [c for c in FRAME_COLS if c not in cols and c in actual]
         write_cols = cols + extra
         ph = ', '.join(['%s'] * len(write_cols))
-        ups = ', '.join(f"`{c}` = VALUES(`{c}`)" for c in write_cols if c != 'id')
+        # A-1:upsert 子句只放**业务列**,不放框架列。
+        # 原写法是「除 id 外全部列」,于是 deleted / tenant_id / creator / updater
+        # 也在其中:切流后应用上线、有人在 v3 软删一条成果,再为「保险」重跑 ETL,
+        # deleted 会被静默改回 0、业务字段回退成 v2 值,且没有任何日志或告警。
+        # 更糟的是对账以 v2 为基准,v2 说 deleted=0,闸门会给这次 clobber 背书。
+        # 框架列只在 INSERT 时给(新行),已有行保持 v3 侧自己的状态。
+        ups = ', '.join(f"`{c}` = VALUES(`{c}`)" for c in write_cols
+                        if c != 'id' and c not in FRAME_COLS)
         sql = (f"INSERT INTO `{target}` ({', '.join('`'+c+'`' for c in write_cols)}) "
                f"VALUES ({ph}) ON DUPLICATE KEY UPDATE {ups}")
         payload = []

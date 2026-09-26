@@ -80,7 +80,7 @@ def main() -> int:
     pg = psycopg2.connect(host='127.0.0.1', port=5433, user='postgres',
                           password=os.environ.get('PGPASSWORD', 'postgres'), dbname='awardie_dev')
     pgc = pg.cursor()
-    my = pymysql.connect(host='127.0.0.1', port=3307, user='root',
+    my = pymysql.connect(host='127.0.0.1', port=3307, user=os.environ.get('AWARDIE_MYSQL_USER', 'root'),
                          password=password, database=os.environ.get("AWARDIE_TARGET_DB", "awardie_v3"), charset='utf8mb4')
     myc = my.cursor()
 
