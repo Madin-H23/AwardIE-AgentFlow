@@ -4,6 +4,13 @@
 # 依赖:MySQL 8 service(3307)+ Redis service(6379);测试库 awardie_v3_test 由官方 sql+cleanup+业务 sql 初始化
 name: ci-v3
 
+# 只读权限:两个 job 都只需 checkout + 跑构建/测试,不写仓库、不发 release、不用 secrets。
+# 批10 闸门 L1——不给 permissions 时 GITHUB_TOKEN 继承仓库默认权限,而 pull_request 事件下会
+# checkout 并执行 PR 分支里的代码(vite.config.ts、lockfile 解析出的 postinstall),等于在 runner 上
+# 执行外部提交者可控的代码。
+permissions:
+  contents: read
+
 on:
   push:
     branches: ['refactor/v3-yudao-migration']

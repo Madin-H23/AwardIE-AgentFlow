@@ -157,9 +157,13 @@ export const generateRoute = (routes: AppCustomRouteRecordRaw[]): AppRouteRecord
         // 顶级目录承载后台整体框架；非顶级目录只作为 router-view 占位，避免多级菜单嵌套 Layout。
         // AwardIE 改动(批10)：顶级目录若在菜单里填了 component，则用它当壳而不是后台 Layout，
         // 让「学生门户」有一套独立的壳(底部 tab 导航)而不必走静态路由特例。
-        // 存量菜单的 component 一律是 ''，所以这条分支对它们是 no-op。
-        let shell: any = Number(route.parentId) === 0 ? Layout : getParentLayout()
-        if (route.component) {
+        // ⚠️ 条件必须带上 parentId === 0(与上面那行同一判据):否则嵌套目录也会进这个分支,
+        // 它的子路由会被渲染进那个组件而不是裸 router-view。当前对存量菜单无害只是因为
+        // 唯二的带 component 目录(infra/testDemo、pay/demo)恰好被前端剪枝删掉了 ——
+        // 那是巧合,不是代码保证。让代码兑现注释,别让正确性依赖另一处脚本的副作用。
+        const isTopLevel = Number(route.parentId) === 0
+        let shell: any = isTopLevel ? Layout : getParentLayout()
+        if (isTopLevel && route.component) {
           const shellIndex = modulesRoutesKeys.findIndex((ev) => ev.includes(route.component!))
           if (shellIndex >= 0) {
             shell = modules[modulesRoutesKeys[shellIndex]]

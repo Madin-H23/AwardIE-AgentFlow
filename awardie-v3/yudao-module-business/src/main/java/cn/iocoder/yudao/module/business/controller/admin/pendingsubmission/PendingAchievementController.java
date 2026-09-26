@@ -235,6 +235,14 @@ public class PendingAchievementController {
     @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
     public CommonResult<List<Map<String, Object>>> teacherPendingList(
             @RequestParam(value = "status", required = false) String status) {
+        // 该端点返回全租户待审队列(含每条的 submitterId 与提交人姓名),属教师/管理员的
+        // 工作视图,不是"我的"。而 business:pending-achievement:query 同时也是学生
+        // /my-page 的权限点(菜单 3032,已授予 awardie_student),无法从权限上剥离,
+        // 所以必须像 download/timeline/ai-suggest 一样补一道 staff 校验:
+        // 否则任意学生可枚举全租户学生的姓名 + 内部 ID + 提交动态。
+        if (!hasStaffRole(getLoginUser())) {
+            throw exception(PENDING_ACHIEVEMENT_FORBIDDEN);
+        }
         long tenantId = TenantContextHolder.getRequiredTenantId();
         String sql = "SELECT p.id, p.achievement_type AS achievementType, p.status, "
                 + "p.submitter_type AS submitterType, p.submitter_id AS submitterId, "
