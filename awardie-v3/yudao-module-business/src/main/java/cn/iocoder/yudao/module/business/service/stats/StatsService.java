@@ -61,7 +61,11 @@ public class StatsService {
                 WHERE white_list = b'1' AND deleted = b'0' AND tenant_id = ?
                 """, tenantId));
         vo.setSummary(summary);
-        vo.setCategory(categoryCounts(tenantId));
+        Map<String, Long> category = categoryCounts(tenantId);
+        vo.setCategory(category);
+        // 成果总数 = 五类合计(与 VO 契约一致)。批14 前端实测发现本字段从未被赋值,
+        // 页面「成果总数」恒 0 —— 五类分类表有数、汇总卡却是 0,根因之一就是这条漏写。
+        summary.setAwardsTotal(category.values().stream().mapToLong(Long::longValue).sum());
         return vo;
     }
 

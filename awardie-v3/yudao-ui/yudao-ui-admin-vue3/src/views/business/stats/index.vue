@@ -78,7 +78,10 @@ const loadData = async () => {
   loading.value = true
   try {
     const [overview, top] = await Promise.all([getStatsOverview(), getStatsByCompetition()])
-    summary.value = overview || {}
+    // overview 是整个响应体 {summary, category} —— 汇总卡要绑定它的 summary 子对象。
+    // 批14 前实测写成了 summary.value = overview,五张卡全部绑在错误层级上恒 0,
+    // 而分类表(category 绑对了)有数,对比之下才暴露。
+    summary.value = overview?.summary || {}
     category.value = overview?.category || {}
     ranking.value = top || []
   } finally {

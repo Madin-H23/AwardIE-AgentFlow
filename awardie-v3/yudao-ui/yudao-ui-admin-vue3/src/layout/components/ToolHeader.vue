@@ -9,12 +9,10 @@ import { Breadcrumb } from '@/layout/components/Breadcrumb'
 import { SizeDropdown } from '@/layout/components/SizeDropdown'
 import { LocaleDropdown } from '@/layout/components/LocaleDropdown'
 import RouterSearch from '@/components/RouterSearch/index.vue'
-import TenantVisit from '@/layout/components/TenantVisit/index.vue'
 import { useSetting } from '@/layout/components/Setting'
 import { useAppStore } from '@/store/modules/app'
 import { useDesign } from '@/hooks/web/useDesign'
 import { Icon } from '@/components/Icon'
-import { checkPermi } from '@/utils/permission'
 import { isHorizontalMenuLayout, isMixedNavLayout, isTwoColumnLayout } from '@/utils/layout'
 
 const { getPrefixCls, variables } = useDesign()
@@ -50,11 +48,10 @@ const message = computed(() => appStore.getMessage)
 // IM即时通讯图标
 const im = computed(() => appStore.getIm)
 
-// 租户切换权限
-const hasTenantVisitPermission = computed(
-  () => import.meta.env.VITE_APP_TENANT_ENABLE === 'true' && checkPermi(['system:tenant:visit'])
-)
-
+// 租户切换器已移除(批14):AwardIE 单租户固定 tenant=1,顶部下拉只造成困扰。
+// 注意**不能**用 VITE_APP_TENANT_ENABLE=false 来隐藏它——axios/service.ts 用同一个
+// 开关决定是否携带 tenant-id 请求头,翻掉它会让所有请求缺租户头被后端拒收。
+// 多租户后端能力保持开启,只是不再暴露切换 UI。
 // 顶部聊天入口：用路由 name resolve 出完整 URL，在新标签页打开 IM 主页
 // 场景考虑：IM 是全屏沉浸式壳，如果在当前页 push 会把原来在用的后台管理界面挤掉；开新 Tab 更符合用户预期
 const goToChat = () => {
@@ -93,7 +90,6 @@ export default defineComponent({
           </div>
         ) : undefined}
         <div class="h-full flex items-center">
-          {hasTenantVisitPermission.value ? <TenantVisit /> : undefined}
           <div
             class="v-setting custom-hover"
             title={t('setting.projectSetting')}

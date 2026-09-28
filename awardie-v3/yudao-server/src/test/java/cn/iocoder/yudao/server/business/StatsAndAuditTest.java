@@ -265,6 +265,9 @@ class StatsAndAuditTest {
         assertThat(summary.path("whitelist").asLong()).isEqualTo(1L);
         // 竞赛为 3,其中竞赛甲白名单=1
         assertThat(summary.path("whitelist").asLong()).isLessThan(summary.path("competitionsTotal").asLong());
+        // 成果总数 = 五类合计(4+2+1+1+2=10)。批14 前本字段从未被赋值恒 null,
+        // 页面「成果总数」恒 0 而分类表有数——这不是前端能兜住的,必须后端给值
+        assertThat(summary.path("awardsTotal").asLong()).isEqualTo(10L);
     }
 
     @Test

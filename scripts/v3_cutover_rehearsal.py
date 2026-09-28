@@ -33,6 +33,7 @@ SQL_ORDER = [
     ('awardie-v3/sql/awardie-business.sql', 'AwardIE 业务表 + 菜单'),
     ('awardie-v3/sql/awardie-business-menus.sql', '业务菜单'),
     ('awardie-v3/sql/awardie-user-domain.sql', '三角色 + 授权'),
+    ('awardie-v3/sql/awardie-menu-slim.sql', '批14 菜单瘦身(管理员日常版)'),
 ]
 ETL_STEPS = [
     ('scripts/v3_apply_missing_columns.py', '批11 schema 补列/建表'),
