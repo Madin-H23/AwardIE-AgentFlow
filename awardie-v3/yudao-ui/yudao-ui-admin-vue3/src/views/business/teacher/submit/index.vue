@@ -18,7 +18,7 @@
         </el-button>
       </div>
       <el-table :data="list" v-loading="loading" border empty-text="暂无提交记录">
-        <el-table-column label="成果" prop="title" min-width="220" show-overflow-tooltip>
+        <el-table-column label="成果" min-width="220" show-overflow-tooltip>
           <template #default="{ row }">{{ titleOf(row) }}</template>
         </el-table-column>
         <el-table-column label="类型" width="90" align="center">
@@ -39,9 +39,31 @@
           width="170"
           :formatter="dateFormatter"
         />
+        <el-table-column label="操作" width="90" align="center">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="openDetail(row)">查看详情</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <!-- v1 语义:提交页只展示最近 10 条作概览;完整分页/撤回/进度走管理员-教师共用的审核台 -->
     </ContentWrap>
+
+    <!-- 驳回原因必须显眼:与门户「我的提交」同一关切,教师被拒时第一眼要知道为什么 -->
+    <Dialog v-model="detailVisible" title="提交详情" width="520px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="成果">{{ detailTitle }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ typeLabel(detail?.achievementType) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="statusTone(detail?.status || '')" size="small">
+            {{ statusLabel(detail?.status || '') }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="提交时间">{{ detail?.submitTime ? formatDate(detail.submitTime) : '' }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail?.reviewComment" label="审核意见">
+          <span class="text-red-600">{{ detail?.reviewComment }}</span>
+        </el-descriptions-item>
+      </el-descriptions>
+    </Dialog>
   </div>
 </template>
 
@@ -53,7 +75,7 @@
  */
 import PendingSubmitForm from '@/views/business/components/PendingSubmitForm.vue'
 import { getMyPendingPage } from '@/api/business/achievement'
-import { dateFormatter } from '@/utils/formatTime'
+import { dateFormatter, formatDate } from '@/utils/formatTime'
 
 defineOptions({ name: 'TeacherSubmit' })
 
@@ -107,6 +129,15 @@ const getList = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const detailVisible = ref(false)
+const detail = ref<any>()
+const detailTitle = computed(() => (detail.value ? titleOf(detail.value) : ''))
+
+const openDetail = (row: any) => {
+  detail.value = row
+  detailVisible.value = true
 }
 
 onMounted(getList)
