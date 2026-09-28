@@ -16,7 +16,12 @@ export const submitPending = async (file: File, achievementType: string, data: s
   form.append('file', file)
   form.append('achievementType', achievementType)
   form.append('data', data)
-  return await request.post({ url: '/business/pending-achievements/submit', data: form })
+  // 必须走 upload(它设 headersType=multipart/form-data)。批15 GUI 实测抓出:
+  // 原来的 request.post 会给请求强设 Content-Type: application/json(axios 封装
+  // `request()` 无条件 `Content-Type: headersType || default_headers`),
+  // FormData 被当 JSON 序列化,后端抛 MultipartException "not a multipart request" → 500。
+  // 该 bug 自批10 起潜伏,学生 GUI 提交同样中招——此前只有 MockMvc 级测试,没测过前端请求形态。
+  return await request.upload({ url: '/business/pending-achievements/submit', data: form })
 }
 
 /** 获得我的提交分页(学生/教师门户共用;服务端强制按当前登录用户过滤) */

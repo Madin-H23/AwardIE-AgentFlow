@@ -54,11 +54,11 @@ SELECT 102, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3031, 3032, 30
 -- 只授 query 不授 update(3042)/delete(3043),保持"教师能看不能改"。
 
 -- ---- 批10:教师工作台两菜单(菜单 SQL 在 awardie-business-menus.sql 的 3100 段) ----
-DELETE FROM system_role_menu WHERE role_id IN (100, 101) AND menu_id IN (3100, 3101, 3102);
+DELETE FROM system_role_menu WHERE role_id IN (100, 101) AND menu_id IN (3100, 3101, 3102, 3103);
 INSERT INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
-SELECT 100, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102);
+SELECT 100, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102, 3103);
 INSERT INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
-SELECT 101, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102);
+SELECT 101, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102, 3103);
 
 -- 教师补成果库只读权限(见上「批6 例外」说明)
 DELETE FROM system_role_menu WHERE role_id = 101 AND menu_id = 3041;

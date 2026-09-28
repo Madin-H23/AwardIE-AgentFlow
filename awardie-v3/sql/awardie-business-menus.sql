@@ -171,9 +171,13 @@ INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon
 VALUES (3102, '我的指导成果', '', 2, 2, 3100, 'awards', '', 'business/teacher/awards/index', 0, 'TeacherAwards', 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = '我的指导成果', updater = 'admin';
 
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3103, '成果提交', '', 2, 3, 3100, 'submit', '', 'business/teacher/submit/index', 0, 'TeacherSubmit', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = '成果提交', updater = 'admin';
+
 -- ---- 分配给超级管理员(role_id=1) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
-SELECT 1, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102);
+SELECT 1, id, 'admin', 'admin', 1 FROM system_menu WHERE id IN (3100, 3101, 3102, 3103);
 
 -- ============================================================================
 -- 批10:学生门户(三场景,移动端优先)
