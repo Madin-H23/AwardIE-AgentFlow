@@ -35,10 +35,8 @@ SQL_ORDER = [
     ('awardie-v3/sql/awardie-user-domain.sql', '三角色 + 授权'),
 ]
 ETL_STEPS = [
-    ('scripts/etl_v2_base_data_to_v3.py', '基础数据域(竞赛/实验室)'),
-    ('scripts/etl_v2_users_to_v3.py', '用户与角色域'),
     ('scripts/v3_apply_missing_columns.py', '批11 schema 补列/建表'),
-    ('scripts/etl_v2_business_to_v3.py', '业务成果域(批11 主体)'),
+    ('scripts/etl_v1_to_v3.py', 'V1 全域(基础域/用户域/业务成果域)'),
 ]
 CHECKS = []  # 复检项在 main 里内联执行(见 [check] 段),这里不再维护清单
 
@@ -175,7 +173,7 @@ def main() -> int:
         print(out[-400:])
 
     rc, out = run([PY, os.path.join(ROOT, 'scripts/v3_reconcile.py')], env=rehearsal_env)
-    print('[check] 切流对账(v2 PG vs 演练库):')
+    print('[check] 切流对账(V1 SQLite vs 演练库):')
     for line in (out or '').splitlines():
         if line.strip() and 'DeprecationWarning' not in line and 'sys.exit' not in line:
             print('   ' + line)
