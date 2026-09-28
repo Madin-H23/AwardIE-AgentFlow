@@ -115,6 +115,8 @@ COMPETITION_COLS = [
 ]
 COMPETITION_BOOL = ('white_list', 'watch_list', 'is_auto_added')
 LAB_COLS = ['id', 'name', 'description', 'creator', 'updater', 'tenant_id']
+# 框架列:只在 INSERT 时给,不进 upsert 的 UPDATE 子句(见 _upsert_sql)
+FRAME_COLS = {'creator', 'updater', 'tenant_id', 'deleted', 'create_time', 'update_time'}
 # V1 与 v2 的 users 列完全同名(见文件头「与 V2 路径共享」),故查询语句一致
 USER_SRC_COLS = ('id', 'login_code', 'name', 'role', 'password_hash', 'user_activated', 'phone',
                  'major', 'grade', 'title', 'qq', 'skills', 'profile_is_public')
@@ -140,6 +142,9 @@ V2 = load_v2_defs()
 # 按 (魔数前缀, 扩展名) 列表顺序匹配而非字典 —— JPEG 的魔数只有 3 字节(FF D8 FF),
 # 第 4 字节是 APP0/EXIF 标记位(实测 V1 全部 20 张都是 FF D8 FF E0),按 4 字节取键会一张都认不出。
 BLOB_MAGIC = [(b'\xff\xd8\xff', 'jpg'), (b'\x89PNG', 'png'), (b'%PDF', 'pdf')]
+# 源表无此列、但能从另一个源列还原的目标列。用于让 [missing] 上报说清
+# 「这一列到底是丢了还是换了条路来」——两者对读者是完全不同的结论。
+RESTORED_FROM_BLOB = {'sample_image_path': 'templates.sample_image_blob'}
 
 # 运行期报告(全部显式打印,不静默)
 MISSING_SRC_COLS: dict[str, list[str]] = {}   # 源表根本没有的映射列
@@ -223,10 +228,6 @@ SENTINEL_TO_NULL = {
 SENTINEL_HITS: Counter = Counter()
 
 
-def s_jd_bound(where):
-    return lambda v: s_jd(v, where)
-
-
 # ---------------- 源读取 ----------------
 def open_src():
     """以**只读**方式打开 V1。
@@ -262,6 +263,10 @@ def fetch_business(cur):
             MISSING_SRC_COLS[target] = absent
             # 源表没有的列不 SELECT,值恒为 None(见文件头「V1 比 V2 少的两列」)
         present = [c for c in need if c in have]
+        if not present:
+            raise SystemExit(
+                f'[FATAL] {src} 与 MAPS 一个列都对不上(源侧 {len(have)} 列,映射要 {len(need)} 列)'
+                f'——表结构已变,中止而不是写出一张空表')
 
         sql = f"SELECT {', '.join(present)} FROM {src}"
         if target == 'awardie_achievement_audit_log':
@@ -289,7 +294,7 @@ def fetch_business(cur):
                 if (target, v3) in SENTINEL_TO_NULL:
                     v = coerce_sentinel(target, v3, v)
                 if conv == 'd':
-                    out.append(s_jd_bound(f'{target}.{v3}')(v))
+                    out.append(s_jd(v, f'{target}.{v3}'))
                 else:
                     out.append(CONV[conv](v) if conv else v)
             if fill:
@@ -312,22 +317,54 @@ def read_base(cur):
 
 
 def validate_base(cur, comps, labs):
-    """前置校验:唯一性。ETL 依赖「竞赛名唯一」这一语义,重了会静默合并两条成果。"""
+    """前置校验(纯源侧,不碰目标库)。
+
+    唯一性:ETL 依赖「竞赛名唯一」这一语义,重了会静默把两条成果并成一条。
+    """
     ok = True
-    for label, rows, idx in (('竞赛', comps, 1), ('实验室', labs, 1)):
-        names = [r[idx] for r in rows]
+    for label, rows in (('竞赛', comps), ('实验室', labs)):
+        names = [r[1] for r in rows]
         dup = sorted({n for n, k in Counter(names).items() if k > 1})
         if dup:
             print(f'[FATAL] V1 {label}名重复 {len(dup)} 个: {dup[:5]} —— 中止')
             ok = False
-    # id 异位冲突:目标库同 id 不同名,说明两条源不是同一份历史,静默覆盖就是改数据
     return ok
 
 
+def check_target_conflicts(cur, comps, labs):
+    """id 异位冲突:目标库同 id 却是**另一个名字**。
+
+    这是「两份不同的历史」而不是「同一份历史重跑一遍」。upsert 会把它按 id 覆盖掉,
+    而覆盖之后行数不变、id 不变、对账全绿 —— 只有名字变了。所以必须在写之前拦。
+    口径与 etl_v2_base_data_to_v3.py 一致:只计未逻辑删除的行(v3 为逻辑删除)。
+    """
+    bad = []
+    cur.execute("SELECT id, competition_name FROM awardie_competitions WHERE deleted = b'0'")
+    have = dict(cur.fetchall())
+    bad += [(r[0], 'competition', r[1], have[r[0]]) for r in comps
+            if r[0] in have and have[r[0]] != r[1]]
+    cur.execute("SELECT id, name FROM awardie_laboratories WHERE deleted = b'0'")
+    have = dict(cur.fetchall())
+    bad += [(r[0], 'laboratory', r[1], have[r[0]]) for r in labs
+            if r[0] in have and have[r[0]] != r[1]]
+    if bad:
+        raise SystemExit(
+            f'[FATAL] 目标库同 id 异名冲突 {len(bad)} 处(需人工裁决,静默覆盖就是改数据): '
+            + ', '.join(f'id={i} {k} 源={a!r} 目标={b!r}' for i, k, a, b in bad[:5]))
+
+
 def _upsert_sql(table, cols):
+    """upsert 的 UPDATE 子句**只放业务列,不放框架列**(批11 审查 A-1)。
+
+    含 tenant_id/deleted 的写法有个具体的坏结局:切流后应用上线、有人软删了一条
+    竞赛,再为「保险」重跑 ETL,该行 deleted 被静默改回 0、tenant_id 被改回 1,
+    没有日志没有告警;而对账以源库为基准、源库说 deleted=0,闸门会主动给这次
+    clobber 背书。框架列只在 INSERT 时给,已有行保持目标库自己的状态。
+    """
     return (f"INSERT INTO `{table}` ({', '.join('`' + c + '`' for c in cols)}) "
             f"VALUES ({', '.join(['%s'] * len(cols))}) ON DUPLICATE KEY UPDATE "
-            + ', '.join(f"`{c}` = VALUES(`{c}`)" for c in cols if c != 'id'))
+            + ', '.join(f"`{c}` = VALUES(`{c}`)" for c in cols
+                        if c != 'id' and c not in FRAME_COLS))
 
 
 def write_base(conn, cur, comps, labs):
@@ -419,7 +456,6 @@ def template_sample_paths(cur):
 
 
 def main() -> int:
-    global BLOB_DERIVED
     dry = '--dry-run' in sys.argv
     if not MYSQL['password']:
         print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
@@ -456,8 +492,13 @@ def main() -> int:
 
     print()
     for t, cols_ in MISSING_SRC_COLS.items():
-        print(f'[missing] {t}: 源表无 {", ".join(cols_)} 列(V1 早于该列的引入),按 NULL 迁;'
-              f'目标列可空,不丢数据')
+        plain = [c for c in cols_ if c not in RESTORED_FROM_BLOB]
+        if plain:
+            print(f'[missing] {t}: 源表无 {", ".join(plain)} 列(V1 早于该列的引入),按 NULL 迁;'
+                  f'目标列可空,不丢数据')
+        for c in [c for c in cols_ if c in RESTORED_FROM_BLOB]:
+            print(f'[missing] {t}: 源表无 {c} 列,但已由 {RESTORED_FROM_BLOB[c]} 还原,'
+                  f'不按 NULL 迁(见下方 [blob])')
     for t, n in V2.FILL.items():
         print(f'[fill] {t}: granted_role 源侧无此列,按声明值 '
               f'{V2.FILL[t].get("granted_role")} 补 {len(data[t][2])} 行')
@@ -490,6 +531,7 @@ def main() -> int:
 
     conn = pymysql.connect(**MYSQL)
     myc = conn.cursor()
+    check_target_conflicts(myc, comps, labs)
     write_base(conn, myc, comps, labs)
     ids, nxt = write_users(conn, myc, users)
     print(f'[write] competitions={len(comps)} laboratories={len(labs)} users={len(ids)} '
