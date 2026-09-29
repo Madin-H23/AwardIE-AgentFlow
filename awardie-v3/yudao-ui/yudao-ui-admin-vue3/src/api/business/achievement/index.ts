@@ -74,6 +74,26 @@ export const getTeacherPendingList = async (params?: { status?: string }) => {
   return await request.get({ url: '/business/pending-achievements/teacher-pending-list', params })
 }
 
+// ==================== 教师指导成果(批16) ====================
+
+/** 我的指导成果(服务端按当前教师过滤,D-04 修复;口径=v1 文本匹配) */
+export const getMyTeacherAchievements = async (year?: number) => {
+  return await request.get({ url: '/business/teacher/achievements/my', params: { year } })
+}
+
+/** 导出我的指导成果 CSV(对齐 v1 data_export) */
+export const exportMyAchievementsCsv = async (year?: number) => {
+  return await request.download({
+    url: '/business/teacher/achievements/my.csv',
+    params: { year }
+  })
+}
+
+/** 导出我的获奖明细 CSV(学生门户自取,批16) */
+export const exportMyAffairsCsv = async () => {
+  return await request.download({ url: '/business/export/my-affairs.csv' })
+}
+
 // ==================== 成果库 ====================
 
 /** 五类成果的类型键(与后端 VaultSpec 白名单一致) */

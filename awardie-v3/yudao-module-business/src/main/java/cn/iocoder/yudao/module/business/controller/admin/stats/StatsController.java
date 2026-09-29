@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -41,6 +42,13 @@ public class StatsController {
     @PreAuthorize("@ss.hasPermission('business:stats:query')")
     public CommonResult<StatsOverviewRespVO> getOverview() {
         return success(statsService.getOverview(TenantContextHolder.getRequiredTenantId()));
+    }
+
+    @GetMapping("/by-laboratory")
+    @Operation(summary = "获得实验室获奖分布(批16)")
+    @PreAuthorize("@ss.hasPermission('business:stats:query')")
+    public CommonResult<Map<String, Long>> getByLaboratory() {
+        return success(statsService.laboratoryBreakdown(TenantContextHolder.getRequiredTenantId()));
     }
 
     @GetMapping("/by-competition")

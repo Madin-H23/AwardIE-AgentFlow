@@ -15,6 +15,14 @@
     </el-table>
   </ContentWrap>
 
+  <ContentWrap v-if="Object.keys(laboratory).length > 0">
+    <div class="mb-10px text-16px font-600">实验室获奖分布</div>
+    <el-table :data="laboratoryRows" border empty-text="暂无数据">
+      <el-table-column label="实验室" prop="label" min-width="200" />
+      <el-table-column label="获奖数" prop="value" min-width="100" align="right" />
+    </el-table>
+  </ContentWrap>
+
   <ContentWrap>
     <div class="mb-10px flex items-center justify-between">
       <span class="text-16px font-600">竞赛战果 Top12</span>
@@ -32,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getStatsByCompetition, getStatsOverview } from '@/api/business'
+import { getStatsByCompetition, getStatsByLaboratory, getStatsOverview } from '@/api/business'
 
 defineOptions({ name: 'Stats' })
 
@@ -40,6 +48,11 @@ const loading = ref(false)
 const summary = ref<any>({})
 const category = ref<Record<string, number>>({})
 const ranking = ref<any[]>([])
+const laboratory = ref<Record<string, number>>({})
+
+const LAB_LABELS: Record<string, string> = {
+  未归属: '未归属实验室'
+}
 
 /** 五类成果的中文标签(顺序与后端 category 返回一致) */
 const CATEGORY_LABELS: Array<[string, string]> = [
@@ -66,6 +79,13 @@ const summaryCards = computed(() => [
   { label: '白名单竞赛', value: summary.value.whitelist ?? 0 }
 ])
 
+const laboratoryRows = computed(() =>
+  Object.entries(laboratory.value).map(([name, value]) => ({
+    label: LAB_LABELS[name] || name,
+    value
+  }))
+)
+
 const categoryRows = computed(() =>
   CATEGORY_LABELS.map(([key, label]) => ({
     label,
@@ -77,13 +97,18 @@ const categoryRows = computed(() =>
 const loadData = async () => {
   loading.value = true
   try {
-    const [overview, top] = await Promise.all([getStatsOverview(), getStatsByCompetition()])
+    const [overview, top, laboratoryData] = await Promise.all([
+      getStatsOverview(),
+      getStatsByCompetition(),
+      getStatsByLaboratory().catch(() => ({}))
+    ])
     // overview 是整个响应体 {summary, category} —— 汇总卡要绑定它的 summary 子对象。
     // 批14 前实测写成了 summary.value = overview,五张卡全部绑在错误层级上恒 0,
     // 而分类表(category 绑对了)有数,对比之下才暴露。
     summary.value = overview?.summary || {}
     category.value = overview?.category || {}
     ranking.value = top || []
+    laboratory.value = laboratoryData || {}
   } finally {
     loading.value = false
   }

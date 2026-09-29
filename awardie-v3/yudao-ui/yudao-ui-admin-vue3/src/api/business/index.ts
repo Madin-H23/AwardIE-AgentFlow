@@ -140,6 +140,10 @@ export const getStatsByCompetition = async () => {
   return await request.get({ url: '/business/stats/by-competition' })
 }
 
+export const getStatsByLaboratory = async () => {
+  return await request.get({ url: '/business/stats/by-laboratory' })
+}
+
 // ==================== 数据导出 ====================
 
 /**

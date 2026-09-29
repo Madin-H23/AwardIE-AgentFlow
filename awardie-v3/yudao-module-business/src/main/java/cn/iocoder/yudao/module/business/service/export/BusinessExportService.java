@@ -116,6 +116,48 @@ public class BusinessExportService {
     }
 
     /**
+     * 学生个人获奖明细(批16,对齐 v1 /student/export_all 的 CSV 部分)。
+     *
+     * <p>查询与 {@link #getStudentAffairs(Long)} 同构,但按**当前登录学生**过滤
+     * (student_id = loginUserId),供学生门户自取;管理端全量明细仍走原方法。
+     *
+     * @param tenantId    租户编号
+     * @param loginUserId 当前登录学生 id
+     * @return 明细行(按年份倒序)
+     */
+    public List<StudentAwardRow> getMyStudentAffairs(Long tenantId, Long loginUserId) {
+        String sql = """
+                SELECT u.username AS studentNo,
+                       u.nickname AS studentName,
+                       COALESCE(c.competition_name, '未关联') AS competition,
+                       a.award_level AS awardLevel,
+                       a.year AS year
+                FROM awardie_award_student_winners w
+                INNER JOIN system_users u
+                       ON w.student_id = u.id AND u.deleted = b'0' AND u.tenant_id = ?
+                INNER JOIN awardie_awards a
+                       ON w.award_id = a.id AND a.deleted = b'0' AND a.tenant_id = ?
+                LEFT JOIN awardie_competitions c
+                       ON a.competition_id = c.id AND c.deleted = b'0' AND c.tenant_id = ?
+                WHERE w.deleted = b'0' AND w.tenant_id = ? AND w.student_id = ?
+                ORDER BY (a.year IS NULL) ASC, a.year DESC
+                LIMIT ?
+                """;
+        List<StudentAwardRow> rows = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            StudentAwardRow row = new StudentAwardRow();
+            row.setStudentNo(rs.getString("studentNo"));
+            row.setStudentName(rs.getString("studentName"));
+            row.setCompetition(rs.getString("competition"));
+            row.setAwardLevel(rs.getString("awardLevel"));
+            int year = rs.getInt("year");
+            row.setYear(rs.wasNull() ? null : year);
+            return row;
+        }, tenantId, tenantId, tenantId, tenantId, loginUserId, maxRows + 1);
+        assertRowLimit(rows.size());
+        return rows;
+    }
+
+    /**
      * 判行数上限
      *
      * <p>上限已通过 SQL 的 {@code LIMIT maxRows + 1} **前置到查询**:

@@ -7,6 +7,12 @@
       title="还没有已通过的成果。提交后经教师审核通过,证书会出现在这里。"
     />
 
+    <div v-if="list.length" class="mb-12px text-right">
+      <el-button :loading="exporting" @click="handleExportAll">
+        <Icon icon="ep:download" class="mr-5px" />导出我的获奖明细(CSV)
+      </el-button>
+    </div>
+
     <div v-for="item in list" :key="item.id" class="cert-card">
       <div class="cert-head">
         <el-tag :type="typeTone(item.achievementType)" size="small">
@@ -51,7 +57,7 @@
 
 <script setup lang="ts">
 import download from '@/utils/download'
-import { downloadPending, getMyPendingPage } from '@/api/business/achievement'
+import { downloadPending, getMyPendingPage, exportMyAffairsCsv } from '@/api/business/achievement'
 
 defineOptions({ name: 'PortalCertificates' })
 
@@ -90,6 +96,26 @@ const urls = reactive<Record<number, string>>({})
 const loadingId = ref<number>()
 const loadedId = ref<number>()
 const downloadingId = ref<number>()
+
+// 批16:个人获奖明细导出(对齐 v1 /student/export_all 的表格部分)
+const exporting = ref(false)
+const handleExportAll = async () => {
+  exporting.value = true
+  try {
+    const data = await exportMyAffairsCsv()
+    const blob = new Blob([data], { type: 'text/csv;charset=UTF-8' })
+    const href = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = href
+    a.download = `my-affairs-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(href)
+  } finally {
+    exporting.value = false
+  }
+}
 
 const getList = async () => {
   loading.value = true

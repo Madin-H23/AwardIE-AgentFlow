@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 /**
  * 管理后台 - 数据导出(批9)
@@ -87,6 +88,20 @@ public class BusinessExportController {
                 BusinessExportService.studentAffairsHeader(),
                 BusinessExportService.studentAffairsCells(
                         exportService.getStudentAffairs(currentTenantId())));
+    }
+
+    @GetMapping("/my-affairs.csv")
+    @Operation(summary = "导出我的获奖明细(CSV,学生门户自取,批16)")
+    @ApiAccessLog(operateType = EXPORT, operateName = "导出我的获奖明细CSV")
+    // 权限用 pending-achievement:query(学生三权限之一),**不能用 vault:query**:
+    // 学生没有也不该有 vault:query(给了即可读全租户成果库=新造 D-04 式越权)。
+    // 数据越权由 SQL 内 student_id = 当前登录人 双保险。
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:query')")
+    public void exportMyAffairsCsv(HttpServletResponse response) throws IOException {
+        writeCsv(response, "my-affairs",
+                BusinessExportService.studentAffairsHeader(),
+                BusinessExportService.studentAffairsCells(
+                        exportService.getMyStudentAffairs(currentTenantId(), getLoginUserId())));
     }
 
     /**

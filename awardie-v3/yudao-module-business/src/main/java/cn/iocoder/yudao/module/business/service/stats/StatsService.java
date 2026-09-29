@@ -70,6 +70,32 @@ public class StatsService {
     }
 
     /**
+     * 实验室维度:各实验室的获奖数(批16,D-16 前置债之一)。
+     *
+     * <p>按 awardie_laboratories 全量左联计数,无实验室的归入「未归属」桶 ——
+     * 与竞赛 Top 的「未关联」同语义。v1 的 stats 也有该维度;切流后 194/197 条
+     * 奖状带 laboratory_id,数据可用。
+     *
+     * @param tenantId 租户编号
+     * @return 键=实验室名(或「未归属」),值=获奖数;LinkedHashMap 保序
+     */
+    public Map<String, Long> laboratoryBreakdown(Long tenantId) {
+        String sql = """
+                SELECT COALESCE(l.name, '未归属') AS name, COUNT(*) AS total
+                FROM awardie_awards a
+                LEFT JOIN awardie_laboratories l
+                       ON a.laboratory_id = l.id AND l.deleted = b'0' AND l.tenant_id = ?
+                WHERE a.deleted = b'0' AND a.tenant_id = ?
+                GROUP BY COALESCE(l.name, '未归属')
+                ORDER BY total DESC, name ASC
+                """;
+        Map<String, Long> out = new LinkedHashMap<>();
+        jdbcTemplate.queryForList(sql, tenantId, tenantId).forEach(row ->
+                out.put(String.valueOf(row.get("name")), ((Number) row.get("total")).longValue()));
+        return out;
+    }
+
+    /**
      * 五类成果分类计数
      *
      * @param tenantId 租户编号
