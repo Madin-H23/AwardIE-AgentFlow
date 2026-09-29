@@ -67,6 +67,8 @@ public class PendingAchievementController {
     @Resource
     private PendingSubmissionService submissionService;
     @Resource
+    private cn.iocoder.yudao.module.business.service.template.TemplateAiService templateAiService;
+    @Resource
     private SubmitterTypeResolver submitterTypeResolver;
     @Resource
     private AwardieFileStorage fileStorage;
@@ -87,6 +89,20 @@ public class PendingAchievementController {
      * @param data             成果字段 JSON
      * @return 入库后的待审成果
      */
+    /**
+     * 提交前 AI 识别预填(批17,对齐 v1「提交即抽取」):上传证书图即解析,
+     * 返回抽取字段供前端预填表单;**不落库**——真正的提交仍走 /submit。
+     * 权限挂 create(与提交同门),学生/教师皆可用;Worker fake 模式返回确定性桩
+     * (开发/CI 默认),grpc 模式为真实 OCR+LLM。
+     */
+    @PostMapping("/parse")
+    @Operation(summary = "提交前 AI 识别预填(不落库)")
+    @PreAuthorize("@ss.hasPermission('business:pending-achievement:create')")
+    public CommonResult<Map<String, Object>> parse(
+            @RequestPart("file") MultipartFile file) throws IOException {
+        return success(templateAiService.parseForSubmission(file.getBytes(), file.getOriginalFilename()));
+    }
+
     @PostMapping("/submit")
     @Operation(summary = "提交 AwardIE 待审成果")
     @PreAuthorize("@ss.hasPermission('business:pending-achievement:create')")

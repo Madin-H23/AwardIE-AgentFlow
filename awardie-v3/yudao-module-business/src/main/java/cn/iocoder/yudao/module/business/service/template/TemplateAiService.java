@@ -132,6 +132,42 @@ public class TemplateAiService {
     }
 
     /**
+     * 提交前识别预填(批17,对齐 v1「提交即抽取」的能力面):不带模板规则,
+     * 让 Worker 按默认 17 字段抽取,返回 dataJson 供前端把键值填进提交表单。
+     * 与 {@link #extractForNewTemplate} 的区别:规则固定 "{}"(无模板上下文),
+     * 且这是学生/教师提交链路的入口(权限在 Controller 上挂 create)。
+     *
+     * @param image    证书图片字节
+     * @param filename 原始文件名(Worker 判型用)
+     * @return mode/dataJson/ocrText/disclaimer
+     */
+    public Map<String, Object> parseForSubmission(byte[] image, String filename) {
+        if (!workerProperties.isGrpcMode()) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("mode", MODE_FAKE);
+            out.put("dataJson", fakeExtractJson());
+            out.put("ocrText", "示例OCR文本(fake 模式,未调用 Worker)");
+            out.put("disclaimer", DISCLAIMER);
+            return out;
+        }
+        String traceId = "submit-parse-" + shortTrace();
+        try {
+            var resp = workerClient.extractTemplate(image, filename, "{}", traceId,
+                    workerProperties.getExtractTimeoutSeconds());
+            throwIfWorkerFailed(resp.getCode(), resp.getMessage());
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("mode", MODE_GRPC);
+            out.put("dataJson", resp.getDataJson());
+            out.put("ocrText", resp.getOcrText());
+            out.put("disclaimer", DISCLAIMER);
+            return out;
+        } catch (StatusRuntimeException e) {
+            throw exception0(WORKER_CODE_AI_UNAVAILABLE,
+                    "AI Worker 不可用({}),请稍后重试", e.getStatus().getCode());
+        }
+    }
+
+    /**
      * 生成抽取 prompt
      *
      * @param ruleJson 模板规则 JSON

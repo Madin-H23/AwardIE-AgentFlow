@@ -74,6 +74,14 @@ export const getTeacherPendingList = async (params?: { status?: string }) => {
   return await request.get({ url: '/business/pending-achievements/teacher-pending-list', params })
 }
 
+/** 提交前 AI 识别预填(批17):不落库,返回 mode/dataJson/ocrText/disclaimer */
+export const parsePending = async (file: File) => {
+  const form = new FormData()
+  form.append('file', file)
+  // multipart 同 submitPending:必须走 upload(request.post 会强设 JSON 头)
+  return await request.upload({ url: '/business/pending-achievements/parse', data: form })
+}
+
 // ==================== 教师指导成果(批16) ====================
 
 /** 我的指导成果(服务端按当前教师过滤,D-04 修复;口径=v1 文本匹配) */

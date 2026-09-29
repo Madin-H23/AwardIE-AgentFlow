@@ -11,7 +11,19 @@
     </el-card>
 
     <el-card shadow="never" class="mb-12px">
-      <div class="section-title">证明文件</div>
+      <div class="section-title flex items-center justify-between">
+        <span>证明文件</span>
+        <el-button
+          size="small"
+          type="primary"
+          plain
+          :loading="parsing"
+          :disabled="!pickedFile"
+          @click="handleParse"
+        >
+          <Icon icon="ep:magic-stick" class="mr-4px" />AI 识别预填
+        </el-button>
+      </div>
       <el-upload
         :auto-upload="false"
         :limit="1"
@@ -83,7 +95,7 @@
  * 提交成功后去哪(学生跳 /portal/submissions、教师留在本页刷新记录)由宿主页决定——
  * 两个壳的导航语义不同,写死在组件里就得加 if 分支。
  */
-import { submitPending } from '@/api/business/achievement'
+import { submitPending, parsePending } from '@/api/business/achievement'
 
 defineOptions({ name: 'PendingSubmitForm' })
 
@@ -151,6 +163,7 @@ const HINTS: Record<string, string> = {
 }
 
 const submitting = ref(false)
+const parsing = ref(false)
 const pickedFile = ref<File>()
 
 const form = reactive({
@@ -175,6 +188,45 @@ const onFileChange = (file: any) => {
 
 const onFileRemove = () => {
   pickedFile.value = undefined
+}
+
+/**
+ * AI 识别预填(批17):调 /parse 让 Worker 抽取字段,把**与当前类型字段名匹配**的键
+ * 填进表单,不覆盖用户已填的值。对齐 v1「提交即抽取」的能力面;v1 的四步向导
+ * (上传→解析→确认→提交)在 v3 收敛为「上传→点按钮预填→确认提交」。
+ * fake 模式返回确定性桩(disclaimer 会提示),grpc 模式为真实 OCR+LLM。
+ */
+const handleParse = async () => {
+  if (!pickedFile.value) {
+    message.warning('请先上传证明文件')
+    return
+  }
+  parsing.value = true
+  try {
+    const res: any = await parsePending(pickedFile.value)
+    let extracted: Record<string, any> = {}
+    try {
+      extracted = JSON.parse(res?.dataJson || '{}')
+    } catch {
+      message.warning('识别结果无法解析,请手动填写')
+      return
+    }
+    const keys = currentTypeFields.value.map((f) => f.key)
+    let filled = 0
+    for (const [k, v] of Object.entries(extracted)) {
+      if (keys.includes(k) && v != null && String(v).trim() !== '' && !form.data[k]) {
+        form.data[k] = String(v)
+        filled += 1
+      }
+    }
+    if (filled) {
+      message.success(`已预填 ${filled} 项(请核对后提交)`)
+    } else {
+      message.warning('未能识别出可预填的字段,请手动填写')
+    }
+  } finally {
+    parsing.value = false
+  }
 }
 
 const handleSubmit = async () => {
