@@ -19,7 +19,7 @@
         <el-tag :type="statusTone(item.status)" size="small" class="ml-6px">
           {{ statusLabel(item.status) }}
         </el-tag>
-        <span class="record-time">{{ item.submitTime || '' }}</span>
+        <span class="record-time">{{ item.submitTime ? formatDate(item.submitTime) : '' }}</span>
       </div>
 
       <div class="record-title">{{ titleOf(item) }}</div>
@@ -87,6 +87,7 @@
 
 <script setup lang="ts">
 import { getMyPendingPage, getPendingTimeline, withdrawPending } from '@/api/business/achievement'
+import { formatDate } from '@/utils/formatTime'
 
 defineOptions({ name: 'PortalSubmissions' })
 
