@@ -21,8 +21,10 @@ import java.util.Map;
  * <p><b>计数用 Long 而非 Integer</b>:v2 用 Integer.class 接 COUNT,超过 Integer.MAX_VALUE
  * 会转换异常变 500;芋道 PageResult.total 本身也是 Long。
  *
- * <p><b>不做年份/实验室/教师维度</b>:依赖 v3 尚未写入的字段(year/laboratory_id/granted_role),
- * 现在做只会返回空。已记为前置债(00-需求 F1/F2/F3)。
+ * <p><b>维度现状</b>:实验室维度批16 已上(byLaboratory);教师维度批20 已上
+ * (byTeacher,口径=文本匹配 FIND_IN_SET + 同名编号约定,不依赖关系表);
+ * **年份维度仍未做**——物化链不写 year(欠账 D-16 剩余项),切流存量 194/197 条
+ * 带 year、新审核通过行不带,做出来口径会随时间漂移,待物化链补齐后再上。
  *
  * @author AwardIE
  */
@@ -67,6 +69,49 @@ public class StatsService {
         // 页面「成果总数」恒 0 —— 五类分类表有数、汇总卡却是 0,根因之一就是这条漏写。
         summary.setAwardsTotal(category.values().stream().mapToLong(Long::longValue).sum());
         return vo;
+    }
+
+    /**
+     * 教师维度:各教师的指导获奖数与本人教师证书数(批20,D-17)。
+     *
+     * <p>口径与教师指导成果页(TeacherAchievementController)完全一致:
+     * supervisor_name / winner_name 归一化「，/、/空格」→「,」后 <b>FIND_IN_SET 精确成员比较</b>,
+     * 非子串包含——张三1 不命中 张三12、王五 不命中 王五平。同名教师按
+     * 编号约定区分(2026-09-29 用户拍板:同名出现时全员编号张三1/张三2、不留裸名,
+     * 编号同时落在账号昵称与奖状 supervisor_name 两处;当前 40 名教师零同名,约定备用)。
+     *
+     * <p>行集 = 全部在职教师账号(role code=awardie_teacher),0 指导的教师也列出
+     * (管理者要看到"谁还没有成果",只列有数的会掩盖这个信息)。
+     * 两个计数用相关子查询而非两路 LEFT JOIN:同一行可能同时是指导与获奖人,
+     * JOIN 会让两列互相乘积,相关子查询天然各算各的。
+     *
+     * @param tenantId 租户编号
+     * @return 行:name(教师名) / supervised(指导获奖数) / ownAwards(本人教师证书数)
+     */
+    public List<Map<String, Object>> teacherBreakdown(Long tenantId) {
+        // ⚠️ u.nickname 必须显式 COLLATE 对齐业务列:system_users 是芋道原生表
+        // (utf8mb4_unicode_ci),awardie_* 建表继承 MySQL8 默认(utf8mb4_0900_ai_ci),
+        // FIND_IN_SET 在这里做的是**列对列**比较,两种 collation 直接混用报
+        // "Illegal mix of collations"(实测);TeacherAchievementController 的同名匹配
+        // 是参数对列,走连接默认 collation,不受影响。
+        String sql = """
+                SELECT u.nickname AS name,
+                       (SELECT COUNT(*) FROM awardie_awards a
+                         WHERE a.deleted = b'0' AND a.tenant_id = u.tenant_id
+                           AND FIND_IN_SET(u.nickname COLLATE utf8mb4_0900_ai_ci, REPLACE(REPLACE(REPLACE(
+                               a.supervisor_name, '，', ','), '、', ','), ' ', '')) > 0) AS supervised,
+                       (SELECT COUNT(*) FROM awardie_awards a
+                         WHERE a.deleted = b'0' AND a.tenant_id = u.tenant_id
+                           AND a.granted_role = '教师'
+                           AND FIND_IN_SET(u.nickname COLLATE utf8mb4_0900_ai_ci, REPLACE(REPLACE(REPLACE(
+                               a.winner_name, '，', ','), '、', ','), ' ', '')) > 0) AS ownAwards
+                FROM system_users u
+                JOIN system_user_role ur ON ur.user_id = u.id AND ur.deleted = b'0'
+                JOIN system_role r ON r.id = ur.role_id AND r.deleted = b'0' AND r.code = 'awardie_teacher'
+                WHERE u.deleted = b'0' AND u.tenant_id = ?
+                ORDER BY supervised DESC, ownAwards DESC, name ASC
+                """;
+        return jdbcTemplate.queryForList(sql, tenantId);
     }
 
     /**

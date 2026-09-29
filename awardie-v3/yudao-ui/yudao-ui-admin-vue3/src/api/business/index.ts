@@ -144,6 +144,10 @@ export const getStatsByLaboratory = async () => {
   return await request.get({ url: '/business/stats/by-laboratory' })
 }
 
+export const getStatsByTeacher = async () => {
+  return await request.get({ url: '/business/stats/by-teacher' })
+}
+
 // ==================== 数据导出 ====================
 
 /**

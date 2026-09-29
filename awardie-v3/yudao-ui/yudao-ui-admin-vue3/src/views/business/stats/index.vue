@@ -15,6 +15,19 @@
     </el-table>
   </ContentWrap>
 
+  <ContentWrap v-if="teachers.length > 0">
+    <div class="mb-10px flex items-center justify-between">
+      <span class="text-16px font-600">教师维度</span>
+      <span class="text-12px text-gray-500">按指导教师名单精确匹配,同名教师以编号区分(如张三1/张三2)</span>
+    </div>
+    <el-table :data="teachers" border empty-text="暂无数据">
+      <el-table-column type="index" label="#" width="60" align="center" />
+      <el-table-column label="教师" prop="name" min-width="140" />
+      <el-table-column label="指导获奖" prop="supervised" min-width="100" align="right" />
+      <el-table-column label="本人教师证书" prop="ownAwards" min-width="120" align="right" />
+    </el-table>
+  </ContentWrap>
+
   <ContentWrap v-if="Object.keys(laboratory).length > 0">
     <div class="mb-10px text-16px font-600">实验室获奖分布</div>
     <el-table :data="laboratoryRows" border empty-text="暂无数据">
@@ -40,7 +53,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getStatsByCompetition, getStatsByLaboratory, getStatsOverview } from '@/api/business'
+import { getStatsByCompetition, getStatsByLaboratory, getStatsByTeacher, getStatsOverview } from '@/api/business'
 
 defineOptions({ name: 'Stats' })
 
@@ -49,6 +62,7 @@ const summary = ref<any>({})
 const category = ref<Record<string, number>>({})
 const ranking = ref<any[]>([])
 const laboratory = ref<Record<string, number>>({})
+const teachers = ref<any[]>([])
 
 const LAB_LABELS: Record<string, string> = {
   未归属: '未归属实验室'
@@ -97,10 +111,11 @@ const categoryRows = computed(() =>
 const loadData = async () => {
   loading.value = true
   try {
-    const [overview, top, laboratoryData] = await Promise.all([
+    const [overview, top, laboratoryData, teacherRows] = await Promise.all([
       getStatsOverview(),
       getStatsByCompetition(),
-      getStatsByLaboratory().catch(() => ({}))
+      getStatsByLaboratory().catch(() => ({})),
+      getStatsByTeacher().catch(() => [])
     ])
     // overview 是整个响应体 {summary, category} —— 汇总卡要绑定它的 summary 子对象。
     // 批14 前实测写成了 summary.value = overview,五张卡全部绑在错误层级上恒 0,
@@ -109,6 +124,7 @@ const loadData = async () => {
     category.value = overview?.category || {}
     ranking.value = top || []
     laboratory.value = laboratoryData || {}
+    teachers.value = teacherRows || []
   } finally {
     loading.value = false
   }

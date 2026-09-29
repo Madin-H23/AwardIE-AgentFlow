@@ -8,9 +8,9 @@ import java.util.Map;
 /**
  * 管理后台 - 统计分析总览 Response VO(批9)
  *
- * <p>本批**不含**年份趋势、实验室维度、教师证书拆分——三者依赖 v3 尚未写入的字段
- * (`awardie_awards.year` / `laboratory_id` / `granted_role`),做了只会得到空数据。
- * 已记为前置债,见 docs 批9 00-需求 F1/F2/F3。
+ * <p>维度现状(批20 订正):实验室维度见 by-laboratory(批16);教师维度见
+ * by-teacher(批20,文本匹配 FIND_IN_SET);年份趋势仍未做——物化链不写 year
+ * (欠账 D-16 剩余项),待补齐后再上。
  *
  * @author AwardIE
  */

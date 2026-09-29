@@ -51,6 +51,13 @@ public class StatsController {
         return success(statsService.laboratoryBreakdown(TenantContextHolder.getRequiredTenantId()));
     }
 
+    @GetMapping("/by-teacher")
+    @Operation(summary = "获得教师维度统计(指导获奖数/本人教师证书数,批20)")
+    @PreAuthorize("@ss.hasPermission('business:stats:query')")
+    public CommonResult<List<Map<String, Object>>> getByTeacher() {
+        return success(statsService.teacherBreakdown(TenantContextHolder.getRequiredTenantId()));
+    }
+
     @GetMapping("/by-competition")
     @Operation(summary = "获得竞赛战果 Top12")
     @PreAuthorize("@ss.hasPermission('business:stats:query')")

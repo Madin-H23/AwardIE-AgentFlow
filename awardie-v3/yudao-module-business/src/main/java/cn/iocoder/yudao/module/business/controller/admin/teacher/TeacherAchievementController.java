@@ -31,10 +31,12 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
  *
  * <p><b>关系口径 = v1 的文本匹配,不是关系表</b>:v1 源码注释明说「避免依赖
  * award_supervisors 表(导入时人名匹配失败会导致该表为空)」,实际按
- * {@code supervisor_name 含教师名} 或 {@code winner_name 含教师名且 granted_role=教师}
- * 匹配(教师名可能以逗号/顿号出现在多人名单中)。v3 沿用此口径 ——
- * 这同时是 D-04(教师指导成果只有前端过滤,教师绕过 UI 可读全租户)的服务端修复:
- * 前端改为调本端点后,过滤发生在 SQL,越权读不再可能。
+ * {@code supervisor_name 名单含教师名} 或 {@code winner_name 名单含教师名且 granted_role=教师}
+ * 匹配。v3 沿用此口径,批20 起匹配实现为 <b>FIND_IN_SET 精确成员比较</b>(名单归一化后逐个全等,
+ * 非"包含子串"),并配套<b>同名教师编号约定</b>(2026-09-29 用户拍板:同名出现时全员编号
+ * 张三1/张三2、不留裸名,编号同时落在账号昵称与奖状 supervisor_name 两处)——
+ * 这同时是 D-04(教师指导成果只有前端过滤)的服务端修复:前端改为调本端点后,
+ * 过滤发生在 SQL,越权读不再可能。
  *
  * <p><b>租户隔离是硬要求</b>:JdbcTemplate 不经 MyBatis-Plus 租户拦截器(批7 实证),
  * 每条 SQL 显式带 {@code deleted = b'0' AND tenant_id = ?}。
@@ -103,11 +105,13 @@ public class TeacherAchievementController {
      * role 取「指导+获奖」。
      */
     private List<Map<String, Object>> queryByTeacherName(String teacherName, Integer year, Long tenantId) {
-        String like = "%" + teacherName + "%";
-        // 占位符顺序:LEFT JOIN 里 1 个 tenant_id → WHERE 里 1 个 tenant_id → LIKE 1 个 → (year 有值时) 1 个 year
+        // 匹配 = FIND_IN_SET 精确成员比较(批20 升级,原为子串 LIKE):
+        // 归一化「，/、/空格」→「,」后按逗号名单逐个全等比较,因此
+        // 张三1 不命中 张三12、王五 不命中 王五平——子串误命中与同名编号(张三1/张三2)两个坑一并消灭。
+        // 占位符顺序:LEFT JOIN 里 1 个 tenant_id → WHERE 里 1 个 tenant_id → 教师名 1 个 → (year 有值时) 1 个 year
         // 两条查询同构,共用一份参数;year 为 null 时 SQL 无 year 占位符,参数也须同步少一个 ——
         // 首版 args 固定按「带 year」组装,Parameter index out of range (4 > 3),实测当场暴露。
-        java.util.List<Object> base = new java.util.ArrayList<>(List.of(tenantId, tenantId, like));
+        java.util.List<Object> base = new java.util.ArrayList<>(List.of(tenantId, tenantId, teacherName));
         if (year != null) {
             base.add(year);
         }
@@ -124,7 +128,7 @@ public class TeacherAchievementController {
                 LEFT JOIN awardie_competitions c
                        ON a.competition_id = c.id AND c.deleted = b'0' AND c.tenant_id = ?
                 WHERE a.deleted = b'0' AND a.tenant_id = ?
-                  AND REPLACE(REPLACE(a.supervisor_name, '，', ','), '、', ',') LIKE ?
+                  AND FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(a.supervisor_name, '，', ','), '、', ','), ' ', '')) > 0
                 """ + yearCond + " ORDER BY a.year DESC, a.id DESC LIMIT " + MAX_ROWS,
                 args);
         List<Map<String, Object>> asWinner = jdbcTemplate.queryForList("""
@@ -136,7 +140,7 @@ public class TeacherAchievementController {
                 LEFT JOIN awardie_competitions c
                        ON a.competition_id = c.id AND c.deleted = b'0' AND c.tenant_id = ?
                 WHERE a.deleted = b'0' AND a.tenant_id = ?
-                  AND REPLACE(REPLACE(a.winner_name, '，', ','), '、', ',') LIKE ?
+                  AND FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(a.winner_name, '，', ','), '、', ','), ' ', '')) > 0
                   AND a.granted_role = '教师'
                 """ + yearCond + " ORDER BY a.year DESC, a.id DESC LIMIT " + MAX_ROWS,
                 args);
