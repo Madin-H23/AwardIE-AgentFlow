@@ -21,7 +21,11 @@ export const submitPending = async (file: File, achievementType: string, data: s
   // `request()` 无条件 `Content-Type: headersType || default_headers`),
   // FormData 被当 JSON 序列化,后端抛 MultipartException "not a multipart request" → 500。
   // 该 bug 自批10 起潜伏,学生 GUI 提交同样中招——此前只有 MockMvc 级测试,没测过前端请求形态。
-  return await request.upload({ url: '/business/pending-achievements/submit', data: form })
+  // ⚠️ upload 与 get/post 的解包层级不同:interceptor 成功路径返回 CommonResult 整包,
+  // get/post 再取 .data,而 upload **不取** —— 这里必须手动 .data,否则调用方拿到的是
+  // {code,msg,data} 包裹层,取 id/dataJson 全是 undefined(批18 批量导入实测踩坑)。
+  const res: any = await request.upload({ url: '/business/pending-achievements/submit', data: form })
+  return res?.data
 }
 
 /** 获得我的提交分页(学生/教师门户共用;服务端强制按当前登录用户过滤) */
@@ -79,7 +83,9 @@ export const parsePending = async (file: File) => {
   const form = new FormData()
   form.append('file', file)
   // multipart 同 submitPending:必须走 upload(request.post 会强设 JSON 头)
-  return await request.upload({ url: '/business/pending-achievements/parse', data: form })
+  // 解包层级同上:upload 返回 CommonResult 整包,业务载荷在 .data
+  const res: any = await request.upload({ url: '/business/pending-achievements/parse', data: form })
+  return res?.data
 }
 
 // ==================== 教师指导成果(批16) ====================

@@ -139,6 +139,10 @@ ON DUPLICATE KEY UPDATE name = 'AwardIE 数据导出', updater = 'admin';
 INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
 VALUES (3009, 'AwardIE 业务日志', '', 2, 8, 3000, 'logs', '', 'business/logs/index', 0, 'Logs', 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 业务日志', updater = 'admin';
+
+INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, status, component_name, creator, updater)
+VALUES (3010, 'AwardIE 批量导入', '', 2, 10, 3000, 'bulk-import', '', 'business/import/index', 0, 'BulkImport', 'admin', 'admin')
+ON DUPLICATE KEY UPDATE name = 'AwardIE 批量导入', updater = 'admin';
 INSERT INTO system_menu (id, name, permission, type, sort, parent_id, status, creator, updater)
 VALUES (3071, 'AwardIE 统计查询', 'business:stats:query', 3, 1, 3007, 0, 'admin', 'admin')
 ON DUPLICATE KEY UPDATE name = 'AwardIE 统计查询', updater = 'admin';
@@ -152,7 +156,7 @@ ON DUPLICATE KEY UPDATE name = 'AwardIE 日志查询', updater = 'admin';
 -- ---- 分配给超级管理员(role_id=1;INSERT IGNORE 幂等) ----
 INSERT IGNORE INTO system_role_menu (role_id, menu_id, creator, updater, tenant_id)
 SELECT 1, id, 'admin', 'admin', 1 FROM system_menu
-WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065, 3007, 3008, 3009, 3071, 3072, 3073);
+WHERE id IN (3000, 3001, 3002, 3003, 3004, 3005, 3011, 3012, 3013, 3014, 3015, 3021, 3022, 3023, 3024, 3025, 3031, 3032, 3033, 3034, 3041, 3042, 3043, 3051, 3052, 3053, 3054, 3055, 3006, 3061, 3062, 3063, 3064, 3065, 3007, 3008, 3009, 3010, 3071, 3072, 3073);
 
 -- ============================================================================
 -- 批10:教师工作台(两个菜单,走动态路由——P4 明确不做静态路由特例)
