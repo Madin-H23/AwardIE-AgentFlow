@@ -210,6 +210,15 @@ public class ReviewService {
         row.put("date", nullable(str(data.get("date"))));
         row.put("project_title", nullable(str(data.get("project_title"))));
         row.put("competition_id", competitionId);
+        // 批21(D-16 剩余项):物化补写 year/laboratory_id/granted_role —— 此前三列恒 NULL,
+        // 统计的实验室维度把新行全归「未归属」。数据源:year 从 date 解析(v1 语义:
+        // date 是 YYYY-MM 或 YYYY-MM-DD,取前四位);laboratory_id 随提交带上
+        // (PendingAchievementDO.laboratoryId);granted_role 取抽取结果,缺省「学生」
+        // (与批12 迁移的 FILL 语义一致,教师自己的证书由提交人身份兜不了,仍以抽取为准)。
+        row.put("year", parseYear(str(data.get("date"))));
+        row.put("laboratory_id", entity.getLaboratoryId());
+        String grantedRole = str(data.get("granted_role"));
+        row.put("granted_role", grantedRole == null || grantedRole.isBlank() ? "学生" : grantedRole);
         row.put("submitter_type", entity.getSubmitterType());
         row.put("submitter_id", entity.getSubmitterId());
         row.put("submit_time", entity.getSubmitTime());
@@ -368,6 +377,21 @@ public class ReviewService {
     /** 空串转 NULL:防撞 UNIQUE 约束(同 v2) */
     private static String nullable(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    /**
+     * 从 date 字符串解析年份(v1 语义:date 是 YYYY-MM 或 YYYY-MM-DD,取前四位)。
+     * 解析不了返回 null —— 宁可空也不要猜一个错年份(统计按年分组,错年份比空年份难发现)。
+     */
+    private static Integer parseYear(String date) {
+        if (date == null || date.length() < 4) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(date.substring(0, 4));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
 }

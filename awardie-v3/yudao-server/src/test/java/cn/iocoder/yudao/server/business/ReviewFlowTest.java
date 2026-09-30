@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.Map;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -238,6 +239,42 @@ class ReviewFlowTest {
         assertThat(auditMapper.selectCountByAchievementAndAction(id, 1).intValue()).isEqualTo(1);
         assertThat(auditMapper.selectCountByAchievementAndAction(id, 6).intValue()).isEqualTo(1);
         assertThat(auditMapper.selectCountByAchievementAndAction(id, 8).intValue()).isEqualTo(1);
+    }
+
+    @Test
+    void approveMaterializesYearLaboratoryAndGrantedRole() throws Exception {
+        // 批21(D-16 剩余项):物化必须写 year(从 date 解析)/laboratory_id(随提交带)/
+        // granted_role(取抽取结果,缺省「学生」)。此前三列恒 NULL,统计实验室维度
+        // 把新行全归「未归属」。学生提交带 laboratory_id=5,granted_role 缺省。
+        long id = submit(studentToken, "award",
+                "{\"competition_name\":\"审核流测试竞赛\",\"award_level\":\"一等奖\","
+                        + "\"winner_name\":\"李四\",\"date\":\"2024-06-01\"}", withTail(JPEG, (byte) 0x41));
+        jdbcTemplate.update("UPDATE awardie_pending_achievements SET laboratory_id = 5 WHERE id = ?", id);
+        JsonNode body = review(teacherToken, id, "approve", "补维度物化");
+        assertThat(body.path("code").asInt()).isEqualTo(0);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap(
+                "SELECT year, laboratory_id, granted_role FROM awardie_awards WHERE image_hash = "
+                        + "(SELECT file_hash FROM awardie_pending_achievements WHERE id = ?)", id);
+        assertThat(row.get("year")).isEqualTo(2024);
+        assertThat(((Number) row.get("laboratory_id")).longValue()).isEqualTo(5L);
+        assertThat((String) row.get("granted_role")).isEqualTo("学生");
+    }
+
+    @Test
+    void approveMaterializesTeacherGrantedRoleFromData() throws Exception {
+        // granted_role 显式给「教师」时照抽取值写(教师证书场景);
+        // date 缺年份时 parseYear 返回 null 而不是猜
+        long id = submit(studentToken, "award",
+                "{\"competition_name\":\"审核流测试竞赛\",\"award_level\":\"一等奖\","
+                        + "\"winner_name\":\"张三1\",\"granted_role\":\"教师\",\"date\":\"2025-06\"}",
+                withTail(JPEG, (byte) 0x42));
+        review(teacherToken, id, "approve", "教师证书物化");
+        Map<String, Object> row = jdbcTemplate.queryForMap(
+                "SELECT year, granted_role FROM awardie_awards WHERE image_hash = "
+                        + "(SELECT file_hash FROM awardie_pending_achievements WHERE id = ?)", id);
+        assertThat((String) row.get("granted_role")).isEqualTo("教师");
+        assertThat(row.get("year")).isEqualTo(2025);
     }
 
     @Test
