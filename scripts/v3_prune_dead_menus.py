@@ -2,7 +2,7 @@
 """v3 死菜单剪枝:删掉 component 指向已删除前端页面的菜单,以及剪完剩下的空壳目录。
 
 用法(venv python,需 pymysql):
-    AWARDIE_MYSQL_PASSWORD=<v3 应用口令> python scripts/v3_prune_dead_menus.py [--check] [--dry-run]
+    AWARDIE_MYSQL_ROOT_PASSWORD=<root 口令> python scripts/v3_prune_dead_menus.py [--check] [--dry-run]
 
 背景:前端基座只保留 infra/system 两套(24 个示例业务模块已删,见前端 README),
 但芋道种子 SQL 里这些模块的菜单还在,component 字段指向已不存在的 .vue。
@@ -36,9 +36,13 @@ DB = dict(host='127.0.0.1', port=3307, user=os.environ.get('AWARDIE_MYSQL_USER',
 def main() -> int:
     check_only = '--check' in sys.argv
     dry_run = '--dry-run' in sys.argv
-    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
+    password = (os.environ.get('AWARDIE_MYSQL_ROOT_PASSWORD', '')
+                if os.environ.get('AWARDIE_MYSQL_USER', 'root') == 'root'
+                else os.environ.get('AWARDIE_MYSQL_PASSWORD', ''))
     if not password:
-        print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
+        _var = 'AWARDIE_MYSQL_ROOT_PASSWORD' if os.environ.get('AWARDIE_MYSQL_USER', 'root') == 'root' \
+            else 'AWARDIE_MYSQL_PASSWORD'
+        print(f'缺少环境变量 {_var}', file=sys.stderr)
         return 2
 
     conn = pymysql.connect(**DB, password=password)

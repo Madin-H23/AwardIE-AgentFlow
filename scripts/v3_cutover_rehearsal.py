@@ -8,9 +8,11 @@
 演练库用完即删,**不碰 awardie_v3**,所以可以随时重跑。
 
 用法(venv python):
-    AWARDIE_MYSQL_PASSWORD=<口令> python scripts/v3_cutover_rehearsal.py [--keep]
+    AWARDIE_MYSQL_ROOT_PASSWORD=<root 口令> python scripts/v3_cutover_rehearsal.py [--keep]
 
 --keep 保留演练库(失败时留现场排查,默认成功即删)。
+本脚本建库/喂 SQL 全走 root(D-07:root 口令走 AWARDIE_MYSQL_ROOT_PASSWORD);
+ETL 段才用应用语义的 AWARDIE_MYSQL_PASSWORD(由脚本注入随机演练口令,调用方无须设)。
 """
 import os
 import secrets
@@ -67,11 +69,13 @@ def sql(db, script, password):
 
 def main() -> int:
     keep = '--keep' in sys.argv
-    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
+    # 建库/授权/喂 SQL 全是 root 操作(D-07 拆分):root 口令走专属变量,
+    # 与应用语义的 AWARDIE_MYSQL_PASSWORD 不再共用一个名字
+    password = os.environ.get('AWARDIE_MYSQL_ROOT_PASSWORD', '')
     if not password:
-        print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
+        print('缺少环境变量 AWARDIE_MYSQL_ROOT_PASSWORD', file=sys.stderr)
         return 2
-    env = dict(os.environ, AWARDIE_MYSQL_PASSWORD=password)
+    env = dict(os.environ)
 
     def drop():
         # 账号也要回收:否则每次演练留一个账号,随机口令的账号会逐次堆积

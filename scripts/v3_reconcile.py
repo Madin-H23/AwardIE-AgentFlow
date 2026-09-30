@@ -19,7 +19,7 @@ V1 的 `achievement_audit_log` 与 V2 同源(实测 is_test 分布 1674/16/3 完
 是最不能出错的那个)。
 
 用法(venv python):
-    AWARDIE_MYSQL_PASSWORD=<口令> python scripts/v3_reconcile.py [--verbose] [--full] [--cover]
+    AWARDIE_MYSQL_ROOT_PASSWORD=<root 口令> python scripts/v3_reconcile.py [--verbose] [--full] [--cover]
     ... python scripts/v3_reconcile.py --source v2      # 回退到 PG 源
 
 退出码:0 = 对账齐平;1 = 有丢数或内容不一致(切流闸门不能过)。
@@ -64,7 +64,11 @@ PG = dict(host='127.0.0.1', port=5433, dbname='awardie_dev', user='postgres',
           password=os.environ.get('PGPASSWORD', 'postgres'))
 MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB', 'awardie_v3'),
              user=os.environ.get('AWARDIE_MYSQL_USER', 'root'),
-             password=os.environ.get('AWARDIE_MYSQL_PASSWORD', ''), charset='utf8mb4')
+             # D-07 口令拆分:口令跟账号走——root 读 ROOT 变量,其余账号读应用变量
+             #(演练链会以专用账号调本脚本,写死 root 变量曾被 rehearsal 对账层当场抓住)
+             password=(os.environ.get('AWARDIE_MYSQL_ROOT_PASSWORD', '')
+                       if os.environ.get('AWARDIE_MYSQL_USER', 'root') == 'root'
+                       else os.environ.get('AWARDIE_MYSQL_PASSWORD', '')), charset='utf8mb4')
 
 # 表 → (v2源表, 哈希用的关键字段, id 表达式)
 # 关键字段选「业务语义最重、且映射最容易写错」的那几列,不是全字段——
@@ -240,7 +244,8 @@ def fetch_my(cur, target, cols, idcol):
 def main() -> int:
     verbose = '--verbose' in sys.argv
     if not MYSQL['password']:
-        print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
+        _var = 'AWARDIE_MYSQL_ROOT_PASSWORD' if MYSQL['user'] == 'root' else 'AWARDIE_MYSQL_PASSWORD'
+        print(f'缺少环境变量 {_var}', file=sys.stderr)
         return 2
     src_con, src_label = open_source()
     src_cur = src_con.cursor()

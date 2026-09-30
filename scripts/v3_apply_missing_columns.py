@@ -12,7 +12,8 @@
 
 用法:
     python scripts/v3_apply_missing_columns.py [--check]
-    # 口令取自 AWARDIE_MYSQL_PASSWORD;目标库取自 AWARDIE_TARGET_DB(默认 awardie_v3)
+    # 应用账号口令取自 AWARDIE_MYSQL_PASSWORD;若 AWARDIE_MYSQL_USER=root 则改读
+    # AWARDIE_MYSQL_ROOT_PASSWORD(D-07 拆分,CI 即此模式);目标库取自 AWARDIE_TARGET_DB(默认 awardie_v3)
     # 本地若 mysql 不在 PATH,可设 AWARDIE_MYSQL_CLI 指向可执行文件
 
 --check 只检查不落盘,退出码 1 = 仍有缺失(挂 CI 做「全新库是否建全」的复检)。
@@ -54,16 +55,18 @@ def run_sql(statements):
     """把 SQL 文本喂给 mysql CLI。返回 (rc, 合并输出)。
 
     用哪个账号由 AWARDIE_MYSQL_USER 决定,默认 awardie_v3(应用账号,与其它 v3
-    脚本一致,适用于本地 dev 库与演练库)。
+    脚本一致,适用于本地 dev 库与演练库);口令按账号二选一(D-07 拆分):
+    root 读 AWARDIE_MYSQL_ROOT_PASSWORD,其余读 AWARDIE_MYSQL_PASSWORD。
 
-    CI 必须显式设成 root:该 job 的 AWARDIE_MYSQL_PASSWORD 装的是**应用用户**口令,
-    与 root 口令不是同一个值。这里连栽两次(先用 root + 应用口令,再用应用账号 +
-    应用口令,CI 都不认),根因是**没先看清 CI 这个 job 的凭据到底怎么发的**——
-    相邻步骤 `-uroot -proot` 天天过,那才是这个 job 的既有口径。
+    CI 显式设 AWARDIE_MYSQL_USER=root:该 job 的 AWARDIE_MYSQL_PASSWORD 装的是
+    **应用用户**口令,与 root 口令不是同一个值。这里连栽过两次(先用 root + 应用口令,
+    再用应用账号 + 应用口令,CI 都不认),根因是**没先看清 CI 这个 job 的凭据到底
+    怎么发的**——相邻步骤 `-uroot -proot` 天天过,那才是这个 job 的既有口径。
     """
     cli = find_cli()
-    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
     user = os.environ.get('AWARDIE_MYSQL_USER', 'awardie_v3')
+    password = (os.environ.get('AWARDIE_MYSQL_ROOT_PASSWORD', '') if user == 'root'
+                else os.environ.get('AWARDIE_MYSQL_PASSWORD', ''))
     cmd = [cli, '--default-character-set=utf8mb4', '-h', '127.0.0.1', '-P', '3307',
            f'-u{user}', f'-p{password}', TARGET_DB, '-N', '-B']
     p = subprocess.run(cmd, input=statements, capture_output=True, text=True,
@@ -147,8 +150,11 @@ def load_new_column_ddl():
 
 def main() -> int:
     check_only = '--check' in sys.argv
-    if not os.environ.get('AWARDIE_MYSQL_PASSWORD'):
-        print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
+    # 与 run_sql 同一账号→口令映射,缺哪个报哪个
+    _pw_var = 'AWARDIE_MYSQL_ROOT_PASSWORD' if os.environ.get('AWARDIE_MYSQL_USER', 'awardie_v3') == 'root' \
+        else 'AWARDIE_MYSQL_PASSWORD'
+    if not os.environ.get(_pw_var):
+        print(f'缺少环境变量 {_pw_var}', file=sys.stderr)
         return 2
 
     # 一次查出「本批关心的表/列」里哪些不存在

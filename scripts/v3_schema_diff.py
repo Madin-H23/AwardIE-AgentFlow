@@ -6,7 +6,7 @@
 granted_role 列` 的真实成因就在这里——**不是没实现,是表根本没有这两列**。
 
 用法(venv python,需 psycopg2 + pymysql):
-    AWARDIE_MYSQL_PASSWORD=<口令> python scripts/v3_schema_diff.py [--json]
+    AWARDIE_MYSQL_ROOT_PASSWORD=<root 口令> python scripts/v3_schema_diff.py [--json]
 
 映射:PG 表名 → v3 表名。带 v2_ 前缀的是 v2 自有命名(award_*),
 对应 v3 的 awardie_award_*;其余同名加 awardie_ 前缀。
@@ -76,9 +76,13 @@ def mysql_columns(cur, table):
 
 def main() -> int:
     as_json = '--json' in sys.argv
-    password = os.environ.get('AWARDIE_MYSQL_PASSWORD', '')
+    # D-07:口令跟账号走(root 读 ROOT 变量,其余读应用变量),与 reconcile/apply 同规则
+    _user = os.environ.get('AWARDIE_MYSQL_USER', 'root')
+    password = (os.environ.get('AWARDIE_MYSQL_ROOT_PASSWORD', '') if _user == 'root'
+                else os.environ.get('AWARDIE_MYSQL_PASSWORD', ''))
     if not password:
-        print('缺少环境变量 AWARDIE_MYSQL_PASSWORD', file=sys.stderr)
+        print(f'缺少环境变量 {"AWARDIE_MYSQL_ROOT_PASSWORD" if _user == "root" else "AWARDIE_MYSQL_PASSWORD"}',
+              file=sys.stderr)
         return 2
 
     pg = psycopg2.connect(host='127.0.0.1', port=5433, user='postgres',
