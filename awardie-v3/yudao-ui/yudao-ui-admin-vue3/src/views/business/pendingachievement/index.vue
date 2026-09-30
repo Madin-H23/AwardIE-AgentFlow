@@ -1,4 +1,9 @@
 <template>
+  <PageHeader
+    title="待审管理"
+    subtitle="提交队列:教师初审与管理员复核共用"
+  />
+
   <ContentWrap>
     <el-form
       ref="queryFormRef"
@@ -31,7 +36,13 @@
       :closable="false"
       class="mb-12px"
     />
+    <!-- UX-1 移植(批28):首载出骨架屏,翻页/重查保持转圈遮罩(表格不闪没) -->
+    <TableSkeleton
+      v-if="loading && pagedList.length === 0"
+      :rows="8"
+    />
     <el-table
+      v-else
       v-loading="loading"
       :data="pagedList"
       row-key="id"

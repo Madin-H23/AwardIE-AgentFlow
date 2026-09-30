@@ -1,4 +1,9 @@
 <template>
+  <PageHeader
+    title="成果库"
+    subtitle="已入库成果的统一检索与导出"
+  />
+
   <ContentWrap>
     <el-form
       ref="queryFormRef"

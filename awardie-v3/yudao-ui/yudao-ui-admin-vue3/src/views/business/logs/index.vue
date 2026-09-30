@@ -1,4 +1,9 @@
 <template>
+  <PageHeader
+    title="审计日志"
+    subtitle="业务动作留痕:提交 · 通过 · 驳回 · 物化"
+  />
+
   <ContentWrap>
     <el-form
       ref="queryFormRef"

@@ -1,4 +1,9 @@
 <template>
+  <PageHeader
+    title="统计分析"
+    subtitle="数据总览与多维分布"
+  />
+
   <ContentWrap>
     <div class="stats-cards">
       <el-card v-for="item in summaryCards" :key="item.label" shadow="never" class="stat-card">

@@ -1,4 +1,9 @@
 <template>
+  <PageHeader
+    title="竞赛管理"
+    subtitle="竞赛名录与白名单、观察名单维护"
+  />
+
   <ContentWrap>
     <el-form
       ref="queryFormRef"

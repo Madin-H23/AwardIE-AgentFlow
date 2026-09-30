@@ -26,7 +26,8 @@
     "lint:format:check": "prettier --check --cache --cache-location node_modules/.cache/prettier/.prettier-cache \"src/**/*.{js,ts,json,tsx,css,less,scss,vue,html,md}\"",
     "lint:style": "stylelint --fix \"./src/**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint:style:check": "stylelint \"./src/**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
-    "lint:lint-staged": "lint-staged"
+    "lint:lint-staged": "lint-staged",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@element-plus/icons-vue": "2.3.2",
@@ -94,6 +95,7 @@
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
     "@iconify/json": "^2.2.470",
+    "@playwright/test": "^1.63.0",
     "@types/jsoneditor": "^9.9.6",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^25.6.0",

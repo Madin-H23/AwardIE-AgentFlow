@@ -72,3 +72,50 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
+
+/* ---------- UX-1 移植(批28 D-12):语义徽章色板 + type scale + 页面路由过渡 ---------- */
+/* 暗色选择器沿用 v3 的 .dark 机制(v2 原版是 [data-theme='dark'],两套不通用) */
+:root {
+  --tag-success: #15803d;
+  --tag-success-bg: #f0fdf4;
+  --tag-warning: #b45309;
+  --tag-warning-bg: #fffbeb;
+  --tag-danger: #b91c1c;
+  --tag-danger-bg: #fef2f2;
+  --tag-info: #475569;
+  --tag-info-bg: #f1f5f9;
+  --fs-page: 1.15rem;
+  --fs-cap: 0.78rem;
+}
+.dark {
+  --tag-success: #4ade80;
+  --tag-success-bg: rgba(34, 197, 94, 0.12);
+  --tag-warning: #fbbf24;
+  --tag-warning-bg: rgba(217, 119, 6, 0.15);
+  --tag-danger: #f87171;
+  --tag-danger-bg: rgba(220, 38, 38, 0.15);
+  --tag-info: rgba(255, 255, 255, 0.62);
+  --tag-info-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* 页面路由过渡(150ms fade;系统"减弱动效"时禁用) */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.page-fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-enter-active,
+  .page-fade-leave-active {
+    transition: none;
+  }
+  .page-fade-enter-from {
+    transform: none;
+  }
+}

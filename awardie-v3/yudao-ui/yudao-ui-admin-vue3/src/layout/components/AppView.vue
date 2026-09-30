@@ -39,9 +39,19 @@ provide('reload', reload)
   >
     <router-view v-if="routerAlive">
       <template #default="{ Component, route }">
-        <keep-alive :include="getCaches">
-          <component :is="Component" :key="route.meta.viewKey || route.fullPath" />
-        </keep-alive>
+        <!-- UX-1 移植(批28):150ms 路由过渡;transition 必须在 keep-alive 外层,
+             key 沿用 v3 的 viewKey 语义(菜单 component_name 是缓存键,见批14 教训) -->
+        <transition
+          name="page-fade"
+          mode="out-in"
+        >
+          <keep-alive :include="getCaches">
+            <component
+              :is="Component"
+              :key="route.meta.viewKey || route.fullPath"
+            />
+          </keep-alive>
+        </transition>
       </template>
     </router-view>
   </section>

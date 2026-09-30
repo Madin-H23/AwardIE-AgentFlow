@@ -34,7 +34,18 @@
     </nav>
 
     <main class="portal-main">
-      <RouterView />
+      <!-- UX-1 移植(批28):门户三页同样吃 150ms 路由过渡(原裸 RouterView 无动画) -->
+      <RouterView v-slot="{ Component, route }">
+        <transition
+          name="page-fade"
+          mode="out-in"
+        >
+          <component
+            :is="Component"
+            :key="route.fullPath"
+          />
+        </transition>
+      </RouterView>
     </main>
   </div>
 </template>
