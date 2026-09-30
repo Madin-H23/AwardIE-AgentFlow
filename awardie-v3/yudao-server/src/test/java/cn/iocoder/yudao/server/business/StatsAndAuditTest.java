@@ -164,7 +164,9 @@ class StatsAndAuditTest {
     }
 
     private void seedSimple(String table, String name, String col, String value) {
-        switch (table) {
+        // p3c SwitchStatementRule 只认冒号语法的 default:,识别不了 Java 14 箭头语法的 default ->
+        //(下方 178 行确有 default,报"缺 default"是规则对箭头 switch 的误报),NOPMD 精确豁免本行
+        switch (table) { // NOPMD
             case "awardie_patents" -> jdbcTemplate.update(
                     "INSERT INTO awardie_patents (patent_name, tenant_id) VALUES (?, 1)", name);
             case "awardie_software_copyrights" -> jdbcTemplate.update(

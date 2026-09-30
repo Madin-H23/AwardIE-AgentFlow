@@ -99,6 +99,14 @@ jobs:
         env:
           AWARDIE_MYSQL_PASSWORD: ci-test-pass
 
+      # 批25 D-27:p3c-pmd 静态门禁(阿里 Java 规约,10 个 ali-* 规则集)。profile p3c 定义在
+      # yudao-module-business 与 yudao-server 两个 pom(自有 Java 代码所在模块);只对增量负责:
+      # failurePriority=2 = 仅优先级 1-2(强制级)失败,推荐级(3)只报不拦;gRPC 生成桩排除。
+      # 本步跑全 reactor 的 verify(增量编译,依赖 reactor 内解析,不能 -pl 单模块)。
+      - name: P3C-PMD static gate (ali rulesets, priority 1-2)
+        run: mvn -B -Pp3c verify -DskipTests
+        working-directory: awardie-v3
+
   # ---------------------------------------------------------------------------
   # 前端门禁(批10)。不依赖 MySQL/Redis——只验构建、类型、规范与路径大小写。
   #

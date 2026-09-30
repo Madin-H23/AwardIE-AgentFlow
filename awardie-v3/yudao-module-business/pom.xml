@@ -100,4 +100,62 @@
             <artifactId>yudao-spring-boot-starter-excel</artifactId>
         </dependency>
     </dependencies>
+
+    <!-- 批25 D-27:p3c-pmd 静态门禁(阿里 Java 规约,10 个 ali-* 规则集)。手动激活(-Pp3c),
+         CI 后端 job 末尾执行。口径对齐本地 p3c 纪律:只对增量负责——failurePriority=2 表示
+         仅优先级 1-2(强制级)失败构建,推荐级(3)只报不拦;生成代码(gRPC 桩,存量 457 条告警
+         皆在桩内、非人工可修)整体排除。maven-pmd-plugin 必须钉在 3.21.2(内置 PMD 6.55.0):
+         3.22+ 升到 PMD 7,p3c-pmd 2.1.1 不兼容 PMD 7,规则会加载失败。 -->
+    <profiles>
+        <profile>
+            <id>p3c</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-pmd-plugin</artifactId>
+                        <version>3.21.2</version>
+                        <configuration>
+                            <printFailingErrors>true</printFailingErrors>
+                            <failurePriority>2</failurePriority>
+                            <includeTests>true</includeTests>
+                            <excludes>
+                                <exclude>**/framework/grpc/awardie/ai/AiServiceProto.java</exclude>
+                                <exclude>**/framework/grpc/awardie/ai/AiServiceGrpc.java</exclude>
+                            </excludes>
+                            <rulesets>
+                                <ruleset>rulesets/java/ali-comment.xml</ruleset>
+                                <ruleset>rulesets/java/ali-concurrent.xml</ruleset>
+                                <ruleset>rulesets/java/ali-constant.xml</ruleset>
+                                <ruleset>rulesets/java/ali-exception.xml</ruleset>
+                                <ruleset>rulesets/java/ali-flowcontrol.xml</ruleset>
+                                <ruleset>rulesets/java/ali-naming.xml</ruleset>
+                                <ruleset>rulesets/java/ali-oop.xml</ruleset>
+                                <ruleset>rulesets/java/ali-orm.xml</ruleset>
+                                <ruleset>rulesets/java/ali-other.xml</ruleset>
+                                <ruleset>rulesets/java/ali-set.xml</ruleset>
+                            </rulesets>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.alibaba.p3c</groupId>
+                                <artifactId>p3c-pmd</artifactId>
+                                <version>2.1.1</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>p3c-check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>pmd</goal>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
