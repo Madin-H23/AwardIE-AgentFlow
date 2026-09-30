@@ -364,6 +364,26 @@ class StatsAndAuditTest {
     }
 
     @Test
+    void auditLogRejectsIllegalFilters() throws Exception {
+        // 批27 D-21:过滤参数加了校验,非法值必须 400(GlobalExceptionHandler 把
+        // MethodArgumentNotValid 映射为 HTTP 200 + code=400,断言走 body.code)
+        JsonNode badAction = call(get("/admin-api/business/logs/audit").param("actionType", "9")
+                .headers(headers(adminToken)));
+        assertThat(badAction.path("code").asInt()).isEqualTo(400);
+        JsonNode badKind = call(get("/admin-api/business/logs/audit").param("achievementKind", "hacker")
+                .headers(headers(adminToken)));
+        assertThat(badKind.path("code").asInt()).isEqualTo(400);
+        JsonNode longKeyword = call(get("/admin-api/business/logs/audit")
+                .param("operatorKeyword", "张".repeat(51))
+                .headers(headers(adminToken)));
+        assertThat(longKeyword.path("code").asInt()).isEqualTo(400);
+        // 前端 clearable 清空筛选发空串,必须照常放行,不能把合法请求拦死
+        JsonNode emptyKind = call(get("/admin-api/business/logs/audit").param("achievementKind", "")
+                .headers(headers(adminToken)));
+        assertThat(emptyKind.path("code").asInt()).isZero();
+    }
+
+    @Test
     void auditLogIsolatedByTenant() throws Exception {
         // 正样本:本租户留痕必须能查到(证明查询链路通,否则"啥都没有"也能过负样本)
         JsonNode own = call(get("/admin-api/business/logs/audit").headers(headers(adminToken)));
