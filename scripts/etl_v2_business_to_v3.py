@@ -43,7 +43,6 @@ MYSQL = dict(host='127.0.0.1', port=3307, db=os.environ.get('AWARDIE_TARGET_DB',
              password=os.environ.get('AWARDIE_MYSQL_PASSWORD', ''), charset='utf8mb4')
 CST = timezone(timedelta(hours=8))  # v2 存 +08:00,写 MySQL 前统一到本地无时区
 
-FRAME_COLS = ['creator', 'updater', 'create_time', 'update_time', 'deleted', 'tenant_id']
 
 
 # ---------------- 转换器 ----------------
@@ -234,7 +233,7 @@ FRAME_COLS = ['creator', 'updater', 'deleted', 'tenant_id']
 FRAME_VALUES = {'creator': 'etl', 'updater': 'etl', 'deleted': bytes([0]), 'tenant_id': 1}
 
 # 目标表 → v2 源表
-SOURCES = {t: t.replace('awardie_', '') for t in MAPS}
+SOURCES = {t: t.removeprefix('awardie_') for t in MAPS}
 SOURCES['awardie_achievement_audit_log'] = 'achievement_audit_log'
 AUDIT_FILTER = ' WHERE is_test = false AND is_redundant = false'
 # 无 id 列的关联表,靠 UNIQUE 键 upsert

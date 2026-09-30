@@ -197,7 +197,10 @@ CREATE TABLE IF NOT EXISTS awardie_awards (
     updater                  VARCHAR(64)  DEFAULT '' COMMENT '更新者',
     update_time              DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     deleted                  BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
-    tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号'
+    tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
+    KEY idx_award_competition (competition_id),
+    KEY idx_award_laboratory (laboratory_id),
+    KEY idx_award_year (year)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖成果表';
 
 -- ---- award_student_winners 学生获奖关联(批4 物化时建) ----
@@ -461,7 +464,8 @@ CREATE TABLE IF NOT EXISTS awardie_award_teacher_winners (
     update_time DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     deleted     BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
-    UNIQUE KEY uk_award_teacher (award_id, teacher_id)
+    UNIQUE KEY uk_award_teacher (award_id, teacher_id),
+    KEY idx_awt_teacher (teacher_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖教师关联表';
 
 -- ---- awardie_award_related_students 获奖关联学生(非获奖人) ----
@@ -475,7 +479,8 @@ CREATE TABLE IF NOT EXISTS awardie_award_related_students (
     update_time DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     deleted     BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id   BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
-    UNIQUE KEY uk_award_related (award_id, student_id)
+    UNIQUE KEY uk_award_related (award_id, student_id),
+    KEY idx_awr_student (student_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖关联学生表';
 
 -- ---- awardie_review_logs 审核流水(v2 专有表) ----
@@ -506,7 +511,8 @@ CREATE TABLE IF NOT EXISTS awardie_review_logs (
     deleted           BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id         BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
     KEY idx_review_pending (pending_id),
-    KEY idx_review_time (create_time)
+    KEY idx_review_time (create_time),
+    KEY idx_review_reviewer (reviewer_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 审核流水表(v2 存量迁移)';
 
 -- END 批11

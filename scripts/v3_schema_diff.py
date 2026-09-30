@@ -32,8 +32,10 @@ PG_TABLES = [
 TABLE_MAP = {
     'awards': 'awardie_awards',
     'award_student_winners': 'awardie_award_student_winners',
-    'award_teacher_winners': None,          # 批9 前置债:无教师关系表
-    'award_related_students': None,
+    # 批11 已建三张新表(awardie-business.sql :454/:468/:486),批20 修正过期映射:
+    # 此前 None 会让 diff 把这两张表报成「v3 无对应表需决策」的假阻塞
+    'award_teacher_winners': 'awardie_award_teacher_winners',
+    'award_related_students': 'awardie_award_related_students',
     'competitions': 'awardie_competitions',
     'laboratories': 'awardie_laboratories',
     'laboratory_instructors': 'awardie_laboratory_instructors',
@@ -42,7 +44,9 @@ TABLE_MAP = {
     'laboratory_downloads': 'awardie_laboratory_downloads',
     'laboratory_images': 'awardie_laboratory_images',
     'pending_achievements': 'awardie_pending_achievements',
-    'review_logs': 'awardie_achievement_audit_log',
+    # review_logs 是 v2 专有审核流水(批11 建同名 v3 表),不是 audit_log 的映射 ——
+    # 旧映射把两张不同语义的表对到一起,diff 会拿 audit_log 的列来比 review_logs 的列
+    'review_logs': 'awardie_review_logs',
     'achievement_audit_log': 'awardie_achievement_audit_log',
     'innovation_projects': 'awardie_innovation_projects',
     'innovation_project_students': 'awardie_innovation_project_students',
