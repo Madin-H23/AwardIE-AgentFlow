@@ -199,8 +199,7 @@ CREATE TABLE IF NOT EXISTS awardie_awards (
     deleted                  BIT(1)       DEFAULT b'0' NOT NULL COMMENT '是否删除',
     tenant_id                BIGINT       DEFAULT 0 NOT NULL COMMENT '租户编号',
     KEY idx_award_competition (competition_id),
-    KEY idx_award_laboratory (laboratory_id),
-    KEY idx_award_year (year)
+    KEY idx_award_laboratory (laboratory_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'AwardIE 获奖成果表';
 
 -- ---- award_student_winners 学生获奖关联(批4 物化时建) ----
@@ -284,6 +283,7 @@ CREATE TABLE IF NOT EXISTS awardie_other_files (
 --      幂等由 scripts/run_awardie_sql.py 容忍'列已存在'(1060)保证;CI 每次全新库故天然无此问题 ----
 -- ---- awards 补列(成果库列表用 year/is_abnormal,编辑链用组别/省份/参赛信息) ----
 ALTER TABLE awardie_awards ADD COLUMN year INT NULL COMMENT '年份(列表筛选)', ADD COLUMN edition VARCHAR(50) NULL COMMENT '届次', ADD COLUMN related_student_name VARCHAR(100) NULL COMMENT '关联学生姓名', ADD COLUMN is_abnormal BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否异常', ADD COLUMN ocr_result TEXT NULL COMMENT 'OCR 抽取结果', ADD COLUMN extract_json TEXT NULL COMMENT '结构化抽取 JSON', ADD COLUMN match_status BIT(1) NULL COMMENT '匹配状态';
+ALTER TABLE awardie_awards ADD INDEX idx_award_year (year);
 
 
 -- ---- other_files 补列(列表用 file_type/file_size/is_image) ----
