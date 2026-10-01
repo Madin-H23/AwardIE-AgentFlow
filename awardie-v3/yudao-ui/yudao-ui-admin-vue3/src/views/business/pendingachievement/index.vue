@@ -31,7 +31,7 @@
 
   <ContentWrap>
     <el-alert
-      title="「通过」会触发物化入库(写入成果库),「驳回」需填写原因,原因会写入审核留痕"
+      title="通过即写入成果库;驳回需填写原因"
       type="warning"
       :closable="false"
       class="mb-12px"
@@ -51,7 +51,10 @@
       @row-click="openDetail"
     >
       <el-table-column label="编号" prop="id" width="90" align="center" />
-      <el-table-column label="提交人" prop="submitterName" min-width="140" show-overflow-tooltip />
+      <el-table-column label="提交人" prop="submitterName" min-width="140" show-overflow-tooltip>
+        <!-- 管理员代录的历史行 submitterName 为空,兜底短横(UX-2 批29) -->
+        <template #default="scope">{{ scope.row.submitterName || '—' }}</template>
+      </el-table-column>
       <el-table-column label="提交人类型" width="110" align="center">
         <template #default="scope">
           <el-tag :type="submitterTone(scope.row.submitterType)" size="small">

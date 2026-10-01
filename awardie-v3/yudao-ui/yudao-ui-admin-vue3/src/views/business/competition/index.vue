@@ -78,20 +78,23 @@
       <el-table-column label="编号" prop="id" width="90" align="center" />
       <el-table-column label="竞赛名称" prop="competitionName" min-width="220" show-overflow-tooltip />
       <el-table-column label="主办方" prop="organizer" min-width="160" show-overflow-tooltip />
-      <el-table-column label="竞赛时间" prop="competitionTime" width="120" align="center" />
-      <el-table-column label="组别" prop="gradeCategory" min-width="140" show-overflow-tooltip />
-      <el-table-column label="白名单" width="100" align="center">
+      <el-table-column label="竞赛时间" prop="competitionTime" width="120" align="center">
+        <template #default="scope">{{ scope.row.competitionTime || '—' }}</template>
+      </el-table-column>
+      <el-table-column label="组别" prop="gradeCategory" min-width="120" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.gradeCategory || '—' }}</template>
+      </el-table-column>
+      <!-- UX-2 批29:名单列降噪——80% 行都是"否",否降为灰点不占徽章,只有"是"才亮起 -->
+      <el-table-column label="白名单" width="90" align="center">
         <template #default="scope">
-          <el-tag :type="scope.row.whiteList ? 'success' : 'info'" size="small">
-            {{ scope.row.whiteList ? '是' : '否' }}
-          </el-tag>
+          <el-tag v-if="scope.row.whiteList" type="success" size="small">白名单</el-tag>
+          <span v-else class="cell-dim">·</span>
         </template>
       </el-table-column>
-      <el-table-column label="观察名单" width="100" align="center">
+      <el-table-column label="观察名单" width="90" align="center">
         <template #default="scope">
-          <el-tag :type="scope.row.watchList ? 'warning' : 'info'" size="small">
-            {{ scope.row.watchList ? '是' : '否' }}
-          </el-tag>
+          <el-tag v-if="scope.row.watchList" type="warning" size="small">观察</el-tag>
+          <span v-else class="cell-dim">·</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" prop="createTime" width="180" align="center" :formatter="dateFormatter" />
@@ -218,5 +221,12 @@ onMounted(getList)
   border-radius: 10px;
   background: var(--el-fill-color-light);
   font-size: 12px;
+}
+</style>
+
+<style scoped>
+/* UX-2 批29:名单列"否"降为灰点 */
+.cell-dim {
+  color: var(--el-text-color-placeholder);
 }
 </style>

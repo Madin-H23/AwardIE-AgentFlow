@@ -91,7 +91,8 @@ const onCommand = async (command: string) => {
   justify-content: space-between;
   height: 52px;
   padding: 0 12px;
-  background: var(--el-color-primary);
+  /* UX-2 批29:藏蓝壳——与 admin 侧栏同族,门户不再用 EP 默认蓝当品牌底 */
+  background: #1f3a5f;
   color: #fff;
 }
 .portal-header__brand {
@@ -139,8 +140,11 @@ const onCommand = async (command: string) => {
   text-decoration: none;
 }
 .portal-nav__item.is-active {
-  color: var(--el-color-primary);
+  color: #1f3a5f;
   font-weight: 600;
+}
+.dark .portal-nav__item.is-active {
+  color: var(--el-color-primary-light-3);
 }
 .portal-main {
   flex: 1;

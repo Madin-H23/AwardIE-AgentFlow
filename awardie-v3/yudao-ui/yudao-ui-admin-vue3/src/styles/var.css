@@ -119,3 +119,39 @@ body {
     transform: none;
   }
 }
+
+/* ---------- 荣誉语义组(UX-2 批29:奖章金×藏蓝) ---------- */
+/* 金银铜只出现在「荣誉」语义上:奖项等级/名次/白名单亮起;结构色(按钮/链接/选中)维持 EP 蓝。
+   亮色前景取深金保证白底可读,暗色整体提亮;底色一律低饱和浅金/浅铜,不做重底色块。 */
+:root {
+  --medal-gold: #a16207;
+  --medal-gold-bg: #fef9c3;
+  --medal-silver: #475569;
+  --medal-silver-bg: #f1f5f9;
+  --medal-bronze: #9a3412;
+  --medal-bronze-bg: #fff7ed;
+  /* 获奖等级绦带(奖证左缘色条):国赛金/省赛蓝/区域赛青/校赛灰 */
+  --ribbon-national: #d4a017;
+  --ribbon-provincial: #2f6fab;
+  --ribbon-regional: #0f766e;
+  --ribbon-school: #94a3b8;
+}
+.dark {
+  --medal-gold: #facc15;
+  --medal-gold-bg: rgba(250, 204, 21, 0.1);
+  --medal-silver: #cbd5e1;
+  --medal-silver-bg: rgba(148, 163, 184, 0.14);
+  --medal-bronze: #fdba74;
+  --medal-bronze-bg: rgba(249, 115, 22, 0.12);
+  --ribbon-national: #eab308;
+  --ribbon-provincial: #60a5fa;
+  --ribbon-regional: #2dd4bf;
+  --ribbon-school: #64748b;
+}
+
+/* 统计大数字(serif 数字是零成本引入个性的位置;中文正文不受影响) */
+.stat-number {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}

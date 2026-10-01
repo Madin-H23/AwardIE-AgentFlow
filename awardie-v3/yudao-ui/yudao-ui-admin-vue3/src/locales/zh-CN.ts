@@ -121,8 +121,8 @@ export default {
     small: '小'
   },
   login: {
-    welcome: '欢迎使用本系统',
-    message: '开箱即用的中后台管理系统',
+    welcome: 'AwardIE 成果管理平台',
+    message: '面向高校的竞赛成果申报 · 审核 · 归档',
     tenantname: '租户名称',
     username: '用户名',
     password: '密码',

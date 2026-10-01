@@ -48,7 +48,8 @@ export const useAppStore = defineStore('app', {
       userInfo: 'userInfo', // 登录信息存储字段-建议每个项目换一个字段，避免与其他项目冲突
       sizeMap: ['default', 'large', 'small'],
       mobile: false, // 是否是移动端
-      title: import.meta.env.VITE_APP_TITLE, // 标题
+      // UX-2 批29:env 不入库(.gitignore),fallback 保证 CI/新环境品牌同为 AwardIE
+      title: import.meta.env.VITE_APP_TITLE || 'AwardIE 成果管理平台',
       pageLoading: false, // 路由跳转loading
 
       breadcrumb: true, // 面包屑

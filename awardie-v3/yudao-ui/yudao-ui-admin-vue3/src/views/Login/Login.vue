@@ -12,18 +12,28 @@
           <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.png" />
           <span class="text-20px font-bold">{{ underlineToHump(appStore.getTitle) }}</span>
         </div>
-        <!-- 左边的背景图 + 欢迎语 -->
+        <!-- 左边的背景图 + 欢迎语(UX-2 批29:芋道通用插画换成奖章徽记+真实审核流程) -->
         <div class="h-[calc(100%-60px)] flex items-center justify-center">
           <TransitionGroup
             appear
             enter-active-class="animate__animated animate__bounceInLeft"
             tag="div"
+            class="login-hero"
           >
-            <img key="1" alt="" class="w-350px" src="@/assets/svgs/login-box-bg.svg" />
-            <div key="2" class="text-3xl text-white">{{ t('login.welcome') }}</div>
-            <div key="3" class="mt-5 text-14px font-normal text-white">
+            <div key="1" class="medal-emblem" aria-hidden="true">
+              <div class="ribbon ribbon-left"></div>
+              <div class="ribbon ribbon-right"></div>
+              <div class="medal-disc"><span>✦</span></div>
+            </div>
+            <div key="2" class="hero-welcome">{{ t('login.welcome') }}</div>
+            <div key="3" class="hero-message">
               {{ t('login.message') }}
             </div>
+            <ol key="4" class="hero-steps">
+              <li><span>01</span>提交申报</li>
+              <li><span>02</span>教师初审</li>
+              <li><span>03</span>归档入库</li>
+            </ol>
           </TransitionGroup>
         </div>
       </div>
@@ -111,6 +121,94 @@ $prefix-cls: #{$namespace}-login;
       background-repeat: no-repeat;
       content: '';
     }
+  }
+}
+
+/* UX-2(批29):奖章徽记——产品的荣誉语义符号,替代上游通用插画 */
+.login-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.medal-emblem {
+  position: relative;
+  width: 150px;
+  height: 170px;
+  margin-bottom: 28px;
+}
+.medal-disc {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 6px rgba(212, 160, 23, 0.35),
+    0 0 0 14px rgba(212, 160, 23, 0.12);
+  background: radial-gradient(circle at 32% 28%, #e8c96a, #c99b2d 58%, #a87b18);
+  span {
+    color: #fff8e6;
+    font-size: 40px;
+    line-height: 1;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+}
+.ribbon {
+  position: absolute;
+  top: 96px;
+  width: 30px;
+  height: 62px;
+  border-radius: 0 0 6px 6px;
+}
+.ribbon-left {
+  left: 44px;
+  transform: rotate(-24deg);
+  background: var(--ribbon-national, #d4a017);
+}
+.ribbon-right {
+  right: 44px;
+  transform: rotate(24deg);
+  background: #23405e;
+}
+.hero-welcome {
+  color: #fff;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.hero-message {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+.hero-steps {
+  display: flex;
+  gap: 34px;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    span {
+      color: #e8c96a;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 15px;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-hero {
+    animation: none;
   }
 }
 </style>

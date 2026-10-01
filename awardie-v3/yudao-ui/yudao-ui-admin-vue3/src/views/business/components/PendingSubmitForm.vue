@@ -4,6 +4,7 @@
       <div class="section-title">成果类型</div>
       <el-radio-group v-model="form.achievementType" class="type-group" @change="onTypeChange">
         <el-radio-button v-for="t in TYPES" :key="t.value" :value="t.value">
+          <Icon :icon="t.icon" :size="14" class="mr-2px align-middle" />
           {{ t.label }}
         </el-radio-button>
       </el-radio-group>
@@ -104,11 +105,11 @@ const emit = defineEmits<{ (e: 'submitted'): void }>()
 const message = useMessage()
 
 const TYPES = [
-  { value: 'award', label: '奖状' },
-  { value: 'patent', label: '专利' },
-  { value: 'software', label: '软著' },
-  { value: 'innovation', label: '大创' },
-  { value: 'other', label: '其他文件' }
+  { value: 'award', label: '奖状', icon: 'ep:medal' },
+  { value: 'patent', label: '专利', icon: 'ep:document' },
+  { value: 'software', label: '软著', icon: 'ep:copy-document' },
+  { value: 'innovation', label: '大创', icon: 'ep:opportunity' },
+  { value: 'other', label: '其他文件', icon: 'ep:files' }
 ]
 
 /**

@@ -5,9 +5,21 @@
   />
 
   <ContentWrap>
+    <!-- UX-2 批29:成果总数是主卡(跨两列,大号 serif 数字+金色下划),其余四卡降为陪衬 -->
     <div class="stats-cards">
-      <el-card v-for="item in summaryCards" :key="item.label" shadow="never" class="stat-card">
-        <div class="stat-value">{{ item.value }}</div>
+      <el-card
+        v-for="item in summaryCards"
+        :key="item.label"
+        shadow="never"
+        class="stat-card"
+        :class="{ 'stat-card--primary': item.primary }"
+      >
+        <div
+          class="stat-value stat-number"
+          :class="{ 'stat-value--primary': item.primary }"
+        >
+          {{ item.value }}
+        </div>
         <div class="stat-label">{{ item.label }}</div>
       </el-card>
     </div>
@@ -15,8 +27,20 @@
 
   <ContentWrap v-if="categoryRows.length > 0">
     <el-table :data="categoryRows" border>
-      <el-table-column label="成果类别" prop="label" min-width="160" />
-      <el-table-column label="数量" prop="value" min-width="120" align="right" />
+      <el-table-column label="成果类别" prop="label" min-width="140" />
+      <el-table-column label="数量" prop="value" width="100" align="right" />
+      <!-- UX-2:占比条(按最大值归一),数字的表达先于数字的堆放 -->
+      <el-table-column label="占比" min-width="220">
+        <template #default="scope">
+          <div class="share-bar-wrap">
+            <div
+              class="share-bar"
+              :style="{ width: sharePercent(scope.row.value) }"
+            ></div>
+            <span class="share-text">{{ sharePercent(scope.row.value) }}</span>
+          </div>
+        </template>
+      </el-table-column>
     </el-table>
   </ContentWrap>
 
@@ -26,7 +50,11 @@
       <span class="text-12px text-gray-500">按指导教师名单精确匹配,同名教师以编号区分(如张三1/张三2)</span>
     </div>
     <el-table :data="teachers" border empty-text="暂无数据">
-      <el-table-column type="index" label="#" width="60" align="center" />
+      <el-table-column type="index" label="#" width="70" align="center">
+        <template #default="scope">
+          <span class="rank-chip" :class="`rank--${scope.$index + 1}`">{{ scope.$index + 1 }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="教师" prop="name" min-width="140" />
       <el-table-column label="指导获奖" prop="supervised" min-width="100" align="right" />
       <el-table-column label="本人教师证书" prop="ownAwards" min-width="120" align="right" />
@@ -49,7 +77,11 @@
       </el-button>
     </div>
     <el-table :data="ranking" v-loading="loading" border empty-text="暂无数据">
-      <el-table-column type="index" label="排名" width="80" align="center" />
+      <el-table-column type="index" label="排名" width="80" align="center">
+        <template #default="scope">
+          <span class="rank-chip" :class="`rank--${scope.$index + 1}`">{{ scope.$index + 1 }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="竞赛" prop="name" min-width="240" show-overflow-tooltip />
       <el-table-column label="成果数" prop="total" min-width="120" align="right" />
     </el-table>
@@ -91,12 +123,19 @@ const CATEGORY_TONES: Record<string, string> = {
 }
 
 const summaryCards = computed(() => [
-  { label: '成果总数', value: summary.value.awardsTotal ?? 0 },
+  { label: '成果总数', value: summary.value.awardsTotal ?? 0, primary: true },
   { label: '待审核', value: summary.value.pendingSubmit ?? 0 },
   { label: '用户数', value: summary.value.usersTotal ?? 0 },
   { label: '竞赛数', value: summary.value.competitionsTotal ?? 0 },
   { label: '白名单竞赛', value: summary.value.whitelist ?? 0 }
 ])
+
+/** 类别占比:按五类最大值归一为百分比(总数即五类之和,用总和更直观) */
+const sharePercent = (value: number) => {
+  const total = categoryRows.value.reduce((s, r) => s + r.value, 0)
+  if (!total) return '0%'
+  return `${Math.round((value / total) * 100)}%`
+}
 
 const laboratoryRows = computed(() =>
   Object.entries(laboratory.value).map(([name, value]) => ({
@@ -147,14 +186,71 @@ onMounted(loadData)
 .stat-card {
   text-align: center;
 }
+/* UX-2 批29:主卡——成果总数跨两列左对齐,数字放大并加金色短下划(荣誉语义的唯一亮色位) */
+.stat-card--primary {
+  grid-column: span 2;
+  text-align: left;
+}
 .stat-value {
   font-size: 28px;
   font-weight: 700;
   line-height: 1.2;
 }
+.stat-value--primary {
+  display: inline-block;
+  font-size: 44px;
+  border-bottom: 3px solid var(--medal-gold-bg);
+  padding-bottom: 2px;
+  box-shadow: inset 0 -6px 0 -3px var(--medal-gold);
+}
 .stat-label {
   margin-top: 6px;
   color: var(--el-text-color-secondary);
   font-size: 13px;
+}
+/* 类别占比条 */
+.share-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.share-bar {
+  height: 8px;
+  min-width: 2px;
+  border-radius: 4px;
+  background: var(--el-color-primary);
+  opacity: 0.85;
+  transition: width 0.3s ease;
+}
+.share-text {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+/* 名次章:前三名金银铜(UX-2 荣誉语义),其余普通数字 */
+.rank-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--el-text-color-secondary);
+}
+.rank--1 {
+  background: var(--medal-gold-bg);
+  color: var(--medal-gold);
+  font-weight: 700;
+}
+.rank--2 {
+  background: var(--medal-silver-bg);
+  color: var(--medal-silver);
+  font-weight: 700;
+}
+.rank--3 {
+  background: var(--medal-bronze-bg);
+  color: var(--medal-bronze);
+  font-weight: 700;
 }
 </style>

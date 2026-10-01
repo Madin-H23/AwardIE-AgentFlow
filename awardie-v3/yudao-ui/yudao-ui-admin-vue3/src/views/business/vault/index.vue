@@ -49,7 +49,39 @@
         :align="col.align || 'left'"
         :formatter="col.formatter"
         show-overflow-tooltip
-      />
+      >
+        <!-- UX-2 批29:荣誉语义三态单元格(仅 award tab 配置了 cell)。
+             slot 必须恒存在(挂 v-if 会让 el-table 认为整列自定义而渲染空白),
+             无 cell 的列走最后的默认分支,保持与原 prop+formatter 等价 -->
+        <template #default="scope">
+          <span
+            v-if="col.cell === 'level' && scope.row[col.prop]"
+            class="ribbon-badge"
+          >
+            <i :style="{ background: ribbonColor(scope.row[col.prop]) }"></i>
+            {{ scope.row[col.prop] }}
+          </span>
+          <span
+            v-else-if="col.cell === 'medal' && scope.row[col.prop]"
+            class="medal-chip"
+            :class="medalClass(scope.row[col.prop])"
+          >
+            {{ scope.row[col.prop] }}
+          </span>
+          <el-tag
+            v-else-if="col.cell === 'abnormal' && (scope.row[col.prop] === 1 || scope.row[col.prop] === true)"
+            type="danger"
+            size="small"
+            effect="light"
+          >
+            异常
+          </el-tag>
+          <span v-else-if="col.cell === 'abnormal'" class="cell-dim">—</span>
+          <template v-else>
+            {{ col.formatter ? col.formatter(scope.row, col, scope.row[col.prop]) : (scope.row[col.prop] ?? '-') }}
+          </template>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="160" align="center" fixed="right">
         <template #default="scope">
           <el-button
@@ -123,6 +155,23 @@ const message = useMessage()
 /** 布尔列在库里是 0/1,直接显示会看到 "0"/"1" */
 const boolFormatter = (_r: any, _c: any, v: any) =>
   v === true || v === 1 ? '是' : v === false || v === 0 ? '否' : '-'
+void boolFormatter // UX-2 后异常列改徽章渲染;保留定义供其他 tab 的布尔列扩展用
+
+/** 获奖等级 → 绦带色(奖证左缘色条语言,token 见 var.css 荣誉语义组) */
+const ribbonColor = (level: string) => {
+  if (level.includes('国')) return 'var(--ribbon-national)'
+  if (level.includes('省')) return 'var(--ribbon-provincial)'
+  if (level.includes('区域') || level.includes('市')) return 'var(--ribbon-regional)'
+  return 'var(--ribbon-school)'
+}
+
+/** 奖项 → 金银铜徽章(一等/二等/三等;其余奖项灰底不抢) */
+const medalClass = (level: string) => {
+  if (level.includes('一等')) return 'medal-chip--gold'
+  if (level.includes('二等')) return 'medal-chip--silver'
+  if (level.includes('三等')) return 'medal-chip--bronze'
+  return ''
+}
 
 /**
  * 五类成果的列与可编辑字段。列集与可编辑白名单都由后端 VaultSpec 决定,
@@ -145,6 +194,8 @@ interface VaultColumn {
   width: number
   align?: 'left' | 'center' | 'right'
   formatter?: (row: any, column: any, value: any) => string
+  /** UX-2 批29:特殊单元格渲染——level 获奖等级绦带徽章/medal 奖项金银铜/abnormal 异常高亮 */
+  cell?: 'level' | 'medal' | 'abnormal'
 }
 interface VaultTypeSpec {
   value: string
@@ -162,8 +213,8 @@ const TYPES: VaultTypeSpec[] = [
     nameColumn: 'competition_name_in_file',
     columns: [
       { prop: 'name', label: '竞赛名称', width: 220 },
-      { prop: 'competition_level', label: '获奖等级', width: 110 },
-      { prop: 'award_level', label: '奖项', width: 110 },
+      { prop: 'competition_level', label: '获奖等级', width: 110, cell: 'level' },
+      { prop: 'award_level', label: '奖项', width: 110, cell: 'medal' },
       { prop: 'winner_name', label: '获奖人', width: 140 },
       { prop: 'supervisor_name', label: '指导教师', width: 150 },
       { prop: 'year', label: '年份', width: 90, align: 'center' },
@@ -172,7 +223,7 @@ const TYPES: VaultTypeSpec[] = [
         label: '异常',
         width: 90,
         align: 'center',
-        formatter: boolFormatter
+        cell: 'abnormal'
       }
     ],
     editable: [
@@ -371,3 +422,41 @@ const submitForm = async () => {
 
 onMounted(getList)
 </script>
+
+<style scoped>
+/* UX-2 批29:荣誉语义单元格。绦带徽章=奖证左缘色条语言;金银铜只在奖项等级上 */
+.ribbon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.ribbon-badge i {
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+}
+.medal-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 18px;
+}
+.medal-chip--gold {
+  background: var(--medal-gold-bg);
+  color: var(--medal-gold);
+  font-weight: 600;
+}
+.medal-chip--silver {
+  background: var(--medal-silver-bg);
+  color: var(--medal-silver);
+}
+.medal-chip--bronze {
+  background: var(--medal-bronze-bg);
+  color: var(--medal-bronze);
+}
+.cell-dim {
+  color: var(--el-text-color-placeholder);
+}
+</style>

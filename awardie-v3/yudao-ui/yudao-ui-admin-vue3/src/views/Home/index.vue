@@ -2,7 +2,12 @@
   <div class="home">
     <div class="hero">
       <div class="hero__title">你好，{{ nickname }}</div>
-      <div class="hero__sub">{{ roleLabel }}，欢迎使用 AwardIE 成果管理平台</div>
+      <!-- UX-2 批29:问候带真实待办——有待审时给行动入口,而不是静态欢迎语 -->
+      <div v-if="pendingCount > 0" class="hero__todo">
+        有 <b>{{ pendingCount }}</b> 件成果待{{ isAdmin ? '复核' : '初审' }}
+        <el-link type="primary" @click="go(pendingPath)">去处理</el-link>
+      </div>
+      <div v-else class="hero__sub">{{ roleLabel }}，欢迎使用 AwardIE 成果管理平台</div>
     </div>
 
     <el-row :gutter="16">
@@ -22,6 +27,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
+import request from '@/config/axios'
 
 defineOptions({ name: 'Home' })
 
@@ -87,6 +93,25 @@ const entries = computed<Entry[]>(() => {
 const go = (path: string) => {
   router.push(path)
 }
+
+/**
+ * 首页问候的待办数字:教师与管理员同源(teacher-pending-list 返回数组,批9 教训的 API 面)。
+ * 失败静默(首页是仪表盘,接口挂了不该拦住入口卡)。
+ */
+const pendingCount = ref(0)
+const pendingPath = computed(() => (isAdmin.value ? '/business/pending-achievements' : '/teacher/pending'))
+onMounted(async () => {
+  if (!isTeacher.value && !isAdmin.value) return
+  try {
+    const res: any = await request.get({
+      url: '/business/pending-achievements/teacher-pending-list',
+      params: { status: 'pending' }
+    })
+    pendingCount.value = Array.isArray(res) ? res.length : (res?.total ?? 0)
+  } catch {
+    /* 静默:问候行退回欢迎语 */
+  }
+})
 </script>
 
 <style scoped>
@@ -104,6 +129,20 @@ const go = (path: string) => {
   margin-top: 4px;
   font-size: 13px;
   color: var(--el-text-color-secondary);
+}
+/* UX-2 批29:待办行动问候 */
+.hero__todo {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  b {
+    color: var(--medal-gold);
+    font-size: 15px;
+  }
+  .el-link {
+    margin-left: 6px;
+    vertical-align: baseline;
+  }
 }
 .entry-card {
   margin-bottom: 16px;
