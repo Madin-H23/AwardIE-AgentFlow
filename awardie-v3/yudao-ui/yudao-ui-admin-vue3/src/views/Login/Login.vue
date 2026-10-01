@@ -207,7 +207,9 @@ $prefix-cls: #{$namespace}-login;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .login-hero {
+  /* 容器与 animate__ 入场动画(作用于子元素)一并禁用 */
+  .login-hero,
+  .login-hero [class*='animate__'] {
     animation: none;
   }
 }

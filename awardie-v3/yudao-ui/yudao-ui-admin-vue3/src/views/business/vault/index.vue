@@ -58,7 +58,10 @@
             v-if="col.cell === 'level' && scope.row[col.prop]"
             class="ribbon-badge"
           >
-            <i :style="{ background: ribbonColor(scope.row[col.prop]) }"></i>
+            <i
+              aria-hidden="true"
+              :style="{ background: ribbonColor(scope.row[col.prop]) }"
+            ></i>
             {{ scope.row[col.prop] }}
           </span>
           <span

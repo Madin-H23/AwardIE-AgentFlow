@@ -220,7 +220,7 @@ onMounted(loadData)
   border-radius: 4px;
   background: var(--el-color-primary);
   opacity: 0.85;
-  transition: width 0.3s ease;
+  /* 不做 width 过渡:非 transform/opacity 的动画走不了合成器(准则 AN2) */
 }
 .share-text {
   color: var(--el-text-color-secondary);
