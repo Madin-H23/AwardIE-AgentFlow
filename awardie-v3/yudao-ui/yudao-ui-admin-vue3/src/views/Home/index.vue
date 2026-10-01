@@ -2,10 +2,12 @@
   <div class="home">
     <div class="hero">
       <div class="hero__title">你好，{{ nickname }}</div>
-      <!-- UX-2 批29:问候带真实待办——有待审时给行动入口,而不是静态欢迎语 -->
+      <!-- UX-2 批29:问候带真实待办——有待审时给行动入口,而不是静态欢迎语。
+           用 RouterLink 而非 el-link:el-link 无 href 渲染成 <a href=undefined>,
+           键盘不可达、无 Cmd/Ctrl+click(guidelines 合规审查抓出后改) -->
       <div v-if="pendingCount > 0" class="hero__todo">
         有 <b>{{ pendingCount }}</b> 件成果待{{ isAdmin ? '复核' : '初审' }}
-        <el-link type="primary" @click="go(pendingPath)">去处理</el-link>
+        <RouterLink :to="pendingPath" class="hero__todo-link">去处理</RouterLink>
       </div>
       <div v-else class="hero__sub">{{ roleLabel }}，欢迎使用 AwardIE 成果管理平台</div>
     </div>
@@ -139,9 +141,19 @@ onMounted(async () => {
     color: var(--medal-gold);
     font-size: 15px;
   }
-  .el-link {
-    margin-left: 6px;
-    vertical-align: baseline;
+}
+/* RouterLink 伪类链接样式(视觉对齐 EP link primary,带 focus-visible 焦点环) */
+.hero__todo-link {
+  margin-left: 6px;
+  color: var(--el-color-primary);
+  text-decoration: none;
+  &:hover {
+    color: var(--el-color-primary-light-3);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 .entry-card {

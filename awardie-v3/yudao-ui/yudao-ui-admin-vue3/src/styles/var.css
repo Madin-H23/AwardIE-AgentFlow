@@ -155,3 +155,11 @@ body {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
 }
+
+/* UX-2 批29 guidelines 合规:原生控件/滚动条随主题(EP css-vars 只管 EP 变量,不管这个) */
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
