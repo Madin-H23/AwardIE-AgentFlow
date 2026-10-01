@@ -88,13 +88,23 @@
       <el-table-column label="白名单" width="90" align="center">
         <template #default="scope">
           <el-tag v-if="scope.row.whiteList" type="success" size="small">白名单</el-tag>
-          <span v-else class="cell-dim">·</span>
+          <span
+            v-else
+            class="cell-dim"
+            aria-hidden="true"
+            >·</span
+          >
         </template>
       </el-table-column>
       <el-table-column label="观察名单" width="90" align="center">
         <template #default="scope">
           <el-tag v-if="scope.row.watchList" type="warning" size="small">观察</el-tag>
-          <span v-else class="cell-dim">·</span>
+          <span
+            v-else
+            class="cell-dim"
+            aria-hidden="true"
+            >·</span
+          >
         </template>
       </el-table-column>
       <el-table-column label="创建时间" prop="createTime" width="180" align="center" :formatter="dateFormatter" />

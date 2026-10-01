@@ -3,7 +3,6 @@
     <el-alert type="info" :closable="false" class="mb-12px">
       <template #title>
         范围:指导教师含「{{ myName || '未取到当前用户' }}」的获奖记录,以及本人作为获奖人的教师证书。
-        服务端按教师过滤(批16 修复:此前为全量拉取前端筛,越权可读)。
       </template>
     </el-alert>
 

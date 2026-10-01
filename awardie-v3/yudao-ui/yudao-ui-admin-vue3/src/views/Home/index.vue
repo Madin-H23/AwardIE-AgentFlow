@@ -5,7 +5,11 @@
       <!-- UX-2 批29:问候带真实待办——有待审时给行动入口,而不是静态欢迎语。
            用 RouterLink 而非 el-link:el-link 无 href 渲染成 <a href=undefined>,
            键盘不可达、无 Cmd/Ctrl+click(guidelines 合规审查抓出后改) -->
-      <div v-if="pendingCount > 0" class="hero__todo">
+      <div
+        v-if="pendingCount > 0"
+        class="hero__todo"
+        aria-live="polite"
+      >
         有 <b>{{ pendingCount }}</b> 件成果待{{ isAdmin ? '复核' : '初审' }}
         <RouterLink :to="pendingPath" class="hero__todo-link">去处理</RouterLink>
       </div>

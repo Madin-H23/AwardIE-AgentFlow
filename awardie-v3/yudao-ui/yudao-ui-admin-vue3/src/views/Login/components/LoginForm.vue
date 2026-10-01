@@ -21,6 +21,7 @@
             v-model="loginData.loginForm.tenantName"
             :placeholder="t('login.tenantNamePlaceholder')"
             :prefix-icon="iconHouse"
+            autocomplete="off"
             link
             type="primary"
           />
@@ -32,6 +33,8 @@
             v-model="loginData.loginForm.username"
             :placeholder="t('login.usernamePlaceholder')"
             :prefix-icon="iconAvatar"
+            autocomplete="username"
+            :spellcheck="false"
           />
         </el-form-item>
       </el-col>
@@ -41,6 +44,7 @@
             v-model="loginData.loginForm.password"
             :placeholder="t('login.passwordPlaceholder')"
             :prefix-icon="iconLock"
+            autocomplete="current-password"
             show-password
             type="password"
             @keyup.enter="getCode()"

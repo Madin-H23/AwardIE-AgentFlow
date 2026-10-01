@@ -56,3 +56,18 @@ test('学生门户三页可达(门户壳过渡接线后)', async ({ page }) => {
   await expect(page).toHaveURL(/\/portal\/certificates/)
   await expect(page.locator('.portal-main')).not.toBeEmpty()
 })
+
+test('暗色主题三代表页渲染 + 无横向溢出(批30 双态全覆盖的常态化回归)', async ({ page }) => {
+  await login(page, 'admin', 'Mayy123')
+  for (const path of ['/business/stats', '/business/vault', '/business/competitions']) {
+    await page.goto(path)
+    await page.evaluate(() => document.documentElement.classList.add('dark'))
+    await page.waitForTimeout(300)
+    // 页头在暗色下仍渲染(新 token 组 --medal-*/--ribbon-* 全部走 .dark 分支)
+    await expect(page.locator('.page-header .ph-title')).toBeVisible()
+    const over = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    )
+    expect(over, `${path} 暗色横向溢出 ${over}px`).toBeLessThanOrEqual(0)
+  }
+})

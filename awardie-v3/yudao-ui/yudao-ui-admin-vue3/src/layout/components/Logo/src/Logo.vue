@@ -77,8 +77,9 @@ watch(
       />
       <div
         v-if="show"
+        :title="title"
         :class="[
-          'ml-10px text-16px font-700',
+          'ml-10px truncate whitespace-nowrap text-16px font-700',
           {
             'text-[var(--logo-title-text-color)]': getLayoutRenderMode(layout) === 'classic',
             'text-[var(--top-header-text-color)]':

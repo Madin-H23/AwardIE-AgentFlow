@@ -185,7 +185,8 @@ onBeforeUnmount(() => {
   margin-bottom: 10px;
   padding: 12px;
   border-radius: 8px;
-  background: #fff;
+  /* 批30:不硬编码白底,暗色随 EP 变量(全覆盖目检抓出的第二处) */
+  background: var(--el-bg-color);
   box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
 }
 .cert-head {

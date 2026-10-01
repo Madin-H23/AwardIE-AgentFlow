@@ -124,7 +124,8 @@ const onCommand = async (command: string) => {
   top: 52px;
   z-index: 9;
   display: flex;
-  background: #fff;
+  /* 批30:不硬编码白底——暗色下随 EP 变量切深底(全覆盖目检抓出) */
+  background: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color-light, #e4e7ed);
 }
 .portal-nav__item {
