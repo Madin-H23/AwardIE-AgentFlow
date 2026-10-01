@@ -54,6 +54,9 @@ public interface ErrorCodeConstants {
     ErrorCode FILE_CONTENT_MISMATCH = new ErrorCode(1_003_003_002, "文件内容与扩展名不符(魔术字节校验失败)");
     /** 非法文件路径(目录穿越) */
     ErrorCode FILE_PATH_ILLEGAL = new ErrorCode(1_003_003_003, "非法文件路径");
+    /** 批31:成果文件缺失(V1 迁入行文件未迁移/物理文件被外部清理),业务码而非 500 兜底 */
+    ErrorCode PENDING_FILE_NOT_FOUND =
+            new ErrorCode(1_003_003_004, "成果文件不存在或已被清理(历史迁移数据可能未包含原始文件)");
 
     // ========== AwardIE 审核流 1_003_004_000 ==========
     /** 审核状态机非法流转(仅 pending 可审) */

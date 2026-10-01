@@ -276,6 +276,23 @@ class PendingSubmissionControllerTest {
     }
 
     @Test
+    void downloadMissingFileReportsBusinessCodeNot500() throws Exception {
+        // 批31:V1 迁入的历史行文件本就未迁移(用户已拍板接受),文件缺失必须报业务码
+        // 而非 500"服务器错误"——前端靠 code/文案做静默降级(卡片提示,不弹全局 toast)
+        JsonNode created = submit(studentToken, file("lost.jpg", JPEG_BYTES), "award", VALID_AWARD_JSON);
+        long id = created.at("/data/id").asLong();
+        PendingAchievementDO row = mapper.selectById(id);
+        row.setFilePath("files/v3/no-such-file.jpg");
+        mapper.updateById(row);
+
+        JsonNode body = call(get(BASE + "/download")
+                .param("id", String.valueOf(id))
+                .headers(authHeaders(studentToken)));
+        assertThat(body.path("code").asInt()).isEqualTo(1_003_003_004);
+        assertThat(body.path("msg").asText()).contains("文件不存在");
+    }
+
+    @Test
     void withdrawByOwnerSucceeds() throws Exception {
         JsonNode created = submit(studentToken, file("w.jpg", JPEG_BYTES), "award", VALID_AWARD_JSON);
         long id = created.at("/data/id").asLong();

@@ -49,6 +49,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
 import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.PENDING_ACHIEVEMENT_FORBIDDEN;
+import static cn.iocoder.yudao.module.business.enums.ErrorCodeConstants.PENDING_FILE_NOT_FOUND;
 
 /**
  * 管理后台 - AwardIE 待审成果提交(批4,提交流纵切面)
@@ -168,7 +169,14 @@ public class PendingAchievementController {
         if (!owner && !hasStaffRole(loginUser)) {
             throw exception(PENDING_ACHIEVEMENT_FORBIDDEN);
         }
-        byte[] bytes = fileStorage.readAll(entity.getFilePath());
+        byte[] bytes;
+        try {
+            bytes = fileStorage.readAll(entity.getFilePath());
+        } catch (java.nio.file.NoSuchFileException e) {
+            // 批31:存量死引用(V1 迁入行文件未迁移/物理文件被外部清理)报业务码而非 500 兜底,
+            // 文案对学生可读。先例=模板侧 TEMPLATE_SAMPLE_IMAGE_LOST。
+            throw exception(PENDING_FILE_NOT_FOUND);
+        }
         response.setContentType(fileStorage.contentTypeOf(entity.getFilePath()));
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + fileNameOf(entity.getFilePath()) + "\"");
