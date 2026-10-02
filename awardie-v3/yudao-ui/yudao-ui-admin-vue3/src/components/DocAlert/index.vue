@@ -20,9 +20,10 @@ const goToUrl = () => {
   window.open(props.url)
 }
 
-/** 是否开启 */
+/** 是否开启。批32:默认**关**——这些横幅指向框架上游文档(doc.iocoder.cn),
+ * 对本产品的用户是广告位;确需展示时在 env 显式设 VITE_APP_DOCALERT_ENABLE=true */
 const getEnable = () => {
-  return import.meta.env.VITE_APP_DOCALERT_ENABLE !== 'false'
+  return import.meta.env.VITE_APP_DOCALERT_ENABLE === 'true'
 }
 </script>
 <style scoped>

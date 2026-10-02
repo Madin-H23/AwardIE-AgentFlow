@@ -9,10 +9,10 @@
       >
         <!-- 左上角的 logo + 系统标题 -->
         <div class="relative flex items-center text-white">
-          <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.png" />
+          <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.svg" />
           <span class="text-20px font-bold">{{ underlineToHump(appStore.getTitle) }}</span>
         </div>
-        <!-- 左边的背景图 + 欢迎语(UX-2 批29:芋道通用插画换成奖章徽记+真实审核流程) -->
+        <!-- 左边的背景图 + 欢迎语(UX-2 批29:上游通用插画换成奖章徽记+真实审核流程) -->
         <div class="h-[calc(100%-60px)] flex items-center justify-center">
           <TransitionGroup
             appear
@@ -46,7 +46,7 @@
           style="color: var(--el-text-color-primary)"
         >
           <div class="flex items-center at-2xl:hidden at-xl:hidden">
-            <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.png" />
+            <img alt="" class="mr-10px h-48px w-48px" src="@/assets/imgs/logo.svg" />
             <span class="text-20px font-bold">{{ underlineToHump(appStore.getTitle) }}</span>
           </div>
           <div class="flex items-center justify-end space-x-10px h-48px">
@@ -59,16 +59,9 @@
           <div
             class="m-auto h-[calc(100%-60px)] w-[100%] flex items-center at-2xl:max-w-500px at-lg:max-w-500px at-md:max-w-500px at-xl:max-w-500px"
           >
-            <!-- 账号登录 -->
+            <!-- 账号登录。批32:手机/二维码/注册/SSO 四个表单组件摘除挂载(批29 已删入口,
+                 组件挂着 v-show=false 属死渲染);需恢复时从 ./components/index.ts 重新引入 -->
             <LoginForm class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
-            <!-- 手机登录 -->
-            <MobileForm class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
-            <!-- 二维码登录 -->
-            <QrCodeForm class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
-            <!-- 注册 -->
-            <RegisterForm class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
-            <!-- 三方登录 -->
-            <SSOLoginVue class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
             <!-- 忘记密码 -->
             <ForgetPasswordForm class="m-auto h-auto p-20px lt-xl:(rounded-3xl light:bg-white)" />
           </div>
@@ -85,14 +78,7 @@ import { useAppStore } from '@/store/modules/app'
 import { ThemeSwitch } from '@/layout/components/ThemeSwitch'
 import { LocaleDropdown } from '@/layout/components/LocaleDropdown'
 
-import {
-  LoginForm,
-  MobileForm,
-  QrCodeForm,
-  RegisterForm,
-  SSOLoginVue,
-  ForgetPasswordForm
-} from './components'
+import { LoginForm, ForgetPasswordForm } from './components'
 
 defineOptions({ name: 'Login' })
 

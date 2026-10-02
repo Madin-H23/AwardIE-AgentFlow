@@ -132,7 +132,8 @@ const loginData = reactive({
   captchaEnable: import.meta.env.VITE_APP_CAPTCHA_ENABLE,
   tenantEnable: import.meta.env.VITE_APP_TENANT_ENABLE,
   loginForm: {
-    tenantName: import.meta.env.VITE_APP_DEFAULT_LOGIN_TENANT || '',
+    // env 不入库(.gitignore):fallback 保证 CI/新环境预填同为 AwardIE(与 app.ts title 同款处理)
+    tenantName: import.meta.env.VITE_APP_DEFAULT_LOGIN_TENANT || 'AwardIE',
     username: import.meta.env.VITE_APP_DEFAULT_LOGIN_USERNAME || '',
     password: import.meta.env.VITE_APP_DEFAULT_LOGIN_PASSWORD || '',
     captchaVerification: '',

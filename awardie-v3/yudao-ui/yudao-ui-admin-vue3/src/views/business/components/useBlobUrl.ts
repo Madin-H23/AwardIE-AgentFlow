@@ -4,7 +4,7 @@ import { onBeforeUnmount, ref, shallowRef } from 'vue'
  * 受鉴权保护的图片回显。
  *
  * 为什么不能直接 `<img :src="url">`:
- * 1. 芋道的鉴权走 `Authorization: Bearer <token>` 头,`<img src>` 不带请求头 → 必然 401;
+ * 1. 框架鉴权走 `Authorization: Bearer <token>` 头,`<img src>` 不带请求头 → 必然 401;
  * 2. 存储根(files/v3)没有任何静态资源映射,`filePath` 是磁盘相对路径不是 URL 片段;
  * 3. 待审成果的 `/download` 端点还固定 `Content-Disposition: attachment`。
  *
