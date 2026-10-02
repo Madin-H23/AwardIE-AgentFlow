@@ -71,3 +71,18 @@ test('暗色主题三代表页渲染 + 无横向溢出(批30 双态全覆盖的�
     expect(over, `${path} 暗色横向溢出 ${over}px`).toBeLessThanOrEqual(0)
   }
 })
+
+test('品牌清理:登录页与业务页文本零框架名称(批32 常态化回归)', async ({ page }) => {
+  // 登录页(未登录态,含租户框预填值)。dev 模式 load 事件早于异步 chunk 挂载,
+  // 须 networkidle(与 login() helper 一致),否则表单未挂载即断言
+  await page.goto('/login', { waitUntil: 'networkidle' })
+  // 注意:页面上有两个 .login-form(登录表单+隐藏的忘记密码表单,同 class 名),
+  // 类选择器会撞 strict 多匹配——用语义占位符断言真实登录表单
+  await expect(page.getByPlaceholder('请输入用户名')).toBeVisible()
+  expect(await page.locator('body').innerText()).not.toContain('芋道')
+  // 业务页(登录态,含侧栏/页头/footer)
+  await login(page, 'admin', 'Mayy123')
+  await page.goto('/business/competitions')
+  await expect(page.locator('.page-header .ph-title')).toHaveText('竞赛管理')
+  expect(await page.locator('body').innerText()).not.toContain('芋道')
+})
