@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.business.service.pendingsubmission;
 
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.business.dal.dataobject.audit.AchievementAuditLogDO;
 import cn.iocoder.yudao.module.business.dal.dataobject.competition.CompetitionsDO;
 import cn.iocoder.yudao.module.business.dal.dataobject.pendingsubmission.PendingAchievementDO;
@@ -315,10 +316,15 @@ public class ReviewService {
 
     /** 插入(Map 键为代码内常量,值参数化;表名同样为代码内常量) */
     private void insertByMap(String table, Map<String, Object> row) {
-        List<String> cols = List.copyOf(row.keySet());
+        // 批33(D-31 新缺陷,批33 API 级全流实测抓出):补租户列。缺它时运行时物化行
+        // tenant_id=0(列默认值),而成果库页按当前租户 1 过滤 → 审核通过后成果库查不到;
+        // 真库存量 197 行是 ETL 写的 1,所以只在运行时物化路径出现。全部五张物化表都有该列。
+        Map<String, Object> full = new HashMap<>(row);
+        full.putIfAbsent("tenant_id", TenantContextHolder.getRequiredTenantId());
+        List<String> cols = List.copyOf(full.keySet());
         String placeholders = String.join(", ", Collections.nCopies(cols.size(), "?"));
         jdbcTemplate.update("INSERT INTO " + table + " (" + String.join(", ", cols) + ") VALUES ("
-                + placeholders + ")", row.values().toArray());
+                + placeholders + ")", full.values().toArray());
     }
 
     /** 状态机守卫:仅 pending 可审 */

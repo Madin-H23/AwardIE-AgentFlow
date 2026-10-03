@@ -229,6 +229,11 @@ class ReviewFlowTest {
         assertThat(body.at("/data/status").asText()).isEqualTo("archived");
 
         assertThat(count("awardie_awards")).isEqualTo(1);
+        // 批33 D-31 回归锁:物化行必须带租户列,否则成果库页(按当前租户过滤)查不到——
+        // 真库存量是 ETL 写的 1,运行时物化此前为 0(列默认值),仅运行时路径出现
+        Long awardsTenant = jdbcTemplate.queryForObject(
+                "SELECT tenant_id FROM awardie_awards WHERE deleted = b'0' LIMIT 1", Long.class);
+        assertThat(awardsTenant).as("物化行 tenant_id").isEqualTo(TENANT_ID);
         // 竞赛按名自动建且 is_auto_added=true(v2 同)
         CompetitionsDO comp = competitionMapper.selectByCompetitionName("审核流测试竞赛");
         assertThat(comp).isNotNull();
